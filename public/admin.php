@@ -274,7 +274,10 @@ if ($selectedSetId) {
             <div class="admin-section">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
                     <h2 style="margin: 0;">Set di Domande</h2>
-                    <button class="btn btn-primary" onclick="showCreateSetModal()">+ Nuovo Set</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-success" onclick="showAddQuestionPopup()">+ Aggiungi Domanda</button>
+                        <button class="btn btn-primary" onclick="showCreateSetModal()">+ Nuovo Set</button>
+                    </div>
                 </div>
                 
                 <!-- Search Bar -->
@@ -304,8 +307,6 @@ if ($selectedSetId) {
                                 <td><?php echo date('d/m/y', strtotime($set['id'])); ?></td>
                                 <td>
                                     <div style="display: flex; gap: 5px;">
-                                        <button class="btn-icon btn-success" onclick="showAddQuestionModal(<?php echo $set['id']; ?>, '<?php echo addslashes($set['set_name']); ?>')" title="Aggiungi domanda">+</button>
-                                        <button class="btn-icon btn-primary" onclick="viewSetRounds(<?php echo $set['id']; ?>)" title="Visualizza">👁</button>
                                         <button class="btn-icon btn-warning" onclick="editSet(<?php echo $set['id']; ?>, '<?php echo addslashes($set['set_name']); ?>', '<?php echo addslashes($set['set_description']); ?>')" title="Modifica">✎</button>
                                         <button class="btn-icon btn-danger" onclick="deleteSet(<?php echo $set['id']; ?>, '<?php echo addslashes($set['set_name']); ?>')" title="Elimina">×</button>
                                     </div>
@@ -954,6 +955,89 @@ if ($selectedSetId) {
             }
             // clickfirst doesn't need options or correct answer
         }
+        
+        // Add Question Popup Functions
+        function showAddQuestionPopup() {
+            document.getElementById('add-question-popup').style.display = 'flex';
+            updatePopupQuestionFormFields();
+        }
+        
+        function closeAddQuestionPopup() {
+            document.getElementById('add-question-popup').style.display = 'none';
+            document.getElementById('add-question-popup-form').reset();
+        }
+        
+        function updatePopupQuestionFormFields() {
+            const questionType = document.getElementById('popup-question-type').value;
+            const multipleOptions = document.getElementById('popup-multiple-choice-options');
+            const correctAnswerSelect = document.getElementById('popup-correct-answer');
+            
+            if (questionType === 'multiple') {
+                multipleOptions.style.display = 'block';
+                correctAnswerSelect.parentElement.style.display = 'block';
+                correctAnswerSelect.innerHTML = `
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                `;
+            } else if (questionType === 'truefalse') {
+                multipleOptions.style.display = 'block';
+                // Set Vero/Falso values
+                document.getElementById('popup-option-1').value = 'Vero';
+                document.getElementById('popup-option-2').value = 'Falso';
+                document.getElementById('popup-option-3').value = '';
+                document.getElementById('popup-option-4').value = '';
+                document.getElementById('popup-option-3').parentElement.style.display = 'none';
+                document.getElementById('popup-option-4').parentElement.style.display = 'none';
+                
+                correctAnswerSelect.parentElement.style.display = 'block';
+                correctAnswerSelect.innerHTML = `
+                    <option value="1">1 - Vero</option>
+                    <option value="2">2 - Falso</option>
+                `;
+            } else if (questionType === 'clickfirst') {
+                multipleOptions.style.display = 'none';
+                correctAnswerSelect.parentElement.style.display = 'none';
+            }
+        }
+        
+        // Confirm Modal
+        let confirmCallback = null;
+        
+        function confirmAddQuestion() {
+            const setSelect = document.getElementById('popup-question-set-id');
+            const setName = setSelect.options[setSelect.selectedIndex].text;
+            const questionText = document.getElementById('popup-question-text').value;
+            
+            if (!setSelect.value || !questionText) {
+                alert('Compila tutti i campi obbligatori');
+                return;
+            }
+            
+            const message = `Vuoi aggiungere questa domanda al set "${setName}"?`;
+            showConfirmModal(message, function() {
+                document.getElementById('add-question-popup-form').submit();
+            });
+        }
+        
+        function showConfirmModal(message, callback) {
+            document.getElementById('confirm-message').textContent = message;
+            document.getElementById('confirm-modal').style.display = 'flex';
+            confirmCallback = callback;
+        }
+        
+        function closeConfirmModal() {
+            document.getElementById('confirm-modal').style.display = 'none';
+            confirmCallback = null;
+        }
+        
+        function executeConfirmedAction() {
+            if (confirmCallback) {
+                confirmCallback();
+            }
+            closeConfirmModal();
+        }
     </script>
     
     <!-- Add Question Modal -->
@@ -1036,6 +1120,100 @@ if ($selectedSetId) {
                         <button type="submit" class="btn btn-success">Salva</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Question Popup (Simplified) -->
+    <div id="add-question-popup" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Aggiungi Domanda</h2>
+                <button onclick="closeAddQuestionPopup()" class="modal-close">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="add-question-popup-form" method="POST" action="">
+                    <input type="hidden" name="action" value="add_question">
+                    
+                    <div class="form-group">
+                        <label for="popup-question-set-id">Set di Domande:</label>
+                        <select id="popup-question-set-id" name="question_set_id" required>
+                            <option value="">-- Seleziona Set --</option>
+                            <?php foreach ($questionSets as $set): ?>
+                                <option value="<?php echo $set['id']; ?>"><?php echo htmlspecialchars($set['set_name']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="popup-question-type">Tipo:</label>
+                        <select id="popup-question-type" name="round_type" onchange="updatePopupQuestionFormFields()" required>
+                            <option value="multiple">Scelta Multipla (4 opzioni)</option>
+                            <option value="truefalse">Vero/Falso</option>
+                            <option value="clickfirst">Clicca per Primo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="popup-question-text">Domanda:</label>
+                        <textarea id="popup-question-text" name="question" rows="3" required placeholder="Inserisci la domanda..."></textarea>
+                    </div>
+                    
+                    <!-- Multiple Choice Options -->
+                    <div id="popup-multiple-choice-options">
+                        <div class="form-group">
+                            <label for="popup-option-1">Opzione 1:</label>
+                            <input type="text" id="popup-option-1" name="option1" placeholder="Prima risposta">
+                        </div>
+                        <div class="form-group">
+                            <label for="popup-option-2">Opzione 2:</label>
+                            <input type="text" id="popup-option-2" name="option2" placeholder="Seconda risposta">
+                        </div>
+                        <div class="form-group">
+                            <label for="popup-option-3">Opzione 3:</label>
+                            <input type="text" id="popup-option-3" name="option3" placeholder="Terza risposta">
+                        </div>
+                        <div class="form-group">
+                            <label for="popup-option-4">Opzione 4:</label>
+                            <input type="text" id="popup-option-4" name="option4" placeholder="Quarta risposta">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="popup-correct-answer">Risposta Corretta:</label>
+                        <select id="popup-correct-answer" name="correct_answer" required>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                        </select>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" onclick="closeAddQuestionPopup()" class="btn btn-secondary">Annulla</button>
+                        <button type="button" onclick="confirmAddQuestion()" class="btn btn-success">Aggiungi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirm-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>Conferma</h2>
+                <button onclick="closeConfirmModal()" class="modal-close">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <p id="confirm-message" style="text-align: center; font-size: 1.1em;"></p>
+                
+                <div class="modal-actions">
+                    <button type="button" onclick="closeConfirmModal()" class="btn btn-secondary">Annulla</button>
+                    <button type="button" onclick="executeConfirmedAction()" class="btn btn-success">Conferma</button>
+                </div>
             </div>
         </div>
     </div>
