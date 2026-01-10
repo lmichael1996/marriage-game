@@ -465,11 +465,15 @@ if ($selectedSetId) {
             });
         }
         
-        // Real-time search on keyup
+        // Search on Enter key
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('search-sets');
             if (searchInput) {
-                searchInput.addEventListener('keyup', searchSetsTable);
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchSetsTable();
+                    }
+                });
             }
         });
         
