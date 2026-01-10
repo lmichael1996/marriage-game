@@ -23,6 +23,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     
+    if ($action === 'create_set_with_questions') {
+        $setName = $_POST['set_name'] ?? '';
+        $setDescription = $_POST['set_description'] ?? '';
+        
+        // Debug log
+        error_log("Creating set: $setName with " . ($_POST['num_questions'] ?? 0) . " questions");
+        
+        if ($setName) {
+            // Create the question set
+            $setId = $questionSetModel->create($setName, $setDescription);
+            
+            if (!$setId) {
+                die("Errore nella creazione del set");
+            }
+            
+            // Add questions if provided
+            $numQuestions = intval($_POST['num_questions'] ?? 0);
+            $conn = getDBConnection();
+            
+            for ($i = 1; $i <= $numQuestions; $i++) {
+                $question = $_POST["question_$i"] ?? '';
+                $type = $_POST["type_$i"] ?? 'multiple';
+                $timer = intval($_POST["timer_$i"] ?? 30);
+                
+                if (!$question) continue;
+                
+                $option1 = $_POST["option_{$i}_1"] ?? '';
+                $option2 = $_POST["option_{$i}_2"] ?? '';
+                $option3 = $_POST["option_{$i}_3"] ?? '';
+                $option4 = $_POST["option_{$i}_4"] ?? '';
+                $correct = intval($_POST["correct_$i"] ?? 1);
+                
+                // Auto-set options for true/false
+                if ($type === 'truefalse') {
+                    $option1 = 'Vero';
+                    $option2 = 'Falso';
+                    $option3 = '';
+                    $option4 = '';
+                }
+                
+                // For clickfirst, no correct answer needed and no timer
+                if ($type === 'clickfirst') {
+                    $correct = null;
+                    $option1 = $option2 = $option3 = $option4 = '';
+                    $timer = null;
+                }
+                
+                // Insert round with question_set_id and timer
+                $stmt = $conn->prepare("INSERT INTO rounds (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
+                $stmt->bind_param("iissssssii", $setId, $i, $type, $question, $option1, $option2, $option3, $option4, $correct, $timer);
+                $stmt->execute();
+                $stmt->close();
+            }
+            
+            $conn->close();
+            
+            header('Location: admin.php?tab=sets&success=created');
+            exit;
+        }
+    }
+    
     if ($action === 'update_question_set') {
         $setId = intval($_POST['set_id'] ?? 0);
         $name = $_POST['set_name'] ?? '';
@@ -30,6 +91,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($setId && $name) {
             $questionSetModel->update($setId, $name, $description);
+            header('Location: admin.php?tab=sets&success=updated');
+            exit;
+        }
+    }
+    
+    if ($action === 'update_set_with_questions') {
+        $setId = intval($_POST['set_id'] ?? 0);
+        $setName = $_POST['set_name'] ?? '';
+        $setDescription = $_POST['set_description'] ?? '';
+        
+        if ($setId && $setName) {
+            // Update set name and description
+            $questionSetModel->update($setId, $setName, $setDescription);
+            
+            // Delete existing rounds for this set
+            $conn = getDBConnection();
+            $stmt = $conn->prepare("DELETE FROM rounds WHERE question_set_id = ?");
+            $stmt->bind_param("i", $setId);
+            $stmt->execute();
+            $stmt->close();
+            
+            // Add new questions
+            $numQuestions = intval($_POST['num_questions'] ?? 0);
+            for ($i = 1; $i <= $numQuestions; $i++) {
+                $question = $_POST["question_$i"] ?? '';
+                $type = $_POST["type_$i"] ?? 'multiple';
+                $timer = intval($_POST["timer_$i"] ?? 30);
+                
+                if (!$question) continue;
+                
+                $option1 = $_POST["option_{$i}_1"] ?? '';
+                $option2 = $_POST["option_{$i}_2"] ?? '';
+                $option3 = $_POST["option_{$i}_3"] ?? '';
+                $option4 = $_POST["option_{$i}_4"] ?? '';
+                $correct = intval($_POST["correct_$i"] ?? 1);
+                
+                // Auto-set options for true/false
+                if ($type === 'truefalse') {
+                    $option1 = 'Vero';
+                    $option2 = 'Falso';
+                    $option3 = '';
+                    $option4 = '';
+                }
+                
+                // For clickfirst, no timer
+                if ($type === 'clickfirst') {
+                    $correct = null;
+                    $option1 = $option2 = $option3 = $option4 = '';
+                    $timer = null;
+                }
+                
+                $stmt = $conn->prepare("INSERT INTO rounds (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
+                $stmt->bind_param("iissssssii", $setId, $i, $type, $question, $option1, $option2, $option3, $option4, $correct, $timer);
+                $stmt->execute();
+                $stmt->close();
+            }
+            
+            $conn->close();
             header('Location: admin.php?tab=sets&success=updated');
             exit;
         }
@@ -159,6 +278,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Handle GET requests for AJAX
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
+    $action = $_GET['action'];
+    
+    if ($action === 'get_set_questions') {
+        $setId = intval($_GET['set_id'] ?? 0);
+        if ($setId) {
+            $conn = getDBConnection();
+            $stmt = $conn->prepare("SELECT * FROM rounds WHERE question_set_id = ? ORDER BY round_number");
+            $stmt->bind_param("i", $setId);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $questions = [];
+            while ($row = $result->fetch_assoc()) {
+                $questions[] = $row;
+            }
+            $stmt->close();
+            $conn->close();
+            
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'questions' => $questions]);
+            exit;
+        }
+    }
+}
+
 // Get data
 $questionSets = $questionSetModel->getAll();
 $rounds = $roundModel->getAllRoundsWithStats();
@@ -258,10 +403,10 @@ if ($selectedSetId) {
                 </ol>
                 <p><strong>Risposta corretta:</strong> Opzione <?php echo $active_round['correct_answer']; ?></p>
                 <?php else: ?>
-                <p style="color: #ffc107; font-weight: bold;">⚡ Modalità: Il primo che clicca vince!</p>
+                <p class="clickfirst-warning">⚡ Modalità: Il primo che clicca vince!</p>
                 <?php endif; ?>
                 
-                <form method="POST" action="" style="display: inline;">
+                <form method="POST" action="" class="inline-form">
                     <input type="hidden" name="action" value="close_round">
                     <input type="hidden" name="round_id" value="<?php echo $active_round['id']; ?>">
                     <button type="submit" class="btn btn-danger">Chiudi Round</button>
@@ -272,14 +417,20 @@ if ($selectedSetId) {
         <!-- Tab: Set di Domande -->
         <div id="tab-sets" class="tab-content active">
             <div class="admin-section">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
-                    <h2 style="margin: 0;">Set di Domande</h2>
-                    <button class="btn btn-primary" onclick="showCreateSetModal()">+ Nuovo Set</button>
+                <div class="header-actions">
+                    <h2>Set di Domande</h2>
+                    <button class="btn btn-success" onclick="showCreateSetModal()">+ Nuovo Set</button>
                 </div>
                 
                 <!-- Search Bar -->
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <input type="text" id="search-sets" placeholder="Cerca set..." style="flex: 1;">
+                <div class="search-bar">
+                    <input type="text" id="search-sets" placeholder="Cerca set...">
+                    <select id="search-criteria">
+                        <option value="contains">Contiene</option>
+                        <option value="exact">Esattamente</option>
+                        <option value="starts">Inizia con</option>
+                        <option value="ends">Finisce con</option>
+                    </select>
                     <button class="btn btn-primary" onclick="searchSetsTable()">Cerca</button>
                 </div>
                 
@@ -291,7 +442,7 @@ if ($selectedSetId) {
                                 <th>Nome</th>
                                 <th>Descrizione</th>
                                 <th>Domande</th>
-                                <th>Data</th>
+                                <th>Ultima Modifica</th>
                                 <th>Azioni</th>
                             </tr>
                         </thead>
@@ -299,11 +450,11 @@ if ($selectedSetId) {
                             <?php foreach ($questionSets as $set): ?>
                             <tr data-set-id="<?php echo $set['id']; ?>">
                                 <td><strong><?php echo htmlspecialchars($set['set_name']); ?></strong></td>
-                                <td><?php echo $set['set_description'] ? htmlspecialchars($set['set_description']) : '<em style="color: #999;">Nessuna</em>'; ?></td>
+                                <td><?php echo $set['set_description'] ? htmlspecialchars($set['set_description']) : '<em class="empty-description">Nessuna</em>'; ?></td>
                                 <td><span class="badge-small"><?php echo $set['total_rounds']; ?></span></td>
-                                <td><?php echo date('d/m/y', strtotime($set['id'])); ?></td>
+                                <td><?php echo isset($set['updated_at']) ? date('d/m/Y H:i', strtotime($set['updated_at'])) : '-'; ?></td>
                                 <td>
-                                    <div style="display: flex; gap: 5px;">
+                                    <div class="action-buttons">
                                         <button class="btn-icon btn-warning" onclick="editSet(<?php echo $set['id']; ?>, '<?php echo addslashes($set['set_name']); ?>', '<?php echo addslashes($set['set_description']); ?>')" title="Modifica">✎</button>
                                         <button class="btn-icon btn-danger" onclick="deleteSet(<?php echo $set['id']; ?>, '<?php echo addslashes($set['set_name']); ?>')" title="Elimina">×</button>
                                     </div>
@@ -314,7 +465,7 @@ if ($selectedSetId) {
                     </table>
                     
                     <?php if (empty($questionSets)): ?>
-                    <div class="info-box" style="text-align: center; margin-top: 20px;">
+                    <div class="info-box loading-text">
                         <h3>Nessun set di domande</h3>
                         <p>Clicca su "Nuovo Set" per iniziare.</p>
                     </div>
@@ -329,50 +480,115 @@ if ($selectedSetId) {
         <!-- Tab: Partita -->
         <div id="tab-game" class="tab-content">
             <div class="admin-section">
-                <h2>Gestione Partite</h2>
+                <h2>Gestione Partita</h2>
                 
-                <!-- Partite Test -->
-                <div class="info-box warning">
-                    <h3>🧪 Modalità Test</h3>
-                    <p>Crea partite di test per provare i round senza salvare i risultati nel database principale.</p>
+                <!-- Step 1: Select Question Set -->
+                <div class="game-step">
+                    <h3>1. Seleziona Set di Domande</h3>
                     
-                    <div class="btn-group">
-                        <button class="btn btn-warning" onclick="createTestGame()">🎮 Crea Partita Test</button>
-                        <button class="btn btn-secondary" onclick="viewTestGames()">📋 Visualizza Partite Test</button>
-                        <button class="btn btn-danger" onclick="deleteAllTestGames()">🗑️ Elimina Tutte</button>
+                    <!-- Search Bar -->
+                    <div class="search-bar">
+                        <input type="text" id="search-game-sets" placeholder="Cerca set...">
+                        <select id="search-game-criteria">
+                            <option value="contains">Contiene</option>
+                            <option value="exact">Esattamente</option>
+                            <option value="starts">Inizia con</option>
+                            <option value="ends">Finisce con</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="searchGameSets()">Cerca</button>
+                    </div>
+                    
+                    <!-- Table View -->
+                    <div id="game-table-view">
+                        <table class="sets-table">
+                            <thead>
+                                <tr>
+                                    <th>Nome Set</th>
+                                    <th>Descrizione</th>
+                                    <th>N° Domande</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="game-sets-table-body">
+                                <?php foreach ($questionSets as $set): ?>
+                                    <?php 
+                                        $setRounds = array_filter($rounds, fn($r) => $r['question_set_id'] == $set['id']);
+                                        $questionCount = count($setRounds);
+                                    ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($set['set_name']); ?></td>
+                                        <td><?php echo htmlspecialchars($set['set_description'] ?? '-'); ?></td>
+                                        <td><?php echo $questionCount; ?></td>
+                                        <td>
+                                            <button class="btn btn-primary" onclick="selectGameSet(<?php echo $set['id']; ?>, '<?php echo addslashes($set['set_name']); ?>')">
+                                                Seleziona
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 
-                <!-- Lista Partite Test -->
-                <div id="test-games-list" style="display: none; margin-bottom: 30px;">
-                    <h3>📋 Partite Test Attive</h3>
-                    <div id="test-games-container"></div>
+                <!-- Step 2: Create Room -->
+                <div class="game-step" id="step-room" style="display: none;">
+                    <h3>2. Avvia Stanza</h3>
+                    <p>Crea una stanza per permettere ai giocatori di connettersi.</p>
+                    <div id="set-selected-info" style="margin-bottom: 15px;">
+                        <p><strong>Set selezionato:</strong> <span id="selected-set-display"></span></p>
+                    </div>
+                    <div id="room-control">
+                        <button class="btn btn-success" onclick="createRoom()" id="create-room-btn">
+                            Avvia Stanza
+                        </button>
+                        <div id="room-info" style="display: none; margin-top: 15px;">
+                            <div class="info-box">
+                                <p><strong>🎮 Stanza attiva</strong></p>
+                                <p>Codice stanza: <strong><span id="room-code">------</span></strong></p>
+                                <p>I giocatori possono ora connettersi utilizzando questo codice.</p>
+                            </div>
+                            <button class="btn btn-danger" onclick="closeRoom()" id="close-room-btn">
+                                Chiudi Stanza
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 
-                <!-- Statistiche Generali -->
-                <div class="stats-grid">
-                    <div class="stat-card blue">
-                        <div class="stat-number"><?php echo count($rounds); ?></div>
-                        <div class="stat-label">Round Totali</div>
+                <!-- Step 3: Connected Devices -->
+                <div class="game-step" id="step-devices" style="display: none;">
+                    <h3>3. Dispositivi Connessi</h3>
+                    <p>Attendi che i giocatori si connettano.</p>
+                    <div id="connected-devices-view">
+                        <table class="sets-table">
+                            <thead>
+                                <tr>
+                                    <th>Giocatore</th>
+                                    <th>Stato</th>
+                                    <th>Connesso da</th>
+                                </tr>
+                            </thead>
+                            <tbody id="connected-devices-body">
+                                <tr>
+                                    <td colspan="3" class="loading-text">
+                                        Caricamento dispositivi connessi...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="stat-card green">
-                        <div class="stat-number"><?php echo count(array_filter($rounds, fn($r) => $r['status'] === 'closed')); ?></div>
-                        <div class="stat-label">Round Completati</div>
-                    </div>
-                    <div class="stat-card red">
-                        <div class="stat-number"><?php echo count(array_filter($rounds, fn($r) => $r['status'] === 'pending')); ?></div>
-                        <div class="stat-label">Round In Attesa</div>
+                    
+                    <!-- Start Game Section -->
+                    <div id="game-start-section" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #ddd;">
+                        <div id="final-info">
+                            <p><strong>Set selezionato:</strong> <span id="selected-set-name-final"></span></p>
+                            <p><strong>Giocatori connessi:</strong> <span id="connected-count">0</span></p>
+                            <button class="btn btn-success" onclick="startGame()" id="start-game-btn" disabled style="margin-top: 15px;">
+                                Avvia Partita
+                            </button>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- Classifica Finale -->
-                <?php if (count($rounds) > 0 && count(array_filter($rounds, fn($r) => $r['status'] === 'closed')) > 0): ?>
-                <div class="info-box" style="background: #fff; border-color: #4A90E2;">
-                    <h3>🏆 Classifica Finale</h3>
-                    <p style="color: #666;">Classifica aggregata di tutti i round completati</p>
-                    <!-- TODO: Implementare logica classifica finale -->
-                </div>
-                <?php endif; ?>
             </div>
         </div>
         
@@ -402,39 +618,85 @@ if ($selectedSetId) {
         }
         
         // Question Sets Management
-        function showCreateSetModal() {
-            const name = prompt('Inserisci il nome del set di domande:');
-            if (!name) return;
-            
-            const description = prompt('Inserisci una descrizione (opzionale):');
-            
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.innerHTML = `
-                <input type="hidden" name="action" value="create_question_set">
-                <input type="hidden" name="set_name" value="${name}">
-                <input type="hidden" name="set_description" value="${description || ''}">
-            `;
-            document.body.appendChild(form);
-            form.submit();
+        function editSet(id, name, description) {
+            // Carica il set con le sue domande nel modal
+            fetch(`admin.php?action=get_set_questions&set_id=${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showEditSetModal(id, name, description, data.questions);
+                    } else {
+                        alert('Errore nel caricamento delle domande');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Errore nel caricamento del set');
+                });
         }
         
-        function editSet(id, name, description) {
-            const newName = prompt('Modifica il nome:', name);
-            if (!newName) return;
+        function showEditSetModal(setId, name, description, questions) {
+            document.getElementById('create-set-form').action = '';
+            document.querySelector('input[name="action"]').value = 'update_set_with_questions';
             
-            const newDescription = prompt('Modifica la descrizione:', description);
+            // Add hidden field for set_id
+            let setIdInput = document.getElementById('edit-set-id');
+            if (!setIdInput) {
+                setIdInput = document.createElement('input');
+                setIdInput.type = 'hidden';
+                setIdInput.id = 'edit-set-id';
+                setIdInput.name = 'set_id';
+                document.getElementById('create-set-form').appendChild(setIdInput);
+            }
+            setIdInput.value = setId;
             
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.innerHTML = `
-                <input type="hidden" name="action" value="update_question_set">
-                <input type="hidden" name="set_id" value="${id}">
-                <input type="hidden" name="set_name" value="${newName}">
-                <input type="hidden" name="set_description" value="${newDescription || ''}">
-            `;
-            document.body.appendChild(form);
-            form.submit();
+            // Fill form
+            document.getElementById('set-name').value = name;
+            document.getElementById('set-description').value = description || '';
+            document.getElementById('num-questions').value = questions.length;
+            
+            // Generate fields and fill with data
+            generateQuestionFields();
+            
+            setTimeout(() => {
+                questions.forEach((q, idx) => {
+                    const i = idx + 1;
+                    const typeSelect = document.querySelector(`select[name="type_${i}"]`);
+                    const questionTextarea = document.querySelector(`textarea[name="question_${i}"]`);
+                    
+                    if (typeSelect) typeSelect.value = q.round_type;
+                    if (questionTextarea) questionTextarea.value = q.question;
+                    
+                    updateQuestionType(i, q.round_type);
+                    
+                    setTimeout(() => {
+                        if (q.round_type === 'multiple') {
+                            const timer = document.querySelector(`input[name="timer_${i}"]`);
+                            const opt1 = document.querySelector(`input[name="option_${i}_1"]`);
+                            const opt2 = document.querySelector(`input[name="option_${i}_2"]`);
+                            const opt3 = document.querySelector(`input[name="option_${i}_3"]`);
+                            const opt4 = document.querySelector(`input[name="option_${i}_4"]`);
+                            const correct = document.querySelector(`select[name="correct_${i}"]`);
+                            
+                            if (timer) timer.value = q.timer || 30;
+                            if (opt1) opt1.value = q.option1 || '';
+                            if (opt2) opt2.value = q.option2 || '';
+                            if (opt3) opt3.value = q.option3 || '';
+                            if (opt4) opt4.value = q.option4 || '';
+                            if (correct) correct.value = q.correct_answer;
+                        } else if (q.round_type === 'truefalse') {
+                            const timer = document.querySelector(`input[name="timer_${i}"]`);
+                            const correct = document.querySelector(`select[name="correct_${i}"]`);
+                            if (timer) timer.value = q.timer || 30;
+                            if (correct) correct.value = q.correct_answer;
+                        }
+                    }, 50);
+                });
+            }, 100);
+            
+            document.querySelector('.modal-header h2').textContent = 'Modifica Set di Domande';
+            document.querySelector('.modal-actions .btn-success').textContent = 'Salva Modifiche';
+            document.getElementById('create-set-modal').style.display = 'flex';
         }
         
         function deleteSet(id, name) {
@@ -450,18 +712,86 @@ if ($selectedSetId) {
             form.submit();
         }
         
-        function viewSet(id) {
-            window.location.href = 'admin.php?tab=rounds&set=' + id;
-        }
-        
         // Search in table view
         function searchSetsTable() {
             const input = document.getElementById('search-sets').value.toLowerCase();
+            const criteria = document.getElementById('search-criteria').value;
             const rows = document.querySelectorAll('#sets-table-body tr');
+            
+            // Remove previous highlights
+            rows.forEach(row => {
+                row.querySelectorAll('td').forEach(td => {
+                    if (td.dataset.originalText) {
+                        td.innerHTML = td.dataset.originalText;
+                    }
+                });
+            });
+            
+            if (!input) {
+                rows.forEach(row => row.style.display = '');
+                return;
+            }
             
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(input) ? '' : 'none';
+                let matches = false;
+                
+                switch(criteria) {
+                    case 'exact':
+                        // Cerca esattamente nel nome del set (prima colonna)
+                        const setName = row.cells[0].textContent.toLowerCase().trim();
+                        matches = setName === input;
+                        break;
+                    case 'starts':
+                        matches = text.startsWith(input);
+                        break;
+                    case 'ends':
+                        matches = text.endsWith(input);
+                        break;
+                    case 'contains':
+                    default:
+                        matches = text.includes(input);
+                        break;
+                }
+                
+                row.style.display = matches ? '' : 'none';
+                
+                // Highlight matching text
+                if (matches && input) {
+                    row.querySelectorAll('td').forEach((td, index) => {
+                        // Skip action column (last column)
+                        if (index === row.cells.length - 1) return;
+                        
+                        if (!td.dataset.originalText) {
+                            td.dataset.originalText = td.innerHTML;
+                        }
+                        
+                        const cellText = td.textContent;
+                        const cellTextLower = cellText.toLowerCase();
+                        const regex = new RegExp(`(${input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                        
+                        let shouldHighlight = false;
+                        switch(criteria) {
+                            case 'exact':
+                                shouldHighlight = index === 0 && cellTextLower.trim() === input;
+                                break;
+                            case 'starts':
+                                shouldHighlight = cellTextLower.startsWith(input);
+                                break;
+                            case 'ends':
+                                shouldHighlight = cellTextLower.endsWith(input);
+                                break;
+                            case 'contains':
+                            default:
+                                shouldHighlight = cellTextLower.includes(input);
+                                break;
+                        }
+                        
+                        if (shouldHighlight) {
+                            td.innerHTML = cellText.replace(regex, '<mark>$1</mark>');
+                        }
+                    });
+                }
             });
         }
         
@@ -475,749 +805,544 @@ if ($selectedSetId) {
                     }
                 });
             }
-        });
-        
-        function viewSet(id) {
-            window.location.href = 'admin.php?tab=rounds&set=' + id;
-        }
-        
-        // Test Games Management
-        let testGames = [];
-        
-        function createTestGame() {
-            const gameName = prompt('Inserisci un nome per la partita test:', 'Test ' + new Date().toLocaleDateString());
-            if (!gameName) return;
             
-            const testGame = {
-                id: Date.now(),
-                name: gameName,
-                created: new Date().toLocaleString('it-IT'),
-                rounds: <?php echo count($rounds); ?>,
-                status: 'attiva'
-            };
-            
-            testGames.push(testGame);
-            localStorage.setItem('testGames', JSON.stringify(testGames));
-            
-            alert('✅ Partita test "' + gameName + '" creata con successo!');
-            viewTestGames();
-        }
-        
-        function viewTestGames() {
-            const savedGames = localStorage.getItem('testGames');
-            if (savedGames) {
-                testGames = JSON.parse(savedGames);
-            }
-            
-            const listDiv = document.getElementById('test-games-list');
-            const container = document.getElementById('test-games-container');
-            
-            if (testGames.length === 0) {
-                listDiv.style.display = 'none';
-                alert('ℹ️ Nessuna partita test disponibile.');
-                return;
-            }
-            
-            listDiv.style.display = 'block';
-            container.innerHTML = '';
-            
-            testGames.forEach((game) => {
-                const gameCard = document.createElement('div');
-                gameCard.className = 'test-game-card';
-                gameCard.innerHTML = `
-                    <div class="test-game-info">
-                        <h4>🎮 ${game.name}</h4>
-                        <p>📅 ${game.created} | 🎯 Round: ${game.rounds} | <span style="color: #27ae60; font-weight: bold;">${game.status}</span></p>
-                    </div>
-                    <div class="test-game-actions">
-                        <button class="btn btn-primary" onclick="playTestGame(${game.id})">▶️ Gioca</button>
-                        <button class="btn btn-secondary" onclick="viewTestGameStats(${game.id})">📊 Stats</button>
-                        <button class="btn btn-danger" onclick="deleteTestGame(${game.id})">🗑️</button>
-                    </div>
-                `;
-                container.appendChild(gameCard);
-            });
-        }
-        
-        function playTestGame(gameId) {
-            const game = testGames.find(g => g.id === gameId);
-            if (!game) {
-                alert('❌ Partita test non trovata!');
-                return;
-            }
-            
-            alert('🎮 Avvio partita test: ' + game.name + '\n\nIn modalità test, i risultati non verranno salvati nel database principale.');
-            // TODO: Implementare logica per giocare partita test
-            window.open('player.php?test=1&game=' + gameId, '_blank');
-        }
-        
-        function viewTestGameStats(gameId) {
-            const game = testGames.find(g => g.id === gameId);
-            if (!game) {
-                alert('❌ Partita test non trovata!');
-                return;
-            }
-            
-            alert('📊 Statistiche partita: ' + game.name + '\n\nFunzionalità in sviluppo...');
-            // TODO: Mostrare statistiche dettagliate
-        }
-        
-        function deleteTestGame(gameId) {
-            if (!confirm('⚠️ Sei sicuro di voler eliminare questa partita test?')) return;
-            
-            testGames = testGames.filter(g => g.id !== gameId);
-            localStorage.setItem('testGames', JSON.stringify(testGames));
-            
-            alert('✅ Partita test eliminata!');
-            viewTestGames();
-        }
-        
-        function deleteAllTestGames() {
-            if (!confirm('⚠️ ATTENZIONE: Vuoi eliminare TUTTE le partite test?\nQuesta azione non può essere annullata!')) return;
-            
-            testGames = [];
-            localStorage.removeItem('testGames');
-            
-            alert('✅ Tutte le partite test sono state eliminate!');
-            document.getElementById('test-games-list').style.display = 'none';
-        }
-        
-        // Round data from PHP
-        const existingRounds = <?php echo json_encode($rounds); ?>;
-        
-        // Load saved round into form
-        function loadSavedRound() {
-            const select = document.getElementById('saved_rounds');
-            const selectedOption = select.options[select.selectedIndex];
-            
-            if (!selectedOption.value) return;
-            
-            const roundData = JSON.parse(selectedOption.getAttribute('data-round'));
-            
-            // Set number of rounds to 1 to show single round form
-            document.getElementById('num_rounds').value = '1';
-            generateRoundForms();
-            
-            // Hide the bulk save button and show individual save
-            document.getElementById('save-button-container').style.display = 'none';
-            
-            // Wait for form to be generated, then populate with data
-            setTimeout(() => {
-                const roundNum = 1; // Always use 1 for editing
-                
-                // Set round type
-                document.getElementById(`round_type_${roundNum}`).value = roundData.round_type;
-                updateRoundForm(roundNum);
-                
-                // Wait for type update, then set values
-                setTimeout(() => {
-                    // Set question
-                    document.getElementById(`question_${roundNum}`).value = roundData.question;
-                    
-                    if (roundData.round_type !== 'clickfirst') {
-                        // Set options
-                        document.getElementById(`option1_${roundNum}`).value = roundData.option1 || '';
-                        document.getElementById(`option2_${roundNum}`).value = roundData.option2 || '';
-                        
-                        if (roundData.round_type === 'multiple') {
-                            document.getElementById(`option3_${roundNum}`).value = roundData.option3 || '';
-                            document.getElementById(`option4_${roundNum}`).value = roundData.option4 || '';
-                        }
-                        
-                        // Set correct answer
-                        const correctRadio = document.querySelector(`input[name="correct_answer_${roundNum}"][value="${roundData.correct_answer}"]`);
-                        if (correctRadio) correctRadio.checked = true;
-                    }
-                    
-                    // Add individual save button for editing
-                    const container = document.getElementById('rounds-container');
-                    const editButton = document.createElement('div');
-                    editButton.className = 'info-box';
-                    editButton.style.cssText = 'background: #fff3e0; border-color: #ff9800; margin-top: 20px;';
-                    editButton.innerHTML = `
-                        <button type="button" class="btn btn-warning" onclick="saveRound(${roundData.round_number}, ${roundData.id})" style="width: 100%; font-size: 1.05em; padding: 10px;">
-                            ✏️ Modifica Round #${roundData.round_number}
-                        </button>
-                    `;
-                    container.appendChild(editButton);
-                }, 100);
-            }, 100);
-        }
-        
-        // Save single round
-        function saveRound(roundNum, roundId) {
-            const formRoundNum = 1; // Always use 1 for the form fields when editing
-            const roundType = document.getElementById(`round_type_${formRoundNum}`).value;
-            const question = document.getElementById(`question_${formRoundNum}`).value;
-            
-            if (!question.trim()) {
-                alert('La domanda è obbligatoria!');
-                return;
-            }
-            
-            let formData = new FormData();
-            formData.append('action', 'save_single_round');
-            formData.append('round_number', roundNum);
-            formData.append('round_type', roundType);
-            formData.append('question', question);
-            
-            if (roundType !== 'clickfirst') {
-                const option1 = document.getElementById(`option1_${formRoundNum}`).value;
-                const option2 = document.getElementById(`option2_${formRoundNum}`).value;
-                
-                if (!option1.trim() || !option2.trim()) {
-                    alert('Le prime due opzioni sono obbligatorie!');
-                    return;
-                }
-                
-                formData.append('option1', option1);
-                formData.append('option2', option2);
-                
-                if (roundType === 'multiple') {
-                    const option3 = document.getElementById(`option3_${formRoundNum}`).value;
-                    const option4 = document.getElementById(`option4_${formRoundNum}`).value;
-                    
-                    if (!option3.trim() || !option4.trim()) {
-                        alert('Tutte e 4 le opzioni sono obbligatorie per la scelta multipla!');
-                        return;
-                    }
-                    
-                    formData.append('option3', option3);
-                    formData.append('option4', option4);
-                } else {
-                    formData.append('option3', '');
-                    formData.append('option4', '');
-                }
-                
-                const correctAnswer = document.querySelector(`input[name="correct_answer_${formRoundNum}"]:checked`);
-                if (!correctAnswer) {
-                    alert('Seleziona la risposta corretta!');
-                    return;
-                }
-                formData.append('correct_answer', correctAnswer.value);
-            } else {
-                formData.append('option1', '');
-                formData.append('option2', '');
-                formData.append('option3', '');
-                formData.append('option4', '');
-                formData.append('correct_answer', '0');
-            }
-            
-            fetch('admin.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.text())
-            .then(data => {
-                alert('✅ Round salvato con successo!');
-                location.reload();
-            })
-            .catch(error => {
-                alert('❌ Errore durante il salvataggio: ' + error);
-            });
-        }
-        
-        // Generate round forms dynamically
-        function generateRoundForms() {
-            const numRounds = parseInt(document.getElementById('num_rounds').value);
-            const container = document.getElementById('rounds-container');
-            const saveButtonContainer = document.getElementById('save-button-container');
-            
-            container.innerHTML = '';
-            
-            if (numRounds > 0) {
-                saveButtonContainer.style.display = 'block';
-                
-                for (let i = 1; i <= numRounds; i++) {
-                    const roundDiv = document.createElement('div');
-                    roundDiv.className = 'round-form-section';
-                    
-                    // Find existing round data
-                    const existingRound = existingRounds.find(r => r.round_number === i);
-                    
-                    roundDiv.innerHTML = `
-                        <h3>Round ${i}</h3>
-                        
-                        <div class="form-group">
-                            <label for="round_type_${i}">Tipo di Round:</label>
-                            <select id="round_type_${i}" name="round_type_${i}" onchange="updateRoundForm(${i})" required>
-                                <option value="multiple">Domanda a scelta multipla (4 opzioni)</option>
-                                <option value="truefalse">Vero o Falso</option>
-                                <option value="clickfirst">Clicca per primo (chi clicca prima vince)</option>
-                            </select>
-                        </div>
-                                
-                                <div class="form-group">
-                                    <label for="question_${i}">Domanda:</label>
-                                    <textarea id="question_${i}" name="question_${i}" rows="2" required placeholder="Inserisci la domanda per questo round"></textarea>
-                                </div>
-                                
-                                <div id="options_container_${i}">
-                                    <div class="form-group">
-                                        <label for="option1_${i}">Opzione 1:</label>
-                                        <input type="text" id="option1_${i}" name="option1_${i}" placeholder="Prima risposta">
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="option2_${i}">Opzione 2:</label>
-                                        <input type="text" id="option2_${i}" name="option2_${i}" placeholder="Seconda risposta">
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="option3_${i}">Opzione 3:</label>
-                                        <input type="text" id="option3_${i}" name="option3_${i}" placeholder="Terza risposta">
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="option4_${i}">Opzione 4:</label>
-                                        <input type="text" id="option4_${i}" name="option4_${i}" placeholder="Quarta risposta">
-                                    </div>
-                                    
-                                    <div class="form-group" id="correct_answer_container_${i}">
-                                        <label>Risposta Corretta:</label>
-                                        <div class="answer-buttons">
-                                            <label class="answer-option">
-                                                <input type="radio" name="correct_answer_${i}" value="1">
-                                                <span>Opzione 1</span>
-                                            </label>
-                                            <label class="answer-option">
-                                                <input type="radio" name="correct_answer_${i}" value="2">
-                                                <span>Opzione 2</span>
-                                            </label>
-                                            <label class="answer-option">
-                                                <input type="radio" name="correct_answer_${i}" value="3">
-                                                <span>Opzione 3</span>
-                                            </label>
-                                            <label class="answer-option">
-                                                <input type="radio" name="correct_answer_${i}" value="4">
-                                                <span>Opzione 4</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                    `;
-                    container.appendChild(roundDiv);
-                }
-            } else {
-                saveButtonContainer.style.display = 'none';
-            }
-        }
-        
-        function updateRoundForm(roundNum) {
-            const roundType = document.getElementById(`round_type_${roundNum}`).value;
-            const container = document.getElementById(`options_container_${roundNum}`);
-            
-            if (roundType === 'clickfirst') {
-                // Clicca per primo - nascondi tutto
-                container.innerHTML = `
-                    <div class="info-box warning">
-                        <p style="margin: 0; font-weight: 600;">⚡ Modalità "Clicca per primo": Il primo giocatore che clicca vince!</p>
-                        <p style="margin: 5px 0 0 0; font-size: 0.9em;">Non serve impostare opzioni o risposta corretta.</p>
-                    </div>
-                `;
-            } else if (roundType === 'truefalse') {
-                // Vero o Falso - 2 opzioni
-                container.innerHTML = `
-                    <div class="form-group">
-                        <label for="option1_${roundNum}">Opzione Vero:</label>
-                        <input type="text" id="option1_${roundNum}" name="option1_${roundNum}" value="Vero" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="option2_${roundNum}">Opzione Falso:</label>
-                        <input type="text" id="option2_${roundNum}" name="option2_${roundNum}" value="Falso" required>
-                    </div>
-                    
-                    <input type="hidden" id="option3_${roundNum}" name="option3_${roundNum}" value="">
-                    <input type="hidden" id="option4_${roundNum}" name="option4_${roundNum}" value="">
-                    
-                    <div class="form-group">
-                        <label>Risposta Corretta:</label>
-                        <div class="answer-buttons">
-                            <label class="answer-option">
-                                <input type="radio" name="correct_answer_${roundNum}" value="1" required>
-                                <span>Vero</span>
-                            </label>
-                            <label class="answer-option">
-                                <input type="radio" name="correct_answer_${roundNum}" value="2">
-                                <span>Falso</span>
-                            </label>
-                        </div>
-                    </div>
-                `;
-            } else {
-                // Scelta multipla - 4 opzioni
-                container.innerHTML = `
-                    <div class="form-group">
-                        <label for="option1_${roundNum}">Opzione 1:</label>
-                        <input type="text" id="option1_${roundNum}" name="option1_${roundNum}" required placeholder="Prima risposta">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="option2_${roundNum}">Opzione 2:</label>
-                        <input type="text" id="option2_${roundNum}" name="option2_${roundNum}" required placeholder="Seconda risposta">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="option3_${roundNum}">Opzione 3:</label>
-                        <input type="text" id="option3_${roundNum}" name="option3_${roundNum}" required placeholder="Terza risposta">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="option4_${roundNum}">Opzione 4:</label>
-                        <input type="text" id="option4_${roundNum}" name="option4_${roundNum}" required placeholder="Quarta risposta">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Risposta Corretta:</label>
-                        <div class="answer-buttons">
-                            <label class="answer-option">
-                                <input type="radio" name="correct_answer_${roundNum}" value="1" required>
-                                <span>Opzione 1</span>
-                            </label>
-                            <label class="answer-option">
-                                <input type="radio" name="correct_answer_${roundNum}" value="2">
-                                <span>Opzione 2</span>
-                            </label>
-                            <label class="answer-option">
-                                <input type="radio" name="correct_answer_${roundNum}" value="3">
-                                <span>Opzione 3</span>
-                            </label>
-                            <label class="answer-option">
-                                <input type="radio" name="correct_answer_${roundNum}" value="4">
-                                <span>Opzione 4</span>
-                            </label>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-        
-        // Add Question Modal
-        function showAddQuestionModal(setId, setName) {
-            document.getElementById('add-question-set-id').value = setId;
-            document.getElementById('add-question-set-name').textContent = setName;
-            document.getElementById('add-question-modal').style.display = 'flex';
-            document.getElementById('question-type-select').value = 'multiple';
-            updateQuestionFormFields();
-        }
-        
-        function closeAddQuestionModal() {
-            document.getElementById('add-question-modal').style.display = 'none';
-            document.getElementById('add-question-form').reset();
-        }
-        
-        // Close modal when clicking outside
-        document.addEventListener('DOMContentLoaded', function() {
-            const modal = document.getElementById('add-question-modal');
-            if (modal) {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) {
-                        closeAddQuestionModal();
+            const searchGameInput = document.getElementById('search-game-sets');
+            if (searchGameInput) {
+                searchGameInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchGameSets();
                     }
                 });
             }
         });
         
-        function updateQuestionFormFields() {
-            const questionType = document.getElementById('question-type-select').value;
-            const multipleOptions = document.getElementById('multiple-choice-options');
-            const trueFalseOptions = document.getElementById('true-false-options');
-            const correctAnswerSection = document.getElementById('correct-answer-section');
+        // Search in game sets table
+        function searchGameSets() {
+            const input = document.getElementById('search-game-sets').value.toLowerCase();
+            const criteria = document.getElementById('search-game-criteria').value;
+            const rows = document.querySelectorAll('#game-sets-table-body tr');
             
-            // Hide all
-            multipleOptions.style.display = 'none';
-            trueFalseOptions.style.display = 'none';
-            correctAnswerSection.style.display = 'none';
+            // Remove previous highlights
+            rows.forEach(row => {
+                row.querySelectorAll('td').forEach(td => {
+                    if (td.dataset.originalText) {
+                        td.innerHTML = td.dataset.originalText;
+                    }
+                });
+            });
             
-            if (questionType === 'multiple') {
-                multipleOptions.style.display = 'block';
-                correctAnswerSection.style.display = 'block';
-                document.getElementById('correct-answer-label').textContent = 'Risposta Corretta (1-4):';
-                // Update select options
-                document.getElementById('correct-answer').innerHTML = `
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                `;
-            } else if (questionType === 'truefalse') {
-                trueFalseOptions.style.display = 'block';
-                correctAnswerSection.style.display = 'block';
-                document.getElementById('correct-answer-label').textContent = 'Risposta Corretta:';
-                // Set default values for True/False
-                document.getElementById('option-tf-1').value = 'Vero';
-                document.getElementById('option-tf-2').value = 'Falso';
-                // Update select options
-                document.getElementById('correct-answer').innerHTML = `
-                    <option value="1">1 - Vero</option>
-                    <option value="2">2 - Falso</option>
-                `;
-            }
-            // clickfirst doesn't need options or correct answer
-        }
-        
-        // Add Question Popup Functions
-        function showAddQuestionPopup() {
-            document.getElementById('add-question-popup').style.display = 'flex';
-            updatePopupQuestionFormFields();
-        }
-        
-        function closeAddQuestionPopup() {
-            document.getElementById('add-question-popup').style.display = 'none';
-            document.getElementById('add-question-popup-form').reset();
-        }
-        
-        function updatePopupQuestionFormFields() {
-            const questionType = document.getElementById('popup-question-type').value;
-            const multipleOptions = document.getElementById('popup-multiple-choice-options');
-            const correctAnswerSelect = document.getElementById('popup-correct-answer');
-            
-            if (questionType === 'multiple') {
-                multipleOptions.style.display = 'block';
-                correctAnswerSelect.parentElement.style.display = 'block';
-                correctAnswerSelect.innerHTML = `
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                `;
-            } else if (questionType === 'truefalse') {
-                multipleOptions.style.display = 'block';
-                // Set Vero/Falso values
-                document.getElementById('popup-option-1').value = 'Vero';
-                document.getElementById('popup-option-2').value = 'Falso';
-                document.getElementById('popup-option-3').value = '';
-                document.getElementById('popup-option-4').value = '';
-                document.getElementById('popup-option-3').parentElement.style.display = 'none';
-                document.getElementById('popup-option-4').parentElement.style.display = 'none';
-                
-                correctAnswerSelect.parentElement.style.display = 'block';
-                correctAnswerSelect.innerHTML = `
-                    <option value="1">1 - Vero</option>
-                    <option value="2">2 - Falso</option>
-                `;
-            } else if (questionType === 'clickfirst') {
-                multipleOptions.style.display = 'none';
-                correctAnswerSelect.parentElement.style.display = 'none';
-            }
-        }
-        
-        // Confirm Modal
-        let confirmCallback = null;
-        
-        function confirmAddQuestion() {
-            const setSelect = document.getElementById('popup-question-set-id');
-            const setName = setSelect.options[setSelect.selectedIndex].text;
-            const questionText = document.getElementById('popup-question-text').value;
-            
-            if (!setSelect.value || !questionText) {
-                alert('Compila tutti i campi obbligatori');
+            if (!input) {
+                rows.forEach(row => row.style.display = '');
                 return;
             }
             
-            const message = `Vuoi aggiungere questa domanda al set "${setName}"?`;
-            showConfirmModal(message, function() {
-                document.getElementById('add-question-popup-form').submit();
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                let matches = false;
+                
+                switch(criteria) {
+                    case 'exact':
+                        const setName = row.cells[0].textContent.toLowerCase().trim();
+                        matches = setName === input;
+                        break;
+                    case 'starts':
+                        matches = text.startsWith(input);
+                        break;
+                    case 'ends':
+                        matches = text.endsWith(input);
+                        break;
+                    case 'contains':
+                    default:
+                        matches = text.includes(input);
+                        break;
+                }
+                
+                row.style.display = matches ? '' : 'none';
+                
+                // Highlight matching text
+                if (matches && input) {
+                    row.querySelectorAll('td').forEach((td, index) => {
+                        // Skip action column (last column)
+                        if (index === row.cells.length - 1) return;
+                        
+                        if (!td.dataset.originalText) {
+                            td.dataset.originalText = td.innerHTML;
+                        }
+                        
+                        const cellText = td.textContent;
+                        const cellTextLower = cellText.toLowerCase();
+                        const regex = new RegExp(`(${input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                        
+                        let shouldHighlight = false;
+                        switch(criteria) {
+                            case 'exact':
+                                shouldHighlight = index === 0 && cellTextLower.trim() === input;
+                                break;
+                            case 'starts':
+                                shouldHighlight = cellTextLower.startsWith(input);
+                                break;
+                            case 'ends':
+                                shouldHighlight = cellTextLower.endsWith(input);
+                                break;
+                            case 'contains':
+                            default:
+                                shouldHighlight = cellTextLower.includes(input);
+                                break;
+                        }
+                        
+                        if (shouldHighlight) {
+                            td.innerHTML = cellText.replace(regex, '<mark>$1</mark>');
+                        }
+                    });
+                }
             });
         }
         
-        function showConfirmModal(message, callback) {
-            document.getElementById('confirm-message').textContent = message;
-            document.getElementById('confirm-modal').style.display = 'flex';
-            confirmCallback = callback;
+        // Game management variables
+        let selectedSetId = null;
+        let selectedSetName = '';
+        let roomActive = false;
+        let roomCode = '';
+        
+        // Create room
+        function createRoom() {
+            // Generate random room code
+            roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+            roomActive = true;
+            
+            // Save room code on server
+            fetch('/src/api/create_room.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    room_code: roomCode
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update UI
+                    document.getElementById('create-room-btn').style.display = 'none';
+                    document.getElementById('room-info').style.display = 'block';
+                    document.getElementById('room-code').textContent = roomCode;
+                    
+                    // Show next steps
+                    document.getElementById('step-devices').style.display = 'block';
+                    
+                    // Start device polling
+                    if (!devicesInterval) {
+                        updateConnectedDevices();
+                        devicesInterval = setInterval(updateConnectedDevices, 1000);
+                    }
+                } else {
+                    alert('Errore nella creazione della stanza');
+                }
+            })
+            .catch(error => {
+                console.error('Error creating room:', error);
+                alert('Errore nella creazione della stanza');
+            });
         }
         
-        function closeConfirmModal() {
-            document.getElementById('confirm-modal').style.display = 'none';
-            confirmCallback = null;
-        }
-        
-        function executeConfirmedAction() {
-            if (confirmCallback) {
-                confirmCallback();
+        // Close room
+        function closeRoom() {
+            if (confirm('Vuoi chiudere la stanza? Tutti i giocatori verranno disconnessi.')) {
+                // Call API to signal room closure
+                fetch('/src/api/close_room.php', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        roomActive = false;
+                        roomCode = '';
+                        
+                        // Update UI
+                        document.getElementById('create-room-btn').style.display = 'inline-block';
+                        document.getElementById('room-info').style.display = 'none';
+                        
+                        // Hide next steps
+                        document.getElementById('step-devices').style.display = 'none';
+                        
+                        // Reset selection
+                        selectedSetId = null;
+                        selectedSetName = '';
+                        
+                        // Stop device polling
+                        if (devicesInterval) {
+                            clearInterval(devicesInterval);
+                            devicesInterval = null;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error closing room:', error);
+                    alert('Errore nella chiusura della stanza');
+                });
             }
-            closeConfirmModal();
+        }
+        
+        // Select game set
+        function selectGameSet(setId, setName) {
+            selectedSetId = setId;
+            selectedSetName = setName;
+            
+            // Remove previous selection highlight
+            document.querySelectorAll('#game-sets-table-body tr').forEach(row => {
+                row.classList.remove('selected-row');
+            });
+            
+            // Add selection highlight to clicked row
+            event.target.closest('tr').classList.add('selected-row');
+            
+            // Show step-room section
+            document.getElementById('step-room').style.display = 'block';
+            document.getElementById('selected-set-name-room').textContent = setName;
+            
+            // Update final info if visible
+            document.getElementById('selected-set-name-final').textContent = setName;
+            
+            // Enable start button if there are connected devices
+            updateStartButton();
+        }
+        
+        // Update start button state
+        function updateStartButton() {
+            const connectedCount = document.getElementById('connected-count').textContent;
+            const startBtn = document.getElementById('start-game-btn');
+            
+            if (selectedSetId && parseInt(connectedCount) > 0) {
+                startBtn.disabled = false;
+            } else {
+                startBtn.disabled = true;
+            }
+        }
+        
+        // Start game with selected set
+        function startGame() {
+            if (!selectedSetId) {
+                alert('Seleziona prima un set di domande');
+                return;
+            }
+            
+            const connectedCount = document.getElementById('connected-count').textContent;
+            if (parseInt(connectedCount) === 0) {
+                alert('Nessun giocatore connesso');
+                return;
+            }
+            
+            if (confirm(`Avviare la partita "${selectedSetName}" con ${connectedCount} giocatori?`)) {
+                // Load the question set and start the first round
+                loadQuestionSet(selectedSetId);
+            }
+        }
+        
+        // Load question set and start first round
+        function loadQuestionSet(setId) {
+            fetch('../src/api/game.php?action=get_set&set_id=' + setId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.rounds && data.rounds.length > 0) {
+                        // Start the first round automatically
+                        const firstRound = data.rounds[0];
+                        startRound(firstRound.id);
+                    } else {
+                        alert('Nessuna domanda trovata nel set selezionato');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading question set:', error);
+                    alert('Errore nel caricamento del set di domande');
+                });
+        }
+        
+        // Start a specific round
+        function startRound(roundId) {
+            fetch('../src/api/game.php?action=start_round&round_id=' + roundId, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Round started:', roundId);
+                    // Optionally redirect to game view or show success message
+                    alert('Prima domanda avviata!');
+                } else {
+                    alert('Errore nell\'avvio della domanda');
+                }
+            })
+            .catch(error => {
+                console.error('Error starting round:', error);
+                alert('Errore nell\'avvio della domanda');
+            });
+        }
+        
+        // Update connected devices table
+        function updateConnectedDevices() {
+            fetch('../src/api/connected_devices.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const tbody = document.getElementById('connected-devices-body');
+                        const countSpan = document.getElementById('connected-count');
+                        
+                        // Update count
+                        if (countSpan) {
+                            countSpan.textContent = data.count;
+                            updateStartButton();
+                        }
+                        
+                        if (data.devices.length === 0) {
+                            tbody.innerHTML = `
+                                <tr>
+                                    <td colspan="3" class="loading-text">
+                                        Nessun dispositivo connesso
+                                    </td>
+                                </tr>
+                            `;
+                        } else {
+                            tbody.innerHTML = data.devices.map(device => `
+                                <tr>
+                                    <td>${device.username}</td>
+                                    <td>
+                                        <span class="status-indicator"></span>
+                                        ${device.status === 'online' ? 'Online' : 'Offline'}
+                                    </td>
+                                    <td>${new Date(device.last_seen).toLocaleString('it-IT')}</td>
+                                </tr>
+                            `).join('');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore caricamento dispositivi:', error);
+                });
+        }
+        
+        // Auto-refresh connected devices
+        let devicesInterval;
+        document.addEventListener('DOMContentLoaded', function() {
+            // Don't start polling automatically - wait for room creation
+            
+            // Stop refresh when leaving game tab
+            const tabs = document.querySelectorAll('.nav-btn');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const target = this.dataset.tab;
+                    if (target === 'game') {
+                        // Resume refresh when entering game tab (if room is active)
+                        if (!devicesInterval && roomActive) {
+                            updateConnectedDevices();
+                            devicesInterval = setInterval(updateConnectedDevices, 1000);
+                        }
+                    } else {
+                        // Stop refresh when leaving game tab
+                        if (devicesInterval) {
+                            clearInterval(devicesInterval);
+                            devicesInterval = null;
+                        }
+                    }
+                });
+            });
+        });
+        
+        // Create Set with Questions Modal
+        function showCreateSetModal() {
+            // Reset form to create mode
+            document.querySelector('input[name="action"]').value = 'create_set_with_questions';
+            const setIdInput = document.getElementById('edit-set-id');
+            if (setIdInput) setIdInput.remove();
+            
+            document.querySelector('.modal-header h2').textContent = 'Nuovo Set di Domande';
+            document.querySelector('.modal-actions .btn-success').textContent = 'Salva Set';
+            
+            document.getElementById('create-set-modal').style.display = 'flex';
+            generateQuestionFields();
+        }
+        
+        function closeCreateSetModal() {
+            document.getElementById('create-set-modal').style.display = 'none';
+            document.getElementById('create-set-form').reset();
+            document.getElementById('questions-container').innerHTML = '';
+            
+            // Remove edit-set-id if exists
+            const setIdInput = document.getElementById('edit-set-id');
+            if (setIdInput) setIdInput.remove();
+            
+            // Reset to create mode
+            document.querySelector('input[name="action"]').value = 'create_set_with_questions';
+            document.querySelector('.modal-header h2').textContent = 'Nuovo Set di Domande';
+            document.querySelector('.modal-actions .btn-success').textContent = 'Salva Set';
+        }
+        
+        function generateQuestionFields() {
+            const num = parseInt(document.getElementById('num-questions').value) || 1;
+            const container = document.getElementById('questions-container');
+            const currentQuestions = container.querySelectorAll('.question-block');
+            const currentCount = currentQuestions.length;
+            
+            if (num > currentCount) {
+                // Aggiungi nuove domande
+                for (let i = currentCount + 1; i <= num; i++) {
+                    const questionDiv = document.createElement('div');
+                    questionDiv.className = 'question-block';
+                    questionDiv.innerHTML = `
+                        <h3>Domanda ${i}</h3>
+                        
+                        <div class="form-group">
+                            <label>Tipo:</label>
+                            <select name="type_${i}" onchange="updateQuestionType(${i}, this.value)">
+                                <option value="multiple">Scelta Multipla</option>
+                                <option value="truefalse">Vero/Falso</option>
+                                <option value="clickfirst">Clicca per Primo</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Domanda:</label>
+                            <textarea name="question_${i}" rows="2" placeholder="Inserisci la domanda..." required></textarea>
+                        </div>
+                        
+                        <div id="options-${i}">
+                            <div class="form-group">
+                                <label>Timer (secondi):</label>
+                                <input type="number" name="timer_${i}" min="5" max="120" value="30" placeholder="30">
+                            </div>
+                            <div class="form-group">
+                                <label>Opzione 1:</label>
+                                <input type="text" name="option_${i}_1" placeholder="Prima opzione">
+                            </div>
+                            <div class="form-group">
+                                <label>Opzione 2:</label>
+                                <input type="text" name="option_${i}_2" placeholder="Seconda opzione">
+                            </div>
+                            <div class="form-group">
+                                <label>Opzione 3:</label>
+                                <input type="text" name="option_${i}_3" placeholder="Terza opzione">
+                            </div>
+                            <div class="form-group">
+                                <label>Opzione 4:</label>
+                                <input type="text" name="option_${i}_4" placeholder="Quarta opzione">
+                            </div>
+                            <div class="form-group">
+                                <label>Risposta Corretta:</label>
+                                <select name="correct_${i}">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                </select>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(questionDiv);
+                }
+            } else if (num < currentCount) {
+                // Rimuovi le domande in eccesso
+                for (let i = currentCount; i > num; i--) {
+                    const lastQuestion = container.querySelector('.question-block:last-child');
+                    if (lastQuestion) {
+                        lastQuestion.remove();
+                    }
+                }
+            }
+        }
+        
+        function updateQuestionType(index, type) {
+            const optionsDiv = document.getElementById(`options-${index}`);
+            
+            if (type === 'truefalse') {
+                optionsDiv.innerHTML = `
+                    <div class="form-group">
+                        <label>Timer (secondi):</label>
+                        <input type="number" name="timer_${index}" min="5" max="120" value="30" placeholder="30">
+                    </div>
+                    <div class="form-group">
+                        <label>Risposta Corretta:</label>
+                        <select name="correct_${index}">
+                            <option value="1">Vero</option>
+                            <option value="2">Falso</option>
+                        </select>
+                    </div>
+                `;
+            } else if (type === 'clickfirst') {
+                optionsDiv.innerHTML = '<p class="no-options-message">Nessuna opzione necessaria per questo tipo di domanda.</p>';
+            } else {
+                optionsDiv.innerHTML = `
+                    <div class="form-group">
+                        <label>Timer (secondi):</label>
+                        <input type="number" name="timer_${index}" min="5" max="120" value="30" placeholder="30">
+                    </div>
+                    <div class="form-group">
+                        <label>Opzione 1:</label>
+                        <input type="text" name="option_${index}_1" placeholder="Prima opzione">
+                    </div>
+                    <div class="form-group">
+                        <label>Opzione 2:</label>
+                        <input type="text" name="option_${index}_2" placeholder="Seconda opzione">
+                    </div>
+                    <div class="form-group">
+                        <label>Opzione 3:</label>
+                        <input type="text" name="option_${index}_3" placeholder="Terza opzione">
+                    </div>
+                    <div class="form-group">
+                        <label>Opzione 4:</label>
+                        <input type="text" name="option_${index}_4" placeholder="Quarta opzione">
+                    </div>
+                    <div class="form-group">
+                        <label>Risposta Corretta:</label>
+                        <select name="correct_${index}">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                        </select>
+                    </div>
+                `;
+            }
         }
     </script>
     
-    <!-- Add Question Modal -->
-    <div id="add-question-modal" class="modal-overlay">
-        <div class="modal-content">
+    <!-- Create Set Modal -->
+    <div id="create-set-modal" class="modal-overlay">
+        <div class="modal-content modal-content-large">
             <div class="modal-header">
-                <h2>Aggiungi Domanda</h2>
-                <button onclick="closeAddQuestionModal()" class="modal-close">&times;</button>
+                <h2>Nuovo Set di Domande</h2>
+                <button onclick="closeCreateSetModal()" class="modal-close">&times;</button>
             </div>
             
             <div class="modal-body">
-                <div style="background: #f0f8ff; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9em;">
-                    <strong>Set:</strong> <span id="add-question-set-name"></span>
-                </div>
-                
-                <form id="add-question-form" method="POST" action="">
-                    <input type="hidden" name="action" value="add_question">
-                    <input type="hidden" id="add-question-set-id" name="question_set_id">
+                <form id="create-set-form" method="POST" action="">
+                    <input type="hidden" name="action" value="create_set_with_questions">
                     
                     <div class="form-group">
-                        <label for="question-type-select">Tipo:</label>
-                        <select id="question-type-select" name="round_type" onchange="updateQuestionFormFields()" required>
-                            <option value="multiple">Scelta Multipla (4 opzioni)</option>
-                            <option value="truefalse">Vero/Falso</option>
-                            <option value="clickfirst">Clicca per Primo</option>
-                        </select>
+                        <label for="set-name">Nome Set:</label>
+                        <input type="text" id="set-name" name="set_name" required placeholder="Es: Cultura Generale">
                     </div>
                     
                     <div class="form-group">
-                        <label for="question-text">Domanda:</label>
-                        <textarea id="question-text" name="question" rows="3" required placeholder="Inserisci la domanda..."></textarea>
+                        <label for="set-description">Descrizione:</label>
+                        <textarea id="set-description" name="set_description" rows="2" placeholder="Breve descrizione del set..."></textarea>
                     </div>
                     
-                    <!-- Multiple Choice Options -->
-                    <div id="multiple-choice-options">
-                        <div class="form-group">
-                            <label for="option-1">Opzione 1:</label>
-                            <input type="text" id="option-1" name="option1" placeholder="Prima risposta">
-                        </div>
-                        <div class="form-group">
-                            <label for="option-2">Opzione 2:</label>
-                            <input type="text" id="option-2" name="option2" placeholder="Seconda risposta">
-                        </div>
-                        <div class="form-group">
-                            <label for="option-3">Opzione 3:</label>
-                            <input type="text" id="option-3" name="option3" placeholder="Terza risposta">
-                        </div>
-                        <div class="form-group">
-                            <label for="option-4">Opzione 4:</label>
-                            <input type="text" id="option-4" name="option4" placeholder="Quarta risposta">
-                        </div>
+                    <div class="form-group">
+                        <label for="num-questions">Numero di Domande:</label>
+                        <input type="number" id="num-questions" name="num_questions" min="1" max="20" value="5" onchange="generateQuestionFields()" oninput="generateQuestionFields()">
                     </div>
                     
-                    <!-- True/False Options -->
-                    <div id="true-false-options" style="display: none;">
-                        <div class="form-group">
-                            <label for="option-tf-1">Opzione 1 (Vero):</label>
-                            <input type="text" id="option-tf-1" name="option1" value="Vero" placeholder="Vero">
-                        </div>
-                        <div class="form-group">
-                            <label for="option-tf-2">Opzione 2 (Falso):</label>
-                            <input type="text" id="option-tf-2" name="option2" value="Falso" placeholder="Falso">
-                        </div>
-                        <input type="hidden" name="option3" value="">
-                        <input type="hidden" name="option4" value="">
-                    </div>
-                    
-                    <div id="correct-answer-section" class="form-group">
-                        <label id="correct-answer-label" for="correct-answer">Risposta Corretta (1-4):</label>
-                        <select id="correct-answer" name="correct_answer">
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                        </select>
+                    <div id="questions-container" class="questions-container">
+                        <!-- Questions will be generated here -->
                     </div>
                     
                     <div class="modal-actions">
-                        <button type="button" onclick="closeAddQuestionModal()" class="btn btn-secondary">Annulla</button>
-                        <button type="submit" class="btn btn-success">Salva</button>
+                        <button type="button" onclick="closeCreateSetModal()" class="btn btn-secondary">Annulla</button>
+                        <button type="submit" class="btn btn-success">Salva Set</button>
                     </div>
                 </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add Question Popup (Simplified) -->
-    <div id="add-question-popup" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Aggiungi Domanda</h2>
-                <button onclick="closeAddQuestionPopup()" class="modal-close">&times;</button>
-            </div>
-            
-            <div class="modal-body">
-                <form id="add-question-popup-form" method="POST" action="">
-                    <input type="hidden" name="action" value="add_question">
-                    
-                    <div class="form-group">
-                        <label for="popup-question-set-id">Set di Domande:</label>
-                        <select id="popup-question-set-id" name="question_set_id" required>
-                            <option value="">-- Seleziona Set --</option>
-                            <?php foreach ($questionSets as $set): ?>
-                                <option value="<?php echo $set['id']; ?>"><?php echo htmlspecialchars($set['set_name']); ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="popup-question-type">Tipo:</label>
-                        <select id="popup-question-type" name="round_type" onchange="updatePopupQuestionFormFields()" required>
-                            <option value="multiple">Scelta Multipla (4 opzioni)</option>
-                            <option value="truefalse">Vero/Falso</option>
-                            <option value="clickfirst">Clicca per Primo</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="popup-question-text">Domanda:</label>
-                        <textarea id="popup-question-text" name="question" rows="3" required placeholder="Inserisci la domanda..."></textarea>
-                    </div>
-                    
-                    <!-- Multiple Choice Options -->
-                    <div id="popup-multiple-choice-options">
-                        <div class="form-group">
-                            <label for="popup-option-1">Opzione 1:</label>
-                            <input type="text" id="popup-option-1" name="option1" placeholder="Prima risposta">
-                        </div>
-                        <div class="form-group">
-                            <label for="popup-option-2">Opzione 2:</label>
-                            <input type="text" id="popup-option-2" name="option2" placeholder="Seconda risposta">
-                        </div>
-                        <div class="form-group">
-                            <label for="popup-option-3">Opzione 3:</label>
-                            <input type="text" id="popup-option-3" name="option3" placeholder="Terza risposta">
-                        </div>
-                        <div class="form-group">
-                            <label for="popup-option-4">Opzione 4:</label>
-                            <input type="text" id="popup-option-4" name="option4" placeholder="Quarta risposta">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="popup-correct-answer">Risposta Corretta:</label>
-                        <select id="popup-correct-answer" name="correct_answer" required>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                        </select>
-                    </div>
-                    
-                    <div class="modal-actions">
-                        <button type="button" onclick="closeAddQuestionPopup()" class="btn btn-secondary">Annulla</button>
-                        <button type="button" onclick="confirmAddQuestion()" class="btn btn-success">Aggiungi</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Confirm Modal -->
-    <div id="confirm-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 400px;">
-            <div class="modal-header">
-                <h2>Conferma</h2>
-                <button onclick="closeConfirmModal()" class="modal-close">&times;</button>
-            </div>
-            
-            <div class="modal-body">
-                <p id="confirm-message" style="text-align: center; font-size: 1.1em;"></p>
-                
-                <div class="modal-actions">
-                    <button type="button" onclick="closeConfirmModal()" class="btn btn-secondary">Annulla</button>
-                    <button type="button" onclick="executeConfirmedAction()" class="btn btn-success">Conferma</button>
-                </div>
             </div>
         </div>
     </div>
 </body>
 </html>
-

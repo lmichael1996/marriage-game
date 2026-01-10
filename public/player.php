@@ -92,6 +92,22 @@ if (isAdmin()) {
         setInterval(checkGameState, 2000);
         checkGameState(); // Initial check
         
+        // Check if room is still open every 2 seconds
+        setInterval(checkRoomStatus, 2000);
+        
+        function checkRoomStatus() {
+            fetch('../src/api/check_room_status.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.room_open) {
+                        // Room closed, redirect to login
+                        alert(data.message || 'La stanza è stata chiusa');
+                        window.location.href = 'logout.php';
+                    }
+                })
+                .catch(error => console.error('Error checking room status:', error));
+        }
+        
         function checkGameState() {
             fetch('../src/api/game.php?action=get_game_state')
                 .then(response => response.json())

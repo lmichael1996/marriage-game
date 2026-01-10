@@ -35,7 +35,6 @@ class PlayerAnswer {
                 AVG(pa.time_taken) as avg_time
             FROM users u
             LEFT JOIN player_answers pa ON pa.user_id = u.id
-            WHERE u.role = 'player'
             GROUP BY u.id, u.username
             ORDER BY correct_answers DESC, avg_time ASC
         ");

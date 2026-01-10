@@ -26,18 +26,32 @@ class Round {
     }
     
     public function getActiveRound() {
-        // No active round management without status field
-        return null;
+        $stmt = $this->conn->prepare("SELECT * FROM rounds WHERE status = 'active' LIMIT 1");
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $round = $result->fetch_assoc();
+        $stmt->close();
+        return $round;
     }
     
     public function startRound($round_id) {
-        // Simplified without status field
-        return true;
+        // Set all rounds to pending first
+        $this->conn->query("UPDATE rounds SET status = 'pending'");
+        
+        // Set this round to active
+        $stmt = $this->conn->prepare("UPDATE rounds SET status = 'active' WHERE id = ?");
+        $stmt->bind_param("i", $round_id);
+        $success = $stmt->execute();
+        $stmt->close();
+        return $success;
     }
     
     public function closeRound($round_id) {
-        // Simplified without status field
-        return true;
+        $stmt = $this->conn->prepare("UPDATE rounds SET status = 'closed' WHERE id = ?");
+        $stmt->bind_param("i", $round_id);
+        $success = $stmt->execute();
+        $stmt->close();
+        return $success;
     }
     
     public function updateAnswer($round_id, $correct_answer) {
