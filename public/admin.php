@@ -274,10 +274,7 @@ if ($selectedSetId) {
             <div class="admin-section">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
                     <h2 style="margin: 0;">Set di Domande</h2>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-success" onclick="showAddQuestionPopup()">+ Aggiungi Domanda</button>
-                        <button class="btn btn-primary" onclick="showCreateSetModal()">+ Nuovo Set</button>
-                    </div>
+                    <button class="btn btn-primary" onclick="showCreateSetModal()">+ Nuovo Set</button>
                 </div>
                 
                 <!-- Search Bar -->
