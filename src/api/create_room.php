@@ -1,7 +1,9 @@
 <?php
-session_start();
-require_once '../config/database.php';
-require_once '../models/Room.php';
+require_once __DIR__ . '/../config/auth.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../models/Room.php';
+
+requireLogin();
 
 header('Content-Type: application/json');
 
@@ -12,7 +14,6 @@ try {
     if (!$roomCode) {
         throw new Exception('Codice stanza mancante');
     }
-    
     if (!isset($_SESSION['user_id'])) {
         throw new Exception('Admin non autenticato');
     }
