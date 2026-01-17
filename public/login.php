@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/../src/config/auth.php';
-require_once __DIR__ . '/../src/models/User.php';
-require_once __DIR__ . '/../src/models/Player.php';
-require_once __DIR__ . '/../src/models/Room.php';
+require_once __DIR__ . '/../src/repository/User.php';
+require_once __DIR__ . '/../src/repository/Player.php';
+require_once __DIR__ . '/../src/repository/Room.php';
 
 // Redirect if already logged in
 if (isLoggedIn()) {

@@ -96,7 +96,7 @@ if (isAdmin()) {
         setInterval(checkRoomStatus, 2000);
         
         function checkRoomStatus() {
-            fetch('../src/api/check_room_status.php')
+            fetch('../src/api/api.php?endpoint=check_room_status')
                 .then(response => response.json())
                 .then(data => {
                     if (!data.room_open) {
@@ -109,7 +109,7 @@ if (isAdmin()) {
         }
         
         function checkGameState() {
-            fetch('../src/api/game.php?action=get_game_state')
+            fetch('../src/api/api.php?endpoint=game&action=get_game_state')
                 .then(response => response.json())
                 .then(data => {
                     if (data.active_round && !hasAnswered) {
@@ -205,7 +205,7 @@ if (isAdmin()) {
             
             const timeTaken = (Date.now() - startTime) / 1000;
             
-            fetch('../src/api/answer.php', {
+            fetch('../src/api/api.php?endpoint=answer', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -272,7 +272,7 @@ if (isAdmin()) {
             }
             
             // Send answer to server
-            fetch('../src/api/answer.php?action=submit', {
+            fetch('../src/api/api.php?endpoint=answer&action=submit', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

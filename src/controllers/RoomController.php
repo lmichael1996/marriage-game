@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../models/Room.php';
+require_once __DIR__ . '/../repository/Room.php';
 require_once __DIR__ . '/../config/database.php';
 
 class RoomController {

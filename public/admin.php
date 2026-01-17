@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../src/config/auth.php';
-require_once __DIR__ . '/../src/models/Round.php';
-require_once __DIR__ . '/../src/models/QuestionSet.php';
+require_once __DIR__ . '/../src/repository/Round.php';
+require_once __DIR__ . '/../src/repository/QuestionSet.php';
 
 requireAdmin();
 
@@ -11,6 +11,142 @@ $questionSetModel = new QuestionSet();
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
+    
+    if ($action === 'change_credentials') {
+        $new_username = trim($_POST['new_username'] ?? '');
+        $new_password = $_POST['new_password'] ?? '';
+        $confirm_password = $_POST['confirm_password'] ?? '';
+        
+        $errors = [];
+        
+        if (empty($new_username)) {
+            $errors[] = 'Username obbligatorio';
+        }
+        
+        if (!empty($new_password)) {
+            if ($new_password !== $confirm_password) {
+                $errors[] = 'Le password non corrispondono';
+            }
+            if (strlen($new_password) < 6) {
+                $errors[] = 'La password deve essere di almeno 6 caratteri';
+            }
+        }
+        
+        if (empty($errors)) {
+            $conn = getDBConnection();
+            
+            if (!empty($new_password)) {
+                $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+                $stmt = $conn->prepare("UPDATE users SET username = ?, password = ? WHERE id = ?");
+                $userId = $_SESSION['user_id'];
+                $stmt->bind_param("ssi", $new_username, $hashed_password, $userId);
+            } else {
+                $stmt = $conn->prepare("UPDATE users SET username = ? WHERE id = ?");
+                $userId = $_SESSION['user_id'];
+                $stmt->bind_param("si", $new_username, $userId);
+            }
+            
+            $stmt->execute();
+            $stmt->close();
+            $conn->close();
+            
+            $_SESSION['username'] = $new_username;
+            
+            header('Location: admin.php?tab=settings&success=credentials_updated');
+            exit;
+        } else {
+            $error_msg = implode('<br>', $errors);
+            header('Location: admin.php?tab=settings&error=' . urlencode($error_msg));
+            exit;
+        }
+    }
+    
+    if ($action === 'save_settings') {
+        $conn = getDBConnection();
+        
+        // Prepare settings data
+        $min_players = intval($_POST['min_players'] ?? 2);
+        $max_players = intval($_POST['max_players'] ?? 50);
+        $auto_next_round = isset($_POST['auto_next_round']) ? 1 : 0;
+        $auto_next_delay = intval($_POST['auto_next_delay'] ?? 5);
+        
+        // Multiple Choice points
+        $points_mult_1st = intval($_POST['points_mult_1st'] ?? 25);
+        $points_mult_2nd = intval($_POST['points_mult_2nd'] ?? 18);
+        $points_mult_3rd = intval($_POST['points_mult_3rd'] ?? 15);
+        $points_mult_4th = intval($_POST['points_mult_4th'] ?? 12);
+        $points_mult_5th = intval($_POST['points_mult_5th'] ?? 10);
+        $points_mult_6th = intval($_POST['points_mult_6th'] ?? 8);
+        $points_mult_7th = intval($_POST['points_mult_7th'] ?? 6);
+        $points_mult_8th = intval($_POST['points_mult_8th'] ?? 4);
+        $points_mult_9th = intval($_POST['points_mult_9th'] ?? 2);
+        $points_mult_10th = intval($_POST['points_mult_10th'] ?? 1);
+        
+        // True/False points
+        $points_tf_1st = intval($_POST['points_tf_1st'] ?? 20);
+        $points_tf_2nd = intval($_POST['points_tf_2nd'] ?? 15);
+        $points_tf_3rd = intval($_POST['points_tf_3rd'] ?? 12);
+        $points_tf_4th = intval($_POST['points_tf_4th'] ?? 10);
+        $points_tf_5th = intval($_POST['points_tf_5th'] ?? 8);
+        $points_tf_6th = intval($_POST['points_tf_6th'] ?? 6);
+        $points_tf_7th = intval($_POST['points_tf_7th'] ?? 5);
+        $points_tf_8th = intval($_POST['points_tf_8th'] ?? 3);
+        $points_tf_9th = intval($_POST['points_tf_9th'] ?? 2);
+        $points_tf_10th = intval($_POST['points_tf_10th'] ?? 1);
+        
+        // Click First points
+        $points_clickfirst = intval($_POST['points_clickfirst'] ?? 50);
+        
+        $show_leaderboard = isset($_POST['show_leaderboard']) ? 1 : 0;
+        $show_correct_answer = isset($_POST['show_correct_answer']) ? 1 : 0;
+        
+        // Save settings to database
+        $settings = [
+            'min_players' => $min_players,
+            'max_players' => $max_players,
+            'auto_next_round' => $auto_next_round,
+            'auto_next_delay' => $auto_next_delay,
+            'points_mult_1st' => $points_mult_1st,
+            'points_mult_2nd' => $points_mult_2nd,
+            'points_mult_3rd' => $points_mult_3rd,
+            'points_mult_4th' => $points_mult_4th,
+            'points_mult_5th' => $points_mult_5th,
+            'points_mult_6th' => $points_mult_6th,
+            'points_mult_7th' => $points_mult_7th,
+            'points_mult_8th' => $points_mult_8th,
+            'points_mult_9th' => $points_mult_9th,
+            'points_mult_10th' => $points_mult_10th,
+            'points_tf_1st' => $points_tf_1st,
+            'points_tf_2nd' => $points_tf_2nd,
+            'points_tf_3rd' => $points_tf_3rd,
+            'points_tf_4th' => $points_tf_4th,
+            'points_tf_5th' => $points_tf_5th,
+            'points_tf_6th' => $points_tf_6th,
+            'points_tf_7th' => $points_tf_7th,
+            'points_tf_8th' => $points_tf_8th,
+            'points_tf_9th' => $points_tf_9th,
+            'points_tf_10th' => $points_tf_10th,
+            'points_clickfirst' => $points_clickfirst,
+            'show_leaderboard' => $show_leaderboard,
+            'show_correct_answer' => $show_correct_answer
+        ];
+        
+        // Upsert settings
+        foreach ($settings as $key => $value) {
+            $stmt = $conn->prepare("
+                INSERT INTO game_settings (setting_key, setting_value) 
+                VALUES (?, ?) 
+                ON DUPLICATE KEY UPDATE setting_value = ?
+            ");
+            $stmt->bind_param("sss", $key, $value, $value);
+            $stmt->execute();
+            $stmt->close();
+        }
+        
+        $conn->close();
+        header('Location: admin.php?tab=settings&success=settings_saved');
+        exit;
+    }
     
     if ($action === 'create_question_set') {
         $name = $_POST['set_name'] ?? '';
@@ -333,6 +469,24 @@ if ($selectedSetId) {
     <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
+    <script>
+        // Define showTab early to avoid "not defined" errors
+        function showTab(tabName, element) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            document.getElementById('tab-' + tabName).classList.add('active');
+            if (element) {
+                element.classList.add('active');
+            }
+        }
+    </script>
+    
     <div class="container">
         <div class="header">
             <h1>Admin Panel - Marriage Game</h1>
@@ -448,15 +602,15 @@ if ($selectedSetId) {
                         </thead>
                         <tbody id="sets-table-body">
                             <?php foreach ($questionSets as $set): ?>
-                            <tr data-set-id="<?php echo $set['id']; ?>">
+                            <tr data-set-id="<?php echo $set['id']; ?>" onclick="selectSetRow(this, <?php echo $set['id']; ?>, '<?php echo addslashes($set['set_name']); ?>')">
                                 <td><strong><?php echo htmlspecialchars($set['set_name']); ?></strong></td>
                                 <td><?php echo $set['set_description'] ? htmlspecialchars($set['set_description']) : '<em class="empty-description">Nessuna</em>'; ?></td>
                                 <td><span class="badge-small"><?php echo $set['total_rounds']; ?></span></td>
                                 <td><?php echo isset($set['updated_at']) ? date('d/m/Y H:i', strtotime($set['updated_at'])) : '-'; ?></td>
                                 <td>
                                     <div class="action-buttons">
-                                        <button class="btn-icon btn-warning" onclick="editSet(<?php echo $set['id']; ?>, '<?php echo addslashes($set['set_name']); ?>', '<?php echo addslashes($set['set_description']); ?>')" title="Modifica">✎</button>
-                                        <button class="btn-icon btn-danger" onclick="deleteSet(<?php echo $set['id']; ?>, '<?php echo addslashes($set['set_name']); ?>')" title="Elimina">×</button>
+                                        <button class="btn-icon btn-warning" onclick="event.stopPropagation(); editSet(<?php echo $set['id']; ?>, '<?php echo addslashes($set['set_name']); ?>', '<?php echo addslashes($set['set_description']); ?>')" title="Modifica">✎</button>
+                                        <button class="btn-icon btn-danger" onclick="event.stopPropagation(); deleteSet(<?php echo $set['id']; ?>, '<?php echo addslashes($set['set_name']); ?>')" title="Elimina">×</button>
                                     </div>
                                 </td>
                             </tr>
@@ -512,7 +666,9 @@ if ($selectedSetId) {
                             <tbody id="game-sets-table-body">
                                 <?php foreach ($questionSets as $set): ?>
                                     <?php 
-                                        $setRounds = array_filter($rounds, fn($r) => $r['question_set_id'] == $set['id']);
+                                        $setRounds = array_filter($rounds, function($r) use ($set) {
+                                            return $r['question_set_id'] == $set['id'];
+                                        });
                                         $questionCount = count($setRounds);
                                     ?>
                                     <tr>
@@ -595,26 +751,312 @@ if ($selectedSetId) {
         <!-- Tab: Impostazioni -->
         <div id="tab-settings" class="tab-content">
             <div class="admin-section">
-                <h2>Impostazioni</h2>
-                <p>Sezione per configurare timer, numero massimo round, opzioni generali, ecc.</p>
+                <h2>Impostazioni Generali</h2>
+                
+                <?php if (isset($_GET['success']) && $_GET['success'] === 'credentials_updated'): ?>
+                    <div class="success-message">Credenziali aggiornate con successo!</div>
+                <?php endif; ?>
+                
+                <?php if (isset($_GET['error'])): ?>
+                    <div class="error-message"><?php echo htmlspecialchars($_GET['error']); ?></div>
+                <?php endif; ?>
+                
+                <!-- Username and Password Section -->
+                <form method="POST" action="" style="margin-bottom: 30px;">
+                    <input type="hidden" name="action" value="change_credentials">
+                    
+                    <div class="form-section">
+                        <h3>Credenziali Amministratore</h3>
+                        
+                        <div class="form-group">
+                            <label for="new_username">Username:</label>
+                            <input type="text" id="new_username" name="new_username" 
+                                   value="<?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?>" 
+                                   required minlength="3" maxlength="50">
+                            <small>Username per accedere al pannello amministratore</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="new_password">Nuova Password:</label>
+                            <input type="password" id="new_password" name="new_password" 
+                                   minlength="6" maxlength="255">
+                            <small>Lascia vuoto per mantenere la password attuale. Minimo 6 caratteri.</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="confirm_password">Conferma Password:</label>
+                            <input type="password" id="confirm_password" name="confirm_password" 
+                                   minlength="6" maxlength="255">
+                            <small>Reinserisci la nuova password</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Aggiorna Credenziali</button>
+                    </div>
+                </form>
+                
+                <form id="settings-form" method="POST" action="">
+                    <input type="hidden" name="action" value="save_settings">
+                    
+                    <!-- Game Settings -->
+                    <div class="form-section">
+                        <h3>Impostazioni Partita</h3>
+                        <div class="form-group">
+                            <label for="min_players">Numero minimo giocatori:</label>
+                            <input type="number" id="min_players" name="min_players" 
+                                   min="1" max="100" value="2" required>
+                            <small>Numero minimo di giocatori per iniziare una partita</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="max_players">Numero massimo giocatori:</label>
+                            <input type="number" id="max_players" name="max_players" 
+                                   min="1" max="100" value="50" required>
+                            <small>Numero massimo di giocatori in una stanza</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="auto_next_round">
+                                <input type="checkbox" id="auto_next_round" name="auto_next_round" value="1">
+                                Passa automaticamente al round successivo
+                            </label>
+                            <small>Avvia automaticamente il round successivo dopo un tempo prestabilito</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="auto_next_delay">Ritardo auto-avanzamento (secondi):</label>
+                            <input type="number" id="auto_next_delay" name="auto_next_delay" 
+                                   min="3" max="30" value="5">
+                            <small>Tempo di attesa prima del round successivo (se auto-avanzamento attivo)</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Scoring Settings -->
+                    <div class="form-section">
+                        <h3>Punteggi - Risposte Multiple</h3>
+                        <p><strong>Sistema punteggi stile Formula 1</strong>: i punti vengono assegnati in base alla posizione in classifica (primi 10).</p>
+                        
+                        <table class="points-table">
+                            <thead>
+                                <tr>
+                                    <th>Posizione</th>
+                                    <th>Punti</th>
+                                    <th>Posizione</th>
+                                    <th>Punti</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><label for="points_mult_1st">1° Posto</label></td>
+                                    <td><input type="number" id="points_mult_1st" name="points_mult_1st" min="1" max="1000" value="25" required></td>
+                                    <td><label for="points_mult_6th">6° Posto</label></td>
+                                    <td><input type="number" id="points_mult_6th" name="points_mult_6th" min="1" max="1000" value="8" required></td>
+                                </tr>
+                                <tr>
+                                    <td><label for="points_mult_2nd">2° Posto</label></td>
+                                    <td><input type="number" id="points_mult_2nd" name="points_mult_2nd" min="1" max="1000" value="18" required></td>
+                                    <td><label for="points_mult_7th">7° Posto</label></td>
+                                    <td><input type="number" id="points_mult_7th" name="points_mult_7th" min="1" max="1000" value="6" required></td>
+                                </tr>
+                                <tr>
+                                    <td><label for="points_mult_3rd">3° Posto</label></td>
+                                    <td><input type="number" id="points_mult_3rd" name="points_mult_3rd" min="1" max="1000" value="15" required></td>
+                                    <td><label for="points_mult_8th">8° Posto</label></td>
+                                    <td><input type="number" id="points_mult_8th" name="points_mult_8th" min="1" max="1000" value="4" required></td>
+                                </tr>
+                                <tr>
+                                    <td><label for="points_mult_4th">4° Posto</label></td>
+                                    <td><input type="number" id="points_mult_4th" name="points_mult_4th" min="1" max="1000" value="12" required></td>
+                                    <td><label for="points_mult_9th">9° Posto</label></td>
+                                    <td><input type="number" id="points_mult_9th" name="points_mult_9th" min="1" max="1000" value="2" required></td>
+                                </tr>
+                                <tr>
+                                    <td><label for="points_mult_5th">5° Posto</label></td>
+                                    <td><input type="number" id="points_mult_5th" name="points_mult_5th" min="1" max="1000" value="10" required></td>
+                                    <td><label for="points_mult_10th">10° Posto</label></td>
+                                    <td><input type="number" id="points_mult_10th" name="points_mult_10th" min="1" max="1000" value="1" required></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3>Punteggi - Vero o Falso</h3>
+                        <p><strong>Primi 10 classificati</strong> (più facile, punteggi ridotti).</p>
+                        
+                        <table class="points-table">
+                            <thead>
+                                <tr>
+                                    <th>Posizione</th>
+                                    <th>Punti</th>
+                                    <th>Posizione</th>
+                                    <th>Punti</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><label for="points_tf_1st">1° Posto</label></td>
+                                    <td><input type="number" id="points_tf_1st" name="points_tf_1st" min="1" max="1000" value="20" required></td>
+                                    <td><label for="points_tf_6th">6° Posto</label></td>
+                                    <td><input type="number" id="points_tf_6th" name="points_tf_6th" min="1" max="1000" value="6" required></td>
+                                </tr>
+                                <tr>
+                                    <td><label for="points_tf_2nd">2° Posto</label></td>
+                                    <td><input type="number" id="points_tf_2nd" name="points_tf_2nd" min="1" max="1000" value="15" required></td>
+                                    <td><label for="points_tf_7th">7° Posto</label></td>
+                                    <td><input type="number" id="points_tf_7th" name="points_tf_7th" min="1" max="1000" value="5" required></td>
+                                </tr>
+                                <tr>
+                                    <td><label for="points_tf_3rd">3° Posto</label></td>
+                                    <td><input type="number" id="points_tf_3rd" name="points_tf_3rd" min="1" max="1000" value="12" required></td>
+                                    <td><label for="points_tf_8th">8° Posto</label></td>
+                                    <td><input type="number" id="points_tf_8th" name="points_tf_8th" min="1" max="1000" value="3" required></td>
+                                </tr>
+                                <tr>
+                                    <td><label for="points_tf_4th">4° Posto</label></td>
+                                    <td><input type="number" id="points_tf_4th" name="points_tf_4th" min="1" max="1000" value="10" required></td>
+                                    <td><label for="points_tf_9th">9° Posto</label></td>
+                                    <td><input type="number" id="points_tf_9th" name="points_tf_9th" min="1" max="1000" value="2" required></td>
+                                </tr>
+                                <tr>
+                                    <td><label for="points_tf_5th">5° Posto</label></td>
+                                    <td><input type="number" id="points_tf_5th" name="points_tf_5th" min="1" max="1000" value="8" required></td>
+                                    <td><label for="points_tf_10th">10° Posto</label></td>
+                                    <td><input type="number" id="points_tf_10th" name="points_tf_10th" min="1" max="1000" value="1" required></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3>Punteggi - Tocca per Primo</h3>
+                        <p><strong>Solo il primo che clicca ottiene punti</strong>, tutti gli altri: 0 punti.</p>
+                        
+                        <div class="form-group">
+                            <label for="points_clickfirst">Punti per il primo giocatore:</label>
+                            <input type="number" id="points_clickfirst" name="points_clickfirst" 
+                                   min="1" max="1000" value="50" required style="width: 150px;">
+                            <small>Il primo giocatore che clicca ottiene questi punti (gli altri: 0 punti)</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Display Settings -->
+                    <div class="form-section">
+                        <h3>Visualizzazione</h3>
+                        <div class="form-group">
+                            <label for="show_leaderboard">
+                                <input type="checkbox" id="show_leaderboard" name="show_leaderboard" value="1" checked>
+                                Mostra classifica in tempo reale
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="show_correct_answer">
+                                <input type="checkbox" id="show_correct_answer" name="show_correct_answer" value="1" checked>
+                                Mostra risposta corretta dopo ogni round
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Salva Impostazioni</button>
+                        <button type="button" class="btn btn-secondary" onclick="loadSettings()">Ripristina</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
     
     <script>
-        // Tab switching
-        function showTab(tabName, element) {
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
+        let selectedSetId = null;
+        
+        // Select set row
+        function selectSetRow(row, setId, setName) {
+            // Se la riga è già selezionata, deseleziona
+            if (row.classList.contains('selected-row')) {
+                deselectAllRows();
+                return;
+            }
+            
+            // Deseleziona tutte le altre righe
+            deselectAllRows();
+            
+            // Seleziona questa riga
+            row.classList.add('selected-row');
+            selectedSetId = setId;
+            
+            // Nascondi i bottoni modifica/elimina originali
+            const actionButtons = row.querySelector('.action-buttons');
+            if (actionButtons) {
+                actionButtons.style.display = 'none';
+            }
+            
+            // Aggiungi pulsante X per eliminare
+            const deleteCell = row.cells[4];
+            deleteCell.innerHTML = `
+                <button class="btn-icon btn-danger" onclick="event.stopPropagation(); deleteSelectedSet(${setId}, '${setName.replace(/'/g, "\\'")}'); return false;" title="Elimina" style="font-size: 1.5em; padding: 5px 15px;">×</button>
+            `;
+            
+            // Disabilita search bar
+            const searchInput = document.getElementById('search-sets');
+            const searchCriteria = document.getElementById('search-criteria');
+            const searchButton = document.querySelector('.search-bar .btn-primary');
+            
+            if (searchInput) searchInput.disabled = true;
+            if (searchCriteria) searchCriteria.disabled = true;
+            if (searchButton) searchButton.disabled = true;
+            
+            // Nascondi tutte le altre righe
+            document.querySelectorAll('#sets-table-body tr').forEach(tr => {
+                if (tr !== row) {
+                    tr.style.display = 'none';
+                }
+            });
+        }
+        
+        function deselectAllRows() {
+            selectedSetId = null;
+            
+            // Rimuovi selezione
+            document.querySelectorAll('#sets-table-body tr').forEach(row => {
+                row.classList.remove('selected-row');
+                row.style.display = '';
+                
+                // Ripristina i bottoni originali
+                const setId = row.dataset.setId;
+                const setName = row.cells[0].textContent.trim();
+                const setDescription = row.cells[1].textContent.trim();
+                
+                const actionButtons = row.querySelector('.action-buttons');
+                if (actionButtons) {
+                    actionButtons.style.display = 'flex';
+                }
+                
+                // Ripristina cell azioni originali se modificata
+                const deleteCell = row.cells[4];
+                if (!deleteCell.querySelector('.action-buttons')) {
+                    deleteCell.innerHTML = `
+                        <div class="action-buttons">
+                            <button class="btn-icon btn-warning" onclick="event.stopPropagation(); editSet(${setId}, '${setName}', '${setDescription}')" title="Modifica">✎</button>
+                            <button class="btn-icon btn-danger" onclick="event.stopPropagation(); deleteSet(${setId}, '${setName}')" title="Elimina">×</button>
+                        </div>
+                    `;
+                }
             });
             
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
+            // Riabilita search bar
+            const searchInput = document.getElementById('search-sets');
+            const searchCriteria = document.getElementById('search-criteria');
+            const searchButton = document.querySelector('.search-bar .btn-primary');
             
-            document.getElementById('tab-' + tabName).classList.add('active');
-            element.classList.add('active');
-            event.preventDefault();
+            if (searchInput) searchInput.disabled = false;
+            if (searchCriteria) searchCriteria.disabled = false;
+            if (searchButton) searchButton.disabled = false;
+        }
+        
+        function deleteSelectedSet(id, name) {
+            if (confirm(`Sei sicuro di voler eliminare il set "${name}"?`)) {
+                deleteSet(id, name);
+            }
         }
         
         // Question Sets Management
@@ -899,8 +1341,8 @@ if ($selectedSetId) {
         }
         
         // Game management variables
-        let selectedSetId = null;
-        let selectedSetName = '';
+        let selectedGameSetId = null;
+        let selectedGameSetName = '';
         let roomActive = false;
         let roomCode = '';
         
@@ -911,7 +1353,7 @@ if ($selectedSetId) {
             roomActive = true;
             
             // Save room code on server
-            fetch('/src/api/create_room.php', {
+            fetch('/src/api/api.php?endpoint=create_room', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -950,7 +1392,7 @@ if ($selectedSetId) {
         function closeRoom() {
             if (confirm('Vuoi chiudere la stanza? Tutti i giocatori verranno disconnessi.')) {
                 // Call API to signal room closure
-                fetch('/src/api/close_room.php', {
+                fetch('/src/api/api.php?endpoint=close_room', {
                     method: 'POST'
                 })
                 .then(response => response.json())
@@ -967,8 +1409,8 @@ if ($selectedSetId) {
                         document.getElementById('step-devices').style.display = 'none';
                         
                         // Reset selection
-                        selectedSetId = null;
-                        selectedSetName = '';
+                        selectedGameSetId = null;
+                        selectedGameSetName = '';
                         
                         // Stop device polling
                         if (devicesInterval) {
@@ -986,8 +1428,8 @@ if ($selectedSetId) {
         
         // Select game set
         function selectGameSet(setId, setName) {
-            selectedSetId = setId;
-            selectedSetName = setName;
+            selectedGameSetId = setId;
+            selectedGameSetName = setName;
             
             // Remove previous selection highlight
             document.querySelectorAll('#game-sets-table-body tr').forEach(row => {
@@ -1013,7 +1455,7 @@ if ($selectedSetId) {
             const connectedCount = document.getElementById('connected-count').textContent;
             const startBtn = document.getElementById('start-game-btn');
             
-            if (selectedSetId && parseInt(connectedCount) > 0) {
+            if (selectedGameSetId && parseInt(connectedCount) > 0) {
                 startBtn.disabled = false;
             } else {
                 startBtn.disabled = true;
@@ -1022,7 +1464,7 @@ if ($selectedSetId) {
         
         // Start game with selected set
         function startGame() {
-            if (!selectedSetId) {
+            if (!selectedGameSetId) {
                 alert('Seleziona prima un set di domande');
                 return;
             }
@@ -1033,15 +1475,15 @@ if ($selectedSetId) {
                 return;
             }
             
-            if (confirm(`Avviare la partita "${selectedSetName}" con ${connectedCount} giocatori?`)) {
+            if (confirm(`Avviare la partita "${selectedGameSetName}" con ${connectedCount} giocatori?`)) {
                 // Load the question set and start the first round
-                loadQuestionSet(selectedSetId);
+                loadQuestionSet(selectedGameSetId);
             }
         }
         
         // Load question set and start first round
         function loadQuestionSet(setId) {
-            fetch('../src/api/game.php?action=get_set&set_id=' + setId)
+            fetch('../src/api/api.php?endpoint=game&action=get_set&set_id=' + setId)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.rounds && data.rounds.length > 0) {
@@ -1060,7 +1502,7 @@ if ($selectedSetId) {
         
         // Start a specific round
         function startRound(roundId) {
-            fetch('../src/api/game.php?action=start_round&round_id=' + roundId, {
+            fetch('../src/api/api.php?endpoint=game&action=start_round&round_id=' + roundId, {
                 method: 'POST'
             })
             .then(response => response.json())
@@ -1081,7 +1523,7 @@ if ($selectedSetId) {
         
         // Update connected devices table
         function updateConnectedDevices() {
-            fetch('../src/api/connected_devices.php')
+            fetch('../src/api/api.php?endpoint=connected_devices')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {

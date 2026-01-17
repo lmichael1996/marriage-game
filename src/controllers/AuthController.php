@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/../models/User.php';
-require_once __DIR__ . '/../models/Player.php';
-require_once __DIR__ . '/../models/Room.php';
+require_once __DIR__ . '/../repository/User.php';
+require_once __DIR__ . '/../repository/Player.php';
+require_once __DIR__ . '/../repository/Room.php';
 
 class AuthController {
     private $userModel;
