@@ -1180,8 +1180,8 @@ if ($selectedSetId) {
             const connectedCount = document.getElementById('connected-count').textContent;
             
             if (confirm(`Avviare la partita "${selectedGameSetName}" con ${connectedCount} giocatori?`)) {
-                // Load the question set and start the first round
-                loadQuestionSet(selectedGameSetId);
+                // Redirect to game admin page
+                window.location.href = 'game_admin.php';
             }
         }
         

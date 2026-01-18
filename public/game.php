@@ -1,53 +1,465 @@
 <?php
-// Check admin access
 session_start();
+
+// Check admin access
 if (!isset($_SESSION['logged_in_via_login']) || !isset($_SESSION['user_id']) || isset($_SESSION['player_id'])) {
     header('Location: login.php');
     exit();
 }
 
-require_once __DIR__ . '/../src/repository/RoundRepo.php';
-require_once __DIR__ . '/../src/repository/PlayerRepo.php';
+require_once __DIR__ . '/../src/controllers/GameController.php';
+require_once __DIR__ . '/../src/controllers/AdminController.php';
 
-$roundModel = new RoundRepo();
-$playerModel = new PlayerRepo();
+$game = new GameController();
+$admin = new AdminController();
 
-// Get active round
-$active_round = $roundModel->getActiveRound();
+// Get room info
+$roomCode = $_SESSION['room_code'] ?? null;
+$questionSetId = null;
 
-// Get all players
-$conn = getDBConnection();
-$result = $conn->query("SELECT * FROM players ORDER BY total_score DESC");
-$players = $result->fetch_all(MYSQLI_ASSOC);
-$conn->close();
+if ($roomCode) {
+    // Get room details to find question set
+    require_once __DIR__ . '/../src/repository/RoomRepo.php';
+    $roomRepo = new RoomRepo();
+    $room = $roomRepo->getRoomByCode($roomCode);
+    if ($room) {
+        $questionSetId = $room['question_set_id'];
+    }
+}
+
+// Get questions from the set
+$questions = [];
+$setInfo = null;
+if ($questionSetId) {
+    $setResult = $admin->getQuestionSetRounds($questionSetId);
+    if ($setResult['success']) {
+        $questions = $setResult['rounds'];
+        $setInfoResult = $admin->getQuestionSetById($questionSetId);
+        if ($setInfoResult['success']) {
+            $setInfo = $setInfoResult['set'];
+        }
+    }
+}
+
+// Get current game state
+$gameState = $game->getGameState();
+$activeRound = $gameState['active_round'] ?? null;
 ?>
 <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Partita in Corso - Marriage Game</title>
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <title>Partita - Marriage Game</title>
+    <link rel="stylesheet" href="../assets/css/admin.css">
     <style>
-        body {
-            background: url('../assets/image/background.jpg') no-repeat center center fixed;
-            background-size: cover;
-            font-family: Georgia, serif;
-            color: #1a1a1a;
-            margin: 0;
-            padding: 20px;
-        }
-
         .game-container {
-            max-width: 1400px;
-            margin: 0 auto;
             display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 20px;
+            grid-template-columns: 300px 1fr;
+            gap: 25px;
+            margin-top: 25px;
         }
 
-        .game-main {
-            background: rgba(255, 255, 255, 0.95);
+        .questions-sidebar {
+            background: #fff;
+            border: 2px solid #1a1a1a;
+            padding: 25px;
+            height: fit-content;
+        }
+
+        .questions-sidebar h3 {
+            font-size: 1.2em;
+            font-weight: 400;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #1a1a1a;
+        }
+
+        .question-list {
+            list-style: none;
+        }
+
+        .question-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .question-item:hover {
+            background: #f0f0f0;
+        }
+
+        .question-item.active {
+            background: #1a1a1a;
+            color: #fff;
+            border-color: #1a1a1a;
+        }
+
+        .question-item.completed {
+            background: #f9f9f9;
+            opacity: 0.7;
+        }
+
+        .question-number {
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        .question-status {
+            font-size: 0.9em;
+        }
+
+        .game-display {
+            background: #fff;
+            border: 2px solid #1a1a1a;
+            padding: 40px;
+            min-height: 600px;
+        }
+
+        .question-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #1a1a1a;
+        }
+
+        .question-header h2 {
+            font-size: 2.5em;
+            font-weight: 400;
+            margin-bottom: 15px;
+        }
+
+        .question-type-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: #f0f0f0;
+            border: 1px solid #1a1a1a;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .question-content {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .question-text {
+            font-size: 1.8em;
+            text-align: center;
+            margin-bottom: 50px;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .option-card {
+            background: #fff;
+            border: 2px solid #1a1a1a;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.2s ease;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .option-card.correct {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .option-number {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .option-text {
+            font-size: 1.2em;
+            line-height: 1.5;
+        }
+
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .timer-display {
+            text-align: center;
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .no-question {
+            text-align: center;
+            padding: 80px 20px;
+            color: #666;
+        }
+
+        .no-question h3 {
+            font-size: 1.8em;
+            font-weight: 400;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 1024px) {
+            .game-container {
+                grid-template-columns: 1fr;
+            }
+
+            .questions-sidebar {
+                order: 2;
+            }
+
+            .game-display {
+                order: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .game-display {
+                padding: 25px;
+            }
+
+            .question-header h2 {
+                font-size: 1.8em;
+            }
+
+            .question-text {
+                font-size: 1.3em;
+            }
+
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Partita in Corso</h1>
+            <div class="user-info">
+                <span>Stanza: <strong><?php echo htmlspecialchars($roomCode ?? 'N/A'); ?></strong></span>
+                <?php if ($setInfo): ?>
+                    <span>Set: <strong><?php echo htmlspecialchars($setInfo['set_name']); ?></strong></span>
+                <?php endif; ?>
+                <a href="admin.php" class="btn btn-secondary">Torna a Admin</a>
+            </div>
+        </div>
+
+        <div class="game-container">
+            <!-- Questions Sidebar -->
+            <div class="questions-sidebar">
+                <h3>📋 Domande (<?php echo count($questions); ?>)</h3>
+                <ul class="question-list">
+                    <?php if (empty($questions)): ?>
+                        <li style="text-align: center; color: #666; padding: 20px;">
+                            Nessuna domanda nel set
+                        </li>
+                    <?php else: ?>
+                        <?php foreach ($questions as $index => $q): ?>
+                            <li class="question-item <?php echo ($activeRound && $activeRound['id'] == $q['id']) ? 'active' : ''; ?> <?php echo ($q['status_round'] == 'closed') ? 'completed' : ''; ?>" 
+                                data-question-id="<?php echo $q['id']; ?>">
+                                <span>
+                                    <span class="question-number"><?php echo ($index + 1); ?>.</span>
+                                    <?php 
+                                        $preview = substr($q['question'] ?? 'Domanda', 0, 30);
+                                        echo htmlspecialchars($preview) . (strlen($q['question']) > 30 ? '...' : '');
+                                    ?>
+                                </span>
+                                <span class="question-status">
+                                    <?php 
+                                        if ($q['status_round'] == 'active') echo '▶';
+                                        else if ($q['status_round'] == 'closed') echo '✓';
+                                        else echo '○';
+                                    ?>
+                                </span>
+                            </li>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </ul>
+            </div>
+
+            <!-- Game Display -->
+            <div class="game-display">
+                <?php if ($activeRound): ?>
+                    <div class="question-header">
+                        <h2>Round <?php echo $activeRound['round_number']; ?></h2>
+                        <span class="question-type-badge">
+                            <?php 
+                                $types = [
+                                    'multiple' => 'Scelta Multipla',
+                                    'truefalse' => 'Vero o Falso',
+                                    'clickfirst' => 'Clicca per Primo'
+                                ];
+                                echo $types[$activeRound['round_type']] ?? 'Domanda';
+                            ?>
+                        </span>
+                    </div>
+
+                    <div class="question-content">
+                        <div class="timer-display">
+                            ⏱ Timer: <?php echo $activeRound['timer'] ?? 10; ?> secondi
+                        </div>
+
+                        <div class="question-text">
+                            <?php echo htmlspecialchars($activeRound['question'] ?? 'Nessuna domanda'); ?>
+                        </div>
+
+                        <?php if ($activeRound['round_type'] != 'clickfirst'): ?>
+                            <div class="options-grid">
+                                <div class="option-card <?php echo ($activeRound['correct_answer'] == 1) ? 'correct' : ''; ?>">
+                                    <div class="option-number">1</div>
+                                    <div class="option-text"><?php echo htmlspecialchars($activeRound['option1'] ?? 'Opzione 1'); ?></div>
+                                </div>
+                                <div class="option-card <?php echo ($activeRound['correct_answer'] == 2) ? 'correct' : ''; ?>">
+                                    <div class="option-number">2</div>
+                                    <div class="option-text"><?php echo htmlspecialchars($activeRound['option2'] ?? 'Opzione 2'); ?></div>
+                                </div>
+                                <?php if ($activeRound['round_type'] == 'multiple'): ?>
+                                    <div class="option-card <?php echo ($activeRound['correct_answer'] == 3) ? 'correct' : ''; ?>">
+                                        <div class="option-number">3</div>
+                                        <div class="option-text"><?php echo htmlspecialchars($activeRound['option3'] ?? 'Opzione 3'); ?></div>
+                                    </div>
+                                    <div class="option-card <?php echo ($activeRound['correct_answer'] == 4) ? 'correct' : ''; ?>">
+                                        <div class="option-number">4</div>
+                                        <div class="option-text"><?php echo htmlspecialchars($activeRound['option4'] ?? 'Opzione 4'); ?></div>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        <?php else: ?>
+                            <div style="text-align: center; padding: 60px 20px;">
+                                <div style="font-size: 3em; margin-bottom: 20px;">⚡</div>
+                                <div style="font-size: 1.5em; color: #666;">
+                                    I giocatori devono cliccare più velocemente possibile!
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="game-controls">
+                            <button class="btn btn-danger" onclick="closeRound()">
+                                Chiudi Round
+                            </button>
+                            <button class="btn btn-primary" onclick="showLeaderboard()">
+                                Mostra Classifica
+                            </button>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <div class="no-question">
+                        <h3>🎯 Nessun Round Attivo</h3>
+                        <p style="margin-bottom: 30px;">Avvia un nuovo round per iniziare il gioco</p>
+                        <?php if (!empty($questions)): ?>
+                            <button class="btn btn-primary" onclick="startNextRound()">
+                                Avvia Prossimo Round
+                            </button>
+                        <?php else: ?>
+                            <p style="color: #999;">Nessuna domanda disponibile nel set selezionato</p>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-refresh every 3 seconds to update game state
+        setInterval(() => {
+            location.reload();
+        }, 3000);
+
+        function startNextRound() {
+            const questions = <?php echo json_encode($questions); ?>;
+            
+            // Find first pending question
+            const nextQuestion = questions.find(q => q.status_round === 'pending');
+            
+            if (nextQuestion) {
+                fetch('../src/api/api.php?endpoint=game&action=start_round', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        round_id: nextQuestion.id
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Errore: ' + (data.error || 'Impossibile avviare il round'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Errore nella comunicazione con il server');
+                });
+            } else {
+                alert('Nessun round disponibile da avviare');
+            }
+        }
+
+        function closeRound() {
+            if (!confirm('Vuoi chiudere il round corrente?')) {
+                return;
+            }
+
+            fetch('../src/api/api.php?endpoint=game&action=close_round', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Errore: ' + (data.error || 'Impossibile chiudere il round'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Errore nella comunicazione con il server');
+            });
+        }
+
+        function showLeaderboard() {
+            fetch('../src/api/api.php?endpoint=leaderboard')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.leaderboard) {
+                        let message = '🏆 CLASSIFICA 🏆\n\n';
+                        data.leaderboard.forEach((player, index) => {
+                            message += `${index + 1}. ${player.username}: ${player.total_score} punti\n`;
+                        });
+                        alert(message);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
             border: 3px solid #1a1a1a;
             padding: 30px;
         }

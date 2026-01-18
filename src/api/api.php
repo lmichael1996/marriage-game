@@ -10,7 +10,8 @@ header('Content-Type: application/json');
 
 // Helper function to check if user is logged in
 function requireLogin() {
-    if (!isset($_SESSION['user_id'])) {
+    // Accept both admin (user_id) and player (player_id)
+    if (!isset($_SESSION['user_id']) && !isset($_SESSION['player_id'])) {
         http_response_code(401);
         echo json_encode([
             'success' => false,
@@ -313,7 +314,13 @@ function handleGame($action) {
     }
     
     if ($action === 'start_round') {
+        // Get round_id from either GET or POST body
         $roundId = $_GET['round_id'] ?? 0;
+        
+        if (!$roundId && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            $postData = json_decode(file_get_contents('php://input'), true);
+            $roundId = $postData['round_id'] ?? 0;
+        }
         
         if (!$roundId) {
             echo json_encode([

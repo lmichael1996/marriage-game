@@ -19,7 +19,7 @@ if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Player - Marriage Game</title>
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/player.css">
 </head>
 <body>
     <div class="container">
@@ -52,21 +52,27 @@ if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
                 </div>
                 
                 <div class="answer-grid" id="answer-grid">
-                    <button class="answer-btn" data-answer="1" onclick="submitAnswer(1)" id="btn-1">
+                    <button class="answer-btn" data-answer="1" onclick="selectAnswer(1)" id="btn-1">
                         <span class="answer-number">1</span>
                         <span class="answer-label" id="option1-text">Opzione 1</span>
                     </button>
-                    <button class="answer-btn" data-answer="2" onclick="submitAnswer(2)" id="btn-2">
+                    <button class="answer-btn" data-answer="2" onclick="selectAnswer(2)" id="btn-2">
                         <span class="answer-number">2</span>
                         <span class="answer-label" id="option2-text">Opzione 2</span>
                     </button>
-                    <button class="answer-btn" data-answer="3" onclick="submitAnswer(3)" id="btn-3">
+                    <button class="answer-btn" data-answer="3" onclick="selectAnswer(3)" id="btn-3">
                         <span class="answer-number">3</span>
                         <span class="answer-label" id="option3-text">Opzione 3</span>
                     </button>
-                    <button class="answer-btn" data-answer="4" onclick="submitAnswer(4)" id="btn-4">
+                    <button class="answer-btn" data-answer="4" onclick="selectAnswer(4)" id="btn-4">
                         <span class="answer-number">4</span>
                         <span class="answer-label" id="option4-text">Opzione 4</span>
+                    </button>
+                </div>
+                
+                <div class="submit-container" id="submit-container" style="display: none; margin-top: 30px; text-align: center;">
+                    <button class="btn-submit" onclick="submitSelectedAnswer()" id="submit-btn">
+                        ✓ INVIA RISPOSTA
                     </button>
                 </div>
                 
@@ -92,6 +98,7 @@ if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
         let timerInterval = null;
         let startTime = null;
         let hasAnswered = false;
+        let selectedAnswer = null;
         
         // Check for active round every 2 seconds
         setInterval(checkGameState, 2000);
@@ -117,6 +124,7 @@ if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
             fetch('../src/api/api.php?endpoint=game&action=get_game_state')
                 .then(response => response.json())
                 .then(data => {
+                    console.log('Game state:', data);
                     if (data.active_round && !hasAnswered) {
                         if (currentRoundId !== data.active_round.id) {
                             startRound(data.active_round);
@@ -129,8 +137,10 @@ if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
         }
         
         function startRound(round) {
+            console.log('Starting player round:', round);
             currentRoundId = round.id;
             hasAnswered = false;
+            selectedAnswer = null;
             startTime = Date.now();
             
             document.getElementById('round-number').textContent = round.round_number;
@@ -139,6 +149,7 @@ if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
             document.getElementById('waiting-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'block';
+            document.getElementById('submit-container').style.display = 'none';
             
             const answerGrid = document.getElementById('answer-grid');
             const clickFirstScreen = document.getElementById('click-first-screen');
@@ -192,13 +203,62 @@ if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
             }
         }
         
-        function submitClickFirst() {
+        function selectAnswer(answer) {
             if (hasAnswered) return;
+            
+            selectedAnswer = answer;
+            
+            // Remove selection from all buttons
+            document.querySelectorAll('.answer-btn').forEach(btn => {
                 btn.classList.remove('selected');
             });
             
-            // Start 10 second timer
-            startTimer();
+            // Highlight selected button
+            document.querySelector(`button[data-answer="${answer}"]`).classList.add('selected');
+            
+            // Show submit button
+            document.getElementById('submit-container').style.display = 'block';
+        }
+        
+        function submitSelectedAnswer() {
+            if (hasAnswered || !selectedAnswer) return;
+            
+            hasAnswered = true;
+            const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
+            
+            // Disable all buttons
+            document.querySelectorAll('.answer-btn').forEach(btn => {
+                btn.disabled = true;
+            });
+            document.getElementById('submit-btn').disabled = true;
+            
+            // Stop timer
+            clearInterval(timerInterval);
+            
+            // Send answer to server
+            fetch('../src/api/api.php?endpoint=answer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    round_id: currentRoundId,
+                    answer: selectedAnswer,
+                    time_taken: timeTaken
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                showResultScreen(selectedAnswer, timeTaken);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        function showResultScreen(answer, time) {
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            document.getElementById('user-answer').textContent = answer;
+            document.getElementById('time-taken').textContent = time;
         }
         
         function submitClickFirst() {
@@ -257,49 +317,16 @@ if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
             }, 1000);
         }
         
-        function submitAnswer(answer) {
-            if (hasAnswered) return;
-            
-            hasAnswered = true;
-            const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
-            
-            // Disable all buttons
-            document.querySelectorAll('.answer-btn').forEach(btn => {
-                btn.disabled = true;
-            });
-            
-            // Highlight selected button
-            document.querySelector(`button[data-answer="${answer}"]`).classList.add('selected');
-            
-            // Stop timer
-            if (timerInterval) {
-                clearInterval(timerInterval);
-            }
-            
-            // Send answer to server
-            fetch('../src/api/api.php?endpoint=answer&action=submit', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    round_id: currentRoundId,
-                    answer: answer,
-                    time_taken: timeTaken
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                showResult(answer, timeTaken);
-            })
-            .catch(error => console.error('Error:', error));
         }
         
         function timeExpired() {
+            if (hasAnswered) return;
+            
             hasAnswered = true;
             document.querySelectorAll('.answer-btn').forEach(btn => {
                 btn.disabled = true;
             });
+            document.getElementById('submit-container').style.display = 'none';
             
             document.getElementById('game-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
@@ -311,15 +338,10 @@ if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
             setTimeout(() => {
                 currentRoundId = null;
                 hasAnswered = false;
+                selectedAnswer = null;
                 checkGameState();
             }, 3000);
         }
-        
-        function showResult(answer, timeTaken) {
-            document.getElementById('user-answer').textContent = answer;
-            document.getElementById('time-taken').textContent = timeTaken;
-            
-            document.getElementById('game-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
             
             setTimeout(() => {
