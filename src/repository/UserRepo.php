@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
 
-class User {
+class UserRepo {
     private $conn;
     
     public function __construct() {
@@ -9,13 +9,13 @@ class User {
     }
     
     public function authenticate($username, $password) {
-        $stmt = $this->conn->prepare("SELECT id, username, password FROM users WHERE username = ?");
+        $stmt = $this->conn->prepare("SELECT id, username, user_password FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
         
         if ($user = $result->fetch_assoc()) {
-            if (password_verify($password, $user['password'])) {
+            if (password_verify($password, $user['user_password'])) {
                 $stmt->close();
                 return $user;
             }
@@ -27,7 +27,7 @@ class User {
     
     public function create($username, $password) {
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $this->conn->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
+        $stmt = $this->conn->prepare("INSERT INTO users (username, user_password) VALUES (?, ?)");
         $stmt->bind_param("ss", $username, $hashedPassword);
         $success = $stmt->execute();
         $stmt->close();
@@ -49,7 +49,7 @@ class User {
         $randomPassword = bin2hex(random_bytes(16));
         $hashedPassword = password_hash($randomPassword, PASSWORD_DEFAULT);
         
-        $stmt = $this->conn->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
+        $stmt = $this->conn->prepare("INSERT INTO users (username, user_password) VALUES (?, ?)");
         $stmt->bind_param("ss", $username, $hashedPassword);
         
         if ($stmt->execute()) {
@@ -60,6 +60,21 @@ class User {
         
         $stmt->close();
         return false;
+    }
+    
+    public function updateCredentials($userId, $newUsername, $newPassword = null) {
+        if ($newPassword) {
+            $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+            $stmt = $this->conn->prepare("UPDATE users SET username = ?, user_password = ? WHERE id = ?");
+            $stmt->bind_param("ssi", $newUsername, $hashedPassword, $userId);
+        } else {
+            $stmt = $this->conn->prepare("UPDATE users SET username = ? WHERE id = ?");
+            $stmt->bind_param("si", $newUsername, $userId);
+        }
+        
+        $success = $stmt->execute();
+        $stmt->close();
+        return $success;
     }
     
     public function __destruct() {

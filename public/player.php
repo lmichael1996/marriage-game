@@ -1,9 +1,14 @@
 <?php
-require_once __DIR__ . '/../src/config/auth.php';
-requireLogin();
+session_start();
+
+// Check if player is logged in (players have player_id, admins have user_id)
+if (!isset($_SESSION['player_id']) && !isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
 
 // Ensure player is not admin
-if (isAdmin()) {
+if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
     header('Location: admin.php');
     exit();
 }
@@ -14,7 +19,7 @@ if (isAdmin()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Player - Marriage Game</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
     <div class="container">

@@ -1,418 +1,161 @@
 <?php
-require_once __DIR__ . '/../src/config/auth.php';
-require_once __DIR__ . '/../src/repository/Round.php';
-require_once __DIR__ . '/../src/repository/QuestionSet.php';
-
-requireAdmin();
-
-$roundModel = new Round();
-$questionSetModel = new QuestionSet();
+// Check admin access
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (!isset($_SESSION['logged_in_via_login']) || !isset($_SESSION['user_id']) || isset($_SESSION['player_id'])) {
+    header('Location: login.php');
+    exit();
+}
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     
-    if ($action === 'change_credentials') {
-        $new_username = trim($_POST['new_username'] ?? '');
-        $new_password = $_POST['new_password'] ?? '';
-        $confirm_password = $_POST['confirm_password'] ?? '';
-        
-        $errors = [];
-        
-        if (empty($new_username)) {
-            $errors[] = 'Username obbligatorio';
-        }
-        
-        if (!empty($new_password)) {
-            if ($new_password !== $confirm_password) {
-                $errors[] = 'Le password non corrispondono';
-            }
-            if (strlen($new_password) < 6) {
-                $errors[] = 'La password deve essere di almeno 6 caratteri';
-            }
-        }
-        
-        if (empty($errors)) {
-            $conn = getDBConnection();
+    require_once __DIR__ . '/../src/controllers/AdminController.php';
+    require_once __DIR__ . '/../src/controllers/GameController.php';
+    
+    $admin = new AdminController();
+    $game = new GameController();
+    
+    // Process POST actions
+    switch ($action) {
+        case 'change_credentials':
+        case 'update_credentials':
+            $result = $admin->updateCredentials(
+                $_SESSION['user_id'],
+                $_POST['new_username'] ?? '',
+                $_POST['new_password'] ?? null,
+                $_POST['confirm_password'] ?? null
+            );
             
-            if (!empty($new_password)) {
-                $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-                $stmt = $conn->prepare("UPDATE users SET username = ?, password = ? WHERE id = ?");
-                $userId = $_SESSION['user_id'];
-                $stmt->bind_param("ssi", $new_username, $hashed_password, $userId);
+            if ($result['success']) {
+                $_SESSION['username'] = $result['new_username'];
+                header('Location: admin.php?tab=settings&success=credentials_updated');
             } else {
-                $stmt = $conn->prepare("UPDATE users SET username = ? WHERE id = ?");
-                $userId = $_SESSION['user_id'];
-                $stmt->bind_param("si", $new_username, $userId);
+                header('Location: admin.php?tab=settings&error=' . urlencode($result['error']));
             }
-            
-            $stmt->execute();
-            $stmt->close();
-            $conn->close();
-            
-            $_SESSION['username'] = $new_username;
-            
-            header('Location: admin.php?tab=settings&success=credentials_updated');
             exit;
-        } else {
-            $error_msg = implode('<br>', $errors);
-            header('Location: admin.php?tab=settings&error=' . urlencode($error_msg));
-            exit;
-        }
-    }
-    
-    if ($action === 'save_settings') {
-        $conn = getDBConnection();
-        
-        // Prepare settings data
-        $min_players = intval($_POST['min_players'] ?? 2);
-        $max_players = intval($_POST['max_players'] ?? 50);
-        $auto_next_round = isset($_POST['auto_next_round']) ? 1 : 0;
-        $auto_next_delay = intval($_POST['auto_next_delay'] ?? 5);
-        
-        // Multiple Choice points
-        $points_mult_1st = intval($_POST['points_mult_1st'] ?? 25);
-        $points_mult_2nd = intval($_POST['points_mult_2nd'] ?? 18);
-        $points_mult_3rd = intval($_POST['points_mult_3rd'] ?? 15);
-        $points_mult_4th = intval($_POST['points_mult_4th'] ?? 12);
-        $points_mult_5th = intval($_POST['points_mult_5th'] ?? 10);
-        $points_mult_6th = intval($_POST['points_mult_6th'] ?? 8);
-        $points_mult_7th = intval($_POST['points_mult_7th'] ?? 6);
-        $points_mult_8th = intval($_POST['points_mult_8th'] ?? 4);
-        $points_mult_9th = intval($_POST['points_mult_9th'] ?? 2);
-        $points_mult_10th = intval($_POST['points_mult_10th'] ?? 1);
-        
-        // True/False points
-        $points_tf_1st = intval($_POST['points_tf_1st'] ?? 20);
-        $points_tf_2nd = intval($_POST['points_tf_2nd'] ?? 15);
-        $points_tf_3rd = intval($_POST['points_tf_3rd'] ?? 12);
-        $points_tf_4th = intval($_POST['points_tf_4th'] ?? 10);
-        $points_tf_5th = intval($_POST['points_tf_5th'] ?? 8);
-        $points_tf_6th = intval($_POST['points_tf_6th'] ?? 6);
-        $points_tf_7th = intval($_POST['points_tf_7th'] ?? 5);
-        $points_tf_8th = intval($_POST['points_tf_8th'] ?? 3);
-        $points_tf_9th = intval($_POST['points_tf_9th'] ?? 2);
-        $points_tf_10th = intval($_POST['points_tf_10th'] ?? 1);
-        
-        // Click First points
-        $points_clickfirst = intval($_POST['points_clickfirst'] ?? 50);
-        
-        $show_leaderboard = isset($_POST['show_leaderboard']) ? 1 : 0;
-        $show_correct_answer = isset($_POST['show_correct_answer']) ? 1 : 0;
-        
-        // Save settings to database
-        $settings = [
-            'min_players' => $min_players,
-            'max_players' => $max_players,
-            'auto_next_round' => $auto_next_round,
-            'auto_next_delay' => $auto_next_delay,
-            'points_mult_1st' => $points_mult_1st,
-            'points_mult_2nd' => $points_mult_2nd,
-            'points_mult_3rd' => $points_mult_3rd,
-            'points_mult_4th' => $points_mult_4th,
-            'points_mult_5th' => $points_mult_5th,
-            'points_mult_6th' => $points_mult_6th,
-            'points_mult_7th' => $points_mult_7th,
-            'points_mult_8th' => $points_mult_8th,
-            'points_mult_9th' => $points_mult_9th,
-            'points_mult_10th' => $points_mult_10th,
-            'points_tf_1st' => $points_tf_1st,
-            'points_tf_2nd' => $points_tf_2nd,
-            'points_tf_3rd' => $points_tf_3rd,
-            'points_tf_4th' => $points_tf_4th,
-            'points_tf_5th' => $points_tf_5th,
-            'points_tf_6th' => $points_tf_6th,
-            'points_tf_7th' => $points_tf_7th,
-            'points_tf_8th' => $points_tf_8th,
-            'points_tf_9th' => $points_tf_9th,
-            'points_tf_10th' => $points_tf_10th,
-            'points_clickfirst' => $points_clickfirst,
-            'show_leaderboard' => $show_leaderboard,
-            'show_correct_answer' => $show_correct_answer
-        ];
-        
-        // Upsert settings
-        foreach ($settings as $key => $value) {
-            $stmt = $conn->prepare("
-                INSERT INTO game_settings (setting_key, setting_value) 
-                VALUES (?, ?) 
-                ON DUPLICATE KEY UPDATE setting_value = ?
-            ");
-            $stmt->bind_param("sss", $key, $value, $value);
-            $stmt->execute();
-            $stmt->close();
-        }
-        
-        $conn->close();
-        header('Location: admin.php?tab=settings&success=settings_saved');
-        exit;
-    }
-    
-    if ($action === 'create_question_set') {
-        $name = $_POST['set_name'] ?? '';
-        $description = $_POST['set_description'] ?? '';
-        
-        if ($name) {
-            $setId = $questionSetModel->create($name, $description);
-            header('Location: admin.php?tab=sets&success=created');
-            exit;
-        }
-    }
-    
-    if ($action === 'create_set_with_questions') {
-        $setName = $_POST['set_name'] ?? '';
-        $setDescription = $_POST['set_description'] ?? '';
-        
-        // Debug log
-        error_log("Creating set: $setName with " . ($_POST['num_questions'] ?? 0) . " questions");
-        
-        if ($setName) {
-            // Create the question set
-            $setId = $questionSetModel->create($setName, $setDescription);
             
-            if (!$setId) {
-                die("Errore nella creazione del set");
+        case 'save_settings':
+            $result = $admin->saveSettings($_POST);
+            
+            if ($result['success']) {
+                header('Location: admin.php?tab=settings&success=settings_saved');
+            } else {
+                header('Location: admin.php?tab=settings&error=' . urlencode($result['error']));
             }
+            exit;
             
-            // Add questions if provided
+        case 'create_set_with_questions':
             $numQuestions = intval($_POST['num_questions'] ?? 0);
-            $conn = getDBConnection();
+            $questions = [];
             
             for ($i = 1; $i <= $numQuestions; $i++) {
                 $question = $_POST["question_$i"] ?? '';
-                $type = $_POST["type_$i"] ?? 'multiple';
-                $timer = intval($_POST["timer_$i"] ?? 30);
-                
                 if (!$question) continue;
                 
-                $option1 = $_POST["option_{$i}_1"] ?? '';
-                $option2 = $_POST["option_{$i}_2"] ?? '';
-                $option3 = $_POST["option_{$i}_3"] ?? '';
-                $option4 = $_POST["option_{$i}_4"] ?? '';
-                $correct = intval($_POST["correct_$i"] ?? 1);
-                
-                // Auto-set options for true/false
-                if ($type === 'truefalse') {
-                    $option1 = 'Vero';
-                    $option2 = 'Falso';
-                    $option3 = '';
-                    $option4 = '';
-                }
-                
-                // For clickfirst, no correct answer needed and no timer
-                if ($type === 'clickfirst') {
-                    $correct = null;
-                    $option1 = $option2 = $option3 = $option4 = '';
-                    $timer = null;
-                }
-                
-                // Insert round with question_set_id and timer
-                $stmt = $conn->prepare("INSERT INTO rounds (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
-                $stmt->bind_param("iissssssii", $setId, $i, $type, $question, $option1, $option2, $option3, $option4, $correct, $timer);
-                $stmt->execute();
-                $stmt->close();
+                $questions[] = [
+                    'question' => $question,
+                    'type' => $_POST["type_$i"] ?? 'multiple',
+                    'timer' => intval($_POST["timer_$i"] ?? 30),
+                    'option1' => $_POST["option_{$i}_1"] ?? '',
+                    'option2' => $_POST["option_{$i}_2"] ?? '',
+                    'option3' => $_POST["option_{$i}_3"] ?? '',
+                    'option4' => $_POST["option_{$i}_4"] ?? '',
+                    'correct' => intval($_POST["correct_$i"] ?? 1)
+                ];
             }
             
-            $conn->close();
+            $result = $admin->createSetWithQuestions(
+                $_POST['set_name'] ?? '',
+                $_POST['set_description'] ?? '',
+                $questions
+            );
             
-            header('Location: admin.php?tab=sets&success=created');
+            if ($result['success']) {
+                header('Location: admin.php?tab=sets&success=created');
+            } else {
+                header('Location: admin.php?tab=sets&error=' . urlencode($result['error']));
+            }
             exit;
-        }
-    }
-    
-    if ($action === 'update_question_set') {
-        $setId = intval($_POST['set_id'] ?? 0);
-        $name = $_POST['set_name'] ?? '';
-        $description = $_POST['set_description'] ?? '';
-        
-        if ($setId && $name) {
-            $questionSetModel->update($setId, $name, $description);
-            header('Location: admin.php?tab=sets&success=updated');
-            exit;
-        }
-    }
-    
-    if ($action === 'update_set_with_questions') {
-        $setId = intval($_POST['set_id'] ?? 0);
-        $setName = $_POST['set_name'] ?? '';
-        $setDescription = $_POST['set_description'] ?? '';
-        
-        if ($setId && $setName) {
-            // Update set name and description
-            $questionSetModel->update($setId, $setName, $setDescription);
             
-            // Delete existing rounds for this set
-            $conn = getDBConnection();
-            $stmt = $conn->prepare("DELETE FROM rounds WHERE question_set_id = ?");
-            $stmt->bind_param("i", $setId);
-            $stmt->execute();
-            $stmt->close();
-            
-            // Add new questions
+        case 'update_set_with_questions':
+            $setId = intval($_POST['set_id'] ?? 0);
             $numQuestions = intval($_POST['num_questions'] ?? 0);
+            $questions = [];
+            
             for ($i = 1; $i <= $numQuestions; $i++) {
                 $question = $_POST["question_$i"] ?? '';
-                $type = $_POST["type_$i"] ?? 'multiple';
-                $timer = intval($_POST["timer_$i"] ?? 30);
-                
                 if (!$question) continue;
                 
-                $option1 = $_POST["option_{$i}_1"] ?? '';
-                $option2 = $_POST["option_{$i}_2"] ?? '';
-                $option3 = $_POST["option_{$i}_3"] ?? '';
-                $option4 = $_POST["option_{$i}_4"] ?? '';
-                $correct = intval($_POST["correct_$i"] ?? 1);
-                
-                // Auto-set options for true/false
-                if ($type === 'truefalse') {
-                    $option1 = 'Vero';
-                    $option2 = 'Falso';
-                    $option3 = '';
-                    $option4 = '';
-                }
-                
-                // For clickfirst, no timer
-                if ($type === 'clickfirst') {
-                    $correct = null;
-                    $option1 = $option2 = $option3 = $option4 = '';
-                    $timer = null;
-                }
-                
-                $stmt = $conn->prepare("INSERT INTO rounds (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
-                $stmt->bind_param("iissssssii", $setId, $i, $type, $question, $option1, $option2, $option3, $option4, $correct, $timer);
-                $stmt->execute();
-                $stmt->close();
+                $questions[] = [
+                    'question' => $question,
+                    'type' => $_POST["type_$i"] ?? 'multiple',
+                    'timer' => intval($_POST["timer_$i"] ?? 30),
+                    'option1' => $_POST["option_{$i}_1"] ?? '',
+                    'option2' => $_POST["option_{$i}_2"] ?? '',
+                    'option3' => $_POST["option_{$i}_3"] ?? '',
+                    'option4' => $_POST["option_{$i}_4"] ?? '',
+                    'correct' => intval($_POST["correct_$i"] ?? 1)
+                ];
             }
             
-            $conn->close();
-            header('Location: admin.php?tab=sets&success=updated');
-            exit;
-        }
-    }
-    
-    if ($action === 'delete_question_set') {
-        $setId = intval($_POST['set_id'] ?? 0);
-        if ($setId) {
-            $questionSetModel->delete($setId);
-            header('Location: admin.php?tab=sets&success=deleted');
-            exit;
-        }
-    }
-    
-    if ($action === 'add_question') {
-        $setId = intval($_POST['question_set_id'] ?? 0);
-        $round_type = $_POST['round_type'] ?? 'multiple';
-        $question = $_POST['question'] ?? '';
-        $option1 = $_POST['option1'] ?? '';
-        $option2 = $_POST['option2'] ?? '';
-        $option3 = $_POST['option3'] ?? '';
-        $option4 = $_POST['option4'] ?? '';
-        $correct_answer = intval($_POST['correct_answer'] ?? 0);
-        
-        if ($round_type === 'clickfirst') {
-            $correct_answer = null;
-        }
-        
-        if ($setId && $question) {
-            $conn = getDBConnection();
-            // Get next round number
-            $stmt = $conn->prepare("SELECT MAX(round_number) as max_num FROM rounds WHERE question_set_id = ?");
-            $stmt->bind_param("i", $setId);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $row = $result->fetch_assoc();
-            $nextNumber = ($row['max_num'] ?? 0) + 1;
+            $result = $admin->updateSetWithQuestions(
+                $setId,
+                $_POST['set_name'] ?? '',
+                $_POST['set_description'] ?? '',
+                $questions
+            );
             
-            $stmt = $conn->prepare("INSERT INTO rounds (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
-            $stmt->bind_param("iisssssss", $setId, $nextNumber, $round_type, $question, $option1, $option2, $option3, $option4, $correct_answer);
-            $stmt->execute();
-            $conn->close();
-            
-            header('Location: admin.php?tab=sets&success=question_added');
-            exit;
-        }
-    }
-    
-    if ($action === 'create_rounds') {
-        $setId = intval($_POST['question_set_id'] ?? 0);
-        $num_rounds = intval($_POST['num_rounds'] ?? 0);
-        
-        for ($i = 1; $i <= $num_rounds; $i++) {
-            $round_type = $_POST["round_type_$i"] ?? 'multiple';
-            $question = $_POST["question_$i"] ?? '';
-            $option1 = $_POST["option1_$i"] ?? '';
-            $option2 = $_POST["option2_$i"] ?? '';
-            $option3 = $_POST["option3_$i"] ?? '';
-            $option4 = $_POST["option4_$i"] ?? '';
-            $correct_answer = intval($_POST["correct_answer_$i"] ?? 0);
-            
-            if ($round_type === 'clickfirst') {
-                $correct_answer = null;
+            if ($result['success']) {
+                header('Location: admin.php?tab=sets&success=updated');
+            } else {
+                header('Location: admin.php?tab=sets&error=' . urlencode($result['error']));
             }
-            
-            if ($question) {
-                $conn = getDBConnection();
-                $stmt = $conn->prepare("INSERT INTO rounds (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
-                $stmt->bind_param("iissssssss", $setId, $i, $round_type, $question, $option1, $option2, $option3, $option4, $correct_answer);
-                $stmt->execute();
-            }
-        }
-        
-        header('Location: admin.php?tab=sets&set=' . $setId . '&success=rounds_created');
-        exit;
-    }
-    
-    if ($action === 'save_single_round') {
-        $round_number = intval($_POST['round_number'] ?? 0);
-        $round_type = $_POST['round_type'] ?? 'multiple';
-        $question = $_POST['question'] ?? '';
-        $option1 = $_POST['option1'] ?? '';
-        $option2 = $_POST['option2'] ?? '';
-        $option3 = $_POST['option3'] ?? '';
-        $option4 = $_POST['option4'] ?? '';
-        $correct_answer = intval($_POST['correct_answer'] ?? 0);
-        
-        if ($round_type === 'clickfirst') {
-            $correct_answer = null;
-        }
-        
-        if ($question) {
-            $conn = getDBConnection();
-            
-            $stmt = $conn->prepare("SELECT id FROM rounds WHERE round_number = ?");
-            $stmt->bind_param("i", $round_number);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            
-            if ($result->num_rows > 0) {
-                $row = $result->fetch_assoc();
-                $round_id = $row['id'];
-                
-                $stmt = $conn->prepare("UPDATE rounds SET round_type=?, question=?, option1=?, option2=?, option3=?, option4=?, correct_answer=? WHERE id=?");
-                $stmt->bind_param("ssssssii", $round_type, $question, $option1, $option2, $option3, $option4, $correct_answer, $round_id);
-                $stmt->execute();
-            }
-            
-            $conn->close();
-            echo json_encode(['success' => true]);
             exit;
-        }
-    }
-    
-    if ($action === 'start_round') {
-        $round_id = $_POST['round_id'] ?? 0;
-        $roundModel->startRound($round_id);
-        header('Location: admin.php');
-        exit;
-    }
-    
-    if ($action === 'close_round') {
-        $round_id = $_POST['round_id'] ?? 0;
-        $roundModel->closeRound($round_id);
-        header('Location: admin.php');
-        exit;
+            
+        case 'delete_question_set':
+            $result = $admin->deleteQuestionSet(intval($_POST['set_id'] ?? 0));
+            
+            if ($result['success']) {
+                header('Location: admin.php?tab=sets&success=deleted');
+            } else {
+                header('Location: admin.php?tab=sets&error=' . urlencode($result['error']));
+            }
+            exit;
+            
+        case 'start_round':
+            $result = $game->startRound(intval($_POST['round_id'] ?? 0));
+            
+            if ($result['success']) {
+                header('Location: admin.php');
+            } else {
+                header('Location: admin.php?error=' . urlencode($result['error']));
+            }
+            exit;
+            
+        case 'close_round':
+            $result = $game->closeRound(intval($_POST['round_id'] ?? 0));
+            
+            if ($result['success']) {
+                header('Location: admin.php');
+            } else {
+                header('Location: admin.php?error=' . urlencode($result['error']));
+            }
+            exit;
+            
+        default:
+            header('Location: admin.php?error=invalid_action');
+            exit;
     }
 }
+
+require_once __DIR__ . '/../src/controllers/AdminController.php';
+require_once __DIR__ . '/../src/controllers/GameController.php';
+
+$admin = new AdminController();
+$game = new GameController();
 
 // Handle GET requests for AJAX
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
@@ -421,34 +164,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
     if ($action === 'get_set_questions') {
         $setId = intval($_GET['set_id'] ?? 0);
         if ($setId) {
-            $conn = getDBConnection();
-            $stmt = $conn->prepare("SELECT * FROM rounds WHERE question_set_id = ? ORDER BY round_number");
-            $stmt->bind_param("i", $setId);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $questions = [];
-            while ($row = $result->fetch_assoc()) {
-                $questions[] = $row;
-            }
-            $stmt->close();
-            $conn->close();
+            $result = $admin->getSetQuestions($setId);
             
             header('Content-Type: application/json');
-            echo json_encode(['success' => true, 'questions' => $questions]);
+            echo json_encode($result);
             exit;
         }
     }
 }
 
 // Get data
-$questionSets = $questionSetModel->getAll();
-$rounds = $roundModel->getAllRoundsWithStats();
-$active_round = $roundModel->getActiveRound();
+$questionSetsResult = $admin->getAllQuestionSets();
+$questionSets = $questionSetsResult['success'] ? $questionSetsResult['sets'] : [];
+
+// TODO: Questi metodi devono essere aggiunti ai controller
+$rounds = []; // $roundModel->getAllRoundsWithStats();
+$active_round = null; // $roundModel->getActiveRound();
 
 // Handle search
 $searchQuery = $_GET['search'] ?? '';
 if ($searchQuery) {
-    $questionSets = $questionSetModel->search($searchQuery);
+    $searchResult = $admin->searchQuestionSets($searchQuery);
+    $questionSets = $searchResult['success'] ? $searchResult['sets'] : [];
 }
 
 // Get selected set
@@ -456,8 +193,11 @@ $selectedSetId = $_GET['set'] ?? null;
 $selectedSet = null;
 $setRounds = [];
 if ($selectedSetId) {
-    $selectedSet = $questionSetModel->getById($selectedSetId);
-    $setRounds = $questionSetModel->getRounds($selectedSetId);
+    $setResult = $admin->getQuestionSetById($selectedSetId);
+    $selectedSet = $setResult['success'] ? $setResult['set'] : null;
+    
+    $roundsResult = $admin->getQuestionSetRounds($selectedSetId);
+    $setRounds = $roundsResult['success'] ? $roundsResult['rounds'] : [];
 }
 ?>
 <!DOCTYPE html>
@@ -466,7 +206,7 @@ if ($selectedSetId) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Marriage Game</title>
-    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
 </head>
 <body>
     <script>
@@ -508,65 +248,6 @@ if ($selectedSetId) {
                 <span class="nav-label">Impostazioni</span>
             </a>
         </div>
-        
-        <?php if (isset($_GET['success'])): ?>
-            <div class="alert alert-success">
-                <?php 
-                switch($_GET['success']) {
-                    case 'created':
-                        echo 'Set creato con successo';
-                        break;
-                    case 'updated':
-                        echo 'Set aggiornato';
-                        break;
-                    case 'deleted':
-                        echo 'Set eliminato';
-                        break;
-                    case 'question_added':
-                        echo 'Domanda aggiunta';
-                        break;
-                    case 'rounds_created':
-                        echo 'Domande create';
-                        break;
-                }
-                ?>
-            </div>
-        <?php endif; ?>
-        
-        <?php if ($active_round): ?>
-            <div class="alert alert-success">
-                <h3>Round Attivo: #<?php echo $active_round['round_number']; ?>
-                <?php 
-                $type_labels = [
-                    'multiple' => '(Scelta Multipla)',
-                    'truefalse' => '(Vero/Falso)',
-                    'clickfirst' => '(Clicca per Primo)'
-                ];
-                echo ' ' . ($type_labels[$active_round['round_type']] ?? '');
-                ?>
-                </h3>
-                <p><strong>Domanda:</strong> <?php echo htmlspecialchars($active_round['question']); ?></p>
-                <?php if ($active_round['round_type'] !== 'clickfirst'): ?>
-                <ol>
-                    <li><?php echo htmlspecialchars($active_round['option1']); ?></li>
-                    <li><?php echo htmlspecialchars($active_round['option2']); ?></li>
-                    <?php if ($active_round['round_type'] === 'multiple'): ?>
-                    <li><?php echo htmlspecialchars($active_round['option3']); ?></li>
-                    <li><?php echo htmlspecialchars($active_round['option4']); ?></li>
-                    <?php endif; ?>
-                </ol>
-                <p><strong>Risposta corretta:</strong> Opzione <?php echo $active_round['correct_answer']; ?></p>
-                <?php else: ?>
-                <p class="clickfirst-warning">⚡ Modalità: Il primo che clicca vince!</p>
-                <?php endif; ?>
-                
-                <form method="POST" action="" class="inline-form">
-                    <input type="hidden" name="action" value="close_round">
-                    <input type="hidden" name="round_id" value="<?php echo $active_round['id']; ?>">
-                    <button type="submit" class="btn btn-danger">Chiudi Round</button>
-                </form>
-            </div>
-        <?php endif; ?>
         
         <!-- Tab: Set di Domande -->
         <div id="tab-sets" class="tab-content active">
@@ -825,7 +506,7 @@ if ($selectedSetId) {
                         <div class="form-group">
                             <label for="auto_next_delay">Ritardo auto-avanzamento (secondi):</label>
                             <input type="number" id="auto_next_delay" name="auto_next_delay" 
-                                   min="3" max="30" value="5">
+                                   min="3" max="30" value="5" disabled>
                             <small>Tempo di attesa prima del round successivo (se auto-avanzamento attivo)</small>
                         </div>
                     </div>
@@ -967,7 +648,20 @@ if ($selectedSetId) {
     </div>
     
     <script>
-        let selectedSetId = null;
+        // Enable/disable auto-next delay based on checkbox
+        const autoNextCheckbox = document.getElementById('auto_next_round');
+        const autoNextDelay = document.getElementById('auto_next_delay');
+        
+        if (autoNextCheckbox && autoNextDelay) {
+            autoNextCheckbox.addEventListener('change', function() {
+                autoNextDelay.disabled = !this.checked;
+            });
+            
+            // Set initial state
+            autoNextDelay.disabled = !autoNextCheckbox.checked;
+        }
+        
+        let selectedSetId = <?php echo $selectedSetId ? $selectedSetId : 'null'; ?>;
         
         // Select set row
         function selectSetRow(row, setId, setName) {
@@ -1078,10 +772,14 @@ if ($selectedSetId) {
         }
         
         function showEditSetModal(setId, name, description, questions) {
-            document.getElementById('create-set-form').action = '';
-            document.querySelector('input[name="action"]').value = 'update_set_with_questions';
+            // First, clear the questions container
+            document.getElementById('questions-container').innerHTML = '';
             
-            // Add hidden field for set_id
+            const actionInput = document.querySelector('input[name="action"]');
+            actionInput.value = 'update_set_with_questions';
+            console.log('Action field set to:', actionInput.value); // Debug
+            
+            // Add hidden field for set_id BEFORE resetting values
             let setIdInput = document.getElementById('edit-set-id');
             if (!setIdInput) {
                 setIdInput = document.createElement('input');
@@ -1092,7 +790,10 @@ if ($selectedSetId) {
             }
             setIdInput.value = setId;
             
-            // Fill form
+            console.log('Editing set ID:', setId, 'Field value:', setIdInput.value); // Debug
+            console.log('Form will submit with action:', actionInput.value, 'and set_id:', setIdInput.value); // Debug
+            
+            // Fill form (don't use reset() as it would clear set_id)
             document.getElementById('set-name').value = name;
             document.getElementById('set-description').value = description || '';
             document.getElementById('num-questions').value = questions.length;
@@ -1348,8 +1049,11 @@ if ($selectedSetId) {
         
         // Create room
         function createRoom() {
-            // Generate random room code
-            roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+            if (!selectedGameSetId) {
+                alert('Seleziona prima un set di domande');
+                return;
+            }
+            
             roomActive = true;
             
             // Save room code on server
@@ -1359,12 +1063,15 @@ if ($selectedSetId) {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    room_code: roomCode
+                    question_set_id: selectedGameSetId
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // Save room code from server
+                    roomCode = data.room_code;
+                    
                     // Update UI
                     document.getElementById('create-room-btn').style.display = 'none';
                     document.getElementById('room-info').style.display = 'block';
@@ -1455,7 +1162,8 @@ if ($selectedSetId) {
             const connectedCount = document.getElementById('connected-count').textContent;
             const startBtn = document.getElementById('start-game-btn');
             
-            if (selectedGameSetId && parseInt(connectedCount) > 0) {
+            // Allow starting with 0 or more players for debug
+            if (selectedGameSetId) {
                 startBtn.disabled = false;
             } else {
                 startBtn.disabled = true;
@@ -1470,10 +1178,6 @@ if ($selectedSetId) {
             }
             
             const connectedCount = document.getElementById('connected-count').textContent;
-            if (parseInt(connectedCount) === 0) {
-                alert('Nessun giocatore connesso');
-                return;
-            }
             
             if (confirm(`Avviare la partita "${selectedGameSetName}" con ${connectedCount} giocatori?`)) {
                 // Load the question set and start the first round
@@ -1509,8 +1213,8 @@ if ($selectedSetId) {
             .then(data => {
                 if (data.success) {
                     console.log('Round started:', roundId);
-                    // Optionally redirect to game view or show success message
-                    alert('Prima domanda avviata!');
+                    // Redirect to game page
+                    window.location.href = 'game.php';
                 } else {
                     alert('Errore nell\'avvio della domanda');
                 }
@@ -1566,6 +1270,17 @@ if ($selectedSetId) {
         // Auto-refresh connected devices
         let devicesInterval;
         document.addEventListener('DOMContentLoaded', function() {
+            // Add submit listener to debug form data
+            const createSetForm = document.getElementById('create-set-form');
+            if (createSetForm) {
+                createSetForm.addEventListener('submit', function(e) {
+                    const actionValue = document.querySelector('input[name="action"]').value;
+                    const setIdInput = document.getElementById('edit-set-id');
+                    const setIdValue = setIdInput ? setIdInput.value : 'NOT PRESENT';
+                    console.log('FORM SUBMIT - Action:', actionValue, 'Set ID:', setIdValue);
+                });
+            }
+            
             // Don't start polling automatically - wait for room creation
             
             // Stop refresh when leaving game tab
@@ -1593,12 +1308,17 @@ if ($selectedSetId) {
         // Create Set with Questions Modal
         function showCreateSetModal() {
             // Reset form to create mode
+            document.getElementById('create-set-form').reset();
+            document.getElementById('questions-container').innerHTML = '';
             document.querySelector('input[name="action"]').value = 'create_set_with_questions';
             const setIdInput = document.getElementById('edit-set-id');
             if (setIdInput) setIdInput.remove();
             
             document.querySelector('.modal-header h2').textContent = 'Nuovo Set di Domande';
             document.querySelector('.modal-actions .btn-success').textContent = 'Salva Set';
+            
+            // Set default number of questions
+            document.getElementById('num-questions').value = 5;
             
             document.getElementById('create-set-modal').style.display = 'flex';
             generateQuestionFields();
@@ -1756,7 +1476,7 @@ if ($selectedSetId) {
             </div>
             
             <div class="modal-body">
-                <form id="create-set-form" method="POST" action="">
+                <form id="create-set-form" method="POST" action="admin.php">
                     <input type="hidden" name="action" value="create_set_with_questions">
                     
                     <div class="form-group">

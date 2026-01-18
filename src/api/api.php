@@ -1,12 +1,43 @@
 <?php
-require_once __DIR__ . '/../config/auth.php';
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../repository/Room.php';
-require_once __DIR__ . '/../repository/Round.php';
-require_once __DIR__ . '/../repository/PlayerAnswer.php';
-require_once __DIR__ . '/../repository/QuestionSet.php';
+session_start();
+
+require_once __DIR__ . '/../controllers/AuthController.php';
+require_once __DIR__ . '/../controllers/GameController.php';
+require_once __DIR__ . '/../controllers/RoomController.php';
+require_once __DIR__ . '/../controllers/AdminController.php';
 
 header('Content-Type: application/json');
+
+// Helper function to check if user is logged in
+function requireLogin() {
+    if (!isset($_SESSION['user_id'])) {
+        http_response_code(401);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Autenticazione richiesta'
+        ]);
+        exit();
+    }
+}
+
+// Helper function to check if user is admin
+function requireAdmin() {
+    requireLogin();
+    if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1) {
+        http_response_code(403);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Accesso riservato agli amministratori'
+        ]);
+        exit();
+    }
+}
+
+// Initialize controllers
+$auth = new AuthController();
+$game = new GameController();
+$room = new RoomController();
+$admin = new AdminController();
 
 // Get endpoint from URL path
 $endpoint = $_GET['endpoint'] ?? '';
@@ -14,6 +45,10 @@ $action = $_GET['action'] ?? '';
 
 // Router
 switch ($endpoint) {
+    case 'login':
+        handleLogin();
+        break;
+    
     case 'answer':
         handleAnswer($action);
         break;
@@ -46,6 +81,10 @@ switch ($endpoint) {
         handleTimer();
         break;
     
+    case 'admin':
+        handleAdmin($action);
+        break;
+    
     default:
         http_response_code(404);
         echo json_encode([
@@ -59,10 +98,35 @@ switch ($endpoint) {
 // ENDPOINT HANDLERS
 // ============================================================================
 
+function handleLogin() {
+    global $auth;
+    
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Metodo non consentito'
+        ]);
+        return;
+    }
+    
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    $username = $data['username'] ?? '';
+    $password = $data['password'] ?? '';
+    $roomCode = $data['room_code'] ?? '';
+    
+    $result = $auth->login($username, $password, $roomCode);
+    
+    echo json_encode($result);
+}
+
 function handleAnswer($action) {
     requireLogin();
     
     if ($action === 'submit') {
+        global $game;
+        
         $data = json_decode(file_get_contents('php://input'), true);
         
         $round_id = $data['round_id'] ?? 0;
@@ -70,38 +134,8 @@ function handleAnswer($action) {
         $time_taken = $data['time_taken'] ?? 0;
         $user_id = $_SESSION['user_id'];
         
-        $playerAnswerModel = new PlayerAnswer();
-        $roundModel = new Round();
-        
-        // Check if user already answered this round
-        if ($playerAnswerModel->hasAnswered($round_id, $user_id)) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Hai già risposto a questo round'
-            ]);
-            exit();
-        }
-        
-        // Get correct answer
-        $round = $roundModel->getRoundById($round_id);
-        
-        if (!$round) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Round non trovato'
-            ]);
-            exit();
-        }
-        
-        $is_correct = ($answer == $round['correct_answer']) ? 1 : 0;
-        
-        // Save answer
-        $playerAnswerModel->submitAnswer($round_id, $user_id, $answer, $time_taken, $is_correct);
-        
-        echo json_encode([
-            'success' => true,
-            'is_correct' => $is_correct
-        ]);
+        $result = $game->submitAnswer($user_id, $round_id, $answer, $time_taken);
+        echo json_encode($result);
         exit();
     }
     
@@ -116,22 +150,22 @@ function handleCreateRoom() {
     
     try {
         $input = json_decode(file_get_contents('php://input'), true);
-        $roomCode = $input['room_code'] ?? '';
+        $questionSetId = $input['question_set_id'] ?? null;
         
-        if (!$roomCode) {
-            throw new Exception('Codice stanza mancante');
-        }
         if (!isset($_SESSION['user_id'])) {
             throw new Exception('Admin non autenticato');
         }
         
-        $adminId = $_SESSION['user_id'];
-        Room::createRoom($roomCode, $adminId);
+        global $room;
+        $userId = $_SESSION['user_id'];
+        $result = $room->createRoom($userId, $questionSetId);
         
-        echo json_encode([
-            'success' => true,
-            'room_code' => strtoupper($roomCode)
-        ]);
+        // Save room_code in session for admin panel
+        if ($result['success'] && isset($result['room_code'])) {
+            $_SESSION['room_code'] = $result['room_code'];
+        }
+        
+        echo json_encode($result);
         
     } catch (Exception $e) {
         http_response_code(500);
@@ -183,32 +217,22 @@ function handleCloseRoom() {
     requireAdmin();
     
     try {
-        $db = getDBConnection();
+        global $room;
         
-        // Get active room
-        $room = Room::getActiveRoom();
+        // Get active room from session or request
+        $roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
         
-        if ($room) {
-            $roomCode = $room['code'];
-            
-            // Delete all players for this room
-            $stmt = $db->prepare("DELETE FROM players WHERE room_code = ?");
-            $stmt->bind_param("s", $roomCode);
-            $stmt->execute();
-            $stmt->close();
+        if (!$roomCode) {
+            throw new Exception('Codice stanza mancante');
         }
         
-        // Close the active room
-        Room::closeRoom();
+        $result = $room->closeRoom($roomCode);
         
         // Set a flag to signal room closure to connected players
         $flagFile = sys_get_temp_dir() . '/marriage_game_room_closed.flag';
         file_put_contents($flagFile, time());
         
-        echo json_encode([
-            'success' => true,
-            'message' => 'Stanza chiusa. Tutti i giocatori sono stati rimossi.'
-        ]);
+        echo json_encode($result);
         
     } catch (Exception $e) {
         http_response_code(500);
@@ -223,12 +247,12 @@ function handleConnectedDevices() {
     requireAdmin();
     
     try {
-        $db = getDBConnection();
+        global $room;
         
-        // Get active room code
-        $room = Room::getActiveRoom();
+        // Get room code from session or request
+        $roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
         
-        if (!$room) {
+        if (!$roomCode) {
             echo json_encode([
                 'success' => true,
                 'devices' => [],
@@ -237,31 +261,8 @@ function handleConnectedDevices() {
             exit();
         }
         
-        $roomCode = $room['code'];
-        
-        // Get all players for this room
-        $stmt = $db->prepare("
-            SELECT 
-                id,
-                username,
-                'online' as status,
-                last_seen
-            FROM players 
-            WHERE room_code = ?
-            ORDER BY connected_at ASC
-        ");
-        
-        $stmt->bind_param("s", $roomCode);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $devices = $result->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
-        
-        echo json_encode([
-            'success' => true,
-            'devices' => $devices,
-            'count' => count($devices)
-        ]);
+        $result = $room->getRoomPlayers($roomCode);
+        echo json_encode($result);
         
     } catch (Exception $e) {
         http_response_code(500);
@@ -275,15 +276,11 @@ function handleConnectedDevices() {
 function handleGame($action) {
     requireLogin();
     
-    $roundModel = new Round();
+    global $game, $admin;
     
     if ($action === 'get_game_state') {
-        $activeRound = $roundModel->getActiveRound();
-        
-        echo json_encode([
-            'success' => true,
-            'active_round' => $activeRound
-        ]);
+        $result = $game->getGameState();
+        echo json_encode($result);
         exit();
     }
     
@@ -298,19 +295,18 @@ function handleGame($action) {
             exit();
         }
         
-        $questionSetModel = new QuestionSet();
-        $set = $questionSetModel->getSetById($setId);
+        $result = $admin->getSetQuestions($setId);
         
-        if ($set) {
+        if ($result['success']) {
             echo json_encode([
                 'success' => true,
-                'set' => $set,
-                'rounds' => $set['rounds'] ?? []
+                'set' => $result['questions'],
+                'questions' => $result['questions']['questions'] ?? []
             ]);
         } else {
             echo json_encode([
                 'success' => false,
-                'message' => 'Set non trovato'
+                'message' => $result['error'] ?? 'Set non trovato'
             ]);
         }
         exit();
@@ -327,12 +323,24 @@ function handleGame($action) {
             exit();
         }
         
-        $success = $roundModel->startRound($roundId);
+        $result = $game->startRound($roundId);
+        echo json_encode($result);
+        exit();
+    }
+    
+    if ($action === 'close_round') {
+        $roundId = $_GET['round_id'] ?? 0;
         
-        echo json_encode([
-            'success' => $success,
-            'message' => $success ? 'Round avviato' : 'Errore nell\'avvio del round'
-        ]);
+        if (!$roundId) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Round ID mancante'
+            ]);
+            exit();
+        }
+        
+        $result = $game->closeRound($roundId);
+        echo json_encode($result);
         exit();
     }
     
@@ -345,19 +353,18 @@ function handleGame($action) {
 function handleLeaderboard() {
     requireLogin();
     
-    $playerAnswerModel = new PlayerAnswer();
-    $leaderboard = $playerAnswerModel->getLeaderboard();
+    global $game;
     
-    echo json_encode([
-        'success' => true,
-        'leaderboard' => $leaderboard
-    ]);
+    $roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
+    $result = $game->getLeaderboard($roomCode);
+    
+    echo json_encode($result);
 }
 
 function handleTimer() {
     requireAdmin();
     
-    $conn = getDBConnection();
+    global $admin;
     
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = json_decode(file_get_contents('php://input'), true);
@@ -365,33 +372,113 @@ function handleTimer() {
         
         if ($action === 'update_timer') {
             $seconds = intval($data['seconds'] ?? 10);
-            
-            // Validate timer value (between 5 and 60 seconds)
-            if ($seconds < 5) $seconds = 5;
-            if ($seconds > 60) $seconds = 60;
-            
-            $stmt = $conn->prepare("UPDATE game_state SET timer_seconds = ? WHERE id = 1");
-            $stmt->bind_param("i", $seconds);
-            $success = $stmt->execute();
-            $stmt->close();
-            
-            if ($success) {
-                echo json_encode(['success' => true, 'timer_seconds' => $seconds]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Failed to update timer']);
-            }
+            $result = $admin->updateTimer($seconds);
+            echo json_encode($result);
         }
     } else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        // Get current timer value
-        $result = $conn->query("SELECT timer_seconds FROM game_state WHERE id = 1");
-        $row = $result->fetch_assoc();
-        
-        echo json_encode([
-            'success' => true,
-            'timer_seconds' => $row['timer_seconds'] ?? 10
-        ]);
+        $result = $admin->getTimer();
+        echo json_encode($result);
     }
+}
+
+function handleAdmin($action) {
+    requireAdmin();
     
-    $conn->close();
+    global $admin, $game;
+    
+    switch ($action) {
+        case 'get_question_sets':
+            $result = $admin->getAllQuestionSets();
+            echo json_encode($result);
+            break;
+            
+        case 'search_question_sets':
+            $query = $_GET['query'] ?? '';
+            $result = $admin->searchQuestionSets($query);
+            echo json_encode($result);
+            break;
+            
+        case 'get_question_set':
+            $setId = intval($_GET['set_id'] ?? 0);
+            $result = $admin->getQuestionSetById($setId);
+            echo json_encode($result);
+            break;
+            
+        case 'get_question_set_rounds':
+            $setId = intval($_GET['set_id'] ?? 0);
+            $result = $admin->getQuestionSetRounds($setId);
+            echo json_encode($result);
+            break;
+            
+        case 'create_set_with_questions':
+            $data = json_decode(file_get_contents('php://input'), true);
+            $setName = $data['set_name'] ?? '';
+            $setDescription = $data['set_description'] ?? '';
+            $questions = $data['questions'] ?? [];
+            $result = $admin->createSetWithQuestions($setName, $setDescription, $questions);
+            echo json_encode($result);
+            break;
+            
+        case 'update_set_with_questions':
+            $data = json_decode(file_get_contents('php://input'), true);
+            $setId = intval($data['set_id'] ?? 0);
+            $setName = $data['set_name'] ?? '';
+            $setDescription = $data['set_description'] ?? '';
+            $questions = $data['questions'] ?? [];
+            $result = $admin->updateSetWithQuestions($setId, $setName, $setDescription, $questions);
+            echo json_encode($result);
+            break;
+            
+        case 'delete_question_set':
+            $data = json_decode(file_get_contents('php://input'), true);
+            $setId = intval($data['set_id'] ?? 0);
+            $result = $admin->deleteQuestionSet($setId);
+            echo json_encode($result);
+            break;
+            
+        case 'save_settings':
+            $data = json_decode(file_get_contents('php://input'), true);
+            $settingsData = $data['settings'] ?? [];
+            $result = $admin->saveSettings($settingsData);
+            echo json_encode($result);
+            break;
+            
+        case 'get_settings':
+            $result = $admin->getSettings();
+            echo json_encode($result);
+            break;
+            
+        case 'update_credentials':
+            $data = json_decode(file_get_contents('php://input'), true);
+            $userId = intval($data['user_id'] ?? 0);
+            $newUsername = $data['new_username'] ?? '';
+            $newPassword = $data['new_password'] ?? null;
+            $confirmPassword = $data['confirm_password'] ?? null;
+            $result = $admin->updateCredentials($userId, $newUsername, $newPassword, $confirmPassword);
+            echo json_encode($result);
+            break;
+            
+        case 'start_round':
+            $data = json_decode(file_get_contents('php://input'), true);
+            $roundId = intval($data['round_id'] ?? 0);
+            $result = $game->startRound($roundId);
+            echo json_encode($result);
+            break;
+            
+        case 'close_round':
+            $data = json_decode(file_get_contents('php://input'), true);
+            $roundId = intval($data['round_id'] ?? 0);
+            $result = $game->closeRound($roundId);
+            echo json_encode($result);
+            break;
+            
+        default:
+            http_response_code(404);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Admin action not found'
+            ]);
+            break;
+    }
 }
 ?>

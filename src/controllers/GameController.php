@@ -1,17 +1,14 @@
 <?php
-require_once __DIR__ . '/../repository/QuestionSet.php';
-require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../services/GameService.php';
 
 class GameController {
-    private $db;
-    private $questionSetModel;
+    private $gameService;
     
     public function __construct() {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        $this->db = getDBConnection();
-        $this->questionSetModel = new QuestionSet();
+        $this->gameService = new GameService();
     }
     
     /**
@@ -49,110 +46,89 @@ class GameController {
      * Get current game state
      */
     public function getGameState() {
-        // Get active round
-        $stmt = $this->db->prepare("
-            SELECT * FROM rounds 
-            WHERE status = 'active' 
-            LIMIT 1
-        ");
-        
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $activeRound = $result->fetch_assoc();
-        $stmt->close();
-        
-        return [
-            'success' => true,
-            'active_round' => $activeRound
-        ];
+        try {
+            $activeRound = $this->gameService->getActiveRound();
+            return [
+                'success' => true,
+                'active_round' => $activeRound
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
     }
     
     /**
      * Start a new round
      */
     public function startRound($roundId) {
-        // Set all rounds to pending
-        $this->db->query("UPDATE rounds SET status = 'pending'");
-        
-        // Set this round to active
-        $stmt = $this->db->prepare("UPDATE rounds SET status = 'active' WHERE id = ?");
-        $stmt->bind_param("i", $roundId);
-        $success = $stmt->execute();
-        $stmt->close();
-        
-        if ($success) {
+        try {
+            $this->gameService->startRound($roundId);
             return [
                 'success' => true,
                 'message' => 'Round avviato'
             ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
         }
-        
-        return [
-            'success' => false,
-            'error' => 'Errore nell\'avvio del round'
-        ];
     }
     
     /**
      * Close a round
      */
     public function closeRound($roundId) {
-        $stmt = $this->db->prepare("UPDATE rounds SET status = 'closed' WHERE id = ?");
-        $stmt->bind_param("i", $roundId);
-        $success = $stmt->execute();
-        $stmt->close();
-        
-        if ($success) {
+        try {
+            $this->gameService->closeRound($roundId);
             return [
                 'success' => true,
-                'message' => 'Round chiuso'
+                'message' => 'Round chiuso e punteggi calcolati'
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
             ];
         }
-        
-        return [
-            'success' => false,
-            'error' => 'Errore nella chiusura del round'
-        ];
     }
     
     /**
      * Submit player answer
      */
     public function submitAnswer($userId, $roundId, $answer, $timeTaken) {
-        // Check if round is still active
-        $stmt = $this->db->prepare("SELECT status FROM rounds WHERE id = ?");
-        $stmt->bind_param("i", $roundId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $round = $result->fetch_assoc();
-        $stmt->close();
-        
-        if (!$round || $round['status'] !== 'active') {
+        try {
+            $result = $this->gameService->submitAnswer($userId, $roundId, $answer, $timeTaken);
+            return [
+                'success' => true,
+                'is_correct' => $result['is_correct']
+            ];
+        } catch (Exception $e) {
             return [
                 'success' => false,
-                'error' => 'Round non più attivo'
+                'error' => $e->getMessage()
             ];
         }
-        
-        // Save answer (you would need a player_answers table)
-        // For now, just return success
-        
-        return [
-            'success' => true,
-            'message' => 'Risposta registrata'
-        ];
     }
     
     /**
      * Get leaderboard
      */
-    public function getLeaderboard() {
-        // This would query the player_answers table
-        // For now, return empty array
-        
-        return [
-            'success' => true,
-            'leaderboard' => []
-        ];
+    public function getLeaderboard($roomCode = null) {
+        try {
+            $leaderboard = $this->gameService->getLeaderboard($roomCode);
+            return [
+                'success' => true,
+                'leaderboard' => $leaderboard
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
     }
 }

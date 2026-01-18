@@ -1,104 +1,78 @@
 <?php
-require_once __DIR__ . '/../repository/User.php';
-require_once __DIR__ . '/../repository/Player.php';
-require_once __DIR__ . '/../repository/Room.php';
+require_once __DIR__ . '/../services/AuthService.php';
 
 class AuthController {
-    private $userModel;
-    private $playerModel;
+    private $auth;
     
     public function __construct() {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        $this->userModel = new User();
-        $this->playerModel = new Player();
+        $this->authService = new AuthService();
     }
     
     /**
-     * Guest login with room code
+     * Handle login - decide which type and format response
+     * @return array with 'success', 'redirect', and 'error' keys
      */
-    public function guestLogin($username, $roomCode) {
-        // Verify room code exists and is active
-        if (!Room::verifyRoomCode($roomCode)) {
+    public function login($username, $password, $roomCode) {
+        try {
+            // Validate input
+            if (!$username) {
+                return [
+                    'success' => false,
+                    'error' => 'Inserisci username'
+                ];
+            }
+            
+            // Admin login (username + password)
+            if ($password) {
+                $userType = $this->authService->adminLogin($username, $password);
+                return [
+                    'success' => true,
+                    'redirect' => 'admin.php'
+                ];
+            }
+            // Player login (username + room code)
+            elseif ($roomCode) {
+                $userType = $this->authService->playerLogin($username, $roomCode);
+                return [
+                    'success' => true,
+                    'redirect' => 'player.php'
+                ];
+            }
+            // Missing credentials
+            else {
+                return [
+                    'success' => false,
+                    'error' => 'Inserisci codice stanza o password per admin'
+                ];
+            }
+            
+        } catch (Exception $e) {
             return [
                 'success' => false,
-                'error' => 'Codice stanza non valido o stanza non attiva'
+                'error' => $e->getMessage()
             ];
         }
-        
-        // Create new player associated with this room
-        $playerId = $this->playerModel->createPlayer($username, $roomCode);
-        
-        if ($playerId) {
-            $_SESSION['player_id'] = $playerId;
-            $_SESSION['username'] = $username;
-            $_SESSION['room_code'] = strtoupper($roomCode);
-            
-            return [
-                'success' => true,
-                'redirect' => 'player.php'
-            ];
-        }
-        
-        return [
-            'success' => false,
-            'error' => 'Errore durante la creazione del player'
-        ];
     }
     
     /**
-     * Admin login with password
-     */
-    public function adminLogin($username, $password) {
-        $user = $this->userModel->authenticate($username, $password);
-        
-        if ($user) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            // Admin login = no room_code
-            
-            return [
-                'success' => true,
-                'redirect' => 'admin.php'
-            ];
-        }
-        
-        return [
-            'success' => false,
-            'error' => 'Username o password non validi'
-        ];
-    }
-    
-    /**
-     * Logout
+     * Handle logout
+     * @return array with 'success' and 'redirect' keys
      */
     public function logout() {
-        session_destroy();
-        return [
-            'success' => true,
-            'redirect' => 'login.php'
-        ];
-    }
-    
-    /**
-     * Check if user is logged in (admin or player)
-     */
-    public function isLoggedIn() {
-        return isset($_SESSION['user_id']) || isset($_SESSION['player_id']);
-    }
-    
-    /**
-     * Check if user is admin
-     */
-    public function isAdmin() {
-        return isset($_SESSION['user_id']) && !isset($_SESSION['player_id']);
-    }
-    
-    /**
-     * Check if user is player
-     */
-    public function isPlayer() {
-        return isset($_SESSION['player_id']) && isset($_SESSION['room_code']);
+        try {
+            $this->authService->logout();
+            return [
+                'success' => true,
+                'redirect' => 'login.php'
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
     }
 }

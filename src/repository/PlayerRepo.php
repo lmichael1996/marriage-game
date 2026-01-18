@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
 
-class Player {
+class PlayerRepo {
     private $conn;
     
     public function __construct() {

@@ -29,3 +29,45 @@ INSERT INTO rounds (question_set_id, round_number, round_type, question, option1
 (3, 3, 'truefalse', 'Le Olimpiadi si tengono ogni 4 anni', 'Vero', 'Falso', '', '', 1, 20),
 (3, 4, 'clickfirst', 'Chi è il cantante più veloce a premere!', '', '', '', '', NULL, 30),
 (3, 5, 'multiple', 'Quanti giocatori ha una squadra di basket?', '5', '6', '7', '11', 1, 25);
+
+-- Inserimento impostazioni di gioco
+-- 3 sistemi di punteggio separati per 3 tipi di gioco
+INSERT INTO game_settings (setting_key, setting_value) VALUES
+-- Impostazioni generali
+('min_players', '2'),
+('max_players', '50'),
+('auto_next_round', '0'),
+('auto_next_delay', '5'),
+
+-- Punteggi Multiple Choice (primi 10)
+('points_mult_1st', '25'),
+('points_mult_2nd', '18'),
+('points_mult_3rd', '15'),
+('points_mult_4th', '12'),
+('points_mult_5th', '10'),
+('points_mult_6th', '8'),
+('points_mult_7th', '6'),
+('points_mult_8th', '4'),
+('points_mult_9th', '2'),
+('points_mult_10th', '1'),
+
+-- Punteggi True/False (primi 10)
+('points_tf_1st', '20'),
+('points_tf_2nd', '15'),
+('points_tf_3rd', '12'),
+('points_tf_4th', '10'),
+('points_tf_5th', '8'),
+('points_tf_6th', '6'),
+('points_tf_7th', '5'),
+('points_tf_8th', '3'),
+('points_tf_9th', '2'),
+('points_tf_10th', '1'),
+
+-- Punteggi Click First (solo il primo vince)
+('points_clickfirst', '50'),
+
+-- Visualizzazione
+('show_leaderboard', '1'),
+('show_correct_answer', '1')
+
+ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value);
