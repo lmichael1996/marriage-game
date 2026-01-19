@@ -122,22 +122,42 @@ if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
         
         function checkGameState() {
             fetch('../src/api/api.php?endpoint=game&action=get_game_state')
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
                 .then(data => {
-                    console.log('Game state:', data);
+                    console.log('Game state received:', data);
+                    console.log('Has active_round?', !!data.active_round);
+                    console.log('Has answered?', hasAnswered);
+                    console.log('Current round ID:', currentRoundId);
+                    
+                    if (data.success === false) {
+                        console.error('API Error:', data.error);
+                        return;
+                    }
+                    
                     if (data.active_round && !hasAnswered) {
+                        console.log('Active round found:', data.active_round.id);
                         if (currentRoundId !== data.active_round.id) {
+                            console.log('Starting new round');
                             startRound(data.active_round);
+                        } else {
+                            console.log('Already showing this round');
                         }
                     } else if (!data.active_round) {
+                        console.log('No active round, showing waiting screen');
                         showWaitingScreen();
                     }
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                });
         }
         
         function startRound(round) {
             console.log('Starting player round:', round);
+            console.log('About to change screens...');
             currentRoundId = round.id;
             hasAnswered = false;
             selectedAnswer = null;
@@ -146,10 +166,18 @@ if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
             document.getElementById('round-number').textContent = round.round_number;
             document.getElementById('question-text').textContent = round.question || '';
             
+            console.log('Hiding waiting screen...');
             document.getElementById('waiting-screen').style.display = 'none';
+            console.log('Hiding result screen...');
             document.getElementById('result-screen').style.display = 'none';
+            console.log('Showing game screen...');
             document.getElementById('game-screen').style.display = 'block';
+            console.log('Hiding submit container...');
             document.getElementById('submit-container').style.display = 'none';
+            console.log('Screens changed successfully!');
+            console.log('Waiting screen display:', document.getElementById('waiting-screen').style.display);
+            console.log('Game screen display:', document.getElementById('game-screen').style.display);
+            console.log('Result screen display:', document.getElementById('result-screen').style.display);
             
             const answerGrid = document.getElementById('answer-grid');
             const clickFirstScreen = document.getElementById('click-first-screen');
@@ -317,8 +345,6 @@ if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
             }, 1000);
         }
         
-        }
-        
         function timeExpired() {
             if (hasAnswered) return;
             
@@ -339,14 +365,6 @@ if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
                 currentRoundId = null;
                 hasAnswered = false;
                 selectedAnswer = null;
-                checkGameState();
-            }, 3000);
-        }
-            document.getElementById('result-screen').style.display = 'block';
-            
-            setTimeout(() => {
-                currentRoundId = null;
-                hasAnswered = false;
                 checkGameState();
             }, 3000);
         }

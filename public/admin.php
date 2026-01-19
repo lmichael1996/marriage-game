@@ -176,6 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
 // Get data
 $questionSetsResult = $admin->getAllQuestionSets();
 $questionSets = $questionSetsResult['success'] ? $questionSetsResult['sets'] : [];
+error_log("admin.php - questionSets: " . json_encode($questionSets));
 
 // TODO: Questi metodi devono essere aggiunti ai controller
 $rounds = []; // $roundModel->getAllRoundsWithStats();
@@ -346,16 +347,10 @@ if ($selectedSetId) {
                             </thead>
                             <tbody id="game-sets-table-body">
                                 <?php foreach ($questionSets as $set): ?>
-                                    <?php 
-                                        $setRounds = array_filter($rounds, function($r) use ($set) {
-                                            return $r['question_set_id'] == $set['id'];
-                                        });
-                                        $questionCount = count($setRounds);
-                                    ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars($set['set_name']); ?></td>
                                         <td><?php echo htmlspecialchars($set['set_description'] ?? '-'); ?></td>
-                                        <td><?php echo $questionCount; ?></td>
+                                        <td><?php echo $set['total_rounds']; ?></td>
                                         <td>
                                             <button class="btn btn-primary" onclick="selectGameSet(<?php echo $set['id']; ?>, '<?php echo addslashes($set['set_name']); ?>')">
                                                 Seleziona

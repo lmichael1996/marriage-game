@@ -17,14 +17,20 @@ class QuestionRepo {
     
     public function getAll() {
         $result = $this->conn->query("
-            SELECT qs.*, 
+            SELECT qs.id,
+                   qs.set_name,
+                   qs.set_description,
+                   qs.created_at,
+                   qs.updated_at,
                    COUNT(r.id) as total_rounds
             FROM question_sets qs
             LEFT JOIN rounds r ON r.question_set_id = qs.id
-            GROUP BY qs.id
+            GROUP BY qs.id, qs.set_name, qs.set_description, qs.created_at, qs.updated_at
             ORDER BY qs.id DESC
         ");
-        return $result->fetch_all(MYSQLI_ASSOC);
+        $data = $result->fetch_all(MYSQLI_ASSOC);
+        error_log("QuestionRepo.getAll() returned: " . json_encode($data));
+        return $data;
     }
     
     public function getById($id) {

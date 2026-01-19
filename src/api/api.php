@@ -125,7 +125,8 @@ function handleLogin() {
 function handleAnswer($action) {
     requireLogin();
     
-    if ($action === 'submit') {
+    // Accept both with and without action parameter for backward compatibility
+    if ($action === 'submit' || $_SERVER['REQUEST_METHOD'] === 'POST') {
         global $game;
         
         $data = json_decode(file_get_contents('php://input'), true);
@@ -133,7 +134,17 @@ function handleAnswer($action) {
         $round_id = $data['round_id'] ?? 0;
         $answer = $data['answer'] ?? 0;
         $time_taken = $data['time_taken'] ?? 0;
-        $user_id = $_SESSION['user_id'];
+        
+        // Use player_id if available (for players), otherwise user_id (for admins in testing)
+        $user_id = $_SESSION['player_id'] ?? $_SESSION['user_id'] ?? 0;
+        
+        if (!$user_id) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'User ID non trovato nella sessione'
+            ]);
+            exit();
+        }
         
         $result = $game->submitAnswer($user_id, $round_id, $answer, $time_taken);
         echo json_encode($result);
@@ -249,6 +260,109 @@ function handleConnectedDevices() {
     
     try {
         global $room;
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         
         // Get room code from session or request
         $roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;

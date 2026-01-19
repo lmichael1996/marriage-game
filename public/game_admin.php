@@ -55,8 +55,10 @@ $questions = [];
 $setInfo = null;
 if ($questionSetId) {
     $setResult = $admin->getQuestionSetRounds($questionSetId);
+    error_log("game_admin.php - getQuestionSetRounds($questionSetId) returned: " . json_encode($setResult));
     if ($setResult['success']) {
         $questions = $setResult['rounds'];
+        error_log("game_admin.php - questions loaded: " . count($questions));
         $setInfoResult = $admin->getQuestionSetById($questionSetId);
         if ($setInfoResult['success']) {
             $setInfo = $setInfoResult['set'];
@@ -398,6 +400,7 @@ foreach ($questions as $q) {
 
     <script>
         function startRound(roundId) {
+            console.log('Admin: Avvio round', roundId);
             fetch('../src/api/api.php?endpoint=game&action=start_round', {
                 method: 'POST',
                 headers: {
@@ -407,16 +410,22 @@ foreach ($questions as $q) {
                     round_id: roundId
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Admin: Response status:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('Admin: Response data:', data);
                 if (data.success) {
+                    console.log('Admin: Round avviato con successo, ricarico pagina');
                     location.reload();
                 } else {
+                    console.error('Admin: Errore avvio round:', data.error);
                     alert('Errore: ' + (data.error || 'Impossibile avviare il round'));
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('Admin: Fetch error:', error);
                 alert('Errore nella comunicazione con il server');
             });
         }
