@@ -127,4 +127,11 @@ class RoomService {
     public function isRoomActive($roomCode) {
         return $this->roomRepo->verifyRoomCode($roomCode);
     }
+    
+    /**
+     * Get question set ID for a room
+     */
+    public function getQuestionSetIdByRoomCode($roomCode) {
+        return $this->roomRepo->getQuestionSetIdByRoomCode($roomCode);
+    }
 }

@@ -61,8 +61,21 @@ class RoundRepo {
     /**
      * Get active round
      */
-    public function getActiveRound() {
-        $stmt = $this->conn->prepare("SELECT * FROM rounds WHERE status_round = 'active' LIMIT 1");
+    public function getActiveRound($questionSetId = null) {
+        if ($questionSetId !== null) {
+            // Get active round for specific question set (room)
+            $stmt = $this->conn->prepare("
+                SELECT * FROM rounds 
+                WHERE status_round = 'active' 
+                AND question_set_id = ? 
+                LIMIT 1
+            ");
+            $stmt->bind_param("i", $questionSetId);
+        } else {
+            // Get any active round (for backward compatibility)
+            $stmt = $this->conn->prepare("SELECT * FROM rounds WHERE status_round = 'active' LIMIT 1");
+        }
+        
         $stmt->execute();
         $result = $stmt->get_result();
         $round = $result->fetch_assoc();

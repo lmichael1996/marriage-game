@@ -27,8 +27,8 @@ class GameService {
     /**
      * Get active round
      */
-    public function getActiveRound() {
-        return $this->roundRepo->getActiveRound();
+    public function getActiveRound($questionSetId = null) {
+        return $this->roundRepo->getActiveRound($questionSetId);
     }
     
     /**

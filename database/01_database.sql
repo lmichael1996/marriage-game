@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS rounds (
     option4 TEXT,
     correct_answer INT,
     timer INT DEFAULT 10 COMMENT 'Timer in secondi per la domanda',
-    status_round ENUM('pending', 'active', 'closed') DEFAULT 'pending',
+    status_round ENUM('pending', 'active', 'closed', 'cancelled') DEFAULT 'pending',
     FOREIGN KEY (question_set_id) REFERENCES question_sets(id) ON DELETE SET NULL,
     INDEX idx_question_set_id (question_set_id),
     INDEX idx_status (status_round),

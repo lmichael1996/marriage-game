@@ -278,6 +278,12 @@ if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
             .then(response => response.json())
             .then(data => {
                 showResultScreen(selectedAnswer, timeTaken);
+                
+                // Torna alla waiting screen dopo 3 secondi
+                setTimeout(() => {
+                    document.getElementById('result-screen').style.display = 'none';
+                    showWaitingScreen();
+                }, 3000);
             })
             .catch(error => console.error('Error:', error));
         }
@@ -320,6 +326,12 @@ if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
                     <p>Tempo di reazione: ${timeTaken.toFixed(3)} secondi</p>
                     <p>Attendi la fine del round per vedere chi è stato più veloce!</p>
                 `;
+                
+                // Torna alla waiting screen dopo 3 secondi
+                setTimeout(() => {
+                    document.getElementById('result-screen').style.display = 'none';
+                    showWaitingScreen();
+                }, 3000);
             })
             .catch(error => console.error('Error:', error));
         }
@@ -362,10 +374,8 @@ if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
             `;
             
             setTimeout(() => {
-                currentRoundId = null;
-                hasAnswered = false;
-                selectedAnswer = null;
-                checkGameState();
+                document.getElementById('result-screen').style.display = 'none';
+                showWaitingScreen();
             }, 3000);
         }
         

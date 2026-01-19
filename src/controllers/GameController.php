@@ -45,9 +45,9 @@ class GameController {
     /**
      * Get current game state
      */
-    public function getGameState() {
+    public function getGameState($questionSetId = null) {
         try {
-            $activeRound = $this->gameService->getActiveRound();
+            $activeRound = $this->gameService->getActiveRound($questionSetId);
             return [
                 'success' => true,
                 'active_round' => $activeRound

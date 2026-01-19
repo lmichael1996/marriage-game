@@ -66,4 +66,11 @@ class RoomController {
             ];
         }
     }
+    
+    /**
+     * Get question set ID for a room
+     */
+    public function getQuestionSetIdByRoomCode($roomCode) {
+        return $this->roomService->getQuestionSetIdByRoomCode($roomCode);
+    }
 }

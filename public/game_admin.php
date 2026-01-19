@@ -66,8 +66,8 @@ if ($questionSetId) {
     }
 }
 
-// Get current game state
-$gameState = $game->getGameState();
+// Get current game state for this room's question set
+$gameState = $game->getGameState($questionSetId);
 $activeRound = $gameState['active_round'] ?? null;
 
 // Get connected players

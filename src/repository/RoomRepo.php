@@ -156,6 +156,23 @@ class RoomRepo {
         return $rooms;
     }
     
+    /**
+     * Get question set ID for a room by room code
+     */
+    public function getQuestionSetIdByRoomCode($roomCode) {
+        $stmt = $this->conn->prepare("
+            SELECT question_set_id FROM rooms 
+            WHERE room_code = ? AND status_room IN ('waiting', 'active')
+        ");
+        $stmt->bind_param("s", strtoupper($roomCode));
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $room = $result->fetch_assoc();
+        $stmt->close();
+        
+        return $room ? $room['question_set_id'] : null;
+    }
+    
     public function __destruct() {
         if ($this->conn) {
             $this->conn->close();

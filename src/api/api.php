@@ -391,10 +391,17 @@ function handleConnectedDevices() {
 function handleGame($action) {
     requireLogin();
     
-    global $game, $admin;
+    global $game, $admin, $room;
     
     if ($action === 'get_game_state') {
-        $result = $game->getGameState();
+        $questionSetId = null;
+        
+        // If player is logged in, get their room's question set
+        if (isset($_SESSION['room_code'])) {
+            $questionSetId = $room->getQuestionSetIdByRoomCode($_SESSION['room_code']);
+        }
+        
+        $result = $game->getGameState($questionSetId);
         echo json_encode($result);
         exit();
     }
