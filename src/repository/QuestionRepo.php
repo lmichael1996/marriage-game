@@ -41,7 +41,7 @@ class QuestionRepo {
     }
     
     public function update($id, $name, $description) {
-        $stmt = $this->conn->prepare("UPDATE question_sets SET set_name = ?, set_description = ? WHERE id = ?");
+        $stmt = $this->conn->prepare("UPDATE question_sets SET set_name = ?, set_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
         $stmt->bind_param("ssi", $name, $description, $id);
         return $stmt->execute();
     }
@@ -146,13 +146,18 @@ class QuestionRepo {
         // Update set name and description
         $this->update($setId, $setName, $setDescription);
         
-        // Delete existing rounds for this set
-        $stmt = $this->conn->prepare("DELETE FROM rounds WHERE question_set_id = ?");
+        // Get existing rounds for this set
+        $stmt = $this->conn->prepare("SELECT id, round_number FROM rounds WHERE question_set_id = ? ORDER BY round_number");
         $stmt->bind_param("i", $setId);
         $stmt->execute();
+        $result = $stmt->get_result();
+        $existingRounds = [];
+        while ($row = $result->fetch_assoc()) {
+            $existingRounds[$row['round_number']] = $row['id'];
+        }
         $stmt->close();
         
-        // Add new questions
+        // Update or insert questions
         foreach ($questions as $i => $q) {
             $roundNumber = $i + 1;
             $question = $q['question'] ?? '';
@@ -182,11 +187,35 @@ class QuestionRepo {
                 $timer = null;
             }
             
-            $stmt = $this->conn->prepare("
-                INSERT INTO rounds (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer, status_round) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
-            ");
-            $stmt->bind_param("iissssssii", $setId, $roundNumber, $type, $question, $option1, $option2, $option3, $option4, $correct, $timer);
+            // Update existing round or insert new one
+            if (isset($existingRounds[$roundNumber])) {
+                // Update existing round (only if status is 'pending')
+                $stmt = $this->conn->prepare("
+                    UPDATE rounds 
+                    SET round_type = ?, question = ?, option1 = ?, option2 = ?, option3 = ?, option4 = ?, correct_answer = ?, timer = ?
+                    WHERE id = ? AND status_round = 'pending'
+                ");
+                $roundId = $existingRounds[$roundNumber];
+                $stmt->bind_param("sssssssii", $type, $question, $option1, $option2, $option3, $option4, $correct, $timer, $roundId);
+                $stmt->execute();
+                $stmt->close();
+                unset($existingRounds[$roundNumber]);
+            } else {
+                // Insert new round
+                $stmt = $this->conn->prepare("
+                    INSERT INTO rounds (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer, status_round) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+                ");
+                $stmt->bind_param("iissssssii", $setId, $roundNumber, $type, $question, $option1, $option2, $option3, $option4, $correct, $timer);
+                $stmt->execute();
+                $stmt->close();
+            }
+        }
+        
+        // Delete remaining rounds (only if status is 'pending')
+        foreach ($existingRounds as $roundId) {
+            $stmt = $this->conn->prepare("DELETE FROM rounds WHERE id = ? AND status_round = 'pending'");
+            $stmt->bind_param("i", $roundId);
             $stmt->execute();
             $stmt->close();
         }

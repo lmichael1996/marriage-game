@@ -111,7 +111,9 @@ class AdminController {
      */
     public function getSetQuestions($setId) {
         try {
+            error_log("AdminController::getSetQuestions called with setId: $setId");
             $set = $this->questionService->getQuestionSetWithQuestions($setId);
+            error_log("AdminController::getSetQuestions - set: " . json_encode($set));
             
             if (!$set) {
                 return [
@@ -120,11 +122,14 @@ class AdminController {
                 ];
             }
             
-            return [
+            $result = [
                 'success' => true,
                 'questions' => $set['questions'] ?? []
             ];
+            error_log("AdminController::getSetQuestions - returning: " . json_encode($result));
+            return $result;
         } catch (Exception $e) {
+            error_log("AdminController::getSetQuestions - exception: " . $e->getMessage());
             return [
                 'success' => false,
                 'error' => $e->getMessage()

@@ -1,17 +1,8 @@
 <?php
-session_start();
+require_once __DIR__ . '/../src/utils/AuthHelper.php';
 
-// Check if player is logged in (players have player_id, admins have user_id)
-if (!isset($_SESSION['player_id']) && !isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit();
-}
-
-// Ensure player is not admin
-if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
-    header('Location: admin.php');
-    exit();
-}
+// Check if player is logged in
+AuthHelper::requirePlayer();
 ?>
 <!DOCTYPE html>
 <html lang="it">

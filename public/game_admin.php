@@ -1,17 +1,13 @@
 <?php
-session_start();
-
-// Check admin access
-if (!isset($_SESSION['logged_in_via_login']) || !isset($_SESSION['user_id']) || isset($_SESSION['player_id'])) {
-    header('Location: login.php');
-    exit();
-}
-
+require_once __DIR__ . '/../src/utils/AuthHelper.php';
 require_once __DIR__ . '/../src/controllers/GameController.php';
 require_once __DIR__ . '/../src/controllers/AdminController.php';
 require_once __DIR__ . '/../src/repository/RoomRepo.php';
 require_once __DIR__ . '/../src/repository/PlayerRepo.php';
 require_once __DIR__ . '/../src/config/database.php';
+
+// Check admin access
+AuthHelper::requireAdmin();
 
 $game = new GameController();
 $admin = new AdminController();

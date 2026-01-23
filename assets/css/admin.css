@@ -897,3 +897,46 @@ mark {
     border-color: #dc143c;
     color: #721c24;
 }
+
+/* Hidden elements */
+.hidden {
+    display: none !important;
+}
+
+/* Set selected info */
+#set-selected-info {
+    margin-bottom: 15px;
+}
+
+/* Room info */
+#room-info {
+    margin-top: 15px;
+}
+
+/* Game start section */
+#game-start-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #ddd;
+}
+
+/* Form spacing */
+.form-spacing {
+    margin-bottom: 30px;
+}
+
+/* Input width constraints */
+.input-narrow {
+    width: 150px;
+}
+
+/* Delete button large */
+.btn-delete-large {
+    font-size: 1.5em;
+    padding: 5px 15px;
+}
+
+/* Button margin top */
+.btn-margin-top {
+    margin-top: 15px;
+}
