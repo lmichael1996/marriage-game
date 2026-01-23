@@ -54,7 +54,6 @@ list($selectedSet, $setRounds) = AdminHelper::getSelectedSet($admin, $selectedSe
         <div class="header">
             <h1>Admin Panel - Marriage Game</h1>
             <div class="user-info">
-                <span>Benvenuto, <?php echo htmlspecialchars($_SESSION['username']); ?></span>
                 <a href="logout.php?logout=1" class="btn btn-secondary">Logout</a>
             </div>
         </div>

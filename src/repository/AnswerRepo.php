@@ -26,6 +26,37 @@ class AnswerRepo {
         return $success;
     }
     
+    public function getRoundAnswers($round_id) {
+        $stmt = $this->conn->prepare("
+            SELECT 
+                pa.*,
+                p.username
+            FROM player_answers pa
+            JOIN players p ON p.id = pa.player_id
+            WHERE pa.round_id = ?
+            ORDER BY pa.time_taken ASC
+        ");
+        $stmt->bind_param("i", $round_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $answers = [];
+        while ($row = $result->fetch_assoc()) {
+            $answers[] = $row;
+        }
+        
+        $stmt->close();
+        return $answers;
+    }
+    
+    public function updateScore($answer_id, $points) {
+        $stmt = $this->conn->prepare("UPDATE player_answers SET points_earned = ? WHERE id = ?");
+        $stmt->bind_param("ii", $points, $answer_id);
+        $success = $stmt->execute();
+        $stmt->close();
+        return $success;
+    }
+    
     public function getLeaderboard() {
         $result = $this->conn->query("
             SELECT 

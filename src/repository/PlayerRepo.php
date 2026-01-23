@@ -88,6 +88,18 @@ class PlayerRepo {
         return $success;
     }
     
+    /**
+     * Reset all player scores in a room
+     */
+    public function resetPlayerScoresByRoom($roomCode) {
+        $stmt = $this->conn->prepare("UPDATE players SET total_score = 0 WHERE room_code = ?");
+        $stmt->bind_param("s", strtoupper($roomCode));
+        $success = $stmt->execute();
+        $stmt->close();
+        
+        return $success;
+    }
+    
     public function __destruct() {
         if ($this->conn) {
             $this->conn->close();

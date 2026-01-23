@@ -391,9 +391,18 @@ function handleGame($action, $game, $room, $admin) {
     }
     
     if ($action === 'close_round') {
+        // Get round_id from either GET or POST body
         $roundId = $_GET['round_id'] ?? 0;
         
+        if (!$roundId && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            $postData = json_decode(file_get_contents('php://input'), true);
+            $roundId = $postData['round_id'] ?? 0;
+        }
+        
+        error_log("close_round called with round_id: $roundId");
+        
         if (!$roundId) {
+            error_log("close_round: round_id missing");
             echo json_encode([
                 'success' => false,
                 'message' => 'Round ID mancante'
@@ -401,8 +410,58 @@ function handleGame($action, $game, $room, $admin) {
             exit();
         }
         
-        $result = $game->closeRound($roundId);
-        echo json_encode($result);
+        try {
+            $result = $game->closeRound($roundId);
+            error_log("close_round result: " . json_encode($result));
+            echo json_encode($result);
+        } catch (Exception $e) {
+            error_log("close_round exception: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+        exit();
+    }
+    
+    if ($action === 'reset_game') {
+        requireAdmin();
+        
+        $postData = json_decode(file_get_contents('php://input'), true);
+        $questionSetId = $postData['question_set_id'] ?? 0;
+        $roomCode = $postData['room_code'] ?? '';
+        
+        if (!$questionSetId) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Question Set ID mancante'
+            ]);
+            exit();
+        }
+        
+        try {
+            // Reset all rounds to pending
+            require_once __DIR__ . '/../repository/RoundRepo.php';
+            $roundRepo = new RoundRepo();
+            $resetResult = $roundRepo->resetRoundsBySetId($questionSetId);
+            
+            // Reset all player scores
+            if ($roomCode) {
+                require_once __DIR__ . '/../repository/PlayerRepo.php';
+                $playerRepo = new PlayerRepo();
+                $playerRepo->resetPlayerScoresByRoom($roomCode);
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'message' => 'Partita resettata con successo'
+            ]);
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
         exit();
     }
     

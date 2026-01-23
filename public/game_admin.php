@@ -50,6 +50,7 @@ if (!$room) {
 $questions = [];
 $setInfo = null;
 if ($questionSetId) {
+    error_log("game_admin.php - Loading questions for set ID: $questionSetId");
     $setResult = $admin->getQuestionSetRounds($questionSetId);
     error_log("game_admin.php - getQuestionSetRounds($questionSetId) returned: " . json_encode($setResult));
     if ($setResult['success']) {
@@ -59,12 +60,17 @@ if ($questionSetId) {
         if ($setInfoResult['success']) {
             $setInfo = $setInfoResult['set'];
         }
+    } else {
+        error_log("game_admin.php - ERROR loading questions: " . ($setResult['error'] ?? 'unknown error'));
     }
+} else {
+    error_log("game_admin.php - No question_set_id found! Room: " . json_encode($room));
 }
 
 // Get current game state for this room's question set
 $gameState = $game->getGameState($questionSetId);
 $activeRound = $gameState['active_round'] ?? null;
+error_log("game_admin.php - Active round: " . json_encode($activeRound));
 
 // Get connected players
 $players = [];
@@ -80,6 +86,7 @@ foreach ($questions as $q) {
         break;
     }
 }
+error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -89,15 +96,155 @@ foreach ($questions as $q) {
     <title>Gestione Partita - Marriage Game</title>
     <link rel="stylesheet" href="../assets/css/admin.css">
     <style>
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+        }
+        
         .game-layout {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 25px auto;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
         }
 
         .main-game-area {
             display: flex;
             flex-direction: column;
             gap: 25px;
+        }
+        
+        .leaderboard-sidebar {
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+        
+        .leaderboard-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 3px solid #1a1a1a;
+            padding: 30px;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 0.5s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+        
+        .leaderboard-box.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .leaderboard-box h3 {
+            font-size: 1.6em;
+            font-weight: 700;
+            margin-bottom: 25px;
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 3px solid rgba(255,255,255,0.3);
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: 1px;
+        }
+        
+        .leaderboard-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 18px 16px;
+            margin-bottom: 12px;
+            background: rgba(255,255,255,0.95);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .leaderboard-item:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .leaderboard-item.first {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border-color: #ffb300;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            transform: scale(1.02);
+        }
+        
+        .leaderboard-item.second {
+            background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+            border-color: #a0a0a0;
+            font-weight: 600;
+            box-shadow: 0 3px 12px rgba(192, 192, 192, 0.4);
+        }
+        
+        .leaderboard-item.third {
+            background: linear-gradient(135deg, #cd7f32 0%, #e8a864 100%);
+            border-color: #a0522d;
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 3px 12px rgba(205, 127, 50, 0.4);
+        }
+        
+        .leaderboard-position {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-right: 18px;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .leaderboard-item.first .leaderboard-position {
+            font-size: 2em;
+        }
+        
+        .leaderboard-name {
+            flex: 1;
+            font-size: 1.15em;
+            font-weight: 500;
+        }
+        
+        .leaderboard-item.first .leaderboard-name {
+            font-size: 1.25em;
+        }
+        
+        .leaderboard-score {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #4caf50;
+            background: rgba(76, 175, 80, 0.1);
+            padding: 6px 12px;
+            border-radius: 6px;
+            min-width: 70px;
+            text-align: center;
+        }
+        
+        .leaderboard-item.first .leaderboard-score {
+            font-size: 1.5em;
+            color: #1a5d1a;
+            background: rgba(26, 93, 26, 0.15);
+        }
+        
+        .leaderboard-item.third .leaderboard-score {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .leaderboard-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255,255,255,0.9);
+            font-style: italic;
+            font-size: 1.1em;
         }
 
         .question-display {
@@ -229,6 +376,15 @@ foreach ($questions as $q) {
         }
 
         @media (max-width: 768px) {
+            .game-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .leaderboard-sidebar {
+                position: static;
+                order: -1; /* Show leaderboard above on mobile */
+            }
+            
             .question-display {
                 padding: 25px;
             }
@@ -280,7 +436,7 @@ foreach ($questions as $q) {
                         </div>
 
                         <div class="timer-info">
-                            ⏱ Timer: <strong><?php echo $activeRound['timer'] ?? 10; ?> secondi</strong>
+                            ⏱ Timer: <strong id="countdown-timer"><?php echo $activeRound['timer'] ?? 10; ?></strong> secondi
                         </div>
 
                         <div class="question-text">
@@ -361,6 +517,11 @@ foreach ($questions as $q) {
                             <div class="empty-state-icon">🎯</div>
                             <h3>Nessun Round Disponibile</h3>
                             <p>Tutte le domande sono state completate o non ci sono domande nel set</p>
+                            <?php if (!empty($questions)): ?>
+                                <button class="btn btn-warning btn-large" onclick="resetGame()" style="margin-top: 20px;">
+                                    🔄 Reset Partita
+                                </button>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -373,8 +534,8 @@ foreach ($questions as $q) {
                             <button class="btn btn-danger btn-large" onclick="closeRound()">
                                 ⏹ Chiudi Round
                             </button>
-                            <button class="btn btn-primary btn-large" onclick="showResults()">
-                                📊 Mostra Risultati
+                            <button class="btn btn-primary btn-large" id="next-question-btn" onclick="nextQuestion(<?php echo $activeRound['id']; ?>)" disabled>
+                                ➡️ Prossima Domanda
                             </button>
                         <?php elseif ($nextQuestion): ?>
                             <button class="btn btn-success btn-large" onclick="startRound(<?php echo $nextQuestion['id']; ?>)">
@@ -384,10 +545,24 @@ foreach ($questions as $q) {
                             <button class="btn btn-secondary btn-large" disabled>
                                 🏁 Partita Terminata
                             </button>
+                            <?php if (!empty($questions)): ?>
+                                <button class="btn btn-warning btn-large" onclick="resetGame()">
+                                    🔄 Reset Partita
+                                </button>
+                            <?php endif; ?>
                         <?php endif; ?>
-                        <button class="btn btn-secondary btn-large" onclick="showLeaderboard()">
-                            🏆 Classifica
-                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Leaderboard Sidebar -->
+            <div class="leaderboard-sidebar">
+                <div class="leaderboard-box" id="leaderboard-box">
+                    <h3>🏆 Classifica</h3>
+                    <div id="leaderboard-content">
+                        <div class="leaderboard-empty">
+                            Attendi la fine del timer per vedere la classifica
+                        </div>
                     </div>
                 </div>
             </div>
@@ -395,6 +570,140 @@ foreach ($questions as $q) {
     </div>
 
     <script>
+        // Timer countdown
+        let timerInterval = null;
+        let timeRemaining = <?php echo $activeRound ? ($activeRound['timer'] ?? 10) : 0; ?>;
+        
+        <?php if ($activeRound): ?>
+        // Start countdown timer
+        function startCountdown() {
+            const timerDisplay = document.getElementById('countdown-timer');
+            const nextBtn = document.getElementById('next-question-btn');
+            
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                if (timerDisplay) {
+                    timerDisplay.textContent = timeRemaining;
+                    
+                    // Change color when time is running out
+                    if (timeRemaining <= 5) {
+                        timerDisplay.style.color = '#dc3545'; // Red
+                    } else if (timeRemaining <= 10) {
+                        timerDisplay.style.color = '#ffc107'; // Yellow
+                    }
+                }
+                
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    if (nextBtn) {
+                        nextBtn.disabled = false;
+                        nextBtn.style.animation = 'pulse 1s infinite';
+                    }
+                    // Show leaderboard when timer ends
+                    loadLeaderboard();
+                }
+            }, 1000);
+        }
+        
+        // Load and display leaderboard
+        function loadLeaderboard() {
+            const leaderboardBox = document.getElementById('leaderboard-box');
+            const leaderboardContent = document.getElementById('leaderboard-content');
+            
+            fetch('../src/api/api.php?endpoint=leaderboard&room_code=<?php echo $roomCode; ?>')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Leaderboard data:', data);
+                    
+                    if (data.success && data.leaderboard && data.leaderboard.length > 0) {
+                        let html = '<ul class="leaderboard-list">';
+                        
+                        data.leaderboard.forEach((player, index) => {
+                            const position = index + 1;
+                            let itemClass = 'leaderboard-item';
+                            
+                            if (position === 1) itemClass += ' first';
+                            else if (position === 2) itemClass += ' second';
+                            else if (position === 3) itemClass += ' third';
+                            
+                            let medal = '';
+                            if (position === 1) medal = '🥇';
+                            else if (position === 2) medal = '🥈';
+                            else if (position === 3) medal = '🥉';
+                            else medal = position;
+                            
+                            html += `
+                                <li class="${itemClass}">
+                                    <span class="leaderboard-position">${medal}</span>
+                                    <span class="leaderboard-name">${player.username}</span>
+                                    <span class="leaderboard-score">${player.total_score || 0} pt</span>
+                                </li>
+                            `;
+                        });
+                        
+                        html += '</ul>';
+                        leaderboardContent.innerHTML = html;
+                    } else {
+                        leaderboardContent.innerHTML = '<div class="leaderboard-empty">Nessun punteggio disponibile</div>';
+                    }
+                    
+                    // Show leaderboard with animation
+                    leaderboardBox.classList.add('visible');
+                })
+                .catch(error => {
+                    console.error('Error loading leaderboard:', error);
+                    leaderboardContent.innerHTML = '<div class="leaderboard-empty">Errore nel caricamento</div>';
+                });
+        }
+        
+        // Start timer when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            startCountdown();
+        });
+        <?php endif; ?>
+        
+        function nextQuestion(roundId) {
+            if (!confirm('Passare alla prossima domanda?')) {
+                return;
+            }
+            
+            console.log('Closing round:', roundId);
+            
+            // Close current round and reload to show next question
+            fetch('../src/api/api.php?endpoint=game&action=close_round&round_id=' + roundId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ round_id: roundId })
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                return response.text(); // Get as text first to see what we're receiving
+            })
+            .then(text => {
+                console.log('Response text:', text);
+                try {
+                    const data = JSON.parse(text);
+                    console.log('Parsed data:', data);
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Errore: ' + (data.error || data.message || 'Impossibile passare alla prossima domanda'));
+                    }
+                } catch (e) {
+                    console.error('JSON parse error:', e);
+                    console.error('Response was:', text);
+                    alert('Errore: risposta del server non valida. Controlla la console per dettagli.');
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                alert('Errore nella comunicazione con il server: ' + error.message);
+            });
+        }
+        
         function startRound(roundId) {
             console.log('Admin: Avvio round', roundId);
             fetch('../src/api/api.php?endpoint=game&action=start_round', {
@@ -444,6 +753,38 @@ foreach ($questions as $q) {
                     setTimeout(() => location.reload(), 3000);
                 } else {
                     alert('Errore: ' + (data.error || 'Impossibile chiudere il round'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Errore nella comunicazione con il server');
+            });
+        }
+
+        function resetGame() {
+            if (!confirm('Vuoi resettare la partita? Tutti i round saranno riportati allo stato iniziale e i punteggi azzerati.')) {
+                return;
+            }
+
+            const questionSetId = <?php echo $questionSetId ?? 0; ?>;
+            
+            fetch('../src/api/api.php?endpoint=game&action=reset_game', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    question_set_id: questionSetId,
+                    room_code: '<?php echo $roomCode ?? ''; ?>'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Partita resettata con successo!');
+                    location.reload();
+                } else {
+                    alert('Errore: ' + (data.error || data.message || 'Impossibile resettare la partita'));
                 }
             })
             .catch(error => {

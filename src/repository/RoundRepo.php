@@ -251,6 +251,28 @@ class RoundRepo {
         return $success;
     }
     
+    /**
+     * Reset all rounds of a question set to pending status
+     */
+    public function resetRoundsBySetId($question_set_id) {
+        // Reset all rounds to pending and clear player answers
+        $stmt = $this->conn->prepare("UPDATE rounds SET status_round = 'pending' WHERE question_set_id = ?");
+        $stmt->bind_param("i", $question_set_id);
+        $success = $stmt->execute();
+        $stmt->close();
+        
+        // Delete all player answers for these rounds
+        $stmt = $this->conn->prepare("
+            DELETE FROM player_answers 
+            WHERE round_id IN (SELECT id FROM rounds WHERE question_set_id = ?)
+        ");
+        $stmt->bind_param("i", $question_set_id);
+        $stmt->execute();
+        $stmt->close();
+        
+        return $success;
+    }
+    
     public function __destruct() {
         if ($this->conn) {
             $this->conn->close();
