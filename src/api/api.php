@@ -47,43 +47,51 @@ $action = $_GET['action'] ?? '';
 // Router
 switch ($endpoint) {
     case 'login':
-        handleLogin();
+        handleLogin($auth);
+        break;
+    
+    case 'player_login':
+        handlePlayerLogin($auth);
+        break;
+    
+    case 'admin_login':
+        handleAdminLogin($auth);
         break;
     
     case 'answer':
-        handleAnswer($action);
+        handleAnswer($action, $game);
         break;
     
     case 'create_room':
-        handleCreateRoom();
+        handleCreateRoom($room);
         break;
     
     case 'check_room_status':
-        handleCheckRoomStatus();
+        handleCheckRoomStatus($room);
         break;
     
     case 'close_room':
-        handleCloseRoom();
+        handleCloseRoom($room);
         break;
     
     case 'connected_devices':
-        handleConnectedDevices();
+        handleConnectedDevices($room);
         break;
     
     case 'game':
-        handleGame($action);
+        handleGame($action, $game, $room, $admin);
         break;
     
     case 'leaderboard':
-        handleLeaderboard();
+        handleLeaderboard($game);
         break;
     
     case 'timer':
-        handleTimer();
+        handleTimer($admin);
         break;
     
     case 'admin':
-        handleAdmin($action);
+        handleAdmin($action, $admin);
         break;
     
     default:
@@ -99,9 +107,7 @@ switch ($endpoint) {
 // ENDPOINT HANDLERS
 // ============================================================================
 
-function handleLogin() {
-    global $auth;
-    
+function handleLogin($auth) {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         http_response_code(405);
         echo json_encode([
@@ -122,13 +128,51 @@ function handleLogin() {
     echo json_encode($result);
 }
 
-function handleAnswer($action) {
+function handlePlayerLogin($auth) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Metodo non consentito'
+        ]);
+        return;
+    }
+    
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    $username = $data['username'] ?? '';
+    $roomCode = $data['room_code'] ?? '';
+    
+    $result = $auth->playerLogin($username, $roomCode);
+    
+    echo json_encode($result);
+}
+
+function handleAdminLogin($auth) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Metodo non consentito'
+        ]);
+        return;
+    }
+    
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    $username = $data['username'] ?? '';
+    $password = $data['password'] ?? '';
+    
+    $result = $auth->adminLogin($username, $password);
+    
+    echo json_encode($result);
+}
+
+function handleAnswer($action, $game) {
     requireLogin();
     
     // Accept both with and without action parameter for backward compatibility
     if ($action === 'submit' || $_SERVER['REQUEST_METHOD'] === 'POST') {
-        global $game;
-        
         $data = json_decode(file_get_contents('php://input'), true);
         
         $round_id = $data['round_id'] ?? 0;
@@ -157,7 +201,7 @@ function handleAnswer($action) {
     ]);
 }
 
-function handleCreateRoom() {
+function handleCreateRoom($room) {
     requireLogin();
     
     try {
@@ -168,7 +212,6 @@ function handleCreateRoom() {
             throw new Exception('Admin non autenticato');
         }
         
-        global $room;
         $userId = $_SESSION['user_id'];
         $result = $room->createRoom($userId, $questionSetId);
         
@@ -188,7 +231,7 @@ function handleCreateRoom() {
     }
 }
 
-function handleCheckRoomStatus() {
+function handleCheckRoomStatus($room) {
     requireLogin();
     
     try {
@@ -225,12 +268,10 @@ function handleCheckRoomStatus() {
     }
 }
 
-function handleCloseRoom() {
+function handleCloseRoom($room) {
     requireAdmin();
     
     try {
-        global $room;
-        
         // Get active room from session or request
         $roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
         
@@ -255,115 +296,10 @@ function handleCloseRoom() {
     }
 }
 
-function handleConnectedDevices() {
+function handleConnectedDevices($room) {
     requireAdmin();
     
     try {
-        global $room;
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
         // Get room code from session or request
         $roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
         
@@ -388,10 +324,8 @@ function handleConnectedDevices() {
     }
 }
 
-function handleGame($action) {
+function handleGame($action, $game, $room, $admin) {
     requireLogin();
-    
-    global $game, $admin, $room;
     
     if ($action === 'get_game_state') {
         $questionSetId = null;
@@ -478,10 +412,8 @@ function handleGame($action) {
     ]);
 }
 
-function handleLeaderboard() {
+function handleLeaderboard($game) {
     requireLogin();
-    
-    global $game;
     
     $roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
     $result = $game->getLeaderboard($roomCode);
@@ -489,10 +421,8 @@ function handleLeaderboard() {
     echo json_encode($result);
 }
 
-function handleTimer() {
+function handleTimer($admin) {
     requireAdmin();
-    
-    global $admin;
     
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = json_decode(file_get_contents('php://input'), true);
@@ -509,10 +439,8 @@ function handleTimer() {
     }
 }
 
-function handleAdmin($action) {
+function handleAdmin($action, $admin) {
     requireAdmin();
-    
-    global $admin, $game;
     
     switch ($action) {
         case 'get_question_sets':

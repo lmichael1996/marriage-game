@@ -58,6 +58,78 @@ class AuthController {
     }
     
     /**
+     * Handle player login
+     * @return array with 'success', 'redirect', and 'error' keys
+     */
+    public function playerLogin($username, $roomCode) {
+        try {
+            // Validate input
+            if (!$username) {
+                return [
+                    'success' => false,
+                    'error' => 'Inserisci username'
+                ];
+            }
+            
+            if (!$roomCode) {
+                return [
+                    'success' => false,
+                    'error' => 'Inserisci codice stanza'
+                ];
+            }
+            
+            // Player login
+            $userType = $this->authService->playerLogin($username, $roomCode);
+            return [
+                'success' => true,
+                'redirect' => 'player.php'
+            ];
+            
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+    
+    /**
+     * Handle admin login
+     * @return array with 'success', 'redirect', and 'error' keys
+     */
+    public function adminLogin($username, $password) {
+        try {
+            // Validate input
+            if (!$username) {
+                return [
+                    'success' => false,
+                    'error' => 'Inserisci username'
+                ];
+            }
+            
+            if (!$password) {
+                return [
+                    'success' => false,
+                    'error' => 'Inserisci password'
+                ];
+            }
+            
+            // Admin login
+            $userType = $this->authService->adminLogin($username, $password);
+            return [
+                'success' => true,
+                'redirect' => 'admin.php'
+            ];
+            
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+    
+    /**
      * Handle logout
      * @return array with 'success' and 'redirect' keys
      */

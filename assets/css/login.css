@@ -36,7 +36,6 @@ body {
     text-align: center;
     margin-bottom: 10px;
     font-size: 1.8em;
-    font-weight: 400;
 }
 
 .login-box h2 {
@@ -44,7 +43,6 @@ body {
     text-align: center;
     margin-bottom: 30px;
     font-size: 1.2em;
-    font-weight: 400;
 }
 
 /* Forms */
@@ -56,8 +54,14 @@ body {
     display: block;
     margin-bottom: 10px;
     color: #1a1a1a;
-    font-weight: 400;
     font-size: 0.95em;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-size: 0.85em;
 }
 
 .form-group input {
@@ -67,6 +71,14 @@ body {
     font-size: 1em;
     background: #fff;
     font-family: Georgia, serif;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 0;
+}
+
+.form-group input.uppercase {
+    text-transform: uppercase;
 }
 
 .form-group input:focus {
@@ -79,10 +91,7 @@ body {
     padding: 15px 30px;
     border: 2px solid #1a1a1a;
     font-size: 16px;
-    font-weight: 400;
     cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
     font-family: Georgia, serif;
     transition: all 0.2s ease;
 }
@@ -107,18 +116,112 @@ body {
     border: 2px solid #dc143c;
 }
 
+/* Login Navigation Links */
+.login-nav-link {
+    color: #666;
+    text-decoration: none;
+    font-size: 0.9em;
+    transition: color 0.2s ease;
+}
+
+.login-nav-link:hover {
+    color: #dc143c;
+}
+
+/* Login Navigation Container */
+.login-nav {
+    margin-top: 20px;
+    text-align: center;
+}
+
+/* Small text helper */
+.form-helper-text {
+    color: #666;
+    font-size: 0.85em;
+    margin-top: 5px;
+}
+
+/* Hidden by default */
+.hidden {
+    display: none;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
+    body {
+        background-size: cover;
+        padding: 10px;
+    }
+
+    .container {
+        padding: 15px;
+    }
+
     .login-box {
-        padding: 35px 25px;
-        margin: 20px;
+        padding: 30px 20px;
+        margin: 10px;
+        border-width: 2px;
+        max-width: 100%;
     }
     
     .login-box h1 {
-        font-size: 1.6em;
+        font-size: 1.5em;
+        margin-bottom: 8px;
     }
     
     .login-box h2 {
-        font-size: 1.1em;
+        font-size: 1em;
+        margin-bottom: 25px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-size: 0.9em;
+        margin-bottom: 8px;
+    }
+
+    .form-group input {
+        padding: 12px 15px;
+        font-size: 16px; /* Previene zoom automatico su iOS */
+    }
+
+    .btn {
+        padding: 14px 25px;
+        font-size: 16px;
+    }
+
+    .error {
+        padding: 12px;
+        margin-bottom: 20px;
+        font-size: 0.9em;
+    }
+
+    .login-nav-link {
+        font-size: 0.85em;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-box {
+        padding: 25px 15px;
+    }
+
+    .login-box h1 {
+        font-size: 1.3em;
+    }
+
+    .login-box h2 {
+        font-size: 0.95em;
+    }
+
+    .form-group input {
+        padding: 10px 12px;
+    }
+
+    .btn {
+        padding: 12px 20px;
     }
 }
