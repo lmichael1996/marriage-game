@@ -66,6 +66,14 @@ switch ($endpoint) {
         handleCreateRoom($room);
         break;
     
+    case 'start_room':
+        handleStartRoom($room);
+        break;
+    
+    case 'cancel_room':
+        handleCancelRoom($room);
+        break;
+    
     case 'check_room_status':
         handleCheckRoomStatus($room);
         break;
@@ -208,16 +216,62 @@ function handleCreateRoom($room) {
         $input = json_decode(file_get_contents('php://input'), true);
         $questionSetId = $input['question_set_id'] ?? null;
         
-        if (!isset($_SESSION['user_id'])) {
-            throw new Exception('Admin non autenticato');
-        }
-        
-        $userId = $_SESSION['user_id'];
-        $result = $room->createRoom($userId, $questionSetId);
+        $result = $room->createRoom($questionSetId);
         
         // Save room_code in session for admin panel
         if ($result['success'] && isset($result['room_code'])) {
             $_SESSION['room_code'] = $result['room_code'];
+        }
+        
+        echo json_encode($result);
+        
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleStartRoom($room) {
+    requireLogin();
+    
+    try {
+        $roomCode = $_SESSION['room_code'] ?? null;
+        
+        if (!$roomCode) {
+            throw new Exception('Nessuna stanza attiva nella sessione');
+        }
+        
+        $result = $room->startRoom($roomCode);
+        
+        echo json_encode($result);
+        
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleCancelRoom($room) {
+    requireLogin();
+    
+    try {
+        $roomCode = $_SESSION['room_code'] ?? null;
+        
+        if (!$roomCode) {
+            throw new Exception('Nessuna stanza attiva nella sessione');
+        }
+        
+        $result = $room->cancelRoom($roomCode);
+        
+        // Remove room_code from session
+        if ($result['success']) {
+            unset($_SESSION['room_code']);
         }
         
         echo json_encode($result);
@@ -440,17 +494,10 @@ function handleGame($action, $game, $room, $admin) {
         }
         
         try {
-            // Reset all rounds to pending
+            // Reset all rounds to pending and delete all player answers
             require_once __DIR__ . '/../repository/RoundRepo.php';
             $roundRepo = new RoundRepo();
             $resetResult = $roundRepo->resetRoundsBySetId($questionSetId);
-            
-            // Reset all player scores
-            if ($roomCode) {
-                require_once __DIR__ . '/../repository/PlayerRepo.php';
-                $playerRepo = new PlayerRepo();
-                $playerRepo->resetPlayerScoresByRoom($roomCode);
-            }
             
             echo json_encode([
                 'success' => true,

@@ -42,12 +42,10 @@ CREATE TABLE IF NOT EXISTS rounds (
 CREATE TABLE IF NOT EXISTS rooms (
     id INT AUTO_INCREMENT PRIMARY KEY,
     room_code VARCHAR(10) UNIQUE NOT NULL,
-    user_id INT NOT NULL,
     question_set_id INT DEFAULT NULL COMMENT 'Set di domande selezionato per questa stanza',
-    status_room ENUM('waiting', 'active', 'closed') DEFAULT 'waiting',
+    status_room ENUM('waiting', 'active', 'closed', 'canceled') DEFAULT 'waiting',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     closed_at TIMESTAMP NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (question_set_id) REFERENCES question_sets(id) ON DELETE SET NULL,
     INDEX idx_room_code (room_code),
     INDEX idx_status (status_room)

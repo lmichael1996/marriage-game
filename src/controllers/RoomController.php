@@ -14,9 +14,9 @@ class RoomController {
     /**
      * Create a new room
      */
-    public function createRoom($userId, $questionSetId = null) {
+    public function createRoom($questionSetId = null) {
         try {
-            $result = $this->roomService->createRoom($userId, $questionSetId);
+            $result = $this->roomService->createRoom($questionSetId);
             return [
                 'success' => true,
                 'room_code' => $result['room_code'],
@@ -40,6 +40,36 @@ class RoomController {
                 'success' => true,
                 'message' => 'Stanza chiusa. Tutti i giocatori sono stati rimossi.'
             ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+    
+    /**
+     * Cancel room
+     */
+    public function cancelRoom($roomCode) {
+        try {
+            $result = $this->roomService->cancelRoom($roomCode);
+            return $result;
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+    
+    /**
+     * Start room (set status to active)
+     */
+    public function startRoom($roomCode) {
+        try {
+            $result = $this->roomService->startRoom($roomCode);
+            return $result;
         } catch (Exception $e) {
             return [
                 'success' => false,

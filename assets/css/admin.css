@@ -180,6 +180,14 @@ body {
     border-color: #dc143c;
 }
 
+.btn-primary:disabled {
+    background: #ddd;
+    color: #999;
+    cursor: not-allowed;
+    border-color: #ccc;
+    opacity: 0.6;
+}
+
 .btn-secondary {
     background: #fff;
     color: #1a1a1a;
@@ -939,4 +947,25 @@ mark {
 /* Button margin top */
 .btn-margin-top {
     margin-top: 15px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
 }

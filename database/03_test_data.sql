@@ -4,7 +4,8 @@ USE marriage_game;
 INSERT INTO question_sets (set_name, set_description) VALUES
 ('Quiz Matrimonio Classico', 'Domande divertenti per conoscere meglio gli sposi'),
 ('Cultura Generale', 'Domande di cultura generale e curiosità'),
-('Sport e Intrattenimento', 'Domande su sport, cinema e musica');
+('Sport e Intrattenimento', 'Domande su sport, cinema e musica'),
+('Per bambini', 'Domande facili e divertenti per i più piccoli');
 
 -- Domande per "Quiz Matrimonio Classico" (set_id = 1)
 INSERT INTO rounds (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer) VALUES
@@ -29,6 +30,10 @@ INSERT INTO rounds (question_set_id, round_number, round_type, question, option1
 (3, 3, 'truefalse', 'Le Olimpiadi si tengono ogni 4 anni', 'Vero', 'Falso', '', '', 1, 20),
 (3, 4, 'clickfirst', 'Chi è il cantante più veloce a premere!', '', '', '', '', NULL, 30),
 (3, 5, 'multiple', 'Quanti giocatori ha una squadra di basket?', '5', '6', '7', '11', 1, 25);
+
+-- Domande per "Per bambini" (set_id = 4)
+INSERT INTO rounds (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer) VALUES
+(4, 1, 'multiple', 'Qual è il colore del cielo?', 'Verde', 'Blu', 'Rosso', 'Giallo', 2, 5);
 
 -- Inserimento impostazioni di gioco
 -- 3 sistemi di punteggio separati per 3 tipi di gioco

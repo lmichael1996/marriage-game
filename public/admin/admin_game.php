@@ -330,6 +330,7 @@
         })
         .then(response => response.json())
         .then(data => {
+            console.log('Create room response:', data);
             if (data.success) {
                 // Save room code from server
                 roomCode = data.room_code;
@@ -368,12 +369,13 @@
                     devicesInterval = setInterval(updateConnectedDevices, 1000);
                 }
             } else {
-                alert('Errore nella creazione della stanza');
+                console.error('Room creation failed:', data);
+                alert('Errore nella creazione della stanza: ' + (data.error || 'Errore sconosciuto'));
             }
         })
         .catch(error => {
             console.error('Error creating room:', error);
-            alert('Errore nella creazione della stanza');
+            alert('Errore nella creazione della stanza: ' + error.message);
         });
     }
     
@@ -447,8 +449,26 @@
         const connectedCount = document.getElementById('connected-count').textContent;
         
         if (confirm(`Avviare la partita "${selectedGameSetName}" con ${connectedCount} giocatori?`)) {
-            // Redirect to game admin page
-            window.location.href = 'game_admin.php';
+            // Call API to set room status to 'active'
+            fetch('../src/api/api.php?endpoint=start_room', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Redirect to game admin page
+                    window.location.href = 'game_admin.php';
+                } else {
+                    alert('Errore nell\'avvio della partita: ' + (data.error || 'Errore sconosciuto'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Errore nella comunicazione con il server');
+            });
         }
     }
     

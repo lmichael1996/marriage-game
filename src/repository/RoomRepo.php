@@ -11,12 +11,12 @@ class RoomRepo {
     /**
      * Create a new room
      */
-    public function createRoom($code, $userId, $questionSetId = null) {
+    public function createRoom($code, $questionSetId = null) {
         $stmt = $this->conn->prepare("
-            INSERT INTO rooms (room_code, user_id, question_set_id, status_room) 
-            VALUES (?, ?, ?, 'waiting')
+            INSERT INTO rooms (room_code, question_set_id, status_room) 
+            VALUES (?, ?, 'waiting')
         ");
-        $stmt->bind_param("sii", strtoupper($code), $userId, $questionSetId);
+        $stmt->bind_param("si", strtoupper($code), $questionSetId);
         
         if ($stmt->execute()) {
             $roomId = $this->conn->insert_id;
@@ -33,10 +33,9 @@ class RoomRepo {
      */
     public function getRoomByCode($code) {
         $stmt = $this->conn->prepare("
-            SELECT r.*, u.username as admin_username 
-            FROM rooms r
-            JOIN users u ON r.user_id = u.id
-            WHERE r.room_code = ?
+            SELECT * 
+            FROM rooms
+            WHERE room_code = ?
         ");
         $stmt->bind_param("s", strtoupper($code));
         $stmt->execute();
@@ -100,6 +99,22 @@ class RoomRepo {
         $stmt = $this->conn->prepare("
             UPDATE rooms 
             SET status_room = 'closed', closed_at = NOW() 
+            WHERE room_code = ?
+        ");
+        $stmt->bind_param("s", strtoupper($roomCode));
+        $success = $stmt->execute();
+        $stmt->close();
+        
+        return $success;
+    }
+    
+    /**
+     * Cancel room and set closed_at timestamp
+     */
+    public function cancelRoom($roomCode) {
+        $stmt = $this->conn->prepare("
+            UPDATE rooms 
+            SET status_room = 'canceled', closed_at = NOW() 
             WHERE room_code = ?
         ");
         $stmt->bind_param("s", strtoupper($roomCode));

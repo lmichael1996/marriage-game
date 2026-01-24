@@ -20,11 +20,11 @@ class RoomService {
     /**
      * Crea una nuova stanza
      */
-    public function createRoom($userId, $questionSetId = null) {
+    public function createRoom($questionSetId = null) {
         // Genera un codice univoco di 6 caratteri
         $roomCode = $this->generateUniqueRoomCode();
         
-        $roomId = $this->roomRepo->createRoom($roomCode, $userId, $questionSetId);
+        $roomId = $this->roomRepo->createRoom($roomCode, $questionSetId);
         
         if ($roomId) {
             return [
@@ -126,6 +126,27 @@ class RoomService {
      */
     public function isRoomActive($roomCode) {
         return $this->roomRepo->verifyRoomCode($roomCode);
+    }
+    
+    /**
+     * Cancella una stanza
+     */
+    public function cancelRoom($roomCode) {
+        $room = $this->roomRepo->getRoomByCode($roomCode);
+        
+        if (!$room) {
+            return [
+                'success' => false,
+                'error' => 'Stanza non trovata'
+            ];
+        }
+        
+        $success = $this->roomRepo->cancelRoom($roomCode);
+        
+        return [
+            'success' => $success,
+            'message' => $success ? 'Stanza cancellata con successo' : 'Errore nella cancellazione della stanza'
+        ];
     }
     
     /**

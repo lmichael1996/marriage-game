@@ -20,30 +20,36 @@ $questionSetId = null;
 $room = null;
 
 if ($roomCode) {
+    // Get room by code from session
     $room = $roomRepo->getRoomByCode($roomCode);
     if ($room) {
-        $questionSetId = $room['question_set_id'];
+        // Check if room is in valid state (waiting or active)
+        if ($room['status_room'] === 'waiting' || $room['status_room'] === 'active') {
+            $questionSetId = $room['question_set_id'];
+        } else {
+            // Room is closed or canceled, clear from session
+            unset($_SESSION['room_code']);
+            $room = null;
+            $roomCode = null;
+        }
+    } else {
+        // Room not found, clear from session
+        unset($_SESSION['room_code']);
+        $roomCode = null;
     }
 }
 
-// If no room in session, get the latest active room for this admin
+// If no valid room, cancel any active rooms and redirect to admin
 if (!$room) {
-    $userId = $_SESSION['user_id'];
-    // Get latest room created by this admin
+    // Cancel all active rooms that don't match the session (orphaned rooms)
     $conn = getDBConnection();
-    $stmt = $conn->prepare("SELECT * FROM rooms WHERE created_by = ? ORDER BY id DESC LIMIT 1");
-    $stmt->bind_param("i", $userId);
+    $stmt = $conn->prepare("UPDATE rooms SET status_room = 'canceled', closed_at = NOW() WHERE status_room = 'active'");
     $stmt->execute();
-    $result = $stmt->get_result();
-    $room = $result->fetch_assoc();
     $conn->close();
     
-    if ($room) {
-        $roomCode = $room['room_code'];
-        $questionSetId = $room['question_set_id'];
-        // Save in session for next time
-        $_SESSION['room_code'] = $roomCode;
-    }
+    // Redirect back to admin panel
+    header('Location: admin.php');
+    exit;
 }
 
 // Get questions from the set
@@ -408,7 +414,7 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
                 <?php if ($setInfo): ?>
                     <span>Set: <strong><?php echo htmlspecialchars($setInfo['set_name']); ?></strong></span>
                 <?php endif; ?>
-                <a href="admin.php" class="btn btn-secondary">Torna a Admin</a>
+                <button class="btn btn-danger" onclick="cancelGame()">🚫 Chiudi Partita</button>
             </div>
         </div>
 
@@ -445,20 +451,20 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
 
                         <?php if ($activeRound['round_type'] != 'clickfirst'): ?>
                             <div class="options-display">
-                                <div class="option-box">
+                                <div class="option-box" id="option-1">
                                     <div class="option-number">1</div>
                                     <div class="option-text"><?php echo htmlspecialchars($activeRound['option1'] ?? 'Opzione 1'); ?></div>
                                 </div>
-                                <div class="option-box">
+                                <div class="option-box" id="option-2">
                                     <div class="option-number">2</div>
                                     <div class="option-text"><?php echo htmlspecialchars($activeRound['option2'] ?? 'Opzione 2'); ?></div>
                                 </div>
                                 <?php if ($activeRound['round_type'] == 'multiple'): ?>
-                                    <div class="option-box">
+                                    <div class="option-box" id="option-3">
                                         <div class="option-number">3</div>
                                         <div class="option-text"><?php echo htmlspecialchars($activeRound['option3'] ?? 'Opzione 3'); ?></div>
                                     </div>
-                                    <div class="option-box">
+                                    <div class="option-box" id="option-4">
                                         <div class="option-number">4</div>
                                         <div class="option-text"><?php echo htmlspecialchars($activeRound['option4'] ?? 'Opzione 4'); ?></div>
                                     </div>
@@ -517,11 +523,6 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
                             <div class="empty-state-icon">🎯</div>
                             <h3>Nessun Round Disponibile</h3>
                             <p>Tutte le domande sono state completate o non ci sono domande nel set</p>
-                            <?php if (!empty($questions)): ?>
-                                <button class="btn btn-warning btn-large" onclick="resetGame()" style="margin-top: 20px;">
-                                    🔄 Reset Partita
-                                </button>
-                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -531,9 +532,6 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
                     <h3>🎮 Controlli Partita</h3>
                     <div class="control-buttons">
                         <?php if ($activeRound): ?>
-                            <button class="btn btn-danger btn-large" onclick="closeRound()">
-                                ⏹ Chiudi Round
-                            </button>
                             <button class="btn btn-primary btn-large" id="next-question-btn" onclick="nextQuestion(<?php echo $activeRound['id']; ?>)" disabled>
                                 ➡️ Prossima Domanda
                             </button>
@@ -545,11 +543,6 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
                             <button class="btn btn-secondary btn-large" disabled>
                                 🏁 Partita Terminata
                             </button>
-                            <?php if (!empty($questions)): ?>
-                                <button class="btn btn-warning btn-large" onclick="resetGame()">
-                                    🔄 Reset Partita
-                                </button>
-                            <?php endif; ?>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -572,7 +565,7 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
     <script>
         // Timer countdown
         let timerInterval = null;
-        let timeRemaining = <?php echo $activeRound ? ($activeRound['timer'] ?? 10) : 0; ?>;
+        let timeRemaining = <?php echo $activeRound ? intval($activeRound['timer'] ?? 10) : 0; ?>;
         
         <?php if ($activeRound): ?>
         // Start countdown timer
@@ -599,10 +592,34 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
                         nextBtn.disabled = false;
                         nextBtn.style.animation = 'pulse 1s infinite';
                     }
+                    // Highlight correct answer
+                    highlightCorrectAnswer();
                     // Show leaderboard when timer ends
                     loadLeaderboard();
                 }
             }, 1000);
+        }
+        
+        // Highlight correct answer
+        function highlightCorrectAnswer() {
+            const correctAnswer = <?php echo json_encode($activeRound['correct_answer'] ?? null); ?>;
+            if (correctAnswer) {
+                const correctBox = document.getElementById('option-' + correctAnswer);
+                if (correctBox) {
+                    correctBox.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                    correctBox.style.border = '3px solid #155724';
+                    correctBox.style.transform = 'scale(1.05)';
+                    correctBox.style.boxShadow = '0 8px 25px rgba(40, 167, 69, 0.4)';
+                    correctBox.style.transition = 'all 0.5s ease';
+                    
+                    // Add a checkmark icon
+                    const checkmark = document.createElement('div');
+                    checkmark.innerHTML = '✓';
+                    checkmark.style.cssText = 'position: absolute; top: 10px; right: 10px; font-size: 2em; color: white; font-weight: bold; animation: fadeIn 0.5s ease;';
+                    correctBox.style.position = 'relative';
+                    correctBox.appendChild(checkmark);
+                }
+            }
         }
         
         // Load and display leaderboard
@@ -656,9 +673,20 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
                 });
         }
         
-        // Start timer when page loads
+        // Start timer when page loads only if there's time remaining
         document.addEventListener('DOMContentLoaded', () => {
-            startCountdown();
+            if (timeRemaining > 0) {
+                startCountdown();
+            } else if (timeRemaining === 0) {
+                // Timer already expired, show correct answer and leaderboard
+                highlightCorrectAnswer();
+                loadLeaderboard();
+                const nextBtn = document.getElementById('next-question-btn');
+                if (nextBtn) {
+                    nextBtn.disabled = false;
+                    nextBtn.style.animation = 'pulse 1s infinite';
+                }
+            }
         });
         <?php endif; ?>
         
@@ -735,64 +763,6 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
             });
         }
 
-        function closeRound() {
-            if (!confirm('Vuoi chiudere il round corrente e mostrare i risultati?')) {
-                return;
-            }
-
-            fetch('../src/api/api.php?endpoint=game&action=close_round', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showResults();
-                    setTimeout(() => location.reload(), 3000);
-                } else {
-                    alert('Errore: ' + (data.error || 'Impossibile chiudere il round'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Errore nella comunicazione con il server');
-            });
-        }
-
-        function resetGame() {
-            if (!confirm('Vuoi resettare la partita? Tutti i round saranno riportati allo stato iniziale e i punteggi azzerati.')) {
-                return;
-            }
-
-            const questionSetId = <?php echo $questionSetId ?? 0; ?>;
-            
-            fetch('../src/api/api.php?endpoint=game&action=reset_game', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    question_set_id: questionSetId,
-                    room_code: '<?php echo $roomCode ?? ''; ?>'
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Partita resettata con successo!');
-                    location.reload();
-                } else {
-                    alert('Errore: ' + (data.error || data.message || 'Impossibile resettare la partita'));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Errore nella comunicazione con il server');
-            });
-        }
-
         function showResults() {
             alert('Risultati round mostrati ai giocatori!');
         }
@@ -812,6 +782,54 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
                 })
                 .catch(error => console.error('Error:', error));
         }
+        
+        function cancelGame() {
+            if (!confirm('Vuoi chiudere la partita? Tutti i round saranno riportati allo stato iniziale e la stanza verrà cancellata.')) {
+                return;
+            }
+            
+            const questionSetId = <?php echo $questionSetId ?? 0; ?>;
+            const roomCode = '<?php echo $roomCode ?? ''; ?>';
+            
+            // Prima resetta la partita, poi cancella la stanza
+            fetch('../src/api/api.php?endpoint=game&action=reset_game', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    question_set_id: questionSetId,
+                    room_code: roomCode
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    throw new Error(data.error || data.message || 'Impossibile resettare la partita');
+                }
+                
+                // Se il reset ha successo, procedi con la cancellazione della stanza
+                return fetch('../src/api/api.php?endpoint=cancel_room', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Partita chiusa con successo');
+                    window.location.href = 'admin.php';
+                } else {
+                    alert('Errore: ' + (data.error || 'Impossibile chiudere la partita'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Errore: ' + error.message);
+            });
+        }
 
         function escapeHtml(text) {
             const div = document.createElement('div');
@@ -821,3 +839,4 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
     </script>
 </body>
 </html>
+
