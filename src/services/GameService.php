@@ -137,6 +137,13 @@ class GameService {
     }
     
     /**
+     * Ottieni la classifica del round corrente (top 10 risposte corrette più veloci)
+     */
+    public function getRoundLeaderboard($roomCode, $roundId) {
+        return $this->answerRepo->getRoundLeaderboard($roomCode, $roundId);
+    }
+    
+    /**
      * Submit player answer
      */
     public function submitAnswer($userId, $roundId, $answer, $timeTaken) {

@@ -94,6 +94,10 @@ switch ($endpoint) {
         handleLeaderboard($game);
         break;
     
+    case 'round_leaderboard':
+        handleRoundLeaderboard($game);
+        break;
+    
     case 'timer':
         handleTimer($admin);
         break;
@@ -523,6 +527,25 @@ function handleLeaderboard($game) {
     
     $roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
     $result = $game->getLeaderboard($roomCode);
+    
+    echo json_encode($result);
+}
+
+function handleRoundLeaderboard($game) {
+    requireLogin();
+    
+    $roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
+    $roundId = $_GET['round_id'] ?? null;
+    
+    if (!$roundId) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Round ID mancante'
+        ]);
+        return;
+    }
+    
+    $result = $game->getRoundLeaderboard($roomCode, $roundId);
     
     echo json_encode($result);
 }

@@ -70,6 +70,38 @@ class AnswerRepo {
         return $leaderboard;
     }
     
+    public function getRoundLeaderboard($roomCode, $roundId) {
+        $stmt = $this->conn->prepare("
+            SELECT 
+                p.username,
+                pa.time_taken,
+                pa.answer
+            FROM player_answers pa
+            JOIN players p ON p.id = pa.player_id
+            JOIN rooms r ON r.room_code = p.room_code
+            WHERE pa.round_id = ? 
+                AND p.room_code = ?
+                AND pa.is_correct = 1
+            ORDER BY pa.time_taken ASC
+            LIMIT 10
+        ");
+        $stmt->bind_param("is", $roundId, $roomCode);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $leaderboard = [];
+        while ($row = $result->fetch_assoc()) {
+            $leaderboard[] = $row;
+        }
+        
+        $stmt->close();
+        
+        return [
+            'success' => true,
+            'leaderboard' => $leaderboard
+        ];
+    }
+    
     public function __destruct() {
         if ($this->conn) {
             $this->conn->close();

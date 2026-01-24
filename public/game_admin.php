@@ -261,6 +261,82 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
             font-style: italic;
             font-size: 1.1em;
         }
+        
+        /* Round Leaderboard (Black & White) */
+        .round-leaderboard-box {
+            background: #fff;
+            border: 3px solid #000;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .round-leaderboard-box h3 {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin: 0 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #000;
+            color: #000;
+            text-align: center;
+        }
+        
+        .round-leaderboard-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .round-leaderboard-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            background: #fff;
+            border: 2px solid #000;
+            font-size: 0.95em;
+        }
+        
+        .round-leaderboard-item:nth-child(1) {
+            background: #000;
+            color: #fff;
+            font-weight: 700;
+        }
+        
+        .round-leaderboard-item:nth-child(2) {
+            background: #333;
+            color: #fff;
+            font-weight: 600;
+        }
+        
+        .round-leaderboard-item:nth-child(3) {
+            background: #666;
+            color: #fff;
+            font-weight: 600;
+        }
+        
+        .round-position {
+            font-weight: 700;
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        .round-player-name {
+            flex: 1;
+            padding: 0 10px;
+        }
+        
+        .round-time {
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .round-leaderboard-empty {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
 
         /* Final Leaderboard */
         .final-leaderboard {
@@ -624,6 +700,17 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
             
             <!-- Leaderboard Sidebar -->
             <div class="leaderboard-sidebar">
+                <!-- Round Leaderboard (Top 10 fastest correct answers) -->
+                <div class="round-leaderboard-box" id="round-leaderboard-box" style="display: none;">
+                    <h3>⚡ Top 10 Round</h3>
+                    <div id="round-leaderboard-content">
+                        <div class="round-leaderboard-empty">
+                            In attesa di risposte...
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- General Leaderboard -->
                 <div class="leaderboard-box" id="leaderboard-box">
                     <h3>🏆 Classifica</h3>
                     <div id="leaderboard-content">
@@ -666,10 +753,11 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
                         nextBtn.disabled = false;
                         nextBtn.style.animation = 'pulse 1s infinite';
                     }
-                    // Highlight correct answer and show leaderboard after 2 seconds
+                    // Highlight correct answer and show leaderboards after 2 seconds
                     setTimeout(() => {
                         highlightCorrectAnswer();
                         loadLeaderboard();
+                        loadRoundLeaderboard(<?php echo $activeRound['id']; ?>);
                     }, 2000);
                 }
             }, 1000);
@@ -745,6 +833,44 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
                 .catch(error => {
                     console.error('Error loading leaderboard:', error);
                     leaderboardContent.innerHTML = '<div class="leaderboard-empty">Errore nel caricamento</div>';
+                });
+        }
+        
+        // Load and display round leaderboard (top 10 fastest correct answers)
+        function loadRoundLeaderboard(roundId) {
+            const roundLeaderboardBox = document.getElementById('round-leaderboard-box');
+            const roundLeaderboardContent = document.getElementById('round-leaderboard-content');
+            
+            fetch('../src/api/api.php?endpoint=round_leaderboard&room_code=<?php echo $roomCode; ?>&round_id=' + roundId)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Round leaderboard data:', data);
+                    
+                    if (data.success && data.leaderboard && data.leaderboard.length > 0) {
+                        let html = '<ul class="round-leaderboard-list">';
+                        
+                        data.leaderboard.forEach((player, index) => {
+                            const position = index + 1;
+                            html += `
+                                <li class="round-leaderboard-item">
+                                    <span class="round-position">${position}.</span>
+                                    <span class="round-player-name">${player.username}</span>
+                                    <span class="round-time">${parseFloat(player.time_taken).toFixed(2)}s</span>
+                                </li>
+                            `;
+                        });
+                        
+                        html += '</ul>';
+                        roundLeaderboardContent.innerHTML = html;
+                        roundLeaderboardBox.style.display = 'block';
+                    } else {
+                        roundLeaderboardContent.innerHTML = '<div class="round-leaderboard-empty">Nessuna risposta corretta</div>';
+                        roundLeaderboardBox.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading round leaderboard:', error);
+                    roundLeaderboardContent.innerHTML = '<div class="round-leaderboard-empty">Errore nel caricamento</div>';
                 });
         }
         
