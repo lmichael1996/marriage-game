@@ -666,10 +666,11 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
                         nextBtn.disabled = false;
                         nextBtn.style.animation = 'pulse 1s infinite';
                     }
-                    // Highlight correct answer
-                    highlightCorrectAnswer();
-                    // Show leaderboard when timer ends
-                    loadLeaderboard();
+                    // Highlight correct answer and show leaderboard after 2 seconds
+                    setTimeout(() => {
+                        highlightCorrectAnswer();
+                        loadLeaderboard();
+                    }, 2000);
                 }
             }, 1000);
         }
