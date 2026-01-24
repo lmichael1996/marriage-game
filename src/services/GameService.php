@@ -69,11 +69,9 @@ class GameService {
                 continue;
             }
             
+            // Points are calculated dynamically in the leaderboard query
+            // No need to store them in player_answers table
             $points = $this->getPointsForPosition($roundType, $position);
-            
-            if ($points > 0) {
-                $this->answerRepo->updateScore($answer['id'], $points);
-            }
             
             // Solo per clickfirst, vince solo il primo
             if ($roundType === 'clickfirst') {

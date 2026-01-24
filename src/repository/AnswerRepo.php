@@ -49,14 +49,6 @@ class AnswerRepo {
         return $answers;
     }
     
-    public function updateScore($answer_id, $points) {
-        $stmt = $this->conn->prepare("UPDATE player_answers SET points_earned = ? WHERE id = ?");
-        $stmt->bind_param("ii", $points, $answer_id);
-        $success = $stmt->execute();
-        $stmt->close();
-        return $success;
-    }
-    
     public function getLeaderboard() {
         $result = $this->conn->query("
             SELECT 

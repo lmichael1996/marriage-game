@@ -157,6 +157,10 @@ AuthHelper::requirePlayer();
         function startRound(round) {
             console.log('Starting player round:', round);
             console.log('About to change screens...');
+            
+            // Clear any existing timer from previous round
+            clearInterval(timerInterval);
+            
             currentRoundId = round.id;
             hasAnswered = false;
             selectedAnswer = null;
@@ -253,12 +257,6 @@ AuthHelper::requirePlayer();
             hasAnswered = true;
             const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
             
-            // Disable all buttons
-            document.querySelectorAll('.answer-btn').forEach(btn => {
-                btn.disabled = true;
-            });
-            document.getElementById('submit-btn').disabled = true;
-            
             // Stop timer
             clearInterval(timerInterval);
             
@@ -283,11 +281,11 @@ AuthHelper::requirePlayer();
                 document.getElementById('game-screen').style.display = 'none';
                 document.getElementById('result-screen').style.display = 'block';
                 
-                // Update result content
+                // Update result content with success message
                 document.getElementById('result-content').innerHTML = `
-                    <h2>✓ Risposta inviata!</h2>
-                    <p>Hai scelto l'opzione <strong>${selectedAnswer}</strong></p>
-                    <p class="time-info">Tempo impiegato: <strong>${timeTaken}</strong> secondi</p>
+                    <h2>Risposta inviata!</h2>
+                    <p>Risposta: <span id="user-answer">${selectedAnswer}</span></p>
+                    <p>Tempo impiegato: <span id="time-taken">${timeTaken}</span> secondi</p>
                     <p>In attesa della prossima domanda...</p>
                 `;
                 
@@ -373,16 +371,14 @@ AuthHelper::requirePlayer();
             // Mark this round as answered (even though time expired)
             answeredRounds.add(currentRoundId);
             
-            document.querySelectorAll('.answer-btn').forEach(btn => {
-                btn.disabled = true;
-            });
             document.getElementById('submit-container').style.display = 'none';
             
             document.getElementById('game-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
             document.getElementById('result-content').innerHTML = `
-                <h2>⏰ Tempo scaduto!</h2>
+                <h2>Tempo scaduto!</h2>
                 <p>Non hai risposto in tempo</p>
+                <p>In attesa della prossima domanda...</p>
             `;
             
             setTimeout(() => {
