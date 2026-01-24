@@ -90,6 +90,7 @@ AuthHelper::requirePlayer();
         let startTime = null;
         let hasAnswered = false;
         let selectedAnswer = null;
+        let answeredRounds = new Set(); // Keep track of rounds already answered
         
         // Check for active round every 2 seconds
         setInterval(checkGameState, 2000);
@@ -128,11 +129,18 @@ AuthHelper::requirePlayer();
                         return;
                     }
                     
-                    if (data.active_round && !hasAnswered) {
+                    if (data.active_round) {
                         console.log('Active round found:', data.active_round.id);
-                        if (currentRoundId !== data.active_round.id) {
+                        // Only start the round if we haven't answered it yet
+                        if (!answeredRounds.has(data.active_round.id) && currentRoundId !== data.active_round.id) {
                             console.log('Starting new round');
                             startRound(data.active_round);
+                        } else if (answeredRounds.has(data.active_round.id)) {
+                            console.log('Already answered this round, waiting for next');
+                            // Make sure we're showing waiting screen
+                            if (document.getElementById('game-screen').style.display !== 'none') {
+                                showWaitingScreen();
+                            }
                         } else {
                             console.log('Already showing this round');
                         }
@@ -178,7 +186,7 @@ AuthHelper::requirePlayer();
                 answerGrid.style.display = 'none';
                 clickFirstScreen.style.display = 'block';
                 document.getElementById('click-first-btn').disabled = false;
-                startTimer();
+                startTimer(round.timer || 10);
             } else if (round.round_type === 'truefalse') {
                 // Vero o Falso - mostra solo 2 pulsanti
                 answerGrid.style.display = 'grid';
@@ -197,7 +205,7 @@ AuthHelper::requirePlayer();
                     btn.classList.remove('selected');
                 });
                 
-                startTimer();
+                startTimer(round.timer || 10);
             } else {
                 // Scelta multipla - mostra tutti e 4 i pulsanti
                 answerGrid.style.display = 'grid';
@@ -218,7 +226,7 @@ AuthHelper::requirePlayer();
                     btn.classList.remove('selected');
                 });
                 
-                startTimer();
+                startTimer(round.timer || 10);
             }
         }
         
@@ -268,22 +276,28 @@ AuthHelper::requirePlayer();
             })
             .then(response => response.json())
             .then(data => {
-                showResultScreen(selectedAnswer, timeTaken);
+                // Mark this round as answered
+                answeredRounds.add(currentRoundId);
                 
-                // Torna alla waiting screen dopo 3 secondi
+                // Show result and then go to waiting screen
+                document.getElementById('game-screen').style.display = 'none';
+                document.getElementById('result-screen').style.display = 'block';
+                
+                // Update result content
+                document.getElementById('result-content').innerHTML = `
+                    <h2>✓ Risposta inviata!</h2>
+                    <p>Hai scelto l'opzione <strong>${selectedAnswer}</strong></p>
+                    <p class="time-info">Tempo impiegato: <strong>${timeTaken}</strong> secondi</p>
+                    <p>In attesa della prossima domanda...</p>
+                `;
+                
+                // After 2 seconds, go to waiting screen for next question
                 setTimeout(() => {
                     document.getElementById('result-screen').style.display = 'none';
                     showWaitingScreen();
-                }, 3000);
+                }, 2000);
             })
             .catch(error => console.error('Error:', error));
-        }
-        
-        function showResultScreen(answer, time) {
-            document.getElementById('game-screen').style.display = 'none';
-            document.getElementById('result-screen').style.display = 'block';
-            document.getElementById('user-answer').textContent = answer;
-            document.getElementById('time-taken').textContent = time;
         }
         
         function submitClickFirst() {
@@ -308,6 +322,9 @@ AuthHelper::requirePlayer();
             })
             .then(response => response.json())
             .then(data => {
+                // Mark this round as answered
+                answeredRounds.add(currentRoundId);
+                
                 document.getElementById('game-screen').style.display = 'none';
                 document.getElementById('result-screen').style.display = 'block';
                 
@@ -315,20 +332,20 @@ AuthHelper::requirePlayer();
                 resultContent.innerHTML = `
                     <h2>⚡ Clic registrato!</h2>
                     <p>Tempo di reazione: ${timeTaken.toFixed(3)} secondi</p>
-                    <p>Attendi la fine del round per vedere chi è stato più veloce!</p>
+                    <p>In attesa della prossima domanda...</p>
                 `;
                 
-                // Torna alla waiting screen dopo 3 secondi
+                // Go to waiting screen after 2 seconds
                 setTimeout(() => {
                     document.getElementById('result-screen').style.display = 'none';
                     showWaitingScreen();
-                }, 3000);
+                }, 2000);
             })
             .catch(error => console.error('Error:', error));
         }
         
-        function startTimer() {
-            let timeLeft = 10;
+        function startTimer(initialTime = 10) {
+            let timeLeft = initialTime;
             document.getElementById('timer-value').textContent = timeLeft;
             
             if (timerInterval) {
@@ -352,6 +369,10 @@ AuthHelper::requirePlayer();
             if (hasAnswered) return;
             
             hasAnswered = true;
+            
+            // Mark this round as answered (even though time expired)
+            answeredRounds.add(currentRoundId);
+            
             document.querySelectorAll('.answer-btn').forEach(btn => {
                 btn.disabled = true;
             });
@@ -360,14 +381,14 @@ AuthHelper::requirePlayer();
             document.getElementById('game-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
             document.getElementById('result-content').innerHTML = `
-                <h2>Tempo scaduto!</h2>
+                <h2>⏰ Tempo scaduto!</h2>
                 <p>Non hai risposto in tempo</p>
             `;
             
             setTimeout(() => {
                 document.getElementById('result-screen').style.display = 'none';
                 showWaitingScreen();
-            }, 3000);
+            }, 2000);
         }
         
         function showWaitingScreen() {

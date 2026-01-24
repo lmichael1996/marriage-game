@@ -114,6 +114,15 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
             grid-template-columns: 1fr 400px;
             gap: 30px;
         }
+        
+        /* Full width layout when game is over */
+        .game-layout.game-over {
+            grid-template-columns: 1fr;
+        }
+        
+        .game-layout.game-over .leaderboard-sidebar {
+            display: none;
+        }
 
         .main-game-area {
             display: flex;
@@ -251,6 +260,65 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
             color: rgba(255,255,255,0.9);
             font-style: italic;
             font-size: 1.1em;
+        }
+
+        /* Final Leaderboard */
+        .final-leaderboard {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .final-leaderboard .leaderboard-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .final-leaderboard .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .final-leaderboard .leaderboard-item.top-rank {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .final-leaderboard .rank {
+            font-size: 1.5em;
+            margin-right: 15px;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .final-leaderboard .player-name {
+            flex: 1;
+            font-size: 1.1em;
+        }
+        
+        .final-leaderboard .score {
+            font-size: 1.2em;
+            font-weight: 700;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 5px 15px;
+            border-radius: 5px;
+        }
+        
+        .final-leaderboard .top-rank .score {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .final-leaderboard .leaderboard-empty {
+            color: #666;
+            padding: 30px;
         }
 
         .question-display {
@@ -428,7 +496,7 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
             </div>
         <?php endif; ?>
 
-        <div class="game-layout">
+        <div class="game-layout <?php echo (!$activeRound && !$nextQuestion) ? 'game-over' : ''; ?>">
             <!-- Main Game Area -->
             <div class="main-game-area">
                 <!-- Question Display -->
@@ -519,15 +587,24 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
                         <?php endif; ?>
 
                     <?php else: ?>
-                        <div class="empty-state">
-                            <div class="empty-state-icon">🎯</div>
-                            <h3>Nessun Round Disponibile</h3>
-                            <p>Tutte le domande sono state completate o non ci sono domande nel set</p>
+                        <!-- Final Leaderboard when game is over -->
+                        <div class="question-header">
+                            <h2>🏆 Classifica Finale</h2>
+                            <span class="round-badge">
+                                PARTITA TERMINATA
+                            </span>
+                        </div>
+                        
+                        <div id="final-leaderboard-content" class="final-leaderboard">
+                            <div class="leaderboard-empty">
+                                Caricamento classifica finale...
+                            </div>
                         </div>
                     <?php endif; ?>
                 </div>
 
-                <!-- Game Controls -->
+                <!-- Game Controls (hidden when game is over) -->
+                <?php if ($activeRound || $nextQuestion): ?>
                 <div class="game-controls-box">
                     <h3>🎮 Controlli Partita</h3>
                     <div class="control-buttons">
@@ -539,13 +616,10 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
                             <button class="btn btn-success btn-large" onclick="startRound(<?php echo $nextQuestion['id']; ?>)">
                                 ▶ AVVIA ROUND
                             </button>
-                        <?php else: ?>
-                            <button class="btn btn-secondary btn-large" disabled>
-                                🏁 Partita Terminata
-                            </button>
                         <?php endif; ?>
                     </div>
                 </div>
+                <?php endif; ?>
             </div>
             
             <!-- Leaderboard Sidebar -->
@@ -675,6 +749,7 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
         
         // Start timer when page loads only if there's time remaining
         document.addEventListener('DOMContentLoaded', () => {
+            <?php if ($activeRound): ?>
             if (timeRemaining > 0) {
                 startCountdown();
             } else if (timeRemaining === 0) {
@@ -687,14 +762,50 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
                     nextBtn.style.animation = 'pulse 1s infinite';
                 }
             }
+            <?php elseif (!$nextQuestion): ?>
+            // Game is over, load final leaderboard
+            loadFinalLeaderboard();
+            <?php endif; ?>
         });
         <?php endif; ?>
         
+        // Load final leaderboard when game ends
+        function loadFinalLeaderboard() {
+            fetch('../src/api/api.php?endpoint=leaderboard')
+                .then(response => response.json())
+                .then(data => {
+                    const finalLeaderboardContent = document.getElementById('final-leaderboard-content');
+                    if (!finalLeaderboardContent) return;
+                    
+                    if (data.success && data.leaderboard && data.leaderboard.length > 0) {
+                        let html = '<div class="leaderboard-list">';
+                        data.leaderboard.forEach((player, index) => {
+                            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                            const rankClass = index < 3 ? 'top-rank' : '';
+                            html += `
+                                <div class="leaderboard-item ${rankClass}">
+                                    <span class="rank">${medal || (index + 1)}</span>
+                                    <span class="player-name">${player.username}</span>
+                                    <span class="score">${player.total_score} pt</span>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        finalLeaderboardContent.innerHTML = html;
+                    } else {
+                        finalLeaderboardContent.innerHTML = '<div class="leaderboard-empty">Nessun giocatore in classifica</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading final leaderboard:', error);
+                    const finalLeaderboardContent = document.getElementById('final-leaderboard-content');
+                    if (finalLeaderboardContent) {
+                        finalLeaderboardContent.innerHTML = '<div class="leaderboard-empty">Errore nel caricamento</div>';
+                    }
+                });
+        }
+        
         function nextQuestion(roundId) {
-            if (!confirm('Passare alla prossima domanda?')) {
-                return;
-            }
-            
             console.log('Closing round:', roundId);
             
             // Close current round and reload to show next question
@@ -819,7 +930,6 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Partita chiusa con successo');
                     window.location.href = 'admin.php';
                 } else {
                     alert('Errore: ' + (data.error || 'Impossibile chiudere la partita'));

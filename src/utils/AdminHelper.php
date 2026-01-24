@@ -197,14 +197,27 @@ class AdminHelper {
     /**
      * Get question sets with optional search
      */
-    public static function getQuestionSets($admin, $searchQuery = '') {
+    public static function getQuestionSets($admin, $searchQuery = '', $page = 1) {
         if ($searchQuery) {
             $searchResult = $admin->searchQuestionSets($searchQuery);
-            return $searchResult['success'] ? $searchResult['sets'] : [];
+            return [
+                'sets' => $searchResult['success'] ? $searchResult['sets'] : [],
+                'pagination' => ['total' => 0, 'page' => 1, 'perPage' => 10, 'totalPages' => 1]
+            ];
         }
         
-        $questionSetsResult = $admin->getAllQuestionSets();
-        return $questionSetsResult['success'] ? $questionSetsResult['sets'] : [];
+        $questionSetsResult = $admin->getAllQuestionSets($page, 10);
+        if ($questionSetsResult['success']) {
+            return [
+                'sets' => $questionSetsResult['sets'],
+                'pagination' => $questionSetsResult['pagination']
+            ];
+        }
+        
+        return [
+            'sets' => [],
+            'pagination' => ['total' => 0, 'page' => 1, 'perPage' => 10, 'totalPages' => 1]
+        ];
     }
     
     /**

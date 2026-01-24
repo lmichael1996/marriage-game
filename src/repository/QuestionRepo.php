@@ -15,7 +15,9 @@ class QuestionRepo {
         return $this->conn->insert_id;
     }
     
-    public function getAll() {
+    public function getAll($page = 1, $perPage = 10) {
+        $offset = ($page - 1) * $perPage;
+        
         $result = $this->conn->query("
             SELECT qs.id,
                    qs.set_name,
@@ -26,11 +28,18 @@ class QuestionRepo {
             FROM question_sets qs
             LEFT JOIN rounds r ON r.question_set_id = qs.id
             GROUP BY qs.id, qs.set_name, qs.set_description, qs.created_at, qs.updated_at
-            ORDER BY qs.id DESC
+            ORDER BY qs.set_name ASC
+            LIMIT $perPage OFFSET $offset
         ");
         $data = $result->fetch_all(MYSQLI_ASSOC);
         error_log("QuestionRepo.getAll() returned: " . json_encode($data));
         return $data;
+    }
+    
+    public function getTotalCount() {
+        $result = $this->conn->query("SELECT COUNT(*) as total FROM question_sets");
+        $row = $result->fetch_assoc();
+        return (int)$row['total'];
     }
     
     public function getById($id) {
@@ -65,11 +74,11 @@ class QuestionRepo {
                    COUNT(r.id) as total_rounds
             FROM question_sets qs
             LEFT JOIN rounds r ON r.question_set_id = qs.id
-            WHERE qs.set_name LIKE ? OR qs.set_description LIKE ?
-            GROUP BY qs.id
-            ORDER BY qs.id DESC
+            WHERE qs.set_name LIKE ?
+            GROUP BY qs.id, qs.set_name, qs.set_description, qs.created_at, qs.updated_at
+            ORDER BY qs.set_name ASC
         ");
-        $stmt->bind_param("ss", $searchTerm, $searchTerm);
+        $stmt->bind_param("s", $searchTerm);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }

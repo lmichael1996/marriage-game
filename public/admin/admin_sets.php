@@ -7,14 +7,14 @@
     
     <!-- Search Bar -->
     <div class="search-bar">
-        <input type="text" id="search-sets" placeholder="Cerca set...">
-        <select id="search-criteria">
-            <option value="contains">Contiene</option>
-            <option value="exact">Esattamente</option>
-            <option value="starts">Inizia con</option>
-            <option value="ends">Finisce con</option>
-        </select>
-        <button class="btn btn-primary" id="btn-search-sets">Cerca</button>
+        <form method="GET" action="admin.php" style="display: flex; gap: 10px; width: 100%;">
+            <input type="hidden" name="tab" value="sets">
+            <input type="text" name="search" id="search-sets" placeholder="Cerca set per nome..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" style="flex: 1;">
+            <button type="submit" class="btn btn-primary">🔍 Cerca</button>
+            <?php if (!empty($_GET['search'])): ?>
+                <a href="?tab=sets" class="btn btn-secondary">✖ Cancella</a>
+            <?php endif; ?>
+        </form>
     </div>
     
     <!-- Table View -->
@@ -32,7 +32,20 @@
             <tbody id="sets-table-body">
                 <?php foreach ($questionSets as $set): ?>
                 <tr data-set-id="<?php echo $set['id']; ?>" data-set-name="<?php echo htmlspecialchars($set['set_name']); ?>">
-                    <td><strong><?php echo htmlspecialchars($set['set_name']); ?></strong></td>
+                    <td>
+                        <strong>
+                            <?php 
+                            $setName = htmlspecialchars($set['set_name']);
+                            // Evidenzia il testo cercato in giallo
+                            if (!empty($_GET['search'])) {
+                                $searchTerm = htmlspecialchars($_GET['search']);
+                                $pattern = '/(' . preg_quote($searchTerm, '/') . ')/i';
+                                $setName = preg_replace($pattern, '<mark>$1</mark>', $setName);
+                            }
+                            echo $setName;
+                            ?>
+                        </strong>
+                    </td>
                     <td><?php echo $set['set_description'] ? htmlspecialchars($set['set_description']) : '<em class="empty-description">Nessuna</em>'; ?></td>
                     <td><span class="badge-small"><?php echo $set['total_rounds']; ?></span></td>
                     <td><?php echo isset($set['updated_at']) ? date('d/m/Y H:i', strtotime($set['updated_at'])) : '-'; ?></td>
@@ -47,14 +60,50 @@
             </tbody>
         </table>
         
+        <!-- Pagination -->
+        <?php if ($pagination['totalPages'] > 1): ?>
+        <div class="pagination">
+            <?php 
+            $searchParam = !empty($_GET['search']) ? '&search=' . urlencode($_GET['search']) : '';
+            ?>
+            <?php if ($pagination['page'] > 1): ?>
+                <a href="?tab=sets&page=<?php echo $pagination['page'] - 1; ?><?php echo $searchParam; ?>" class="pagination-btn">
+                    ← Precedente
+                </a>
+            <?php else: ?>
+                <span class="pagination-btn disabled">← Precedente</span>
+            <?php endif; ?>
+            
+            <span class="pagination-info">
+                Pagina <?php echo $pagination['page']; ?> di <?php echo $pagination['totalPages']; ?>
+                (<?php echo $pagination['total']; ?> set totali)
+            </span>
+            
+            <?php if ($pagination['page'] < $pagination['totalPages']): ?>
+                <a href="?tab=sets&page=<?php echo $pagination['page'] + 1; ?><?php echo $searchParam; ?>" class="pagination-btn">
+                    Successivo →
+                </a>
+            <?php else: ?>
+                <span class="pagination-btn disabled">Successivo →</span>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+        
         <?php if (empty($questionSets)): ?>
         <div class="info-box loading-text">
-            <h3>Nessun set di domande</h3>
-            <p>Clicca su "Nuovo Set" per iniziare.</p>
+            <?php if (!empty($_GET['search'])): ?>
+                <h3>Nessun risultato trovato</h3>
+                <p>Nessun set trovato per "<?php echo htmlspecialchars($_GET['search']); ?>"</p>
+                <a href="?tab=sets" class="btn btn-primary">Torna ai set</a>
+            <?php else: ?>
+                <h3>Nessun set di domande</h3>
+                <p>Clicca su "Nuovo Set" per iniziare.</p>
+            <?php endif; ?>
         </div>
         <?php endif; ?>
     </div>
 </div>
+
 
 <script>
     // Sets Tab - JavaScript
@@ -93,106 +142,8 @@
         form.submit();
     }
     
-    // Search in table view
-    function searchSetsTable() {
-        const input = document.getElementById('search-sets').value.toLowerCase();
-        const criteria = document.getElementById('search-criteria').value;
-        const rows = document.querySelectorAll('#sets-table-body tr');
-        
-        // Remove previous highlights
-        rows.forEach(row => {
-            row.querySelectorAll('td').forEach(td => {
-                if (td.dataset.originalText) {
-                    td.innerHTML = td.dataset.originalText;
-                }
-            });
-        });
-        
-        if (!input) {
-            rows.forEach(row => row.style.display = '');
-            return;
-        }
-        
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            let matches = false;
-            
-            switch(criteria) {
-                case 'exact':
-                    // Cerca esattamente nel nome del set (prima colonna)
-                    const setName = row.cells[0].textContent.toLowerCase().trim();
-                    matches = setName === input;
-                    break;
-                case 'starts':
-                    matches = text.startsWith(input);
-                    break;
-                case 'ends':
-                    matches = text.endsWith(input);
-                    break;
-                case 'contains':
-                default:
-                    matches = text.includes(input);
-                    break;
-            }
-            
-            row.style.display = matches ? '' : 'none';
-            
-            // Highlight matching text
-            if (matches && input) {
-                row.querySelectorAll('td').forEach((td, index) => {
-                    // Skip action column (last column)
-                    if (index === row.cells.length - 1) return;
-                    
-                    if (!td.dataset.originalText) {
-                        td.dataset.originalText = td.innerHTML;
-                    }
-                    
-                    const cellText = td.textContent;
-                    const cellTextLower = cellText.toLowerCase();
-                    const regex = new RegExp(`(${input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-                    
-                    let shouldHighlight = false;
-                    switch(criteria) {
-                        case 'exact':
-                            shouldHighlight = index === 0 && cellTextLower.trim() === input;
-                            break;
-                        case 'starts':
-                            shouldHighlight = cellTextLower.startsWith(input);
-                            break;
-                        case 'ends':
-                            shouldHighlight = cellTextLower.endsWith(input);
-                            break;
-                        case 'contains':
-                        default:
-                            shouldHighlight = cellTextLower.includes(input);
-                            break;
-                    }
-                    
-                    if (shouldHighlight) {
-                        td.innerHTML = cellText.replace(regex, '<mark>$1</mark>');
-                    }
-                });
-            }
-        });
-    }
-    
-    // Search on Enter key
+    // Event listeners
     document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('search-sets');
-        if (searchInput) {
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    searchSetsTable();
-                }
-            });
-        }
-        
-        // Search button
-        const btnSearchSets = document.getElementById('btn-search-sets');
-        if (btnSearchSets) {
-            btnSearchSets.addEventListener('click', searchSetsTable);
-        }
-        
         // Edit set buttons (event delegation)
         document.addEventListener('click', function(e) {
             if (e.target.closest('.btn-edit-set')) {
@@ -215,8 +166,6 @@
                 deleteSet(setId, setName);
             }
         });
-        
-        // Removed row click selection functionality
-        // Rows are no longer selectable - only edit/delete buttons work
     });
 </script>
+

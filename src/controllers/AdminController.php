@@ -198,12 +198,18 @@ class AdminController {
     /**
      * Get all question sets
      */
-    public function getAllQuestionSets() {
+    public function getAllQuestionSets($page = 1, $perPage = 10) {
         try {
-            $sets = $this->questionService->getAllQuestionSets();
+            $result = $this->questionService->getAllQuestionSets($page, $perPage);
             return [
                 'success' => true,
-                'sets' => $sets
+                'sets' => $result['sets'],
+                'pagination' => [
+                    'total' => $result['total'],
+                    'page' => $result['page'],
+                    'perPage' => $result['perPage'],
+                    'totalPages' => $result['totalPages']
+                ]
             ];
         } catch (Exception $e) {
             return [

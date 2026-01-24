@@ -21,7 +21,10 @@ AdminHelper::handleAjaxRequest($admin);
 
 // Get data
 $searchQuery = $_GET['search'] ?? '';
-$questionSets = AdminHelper::getQuestionSets($admin, $searchQuery);
+$currentPage = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$questionSetsData = AdminHelper::getQuestionSets($admin, $searchQuery, $currentPage);
+$questionSets = $questionSetsData['sets'];
+$pagination = $questionSetsData['pagination'];
 
 // Get game settings
 $settingsResult = $admin->getSettings();

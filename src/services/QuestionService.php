@@ -76,8 +76,14 @@ class QuestionService {
      * Ottieni tutti i set di domande
      * @return array
      */
-    public function getAllQuestionSets() {
-        return $this->questionRepo->getAll();
+    public function getAllQuestionSets($page = 1, $perPage = 10) {
+        return [
+            'sets' => $this->questionRepo->getAll($page, $perPage),
+            'total' => $this->questionRepo->getTotalCount(),
+            'page' => $page,
+            'perPage' => $perPage,
+            'totalPages' => ceil($this->questionRepo->getTotalCount() / $perPage)
+        ];
     }
     
     /**
