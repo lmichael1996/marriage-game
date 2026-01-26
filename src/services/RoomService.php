@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../repository/RoomRepo.php';
 require_once __DIR__ . '/../repository/PlayerRepo.php';
 require_once __DIR__ . '/../repository/QuestionRepo.php';
+require_once __DIR__ . '/../repository/RoundRepo.php';
 
 /**
  * RoomService - Gestisce la logica di business delle stanze
@@ -10,11 +11,13 @@ class RoomService {
     private $roomRepo;
     private $playerRepo;
     private $questionRepo;
+    private $roundRepo;
     
     public function __construct() {
         $this->roomRepo = new RoomRepo();
         $this->playerRepo = new PlayerRepo();
         $this->questionRepo = new QuestionRepo();
+        $this->roundRepo = new RoundRepo();
     }
     
     /**
@@ -72,6 +75,11 @@ class RoomService {
                 'success' => false,
                 'error' => 'La stanza non è in attesa'
             ];
+        }
+        
+        // Reset all rounds to pending status before starting
+        if ($room['question_set_id']) {
+            $this->roundRepo->resetRoundsBySetId($room['question_set_id']);
         }
         
         $success = $this->roomRepo->startRoom($roomCode);

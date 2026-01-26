@@ -30,7 +30,17 @@
                     </tr>
                 </thead>
                 <tbody id="game-sets-table-body">
-                    <?php foreach ($questionSets as $set): ?>
+                    <?php 
+                    // Calcola paginazione per game tab
+                    $gamePage = isset($_GET['game_page']) ? max(1, (int)$_GET['game_page']) : 1;
+                    $itemsPerPage = 10;
+                    $totalGameSets = count($questionSets);
+                    $totalGamePages = ceil($totalGameSets / $itemsPerPage);
+                    $gameOffset = ($gamePage - 1) * $itemsPerPage;
+                    $gameSetsSlice = array_slice($questionSets, $gameOffset, $itemsPerPage);
+                    
+                    foreach ($gameSetsSlice as $set): 
+                    ?>
                         <tr>
                             <td><?php echo htmlspecialchars($set['set_name']); ?></td>
                             <td><?php echo htmlspecialchars($set['set_description'] ?? '-'); ?></td>
@@ -44,6 +54,32 @@
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            
+            <!-- Pagination -->
+            <?php if ($totalGamePages > 1): ?>
+            <div class="pagination">
+                <?php if ($gamePage > 1): ?>
+                    <a href="?tab=game&game_page=<?php echo $gamePage - 1; ?>" class="pagination-btn">
+                        ← Precedente
+                    </a>
+                <?php else: ?>
+                    <span class="pagination-btn disabled">← Precedente</span>
+                <?php endif; ?>
+                
+                <span class="pagination-info">
+                    Pagina <?php echo $gamePage; ?> di <?php echo $totalGamePages; ?>
+                    (<?php echo $totalGameSets; ?> set totali)
+                </span>
+                
+                <?php if ($gamePage < $totalGamePages): ?>
+                    <a href="?tab=game&game_page=<?php echo $gamePage + 1; ?>" class="pagination-btn">
+                        Successivo →
+                    </a>
+                <?php else: ?>
+                    <span class="pagination-btn disabled">Successivo →</span>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
     
@@ -459,8 +495,8 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Redirect to game admin page
-                    window.location.href = 'game_admin.php';
+                    // Redirect to game admin page with room_code as parameter (fallback for session)
+                    window.location.href = 'game_admin.php?room_code=' + encodeURIComponent(roomCode);
                 } else {
                     alert('Errore nell\'avvio della partita: ' + (data.error || 'Errore sconosciuto'));
                 }

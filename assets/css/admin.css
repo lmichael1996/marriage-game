@@ -993,7 +993,7 @@ mark {
     align-items: center;
     gap: 8px;
     padding: 10px 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #007bff;
     color: white;
     text-decoration: none;
     border-radius: 6px;
@@ -1004,8 +1004,9 @@ mark {
 }
 
 .pagination-btn:hover {
+    background: #0056b3;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
 }
 
 .pagination-btn.disabled {

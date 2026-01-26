@@ -14,13 +14,18 @@ $admin = new AdminController();
 $roomRepo = new RoomRepo();
 $playerRepo = new PlayerRepo();
 
-// Get room info - Try from session first, then get latest active room
-$roomCode = $_SESSION['room_code'] ?? null;
+// Get room info - Try from session first, then from GET parameter as fallback
+$roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
 $questionSetId = null;
 $room = null;
 
+// Save room_code to session if it came from GET param
+if ($roomCode && !isset($_SESSION['room_code'])) {
+    $_SESSION['room_code'] = $roomCode;
+}
+
 if ($roomCode) {
-    // Get room by code from session
+    // Get room by code from session (or from GET param if freshly set)
     $room = $roomRepo->getRoomByCode($roomCode);
     if ($room) {
         // Check if room is in valid state (waiting or active)
@@ -93,6 +98,20 @@ foreach ($questions as $q) {
     }
 }
 error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
+
+// Get final leaderboard if game is over
+$finalLeaderboard = [];
+if (!$activeRound && !$nextQuestion && $roomCode) {
+    error_log("Loading final leaderboard for room: $roomCode");
+    $leaderboardResult = $game->getLeaderboard($roomCode);
+    error_log("Leaderboard result: " . json_encode($leaderboardResult));
+    if ($leaderboardResult['success']) {
+        $finalLeaderboard = $leaderboardResult['leaderboard'];
+        error_log("Final leaderboard count: " . count($finalLeaderboard));
+    } else {
+        error_log("Leaderboard error: " . ($leaderboardResult['error'] ?? 'unknown'));
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -101,453 +120,7 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestione Partita - Marriage Game</title>
     <link rel="stylesheet" href="../assets/css/admin.css">
-    <style>
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
-            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
-        }
-        
-        .game-layout {
-            max-width: 1400px;
-            margin: 25px auto;
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 30px;
-        }
-        
-        /* Full width layout when game is over */
-        .game-layout.game-over {
-            grid-template-columns: 1fr;
-        }
-        
-        .game-layout.game-over .leaderboard-sidebar {
-            display: none;
-        }
-
-        .main-game-area {
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-        
-        .leaderboard-sidebar {
-            position: sticky;
-            top: 20px;
-            height: fit-content;
-        }
-        
-        .leaderboard-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: 3px solid #1a1a1a;
-            padding: 30px;
-            opacity: 0;
-            transform: translateX(20px);
-            transition: all 0.5s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            border-radius: 8px;
-        }
-        
-        .leaderboard-box.visible {
-            opacity: 1;
-            transform: translateX(0);
-        }
-        
-        .leaderboard-box h3 {
-            font-size: 1.6em;
-            font-weight: 700;
-            margin-bottom: 25px;
-            text-align: center;
-            padding-bottom: 20px;
-            border-bottom: 3px solid rgba(255,255,255,0.3);
-            color: #fff;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            letter-spacing: 1px;
-        }
-        
-        .leaderboard-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        .leaderboard-item {
-            display: flex;
-            align-items: center;
-            padding: 18px 16px;
-            margin-bottom: 12px;
-            background: rgba(255,255,255,0.95);
-            border: 2px solid transparent;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .leaderboard-item:hover {
-            transform: translateX(-5px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        
-        .leaderboard-item.first {
-            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-            border-color: #ffb300;
-            font-weight: 700;
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
-            transform: scale(1.02);
-        }
-        
-        .leaderboard-item.second {
-            background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
-            border-color: #a0a0a0;
-            font-weight: 600;
-            box-shadow: 0 3px 12px rgba(192, 192, 192, 0.4);
-        }
-        
-        .leaderboard-item.third {
-            background: linear-gradient(135deg, #cd7f32 0%, #e8a864 100%);
-            border-color: #a0522d;
-            color: #fff;
-            font-weight: 600;
-            box-shadow: 0 3px 12px rgba(205, 127, 50, 0.4);
-        }
-        
-        .leaderboard-position {
-            font-size: 1.5em;
-            font-weight: 700;
-            margin-right: 18px;
-            min-width: 40px;
-            text-align: center;
-        }
-        
-        .leaderboard-item.first .leaderboard-position {
-            font-size: 2em;
-        }
-        
-        .leaderboard-name {
-            flex: 1;
-            font-size: 1.15em;
-            font-weight: 500;
-        }
-        
-        .leaderboard-item.first .leaderboard-name {
-            font-size: 1.25em;
-        }
-        
-        .leaderboard-score {
-            font-size: 1.3em;
-            font-weight: 700;
-            color: #4caf50;
-            background: rgba(76, 175, 80, 0.1);
-            padding: 6px 12px;
-            border-radius: 6px;
-            min-width: 70px;
-            text-align: center;
-        }
-        
-        .leaderboard-item.first .leaderboard-score {
-            font-size: 1.5em;
-            color: #1a5d1a;
-            background: rgba(26, 93, 26, 0.15);
-        }
-        
-        .leaderboard-item.third .leaderboard-score {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .leaderboard-empty {
-            text-align: center;
-            padding: 40px 20px;
-            color: rgba(255,255,255,0.9);
-            font-style: italic;
-            font-size: 1.1em;
-        }
-        
-        /* Round Leaderboard (Black & White) */
-        .round-leaderboard-box {
-            background: #fff;
-            border: 3px solid #000;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .round-leaderboard-box h3 {
-            font-size: 1.3em;
-            font-weight: 700;
-            margin: 0 0 15px 0;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #000;
-            color: #000;
-            text-align: center;
-        }
-        
-        .round-leaderboard-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        .round-leaderboard-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 15px;
-            margin-bottom: 8px;
-            background: #fff;
-            border: 2px solid #000;
-            font-size: 0.95em;
-        }
-        
-        .round-leaderboard-item:nth-child(1) {
-            background: #000;
-            color: #fff;
-            font-weight: 700;
-        }
-        
-        .round-leaderboard-item:nth-child(2) {
-            background: #333;
-            color: #fff;
-            font-weight: 600;
-        }
-        
-        .round-leaderboard-item:nth-child(3) {
-            background: #666;
-            color: #fff;
-            font-weight: 600;
-        }
-        
-        .round-position {
-            font-weight: 700;
-            min-width: 30px;
-            text-align: center;
-        }
-        
-        .round-player-name {
-            flex: 1;
-            padding: 0 10px;
-        }
-        
-        .round-time {
-            font-weight: 700;
-            font-family: 'Courier New', monospace;
-        }
-        
-        .round-leaderboard-empty {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-            font-style: italic;
-        }
-
-        /* Final Leaderboard */
-        .final-leaderboard {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-        }
-        
-        .final-leaderboard .leaderboard-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        .final-leaderboard .leaderboard-item {
-            display: flex;
-            align-items: center;
-            padding: 15px 20px;
-            margin-bottom: 10px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-        
-        .final-leaderboard .leaderboard-item.top-rank {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-        
-        .final-leaderboard .rank {
-            font-size: 1.5em;
-            margin-right: 15px;
-            min-width: 40px;
-            text-align: center;
-        }
-        
-        .final-leaderboard .player-name {
-            flex: 1;
-            font-size: 1.1em;
-        }
-        
-        .final-leaderboard .score {
-            font-size: 1.2em;
-            font-weight: 700;
-            background: rgba(0, 0, 0, 0.1);
-            padding: 5px 15px;
-            border-radius: 5px;
-        }
-        
-        .final-leaderboard .top-rank .score {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .final-leaderboard .leaderboard-empty {
-            color: #666;
-            padding: 30px;
-        }
-
-        .question-display {
-            background: #fff;
-            border: 2px solid #1a1a1a;
-            padding: 40px;
-            min-height: 400px;
-        }
-
-        .question-header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #1a1a1a;
-        }
-
-        .question-header h2 {
-            font-size: 2em;
-            font-weight: 400;
-            margin-bottom: 10px;
-        }
-
-        .round-badge {
-            display: inline-block;
-            padding: 8px 20px;
-            background: #f0f0f0;
-            border: 1px solid #1a1a1a;
-            font-size: 0.9em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 10px;
-        }
-
-        .round-badge.active {
-            background: #4caf50;
-            color: #fff;
-            border-color: #4caf50;
-        }
-
-        .question-text {
-            font-size: 1.6em;
-            text-align: center;
-            margin: 30px 0;
-            line-height: 1.6;
-            font-weight: 400;
-            min-height: 80px;
-        }
-
-        .options-display {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin: 30px 0;
-        }
-
-        .option-box {
-            background: #f9f9f9;
-            border: 2px solid #1a1a1a;
-            padding: 25px;
-            text-align: center;
-            min-height: 100px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .option-box.correct {
-            background: #e8f5e9;
-            border-color: #4caf50;
-        }
-
-        .option-number {
-            font-size: 1.3em;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: #666;
-        }
-
-        .option-text {
-            font-size: 1.1em;
-            line-height: 1.4;
-        }
-
-        .game-controls-box {
-            background: #fff;
-            border: 2px solid #1a1a1a;
-            padding: 30px;
-        }
-
-        .game-controls-box h3 {
-            font-size: 1.3em;
-            font-weight: 400;
-            margin-bottom: 20px;
-            text-align: center;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #1a1a1a;
-        }
-
-        .control-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .btn-large {
-            padding: 18px 30px;
-            font-size: 1.1em;
-            font-weight: 600;
-        }
-
-        .timer-info {
-            text-align: center;
-            padding: 15px;
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            margin: 20px 0;
-            font-size: 1.1em;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-
-        .empty-state-icon {
-            font-size: 3em;
-            margin-bottom: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .game-layout {
-                grid-template-columns: 1fr;
-            }
-            
-            .leaderboard-sidebar {
-                position: static;
-                order: -1; /* Show leaderboard above on mobile */
-            }
-            
-            .question-display {
-                padding: 25px;
-            }
-
-            .question-text {
-                font-size: 1.3em;
-            }
-
-            .options-display {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/css/game_admin.css">
 </head>
 <body>
     <div class="container">
@@ -672,9 +245,76 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
                         </div>
                         
                         <div id="final-leaderboard-content" class="final-leaderboard">
-                            <div class="leaderboard-empty">
-                                Caricamento classifica finale...
-                            </div>
+                            <?php if (!empty($finalLeaderboard)): ?>
+                                <div class="leaderboard-stats-summary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+                                    <h3 style="margin: 0 0 10px 0; font-size: 1.2em;">📊 Statistiche Partita</h3>
+                                    <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px;">
+                                        <div>
+                                            <div style="font-size: 0.85em; opacity: 0.9;">Giocatori Totali</div>
+                                            <div style="font-size: 1.8em; font-weight: bold;"><?php echo count($finalLeaderboard); ?></div>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 0.85em; opacity: 0.9;">Tempo Medio Risposta</div>
+                                            <div style="font-size: 1.8em; font-weight: bold;">
+                                                <?php 
+                                                $totalAvgTime = 0;
+                                                foreach ($finalLeaderboard as $p) {
+                                                    $totalAvgTime += $p['avg_time'] ?? 0;
+                                                }
+                                                echo number_format($totalAvgTime / count($finalLeaderboard) / 1000, 2);
+                                                ?>s
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 0.85em; opacity: 0.9;">Risposte Corrette Totali</div>
+                                            <div style="font-size: 1.8em; font-weight: bold;">
+                                                <?php 
+                                                $totalCorrect = 0;
+                                                foreach ($finalLeaderboard as $p) {
+                                                    $totalCorrect += $p['correct_answers'] ?? 0;
+                                                }
+                                                echo $totalCorrect;
+                                                ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <ul class="leaderboard-list">
+                                    <?php foreach ($finalLeaderboard as $index => $player): ?>
+                                        <?php 
+                                        $position = $index + 1;
+                                        $itemClass = 'leaderboard-item';
+                                        if ($position === 1) $itemClass .= ' first';
+                                        elseif ($position === 2) $itemClass .= ' second';
+                                        elseif ($position === 3) $itemClass .= ' third';
+                                        
+                                        $medal = '';
+                                        if ($position === 1) $medal = '🥇 ';
+                                        elseif ($position === 2) $medal = '🥈 ';
+                                        elseif ($position === 3) $medal = '🥉 ';
+                                        else $medal = $position . '. ';
+                                        
+                                        $avgTimeSeconds = number_format(($player['avg_time'] ?? 0) / 1000, 2);
+                                        ?>
+                                        <li class="<?php echo $itemClass; ?>" style="display: grid; grid-template-columns: 60px 1fr 100px 120px 120px; gap: 10px; align-items: center;">
+                                            <span class="leaderboard-position"><?php echo $medal; ?></span>
+                                            <span class="leaderboard-name"><?php echo htmlspecialchars($player['username']); ?></span>
+                                            <span class="leaderboard-score" style="text-align: center; font-size: 1.3em;"><?php echo $player['total_score'] ?? 0; ?> pt</span>
+                                            <span style="text-align: center; font-size: 0.9em; opacity: 0.8;">
+                                                ✅ <?php echo $player['correct_answers'] ?? 0; ?>/<?php echo $player['total_answers'] ?? 0; ?>
+                                            </span>
+                                            <span style="text-align: center; font-size: 0.9em; opacity: 0.8;">
+                                                ⏱️ <?php echo $avgTimeSeconds; ?>s
+                                            </span>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php else: ?>
+                                <div class="leaderboard-empty">
+                                    Nessun giocatore in classifica
+                                </div>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -851,11 +491,20 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
                         
                         data.leaderboard.forEach((player, index) => {
                             const position = index + 1;
+                            const points = player.points || 0;
+                            
+                            let positionBadge = '';
+                            if (position === 1) positionBadge = '🥇';
+                            else if (position === 2) positionBadge = '🥈';
+                            else if (position === 3) positionBadge = '🥉';
+                            else positionBadge = position + '.';
+                            
                             html += `
                                 <li class="round-leaderboard-item">
-                                    <span class="round-position">${position}.</span>
+                                    <span class="round-position">${positionBadge}</span>
                                     <span class="round-player-name">${player.username}</span>
                                     <span class="round-time">${parseFloat(player.time_taken).toFixed(2)}s</span>
+                                    <span class="round-points">+${points} pt</span>
                                 </li>
                             `;
                         });
@@ -889,8 +538,11 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
                     nextBtn.style.animation = 'pulse 1s infinite';
                 }
             }
-            <?php elseif (!$nextQuestion): ?>
+            <?php endif; ?>
+            
+            <?php if (!$activeRound && !$nextQuestion): ?>
             // Game is over, load final leaderboard
+            console.log('Game is over, loading final leaderboard...');
             loadFinalLeaderboard();
             <?php endif; ?>
         });
@@ -898,36 +550,60 @@ error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
         
         // Load final leaderboard when game ends
         function loadFinalLeaderboard() {
-            fetch('../src/api/api.php?endpoint=leaderboard')
-                .then(response => response.json())
+            console.log('Loading final leaderboard...');
+            const finalLeaderboardContent = document.getElementById('final-leaderboard-content');
+            
+            if (!finalLeaderboardContent) {
+                console.error('final-leaderboard-content element not found');
+                return;
+            }
+            
+            fetch('../src/api/api.php?endpoint=leaderboard&room_code=<?php echo $roomCode; ?>')
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
                 .then(data => {
-                    const finalLeaderboardContent = document.getElementById('final-leaderboard-content');
-                    if (!finalLeaderboardContent) return;
+                    console.log('Leaderboard data:', data);
                     
                     if (data.success && data.leaderboard && data.leaderboard.length > 0) {
-                        let html = '<div class="leaderboard-list">';
+                        let html = '<ul class="leaderboard-list">';
+                        
                         data.leaderboard.forEach((player, index) => {
-                            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
-                            const rankClass = index < 3 ? 'top-rank' : '';
+                            const position = index + 1;
+                            let itemClass = 'leaderboard-item';
+                            
+                            if (position === 1) itemClass += ' first';
+                            else if (position === 2) itemClass += ' second';
+                            else if (position === 3) itemClass += ' third';
+                            
+                            let medal = '';
+                            if (position === 1) medal = '🥇 ';
+                            else if (position === 2) medal = '🥈 ';
+                            else if (position === 3) medal = '🥉 ';
+                            else medal = position + '. ';
+                            
                             html += `
-                                <div class="leaderboard-item ${rankClass}">
-                                    <span class="rank">${medal || (index + 1)}</span>
-                                    <span class="player-name">${player.username}</span>
-                                    <span class="score">${player.total_score} pt</span>
-                                </div>
+                                <li class="${itemClass}">
+                                    <span class="leaderboard-position">${medal}</span>
+                                    <span class="leaderboard-name">${player.username}</span>
+                                    <span class="leaderboard-score">${player.total_score || 0} pt</span>
+                                </li>
                             `;
                         });
-                        html += '</div>';
+                        
+                        html += '</ul>';
                         finalLeaderboardContent.innerHTML = html;
+                        console.log('Final leaderboard loaded successfully');
                     } else {
+                        console.log('No leaderboard data available');
                         finalLeaderboardContent.innerHTML = '<div class="leaderboard-empty">Nessun giocatore in classifica</div>';
                     }
                 })
                 .catch(error => {
                     console.error('Error loading final leaderboard:', error);
-                    const finalLeaderboardContent = document.getElementById('final-leaderboard-content');
                     if (finalLeaderboardContent) {
-                        finalLeaderboardContent.innerHTML = '<div class="leaderboard-empty">Errore nel caricamento</div>';
+                        finalLeaderboardContent.innerHTML = '<div class="leaderboard-empty">Errore nel caricamento della classifica</div>';
                     }
                 });
         }
