@@ -61,27 +61,19 @@ if (!$room) {
 $questions = [];
 $setInfo = null;
 if ($questionSetId) {
-    error_log("game_admin.php - Loading questions for set ID: $questionSetId");
     $setResult = $admin->getQuestionSetRounds($questionSetId);
-    error_log("game_admin.php - getQuestionSetRounds($questionSetId) returned: " . json_encode($setResult));
     if ($setResult['success']) {
         $questions = $setResult['rounds'];
-        error_log("game_admin.php - questions loaded: " . count($questions));
         $setInfoResult = $admin->getQuestionSetById($questionSetId);
         if ($setInfoResult['success']) {
             $setInfo = $setInfoResult['set'];
         }
-    } else {
-        error_log("game_admin.php - ERROR loading questions: " . ($setResult['error'] ?? 'unknown error'));
     }
-} else {
-    error_log("game_admin.php - No question_set_id found! Room: " . json_encode($room));
 }
 
 // Get current game state for this room's question set
 $gameState = $game->getGameState($questionSetId);
 $activeRound = $gameState['active_round'] ?? null;
-error_log("game_admin.php - Active round: " . json_encode($activeRound));
 
 // Get connected players
 $players = [];
@@ -97,19 +89,13 @@ foreach ($questions as $q) {
         break;
     }
 }
-error_log("game_admin.php - Next question: " . json_encode($nextQuestion));
 
 // Get final leaderboard if game is over
 $finalLeaderboard = [];
 if (!$activeRound && !$nextQuestion && $roomCode) {
-    error_log("Loading final leaderboard for room: $roomCode");
     $leaderboardResult = $game->getLeaderboard($roomCode);
-    error_log("Leaderboard result: " . json_encode($leaderboardResult));
     if ($leaderboardResult['success']) {
         $finalLeaderboard = $leaderboardResult['leaderboard'];
-        error_log("Final leaderboard count: " . count($finalLeaderboard));
-    } else {
-        error_log("Leaderboard error: " . ($leaderboardResult['error'] ?? 'unknown'));
     }
 }
 ?>
@@ -131,19 +117,9 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
                 <?php if ($setInfo): ?>
                     <span>Set: <strong><?php echo htmlspecialchars($setInfo['set_name']); ?></strong></span>
                 <?php endif; ?>
-                <button class="btn btn-danger" onclick="cancelGame()">🚫 Chiudi Partita</button>
+                <button class="btn btn-danger" id="cancel-game-btn">🚫 Chiudi Partita</button>
             </div>
         </div>
-
-        <?php if (empty($questions) && $questionSetId): ?>
-            <div style="background: #fff3cd; border: 2px solid #ffc107; padding: 20px; margin: 20px 0; border-radius: 4px;">
-                <strong>⚠️ Debug Info:</strong><br>
-                Room Code: <?php echo htmlspecialchars($roomCode ?? 'NULL'); ?><br>
-                Question Set ID: <?php echo htmlspecialchars($questionSetId ?? 'NULL'); ?><br>
-                Questions Count: <?php echo count($questions); ?><br>
-                Room Data: <?php echo htmlspecialchars(json_encode($room)); ?>
-            </div>
-        <?php endif; ?>
 
         <div class="game-layout <?php echo (!$activeRound && !$nextQuestion) ? 'game-over' : ''; ?>">
             <!-- Main Game Area -->
@@ -246,16 +222,16 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
                         
                         <div id="final-leaderboard-content" class="final-leaderboard">
                             <?php if (!empty($finalLeaderboard)): ?>
-                                <div class="leaderboard-stats-summary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
-                                    <h3 style="margin: 0 0 10px 0; font-size: 1.2em;">📊 Statistiche Partita</h3>
-                                    <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px;">
-                                        <div>
-                                            <div style="font-size: 0.85em; opacity: 0.9;">Giocatori Totali</div>
-                                            <div style="font-size: 1.8em; font-weight: bold;"><?php echo count($finalLeaderboard); ?></div>
+                                <div class="leaderboard-stats-summary">
+                                    <h3>📊 Statistiche Partita</h3>
+                                    <div class="stats-grid">
+                                        <div class="stat-item">
+                                            <div class="stat-label">Giocatori Totali</div>
+                                            <div class="stat-value"><?php echo count($finalLeaderboard); ?></div>
                                         </div>
-                                        <div>
-                                            <div style="font-size: 0.85em; opacity: 0.9;">Tempo Medio Risposta</div>
-                                            <div style="font-size: 1.8em; font-weight: bold;">
+                                        <div class="stat-item">
+                                            <div class="stat-label">Tempo Medio</div>
+                                            <div class="stat-value">
                                                 <?php 
                                                 $totalAvgTime = 0;
                                                 foreach ($finalLeaderboard as $p) {
@@ -265,9 +241,9 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
                                                 ?>s
                                             </div>
                                         </div>
-                                        <div>
-                                            <div style="font-size: 0.85em; opacity: 0.9;">Risposte Corrette Totali</div>
-                                            <div style="font-size: 1.8em; font-weight: bold;">
+                                        <div class="stat-item">
+                                            <div class="stat-label">Risposte Corrette</div>
+                                            <div class="stat-value">
                                                 <?php 
                                                 $totalCorrect = 0;
                                                 foreach ($finalLeaderboard as $p) {
@@ -280,7 +256,7 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
                                     </div>
                                 </div>
 
-                                <ul class="leaderboard-list">
+                                <div class="leaderboard-list">
                                     <?php foreach ($finalLeaderboard as $index => $player): ?>
                                         <?php 
                                         $position = $index + 1;
@@ -290,26 +266,25 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
                                         elseif ($position === 3) $itemClass .= ' third';
                                         
                                         $medal = '';
-                                        if ($position === 1) $medal = '🥇 ';
-                                        elseif ($position === 2) $medal = '🥈 ';
-                                        elseif ($position === 3) $medal = '🥉 ';
-                                        else $medal = $position . '. ';
+                                        if ($position === 1) $medal = '🥇';
+                                        elseif ($position === 2) $medal = '🥈';
+                                        elseif ($position === 3) $medal = '🥉';
+                                        else $medal = $position . '.';
                                         
                                         $avgTimeSeconds = number_format(($player['avg_time'] ?? 0) / 1000, 2);
                                         ?>
-                                        <li class="<?php echo $itemClass; ?>" style="display: grid; grid-template-columns: 60px 1fr 100px 120px 120px; gap: 10px; align-items: center;">
-                                            <span class="leaderboard-position"><?php echo $medal; ?></span>
-                                            <span class="leaderboard-name"><?php echo htmlspecialchars($player['username']); ?></span>
-                                            <span class="leaderboard-score" style="text-align: center; font-size: 1.3em;"><?php echo $player['total_score'] ?? 0; ?> pt</span>
-                                            <span style="text-align: center; font-size: 0.9em; opacity: 0.8;">
-                                                ✅ <?php echo $player['correct_answers'] ?? 0; ?>/<?php echo $player['total_answers'] ?? 0; ?>
-                                            </span>
-                                            <span style="text-align: center; font-size: 0.9em; opacity: 0.8;">
-                                                ⏱️ <?php echo $avgTimeSeconds; ?>s
-                                            </span>
-                                        </li>
+                                        <div class="<?php echo $itemClass; ?>">
+                                            <div class="rank"><?php echo $medal; ?></div>
+                                            <div class="player-info">
+                                                <div class="player-name"><?php echo htmlspecialchars($player['username']); ?></div>
+                                                <div class="player-stats">
+                                                    ✅ <?php echo $player['correct_answers'] ?? 0; ?>/<?php echo $player['total_answers'] ?? 0; ?> | ⏱️ <?php echo $avgTimeSeconds; ?>s
+                                                </div>
+                                            </div>
+                                            <div class="score"><?php echo $player['total_score'] ?? 0; ?> pt</div>
+                                        </div>
                                     <?php endforeach; ?>
-                                </ul>
+                                </div>
                             <?php else: ?>
                                 <div class="leaderboard-empty">
                                     Nessun giocatore in classifica
@@ -368,7 +343,6 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
         let timerInterval = null;
         let timeRemaining = <?php echo $activeRound ? intval($activeRound['timer'] ?? 10) : 0; ?>;
         
-        <?php if ($activeRound): ?>
         // Start countdown timer
         function startCountdown() {
             const timerDisplay = document.getElementById('countdown-timer');
@@ -389,12 +363,12 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
                 
                 if (timeRemaining <= 0) {
                     clearInterval(timerInterval);
-                    if (nextBtn) {
-                        nextBtn.disabled = false;
-                        nextBtn.style.animation = 'pulse 1s infinite';
-                    }
                     // Highlight correct answer and show leaderboards after 2 seconds
                     setTimeout(() => {
+                        if (nextBtn) {
+                            nextBtn.disabled = false;
+                            nextBtn.style.animation = 'pulse 1s infinite';
+                        }
                         highlightCorrectAnswer();
                         loadLeaderboard();
                         loadRoundLeaderboard(<?php echo $activeRound['id']; ?>);
@@ -525,6 +499,12 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
         
         // Start timer when page loads only if there's time remaining
         document.addEventListener('DOMContentLoaded', () => {
+            // Set up cancel game button
+            const cancelGameBtn = document.getElementById('cancel-game-btn');
+            if (cancelGameBtn) {
+                cancelGameBtn.addEventListener('click', cancelGame);
+            }
+            
             <?php if ($activeRound): ?>
             if (timeRemaining > 0) {
                 startCountdown();
@@ -546,7 +526,6 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
             loadFinalLeaderboard();
             <?php endif; ?>
         });
-        <?php endif; ?>
         
         // Load final leaderboard when game ends
         function loadFinalLeaderboard() {
@@ -705,7 +684,9 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
             const questionSetId = <?php echo $questionSetId ?? 0; ?>;
             const roomCode = '<?php echo $roomCode ?? ''; ?>';
             
-            // Prima resetta la partita, poi cancella la stanza
+            console.log('Cancelling game with questionSetId:', questionSetId, 'roomCode:', roomCode);
+            
+            // Prima resetta la partita
             fetch('../src/api/api.php?endpoint=game&action=reset_game', {
                 method: 'POST',
                 headers: {
@@ -716,8 +697,12 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
                     room_code: roomCode
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('reset_game response status:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('reset_game response data:', data);
                 if (!data.success) {
                     throw new Error(data.error || data.message || 'Impossibile resettare la partita');
                 }
@@ -730,16 +715,23 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
                     }
                 });
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('cancel_room response status:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('cancel_room response data:', data);
                 if (data.success) {
-                    window.location.href = 'admin.php';
+                    // Redirect with a slight delay to ensure session is cleared
+                    setTimeout(() => {
+                        window.location.href = 'admin.php';
+                    }, 500);
                 } else {
                     alert('Errore: ' + (data.error || 'Impossibile chiudere la partita'));
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('Error cancelling game:', error);
                 alert('Errore: ' + error.message);
             });
         }
@@ -752,4 +744,3 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
     </script>
 </body>
 </html>
-

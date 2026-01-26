@@ -251,70 +251,110 @@
 }
 
 .final-leaderboard .leaderboard-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.leaderboard-stats-summary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 25px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+}
+
+.leaderboard-stats-summary h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.3em;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 0.85em;
+    opacity: 0.9;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 1.8em;
+    font-weight: bold;
 }
 
 .final-leaderboard .leaderboard-item {
     display: flex;
     align-items: center;
+    gap: 15px;
     padding: 15px 20px;
-    margin-bottom: 10px;
-    background: #f8f9fa;
+    background: #ffffff;
     border-radius: 8px;
     transition: all 0.3s ease;
-    border-left: 4px solid #dee2e6;
+    border: 2px solid #000;
 }
 
 .final-leaderboard .leaderboard-item.first {
-    background: #ffd700;
+    background: #ffffff;
     color: #000;
     font-weight: 700;
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.5);
-    border-left: 4px solid #daa520;
+    border: 2px solid #000;
 }
 
 .final-leaderboard .leaderboard-item.second {
-    background: #c0c0c0;
+    background: #ffffff;
     color: #000;
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(192, 192, 192, 0.5);
-    border-left: 4px solid #a9a9a9;
+    border: 2px solid #000;
 }
 
 .final-leaderboard .leaderboard-item.third {
-    background: #cd7f32;
-    color: #fff;
+    background: #ffffff;
+    color: #000;
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(205, 127, 50, 0.5);
-    border-left: 4px solid #a0522d;
+    border: 2px solid #000;
 }
 
-.final-leaderboard .leaderboard-position {
-    font-size: 1.5em;
-    margin-right: 15px;
-    min-width: 40px;
+.rank {
+    font-size: 2em;
+    min-width: 50px;
     text-align: center;
+    font-weight: bold;
+    color: #000;
 }
 
-.final-leaderboard .leaderboard-name {
+.player-info {
     flex: 1;
-    font-size: 1.1em;
 }
 
-.final-leaderboard .leaderboard-score {
-    font-size: 1.2em;
+.player-name {
+    font-size: 1.15em;
     font-weight: 700;
-    background: rgba(0, 0, 0, 0.1);
-    padding: 5px 15px;
-    border-radius: 5px;
+    margin-bottom: 5px;
+    color: #000;
 }
 
-.final-leaderboard .leaderboard-item.first .leaderboard-score,
-.final-leaderboard .leaderboard-item.second .leaderboard-score,
-.final-leaderboard .leaderboard-item.third .leaderboard-score {
-    background: rgba(255, 255, 255, 0.2);
+.player-stats {
+    font-size: 0.9em;
+    color: #333;
+}
+
+.score {
+    font-size: 1.5em;
+    font-weight: 700;
+    background: #000;
+    color: #ffffff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    min-width: 100px;
+    text-align: center;
 }
 
 .final-leaderboard .leaderboard-empty {
