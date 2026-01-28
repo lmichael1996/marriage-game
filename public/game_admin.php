@@ -409,7 +409,14 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
                 .then(data => {
                     console.log('Leaderboard data:', data);
                     
-                    if (data.success && data.leaderboard && data.leaderboard.length > 0) {
+                    if (!data.success) {
+                        console.error('Leaderboard error:', data.error || data.message);
+                        leaderboardContent.innerHTML = '<div class="leaderboard-empty">Errore: ' + (data.error || 'Sconosciuto') + '</div>';
+                        leaderboardBox.classList.add('visible');
+                        return;
+                    }
+                    
+                    if (data.leaderboard && data.leaderboard.length > 0) {
                         let html = '<ul class="leaderboard-list">';
                         
                         data.leaderboard.forEach((player, index) => {
@@ -588,8 +595,6 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
         }
         
         function nextQuestion(roundId) {
-            console.log('Closing round:', roundId);
-            
             // Close current round and reload to show next question
             fetch('../src/api/api.php?endpoint=game&action=close_round&round_id=' + roundId, {
                 method: 'POST',
@@ -598,16 +603,10 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
                 },
                 body: JSON.stringify({ round_id: roundId })
             })
-            .then(response => {
-                console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers);
-                return response.text(); // Get as text first to see what we're receiving
-            })
+            .then(response => response.text())
             .then(text => {
-                console.log('Response text:', text);
                 try {
                     const data = JSON.parse(text);
-                    console.log('Parsed data:', data);
                     if (data.success) {
                         location.reload();
                     } else {
@@ -615,8 +614,7 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
                     }
                 } catch (e) {
                     console.error('JSON parse error:', e);
-                    console.error('Response was:', text);
-                    alert('Errore: risposta del server non valida. Controlla la console per dettagli.');
+                    alert('Errore: risposta del server non valida.');
                 }
             })
             .catch(error => {
@@ -626,54 +624,25 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
         }
         
         function startRound(roundId) {
-            console.log('Admin: Avvio round', roundId);
             fetch('../src/api/api.php?endpoint=game&action=start_round', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    round_id: roundId
-                })
+                body: JSON.stringify({ round_id: roundId })
             })
-            .then(response => {
-                console.log('Admin: Response status:', response.status);
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                console.log('Admin: Response data:', data);
                 if (data.success) {
-                    console.log('Admin: Round avviato con successo, ricarico pagina');
                     location.reload();
                 } else {
-                    console.error('Admin: Errore avvio round:', data.error);
                     alert('Errore: ' + (data.error || 'Impossibile avviare il round'));
                 }
             })
             .catch(error => {
-                console.error('Admin: Fetch error:', error);
+                console.error('Fetch error:', error);
                 alert('Errore nella comunicazione con il server');
             });
-        }
-
-        function showResults() {
-            alert('Risultati round mostrati ai giocatori!');
-        }
-
-        function showLeaderboard() {
-            fetch('../src/api/api.php?endpoint=leaderboard')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success && data.leaderboard) {
-                        let message = '🏆 CLASSIFICA GENERALE 🏆\n\n';
-                        data.leaderboard.forEach((player, index) => {
-                            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '  ';
-                            message += `${medal} ${index + 1}. ${player.username}: ${player.total_score} punti\n`;
-                        });
-                        alert(message);
-                    }
-                })
-                .catch(error => console.error('Error:', error));
         }
         
         function cancelGame() {
@@ -684,9 +653,7 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
             const questionSetId = <?php echo $questionSetId ?? 0; ?>;
             const roomCode = '<?php echo $roomCode ?? ''; ?>';
             
-            console.log('Cancelling game with questionSetId:', questionSetId, 'roomCode:', roomCode);
-            
-            // Prima resetta la partita
+            // Reset della partita
             fetch('../src/api/api.php?endpoint=game&action=reset_game', {
                 method: 'POST',
                 headers: {
@@ -697,17 +664,13 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
                     room_code: roomCode
                 })
             })
-            .then(response => {
-                console.log('reset_game response status:', response.status);
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                console.log('reset_game response data:', data);
                 if (!data.success) {
                     throw new Error(data.error || data.message || 'Impossibile resettare la partita');
                 }
                 
-                // Se il reset ha successo, procedi con la cancellazione della stanza
+                // Cancellazione della stanza
                 return fetch('../src/api/api.php?endpoint=cancel_room', {
                     method: 'POST',
                     headers: {
@@ -715,16 +678,12 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
                     }
                 });
             })
-            .then(response => {
-                console.log('cancel_room response status:', response.status);
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                console.log('cancel_room response data:', data);
                 if (data.success) {
-                    // Redirect with a slight delay to ensure session is cleared
+                    const questionSetId = <?php echo $questionSetId ?? 0; ?>;
                     setTimeout(() => {
-                        window.location.href = 'admin.php';
+                        window.location.href = 'admin.php?question_set_id=' + questionSetId;
                     }, 500);
                 } else {
                     alert('Errore: ' + (data.error || 'Impossibile chiudere la partita'));
@@ -734,12 +693,6 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
                 console.error('Error cancelling game:', error);
                 alert('Errore: ' + error.message);
             });
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
         }
     </script>
 </body>

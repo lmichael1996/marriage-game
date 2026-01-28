@@ -91,10 +91,12 @@
                 ← Cambia Set
             </button>
         </div>
-        <p>Crea una stanza per permettere ai giocatori di connettersi.</p>
         <div id="set-selected-info">
-            <p><strong>Set selezionato:</strong> <span id="selected-set-display"></span></p>
+            <p style="padding: 0.75rem; background-color: #e8f5e9; border-left: 4px solid #4caf50; margin-bottom: 1rem;">
+                <strong>✓ Set selezionato:</strong> <span id="selected-set-display" style="color: #2e7d32; font-weight: bold;"></span>
+            </p>
         </div>
+        <p>Crea una stanza per permettere ai giocatori di connettersi.</p>
         <div id="room-control">
             <button class="btn btn-success" id="create-room-btn">
                 Avvia Stanza
@@ -155,6 +157,20 @@
     let roomActive = false;
     let roomCode = '';
     let devicesInterval;
+    
+    // Initialize with selectedSetId from URL if available (persistence after closing stanza)
+    function initializeSelectedSet() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const setIdFromUrl = urlParams.get('question_set_id');
+        if (setIdFromUrl) {
+            selectedGameSetId = parseInt(setIdFromUrl);
+            // Try to find the set name from the table
+            const setNameElement = document.querySelector(`[data-set-id="${setIdFromUrl}"]`);
+            if (setNameElement) {
+                selectedGameSetName = setNameElement.getAttribute('data-set-name');
+            }
+        }
+    }
     
     // Add smooth transition styles
     const style = document.createElement('style');
@@ -348,7 +364,9 @@
     // Create room
     function createRoom() {
         if (!selectedGameSetId) {
-            alert('Seleziona prima un set di domande');
+            alert('⚠️ Seleziona prima un set di domande su Step 1');
+            // Scroll back to step 1
+            document.getElementById('step-select-set').scrollIntoView({ behavior: 'smooth' });
             return;
         }
         
@@ -552,6 +570,9 @@
     
     // Event listeners
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize from URL parameters if available
+        initializeSelectedSet();
+        
         // Search on Enter key
         const searchGameInput = document.getElementById('search-game-sets');
         if (searchGameInput) {

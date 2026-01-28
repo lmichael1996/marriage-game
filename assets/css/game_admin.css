@@ -35,7 +35,7 @@
 }
 
 .leaderboard-box {
-    background: #28a745;
+    background: #ffffff;
     border: 3px solid #1a1a1a;
     padding: 30px;
     opacity: 0;
@@ -56,9 +56,9 @@
     margin-bottom: 25px;
     text-align: center;
     padding-bottom: 20px;
-    border-bottom: 3px solid rgba(255,255,255,0.3);
-    color: #fff;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    border-bottom: 3px solid rgba(0,0,0,0.2);
+    color: #1a1a1a;
+    text-shadow: none;
     letter-spacing: 1px;
 }
 

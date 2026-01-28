@@ -51,77 +51,23 @@ class AnswerRepo {
     
     public function getLeaderboard($roomCode = null) {
         if ($roomCode) {
-            // Calcola i punteggi F1-style: solo i primi 10 che rispondono correttamente per ogni round ricevono punti
+            // Classifica semplice: mostra i giocatori che hanno risposto correttamente, ordinati per punteggio e velocità
             $stmt = $this->conn->prepare("
                 SELECT 
                     p.username,
-                    COALESCE(SUM(ranked_answers.points), 0) as total_score,
+                    p.total_score,
                     COUNT(pa.id) as total_answers,
-                    SUM(pa.is_correct) as correct_answers,
-                    AVG(pa.time_taken) as avg_time
+                    SUM(CASE WHEN pa.is_correct = 1 THEN 1 ELSE 0 END) as correct_answers,
+                    AVG(CASE WHEN pa.is_correct = 1 THEN pa.time_taken ELSE NULL END) as avg_time
                 FROM players p
                 LEFT JOIN player_answers pa ON pa.player_id = p.id
-                LEFT JOIN (
-                    -- Per ogni round, assegna i punti ai primi 10 che hanno risposto correttamente
-                    SELECT 
-                        pa2.id as answer_id,
-                        pa2.player_id,
-                        r2.round_type,
-                        CASE 
-                            WHEN @prev_round != r2.id THEN @rank := 1
-                            ELSE @rank := @rank + 1
-                        END as position,
-                        @prev_round := r2.id as round_tracker,
-                        CASE r2.round_type
-                            WHEN 'multiple' THEN
-                                CASE 
-                                    WHEN @rank = 1 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_mult_1st')
-                                    WHEN @rank = 2 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_mult_2nd')
-                                    WHEN @rank = 3 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_mult_3rd')
-                                    WHEN @rank = 4 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_mult_4th')
-                                    WHEN @rank = 5 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_mult_5th')
-                                    WHEN @rank = 6 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_mult_6th')
-                                    WHEN @rank = 7 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_mult_7th')
-                                    WHEN @rank = 8 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_mult_8th')
-                                    WHEN @rank = 9 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_mult_9th')
-                                    WHEN @rank = 10 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_mult_10th')
-                                    ELSE 0
-                                END
-                            WHEN 'truefalse' THEN
-                                CASE 
-                                    WHEN @rank = 1 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_tf_1st')
-                                    WHEN @rank = 2 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_tf_2nd')
-                                    WHEN @rank = 3 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_tf_3rd')
-                                    WHEN @rank = 4 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_tf_4th')
-                                    WHEN @rank = 5 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_tf_5th')
-                                    WHEN @rank = 6 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_tf_6th')
-                                    WHEN @rank = 7 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_tf_7th')
-                                    WHEN @rank = 8 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_tf_8th')
-                                    WHEN @rank = 9 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_tf_9th')
-                                    WHEN @rank = 10 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_tf_10th')
-                                    ELSE 0
-                                END
-                            WHEN 'clickfirst' THEN
-                                CASE 
-                                    WHEN @rank = 1 THEN (SELECT setting_value FROM game_settings WHERE setting_key = 'points_clickfirst')
-                                    ELSE 0
-                                END
-                            ELSE 0
-                        END as points
-                    FROM player_answers pa2
-                    INNER JOIN rounds r2 ON r2.id = pa2.round_id
-                    INNER JOIN players p2 ON p2.id = pa2.player_id
-                    CROSS JOIN (SELECT @rank := 0, @prev_round := 0) vars
-                    WHERE pa2.is_correct = 1 AND p2.room_code = ?
-                    ORDER BY r2.id ASC, pa2.time_taken ASC
-                ) ranked_answers ON ranked_answers.answer_id = pa.id
                 WHERE p.room_code = ?
                 GROUP BY p.id, p.username
                 HAVING correct_answers > 0
-                ORDER BY total_score DESC, correct_answers DESC, avg_time ASC
+                ORDER BY p.total_score DESC, avg_time ASC
                 LIMIT 10
             ");
-            $stmt->bind_param("ss", $roomCode, $roomCode);
+            $stmt->bind_param("s", $roomCode);
             $stmt->execute();
             $result = $stmt->get_result();
             
