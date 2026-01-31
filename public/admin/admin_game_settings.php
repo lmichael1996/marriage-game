@@ -176,10 +176,8 @@
                 </label>
             </div>
         </div>
-        
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">Salva Impostazioni</button>
-            <button type="button" class="btn btn-secondary" id="btn-restore-settings">Ripristina</button>
         </div>
     </form>
 </div>

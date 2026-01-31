@@ -1,15 +1,15 @@
 <!-- Tab: Set di Domande e Gestione Partita -->
 <div class="admin-section">
-    <div class="tab-header">
+    <div class="tab-header-with-button">
         <h2>🎮 Set di Domande</h2>
         <button class="btn btn-success" id="btn-new-set">+ Nuovo Set</button>
     </div>
     
     <!-- Search Bar -->
     <div class="search-bar">
-        <form method="GET" action="admin.php" style="display: flex; gap: 10px; width: 100%;">
+        <form method="GET" action="admin.php" class="search-form">
             <input type="hidden" name="tab" value="sets">
-            <input type="text" name="search" id="search-sets" placeholder="Cerca set per nome..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" style="flex: 1;">
+            <input type="text" name="search" id="search-sets" placeholder="Cerca set per nome..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
             <button type="submit" class="btn btn-primary">🔍 Cerca</button>
             <?php if (!empty($_GET['search'])): ?>
                 <a href="?tab=sets" class="btn btn-secondary">✖ Cancella</a>

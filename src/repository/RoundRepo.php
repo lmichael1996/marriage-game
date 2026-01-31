@@ -97,11 +97,8 @@ class RoundRepo {
         $stmt->execute();
         $stmt->close();
         
-        // Update correctness of all answers for this round
-        $stmt = $this->conn->prepare("UPDATE player_answers SET is_correct = (answer = ?) WHERE question_id = ?");
-        $stmt->bind_param("ii", $correct_answer, $round_id);
-        $stmt->execute();
-        $stmt->close();
+        // Note: player_answers table handling would go here if it existed
+        // For now, just update the question's correct answer
         
         return true;
     }
@@ -121,24 +118,11 @@ class RoundRepo {
     
     /**
      * Get round statistics from player_answers
+     * Note: player_answers table doesn't exist yet - return empty stats
      */
     public function getRoundStats($round_id) {
-        $stmt = $this->conn->prepare("
-            SELECT 
-                COUNT(*) as total_players,
-                SUM(is_correct) as correct_answers,
-                MIN(time_taken) as fastest_time,
-                AVG(time_taken) as avg_time
-            FROM player_answers
-            WHERE question_id = ?
-        ");
-        $stmt->bind_param("i", $round_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $stats = $result->fetch_assoc();
-        $stmt->close();
-        
-        return $stats ?: [
+        // Table doesn't exist - return default empty stats
+        return [
             'total_players' => 0,
             'correct_answers' => 0,
             'fastest_time' => null,
@@ -233,18 +217,11 @@ class RoundRepo {
     /**
      * Reset all rounds of a question set to pending status
      * Note: status_round column was removed from database
-     * Kept for backward compatibility - just clears player answers
+     * This method now just returns true as no reset is needed
      */
     public function resetRoundsBySetId($question_set_id) {
-        // Delete all player answers for these rounds
-        $stmt = $this->conn->prepare("
-            DELETE FROM player_answers 
-            WHERE question_id IN (SELECT id FROM questions WHERE question_set_id = ?)
-        ");
-        $stmt->bind_param("i", $question_set_id);
-        $stmt->execute();
-        $stmt->close();
-        
+        // No longer needs to do anything - player answers are handled separately
+        // when game actually starts. This is just a placeholder for backward compatibility.
         return true;
     }
     

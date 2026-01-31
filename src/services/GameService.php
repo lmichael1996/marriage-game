@@ -91,15 +91,18 @@ class GameService {
         // Chiudi il round in repository (compatibility)
         $closed = $this->roundRepo->closeRound($roundId);
 
-        // Clear active round from session
+        // Clear active round from session and track last completed round
         if (session_status() === PHP_SESSION_NONE) {
             @session_start();
         }
         $roomCode = $_SESSION['room_code'] ?? null;
         if ($roomCode) {
             unset($_SESSION['active_round_' . $roomCode]);
+            // Track the last completed round number for progression
+            $_SESSION['last_completed_round_' . $roomCode] = $round['round_number'];
         } else {
             unset($_SESSION['active_round']);
+            $_SESSION['last_completed_round'] = $round['round_number'];
         }
 
         return $closed;
