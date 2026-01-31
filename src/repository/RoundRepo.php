@@ -13,8 +13,8 @@ class RoundRepo {
      */
     public function create($questionSetId, $round_number, $round_type, $question, $option1, $option2, $option3, $option4, $correct_answer, $timer = 10) {
         $stmt = $this->conn->prepare("
-            INSERT INTO rounds (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer, status_round) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+            INSERT INTO questions (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->bind_param("iissssssii", $questionSetId, $round_number, $round_type, $question, $option1, $option2, $option3, $option4, $correct_answer, $timer);
         
@@ -32,7 +32,7 @@ class RoundRepo {
      * Get all rounds
      */
     public function getAllRounds() {
-        $result = $this->conn->query("SELECT * FROM rounds ORDER BY round_number DESC, id DESC");
+        $result = $this->conn->query("SELECT * FROM questions ORDER BY round_number DESC, id DESC");
         $rounds = [];
         while ($row = $result->fetch_assoc()) {
             $rounds[] = $row;
@@ -45,7 +45,7 @@ class RoundRepo {
      */
     public function getRoundsByQuestionSet($questionSetId) {
         $stmt = $this->conn->prepare("
-            SELECT * FROM rounds 
+            SELECT * FROM questions 
             WHERE question_set_id = ?
             ORDER BY round_number ASC
         ");
@@ -59,67 +59,46 @@ class RoundRepo {
     }
     
     /**
-     * Get active round
+     * Get active round - This method is no longer used since status_round column was removed
+     * Kept for backward compatibility but returns null
      */
     public function getActiveRound($questionSetId = null) {
-        if ($questionSetId !== null) {
-            // Get active round for specific question set (room)
-            $stmt = $this->conn->prepare("
-                SELECT * FROM rounds 
-                WHERE status_round = 'active' 
-                AND question_set_id = ? 
-                LIMIT 1
-            ");
-            $stmt->bind_param("i", $questionSetId);
-        } else {
-            // Get any active round (for backward compatibility)
-            $stmt = $this->conn->prepare("SELECT * FROM rounds WHERE status_round = 'active' LIMIT 1");
-        }
-        
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $round = $result->fetch_assoc();
-        $stmt->close();
-        return $round;
+        // status_round column no longer exists in database
+        // Active round tracking should be done in session or a separate status table
+        return null;
     }
     
     /**
      * Start a round (set to active)
+     * Note: status_round column was removed from database
+     * Kept for backward compatibility but does nothing
      */
     public function startRound($round_id) {
-        // Set all rounds to pending first
-        $this->conn->query("UPDATE rounds SET status_round = 'pending' WHERE status_round = 'active'");
-        
-        // Set this round to active
-        $stmt = $this->conn->prepare("UPDATE rounds SET status_round = 'active' WHERE id = ?");
-        $stmt->bind_param("i", $round_id);
-        $success = $stmt->execute();
-        $stmt->close();
-        return $success;
+        // status_round column no longer exists
+        return true;
     }
     
     /**
      * Close a round
+     * Note: status_round column was removed from database
+     * Kept for backward compatibility but does nothing
      */
     public function closeRound($round_id) {
-        $stmt = $this->conn->prepare("UPDATE rounds SET status_round = 'closed' WHERE id = ?");
-        $stmt->bind_param("i", $round_id);
-        $success = $stmt->execute();
-        $stmt->close();
-        return $success;
+        // status_round column no longer exists
+        return true;
     }
     
     /**
      * Update correct answer for a round
      */
     public function updateAnswer($round_id, $correct_answer) {
-        $stmt = $this->conn->prepare("UPDATE rounds SET correct_answer = ? WHERE id = ?");
+        $stmt = $this->conn->prepare("UPDATE questions SET correct_answer = ? WHERE id = ?");
         $stmt->bind_param("ii", $correct_answer, $round_id);
         $stmt->execute();
         $stmt->close();
         
         // Update correctness of all answers for this round
-        $stmt = $this->conn->prepare("UPDATE player_answers SET is_correct = (answer = ?) WHERE round_id = ?");
+        $stmt = $this->conn->prepare("UPDATE player_answers SET is_correct = (answer = ?) WHERE question_id = ?");
         $stmt->bind_param("ii", $correct_answer, $round_id);
         $stmt->execute();
         $stmt->close();
@@ -131,7 +110,7 @@ class RoundRepo {
      * Get round by ID
      */
     public function getRoundById($round_id) {
-        $stmt = $this->conn->prepare("SELECT * FROM rounds WHERE id = ?");
+        $stmt = $this->conn->prepare("SELECT * FROM questions WHERE id = ?");
         $stmt->bind_param("i", $round_id);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -151,7 +130,7 @@ class RoundRepo {
                 MIN(time_taken) as fastest_time,
                 AVG(time_taken) as avg_time
             FROM player_answers
-            WHERE round_id = ?
+            WHERE question_id = ?
         ");
         $stmt->bind_param("i", $round_id);
         $stmt->execute();
@@ -189,7 +168,7 @@ class RoundRepo {
                 SELECT p.username, pa.time_taken
                 FROM player_answers pa
                 JOIN players p ON pa.player_id = p.id
-                WHERE pa.round_id = ? AND pa.is_correct = 1
+                WHERE pa.question_id = ? AND pa.is_correct = 1
                 ORDER BY pa.time_taken ASC
                 LIMIT 1
             ");
@@ -199,7 +178,7 @@ class RoundRepo {
                 SELECT p.username, pa.time_taken
                 FROM player_answers pa
                 JOIN players p ON pa.player_id = p.id
-                WHERE pa.round_id = ? AND pa.is_correct = 1
+                WHERE pa.question_id = ? AND pa.is_correct = 1
                 ORDER BY pa.time_taken ASC
                 LIMIT 10
             ");
@@ -219,7 +198,7 @@ class RoundRepo {
      */
     public function addRoundToSet($setId, $roundType, $question, $option1, $option2, $option3, $option4, $correctAnswer) {
         // Get next round number
-        $stmt = $this->conn->prepare("SELECT MAX(round_number) as max_num FROM rounds WHERE question_set_id = ?");
+        $stmt = $this->conn->prepare("SELECT MAX(round_number) as max_num FROM questions WHERE question_set_id = ?");
         $stmt->bind_param("i", $setId);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -229,8 +208,8 @@ class RoundRepo {
         
         // Insert round
         $stmt = $this->conn->prepare("
-            INSERT INTO rounds (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, status_round) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+            INSERT INTO questions (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->bind_param("iissssssi", $setId, $nextNumber, $roundType, $question, $option1, $option2, $option3, $option4, $correctAnswer);
         $success = $stmt->execute();
@@ -243,7 +222,7 @@ class RoundRepo {
      * Delete round by ID
      */
     public function deleteRound($round_id) {
-        $stmt = $this->conn->prepare("DELETE FROM rounds WHERE id = ?");
+        $stmt = $this->conn->prepare("DELETE FROM questions WHERE id = ?");
         $stmt->bind_param("i", $round_id);
         $success = $stmt->execute();
         $stmt->close();
@@ -253,24 +232,20 @@ class RoundRepo {
     
     /**
      * Reset all rounds of a question set to pending status
+     * Note: status_round column was removed from database
+     * Kept for backward compatibility - just clears player answers
      */
     public function resetRoundsBySetId($question_set_id) {
-        // Reset all rounds to pending and clear player answers
-        $stmt = $this->conn->prepare("UPDATE rounds SET status_round = 'pending' WHERE question_set_id = ?");
-        $stmt->bind_param("i", $question_set_id);
-        $success = $stmt->execute();
-        $stmt->close();
-        
         // Delete all player answers for these rounds
         $stmt = $this->conn->prepare("
             DELETE FROM player_answers 
-            WHERE round_id IN (SELECT id FROM rounds WHERE question_set_id = ?)
+            WHERE question_id IN (SELECT id FROM questions WHERE question_set_id = ?)
         ");
         $stmt->bind_param("i", $question_set_id);
         $stmt->execute();
         $stmt->close();
         
-        return $success;
+        return true;
     }
     
     public function __destruct() {

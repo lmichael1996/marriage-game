@@ -65,7 +65,9 @@ class GameController {
      */
     public function startRound($roundId) {
         try {
-            $this->gameService->startRound($roundId);
+            // Use session room_code if available so we set the active round for the correct room
+            $roomCode = $_SESSION['room_code'] ?? null;
+            $this->gameService->startRound($roundId, $roomCode);
             return [
                 'success' => true,
                 'message' => 'Round avviato'

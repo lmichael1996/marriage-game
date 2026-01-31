@@ -271,7 +271,7 @@ $activeRound = $gameState['active_round'] ?? null;
                         </li>
                     <?php else: ?>
                         <?php foreach ($questions as $index => $q): ?>
-                            <li class="question-item <?php echo ($activeRound && $activeRound['id'] == $q['id']) ? 'active' : ''; ?> <?php echo ($q['status_round'] == 'closed') ? 'completed' : ''; ?>" 
+                            <li class="question-item <?php echo ($activeRound && $activeRound['id'] == $q['id']) ? 'active' : ''; ?>" 
                                 data-question-id="<?php echo $q['id']; ?>">
                                 <span>
                                     <span class="question-number"><?php echo ($index + 1); ?>.</span>
@@ -282,8 +282,7 @@ $activeRound = $gameState['active_round'] ?? null;
                                 </span>
                                 <span class="question-status">
                                     <?php 
-                                        if ($q['status_round'] == 'active') echo '▶';
-                                        else if ($q['status_round'] == 'closed') echo '✓';
+                                        if ($activeRound && $activeRound['id'] == $q['id']) echo '▶';
                                         else echo '○';
                                     ?>
                                 </span>
@@ -383,9 +382,10 @@ $activeRound = $gameState['active_round'] ?? null;
 
         function startNextRound() {
             const questions = <?php echo json_encode($questions); ?>;
+            const activeRoundId = <?php echo $activeRound ? $activeRound['id'] : 'null'; ?>;
             
-            // Find first pending question
-            const nextQuestion = questions.find(q => q.status_round === 'pending');
+            // Find first question that's not the active one
+            const nextQuestion = questions.find(q => q.id !== activeRoundId);
             
             if (nextQuestion) {
                 fetch('../src/api/api.php?endpoint=game&action=start_round', {

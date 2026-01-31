@@ -29,14 +29,6 @@ $pagination = $questionSetsData['pagination'];
 // Get game settings
 $settingsResult = $admin->getSettings();
 $gameSettings = $settingsResult['success'] ? $settingsResult['settings'] : [];
-
-// TODO: Questi metodi devono essere aggiunti ai controller
-$rounds = []; // $roundModel->getAllRoundsWithStats();
-$active_round = null; // $roundModel->getActiveRound();
-
-// Get selected set
-$selectedSetId = $_GET['set'] ?? null;
-list($selectedSet, $setRounds) = AdminHelper::getSelectedSet($admin, $selectedSetId);
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -45,12 +37,6 @@ list($selectedSet, $setRounds) = AdminHelper::getSelectedSet($admin, $selectedSe
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Marriage Game</title>
     <link rel="stylesheet" href="../assets/css/admin.css">
-    <style>
-        /* Smooth tab transitions */
-        .tab-content {
-            transition: opacity 0.2s ease-out, transform 0.2s ease-out;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -64,29 +50,29 @@ list($selectedSet, $setRounds) = AdminHelper::getSelectedSet($admin, $selectedSe
         <!-- Navigation Menu -->
         <div class="admin-nav">
             <a href="#sets" class="nav-item active" data-tab="sets">
-                <span class="nav-label">Set Domande</span>
-            </a>
-            <a href="#game" class="nav-item" data-tab="game">
-                <span class="nav-label">Partita</span>
+                <span class="nav-label">🎮 Partita</span>
             </a>
             <a href="#settings" class="nav-item" data-tab="settings">
-                <span class="nav-label">Impostazioni</span>
+                <span class="nav-label">⚙️ Gestione Partita</span>
             </a>
-        </div>
-        
-        <!-- Tab: Set di Domande -->
-        <div id="tab-sets" class="tab-content active">
-            <?php include 'admin/admin_sets.php'; ?>
+            <a href="#general" class="nav-item" data-tab="general">
+                <span class="nav-label">ℹ️ Impostazioni Generali</span>
+            </a>
         </div>
         
         <!-- Tab: Partita -->
-        <div id="tab-game" class="tab-content">
-            <?php include 'admin/admin_game.php'; ?>
+        <div id="tab-sets" class="tab-content active">
+            <?php include 'admin/admin_games.php'; ?>
         </div>
         
-        <!-- Tab: Impostazioni -->
+        <!-- Tab: Gestione Partita -->
         <div id="tab-settings" class="tab-content">
-            <?php include 'admin/admin_settings.php'; ?>
+            <?php include 'admin/admin_game_settings.php'; ?>
+        </div>
+        
+        <!-- Tab: Impostazioni Generali -->
+        <div id="tab-general" class="tab-content">
+            <?php include 'admin/admin_general_settings.php'; ?>
         </div>
     </div>
     
@@ -131,13 +117,12 @@ list($selectedSet, $setRounds) = AdminHelper::getSelectedSet($admin, $selectedSe
     </div>
 
     <script>
-        // Define showTab early to avoid "not defined" errors
+        // Show/hide tabs with smooth transition
         function showTab(tabName, element) {
             const newTab = document.getElementById('tab-' + tabName);
             const currentTab = document.querySelector('.tab-content.active');
             
-            // If clicking the same tab, do nothing
-            if (currentTab === newTab) return;
+            if (currentTab === newTab) return; // Same tab clicked
             
             // Animate out current tab
             if (currentTab) {
@@ -154,8 +139,7 @@ list($selectedSet, $setRounds) = AdminHelper::getSelectedSet($admin, $selectedSe
                     newTab.style.opacity = '0';
                     newTab.style.transform = 'translateX(10px)';
                     
-                    // Force reflow
-                    newTab.offsetHeight;
+                    newTab.offsetHeight; // Force reflow
                     
                     setTimeout(() => {
                         newTab.style.opacity = '1';
@@ -163,18 +147,12 @@ list($selectedSet, $setRounds) = AdminHelper::getSelectedSet($admin, $selectedSe
                     }, 30);
                 }, 200);
             } else {
-                // No current tab, just show new one
                 newTab.classList.add('active');
             }
             
             // Update nav items
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            if (element) {
-                element.classList.add('active');
-            }
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            if (element) element.classList.add('active');
         }
 
         // Minimal common JavaScript: modal helpers and question fields generation

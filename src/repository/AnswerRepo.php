@@ -9,7 +9,7 @@ class AnswerRepo {
     }
     
     public function hasAnswered($round_id, $player_id) {
-        $stmt = $this->conn->prepare("SELECT id FROM player_answers WHERE round_id = ? AND player_id = ?");
+        $stmt = $this->conn->prepare("SELECT id FROM player_answers WHERE question_id = ? AND player_id = ?");
         $stmt->bind_param("ii", $round_id, $player_id);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -18,9 +18,9 @@ class AnswerRepo {
         return $exists;
     }
     
-    public function submitAnswer($round_id, $player_id, $answer, $time_taken, $is_correct) {
-        $stmt = $this->conn->prepare("INSERT INTO player_answers (round_id, player_id, answer, time_taken, is_correct) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("iiidi", $round_id, $player_id, $answer, $time_taken, $is_correct);
+    public function submitAnswer($round_id, $player_id, $time_taken, $is_correct) {
+        $stmt = $this->conn->prepare("INSERT INTO player_answers (question_id, player_id, time_taken, is_correct) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("iidi", $round_id, $player_id, $time_taken, $is_correct);
         $success = $stmt->execute();
         $stmt->close();
         return $success;
@@ -33,7 +33,7 @@ class AnswerRepo {
                 p.username
             FROM player_answers pa
             JOIN players p ON p.id = pa.player_id
-            WHERE pa.round_id = ?
+            WHERE pa.question_id = ?
             ORDER BY pa.time_taken ASC
         ");
         $stmt->bind_param("i", $round_id);
@@ -51,23 +51,39 @@ class AnswerRepo {
     
     public function getLeaderboard($roomCode = null) {
         if ($roomCode) {
-            // Classifica semplice: mostra i giocatori che hanno risposto correttamente, ordinati per punteggio e velocità
+            // Get room ID from room_code
+            $stmtRoom = $this->conn->prepare("SELECT id FROM rooms WHERE room_code = ?");
+            $stmtRoom->bind_param("s", strtoupper($roomCode));
+            $stmtRoom->execute();
+            $result = $stmtRoom->get_result();
+            $room = $result->fetch_assoc();
+            $stmtRoom->close();
+            
+            if (!$room) {
+                return [
+                    'success' => false,
+                    'leaderboard' => []
+                ];
+            }
+            
+            $roomId = $room['id'];
+            
+            // Classifica semplice: mostra i giocatori che hanno risposto correttamente, ordinati per velocità media
             $stmt = $this->conn->prepare("
                 SELECT 
                     p.username,
-                    p.total_score,
                     COUNT(pa.id) as total_answers,
                     SUM(CASE WHEN pa.is_correct = 1 THEN 1 ELSE 0 END) as correct_answers,
                     AVG(CASE WHEN pa.is_correct = 1 THEN pa.time_taken ELSE NULL END) as avg_time
                 FROM players p
                 LEFT JOIN player_answers pa ON pa.player_id = p.id
-                WHERE p.room_code = ?
+                WHERE p.room_id = ?
                 GROUP BY p.id, p.username
                 HAVING correct_answers > 0
-                ORDER BY p.total_score DESC, avg_time ASC
+                ORDER BY correct_answers DESC, avg_time ASC
                 LIMIT 10
             ");
-            $stmt->bind_param("s", $roomCode);
+            $stmt->bind_param("i", $roomId);
             $stmt->execute();
             $result = $stmt->get_result();
             
@@ -87,7 +103,6 @@ class AnswerRepo {
         $result = $this->conn->query("
             SELECT 
                 p.username,
-                p.total_score,
                 COUNT(pa.id) as total_answers,
                 SUM(pa.is_correct) as correct_answers,
                 AVG(pa.time_taken) as avg_time
@@ -95,7 +110,7 @@ class AnswerRepo {
             LEFT JOIN player_answers pa ON pa.player_id = p.id
             GROUP BY p.id, p.username
             HAVING correct_answers > 0
-            ORDER BY p.total_score DESC, correct_answers DESC, avg_time ASC
+            ORDER BY correct_answers DESC, avg_time ASC
             LIMIT 10
         ");
         
@@ -110,11 +125,27 @@ class AnswerRepo {
     }
     
     public function getRoundLeaderboard($roomCode, $roundId) {
+        // Get room ID from room_code
+        $stmtRoom = $this->conn->prepare("SELECT id FROM rooms WHERE room_code = ?");
+        $stmtRoom->bind_param("s", strtoupper($roomCode));
+        $stmtRoom->execute();
+        $result = $stmtRoom->get_result();
+        $room = $result->fetch_assoc();
+        $stmtRoom->close();
+        
+        if (!$room) {
+            return [
+                'success' => false,
+                'leaderboard' => []
+            ];
+        }
+        
+        $roomId = $room['id'];
+        
         $stmt = $this->conn->prepare("
             SELECT 
                 p.username,
                 pa.time_taken,
-                pa.answer,
                 r.round_type,
                 CASE r.round_type
                     WHEN 'multiple' THEN
@@ -154,14 +185,14 @@ class AnswerRepo {
                 END as points
             FROM player_answers pa
             JOIN players p ON p.id = pa.player_id
-            JOIN rounds r ON r.id = pa.round_id
-            WHERE pa.round_id = ? 
-                AND p.room_code = ?
+            JOIN questions r ON r.id = pa.question_id
+            WHERE pa.question_id = ? 
+                AND p.room_id = ?
                 AND pa.is_correct = 1
             ORDER BY pa.time_taken ASC
             LIMIT 10
         ");
-        $stmt->bind_param("is", $roundId, $roomCode);
+        $stmt->bind_param("ii", $roundId, $roomId);
         $stmt->execute();
         $result = $stmt->get_result();
         

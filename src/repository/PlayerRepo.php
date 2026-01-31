@@ -12,8 +12,21 @@ class PlayerRepo {
      * Create a new player associated with a room
      */
     public function createPlayer($username, $roomCode) {
-        $stmt = $this->conn->prepare("INSERT INTO players (username, room_code) VALUES (?, ?)");
-        $stmt->bind_param("ss", $username, strtoupper($roomCode));
+        // First, get the room ID from room_code
+        $stmtRoom = $this->conn->prepare("SELECT id FROM rooms WHERE room_code = ?");
+        $stmtRoom->bind_param("s", strtoupper($roomCode));
+        $stmtRoom->execute();
+        $result = $stmtRoom->get_result();
+        $room = $result->fetch_assoc();
+        $stmtRoom->close();
+        
+        if (!$room) {
+            return false; // Room doesn't exist
+        }
+        
+        $roomId = $room['id'];
+        $stmt = $this->conn->prepare("INSERT INTO players (username, room_id) VALUES (?, ?)");
+        $stmt->bind_param("si", $username, $roomId);
         
         if ($stmt->execute()) {
             $playerId = $this->conn->insert_id;
@@ -29,19 +42,29 @@ class PlayerRepo {
      * Get all players for a specific room
      */
     public function getPlayersByRoom($roomCode) {
+        // First, get the room ID from room_code
+        $stmtRoom = $this->conn->prepare("SELECT id FROM rooms WHERE room_code = ?");
+        $stmtRoom->bind_param("s", strtoupper($roomCode));
+        $stmtRoom->execute();
+        $result = $stmtRoom->get_result();
+        $room = $result->fetch_assoc();
+        $stmtRoom->close();
+        
+        if (!$room) {
+            return []; // Room doesn't exist
+        }
+        
+        $roomId = $room['id'];
         $stmt = $this->conn->prepare("
             SELECT 
                 id,
-                username,
-                connected_at,
-                last_seen,
-                'online' as status
+                username
             FROM players 
-            WHERE room_code = ?
-            ORDER BY connected_at ASC
+            WHERE room_id = ?
+            ORDER BY id ASC
         ");
         
-        $stmt->bind_param("s", strtoupper($roomCode));
+        $stmt->bind_param("i", $roomId);
         $stmt->execute();
         $result = $stmt->get_result();
         $players = $result->fetch_all(MYSQLI_ASSOC);
@@ -68,32 +91,21 @@ class PlayerRepo {
      * Delete all players for a specific room
      */
     public function deletePlayersByRoom($roomCode) {
-        $stmt = $this->conn->prepare("DELETE FROM players WHERE room_code = ?");
-        $stmt->bind_param("s", strtoupper($roomCode));
-        $success = $stmt->execute();
-        $stmt->close();
+        // First, get the room ID from room_code
+        $stmtRoom = $this->conn->prepare("SELECT id FROM rooms WHERE room_code = ?");
+        $stmtRoom->bind_param("s", strtoupper($roomCode));
+        $stmtRoom->execute();
+        $result = $stmtRoom->get_result();
+        $room = $result->fetch_assoc();
+        $stmtRoom->close();
         
-        return $success;
-    }
-    
-    /**
-     * Update player's last seen timestamp
-     */
-    public function updateLastSeen($playerId) {
-        $stmt = $this->conn->prepare("UPDATE players SET last_seen = NOW() WHERE id = ?");
-        $stmt->bind_param("i", $playerId);
-        $success = $stmt->execute();
-        $stmt->close();
+        if (!$room) {
+            return false; // Room doesn't exist
+        }
         
-        return $success;
-    }
-    
-    /**
-     * Reset all player scores in a room
-     */
-    public function resetPlayerScoresByRoom($roomCode) {
-        $stmt = $this->conn->prepare("UPDATE players SET total_score = 0 WHERE room_code = ?");
-        $stmt->bind_param("s", strtoupper($roomCode));
+        $roomId = $room['id'];
+        $stmt = $this->conn->prepare("DELETE FROM players WHERE room_id = ?");
+        $stmt->bind_param("i", $roomId);
         $success = $stmt->execute();
         $stmt->close();
         

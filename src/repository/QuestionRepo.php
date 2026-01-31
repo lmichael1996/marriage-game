@@ -22,17 +22,15 @@ class QuestionRepo {
             SELECT qs.id,
                    qs.set_name,
                    qs.set_description,
-                   qs.created_at,
                    qs.updated_at,
                    COUNT(r.id) as total_rounds
             FROM question_sets qs
-            LEFT JOIN rounds r ON r.question_set_id = qs.id
-            GROUP BY qs.id, qs.set_name, qs.set_description, qs.created_at, qs.updated_at
+            LEFT JOIN questions r ON r.question_set_id = qs.id
+            GROUP BY qs.id, qs.set_name, qs.set_description, qs.updated_at
             ORDER BY qs.set_name ASC
             LIMIT $perPage OFFSET $offset
         ");
         $data = $result->fetch_all(MYSQLI_ASSOC);
-        error_log("QuestionRepo.getAll() returned: " . json_encode($data));
         return $data;
     }
     
@@ -57,7 +55,7 @@ class QuestionRepo {
     
     public function delete($id) {
         // Delete all rounds in this set
-        $stmt = $this->conn->prepare("DELETE FROM rounds WHERE question_set_id = ?");
+        $stmt = $this->conn->prepare("DELETE FROM questions WHERE question_set_id = ?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
         
@@ -73,9 +71,9 @@ class QuestionRepo {
             SELECT qs.*, 
                    COUNT(r.id) as total_rounds
             FROM question_sets qs
-            LEFT JOIN rounds r ON r.question_set_id = qs.id
+            LEFT JOIN questions r ON r.question_set_id = qs.id
             WHERE qs.set_name LIKE ?
-            GROUP BY qs.id, qs.set_name, qs.set_description, qs.created_at, qs.updated_at
+            GROUP BY qs.id, qs.set_name, qs.set_description, qs.updated_at
             ORDER BY qs.set_name ASC
         ");
         $stmt->bind_param("s", $searchTerm);
@@ -85,7 +83,7 @@ class QuestionRepo {
     
     public function getRounds($setId) {
         $stmt = $this->conn->prepare("
-            SELECT * FROM rounds 
+            SELECT * FROM questions 
             WHERE question_set_id = ? 
             ORDER BY round_number ASC
         ");
@@ -137,8 +135,8 @@ class QuestionRepo {
             
             // Insert round
             $stmt = $this->conn->prepare("
-                INSERT INTO rounds (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer, status_round) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+                INSERT INTO questions (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->bind_param("iissssssii", $setId, $roundNumber, $type, $question, $option1, $option2, $option3, $option4, $correct, $timer);
             $stmt->execute();
@@ -156,7 +154,7 @@ class QuestionRepo {
         $this->update($setId, $setName, $setDescription);
         
         // Get existing rounds for this set
-        $stmt = $this->conn->prepare("SELECT id, round_number FROM rounds WHERE question_set_id = ? ORDER BY round_number");
+        $stmt = $this->conn->prepare("SELECT id, round_number FROM questions WHERE question_set_id = ? ORDER BY round_number");
         $stmt->bind_param("i", $setId);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -198,11 +196,11 @@ class QuestionRepo {
             
             // Update existing round or insert new one
             if (isset($existingRounds[$roundNumber])) {
-                // Update existing round (only if status is 'pending')
+                // Update existing round
                 $stmt = $this->conn->prepare("
-                    UPDATE rounds 
+                    UPDATE questions 
                     SET round_type = ?, question = ?, option1 = ?, option2 = ?, option3 = ?, option4 = ?, correct_answer = ?, timer = ?
-                    WHERE id = ? AND status_round = 'pending'
+                    WHERE id = ?
                 ");
                 $roundId = $existingRounds[$roundNumber];
                 $stmt->bind_param("sssssssii", $type, $question, $option1, $option2, $option3, $option4, $correct, $timer, $roundId);
@@ -212,8 +210,8 @@ class QuestionRepo {
             } else {
                 // Insert new round
                 $stmt = $this->conn->prepare("
-                    INSERT INTO rounds (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer, status_round) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+                    INSERT INTO questions (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ");
                 $stmt->bind_param("iissssssii", $setId, $roundNumber, $type, $question, $option1, $option2, $option3, $option4, $correct, $timer);
                 $stmt->execute();
@@ -221,9 +219,9 @@ class QuestionRepo {
             }
         }
         
-        // Delete remaining rounds (only if status is 'pending')
+        // Delete remaining rounds
         foreach ($existingRounds as $roundId) {
-            $stmt = $this->conn->prepare("DELETE FROM rounds WHERE id = ? AND status_round = 'pending'");
+            $stmt = $this->conn->prepare("DELETE FROM questions WHERE id = ?");
             $stmt->bind_param("i", $roundId);
             $stmt->execute();
             $stmt->close();

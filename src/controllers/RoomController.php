@@ -49,6 +49,24 @@ class RoomController {
     }
     
     /**
+     * Delete room completely
+     */
+    public function deleteRoom($roomCode) {
+        try {
+            $this->roomService->deleteRoom($roomCode);
+            return [
+                'success' => true,
+                'message' => 'Stanza eliminata completamente.'
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+    
+    /**
      * Cancel room
      */
     public function cancelRoom($roomCode) {

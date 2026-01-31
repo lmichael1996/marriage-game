@@ -1,52 +1,19 @@
 <!-- Tab: Impostazioni -->
 <div class="admin-section">
-    <h2>Impostazioni Generali</h2>
+    <div class="tab-header">
+        <h2>⚙️ Impostazioni Partita</h2>
+    </div>
     
     <?php if (isset($_GET['success']) && $_GET['success'] === 'credentials_updated'): ?>
         <div class="success-message">Credenziali aggiornate con successo!</div>
     <?php endif; ?>
-    
+
     <?php if (isset($_GET['error'])): ?>
         <div class="error-message"><?php echo htmlspecialchars($_GET['error']); ?></div>
     <?php endif; ?>
-    
-    <!-- Username and Password Section -->
-    <form method="POST" action="" class="form-spacing">
-        <input type="hidden" name="action" value="change_credentials">
-        
-        <div class="form-section">
-            <h3>Credenziali Amministratore</h3>
-            
-            <div class="form-group">
-                <label for="new_username">Username:</label>
-                <input type="text" id="new_username" name="new_username" 
-                       value="<?php echo htmlspecialchars($_SESSION['username'] ?? ''); ?>" 
-                       required minlength="3" maxlength="50">
-                <small>Username per accedere al pannello amministratore</small>
-            </div>
-            
-            <div class="form-group">
-                <label for="new_password">Nuova Password:</label>
-                <input type="password" id="new_password" name="new_password" 
-                       minlength="6" maxlength="255">
-                <small>Lascia vuoto per mantenere la password attuale. Minimo 6 caratteri.</small>
-            </div>
-            
-            <div class="form-group">
-                <label for="confirm_password">Conferma Password:</label>
-                <input type="password" id="confirm_password" name="confirm_password" 
-                       minlength="6" maxlength="255">
-                <small>Reinserisci la nuova password</small>
-            </div>
-            
-            <button type="submit" class="btn btn-primary">Aggiorna Credenziali</button>
-        </div>
-    </form>
-    
+
     <form id="settings-form" method="POST" action="">
-        <input type="hidden" name="action" value="save_settings">
-        
-        <!-- Game Settings -->
+        <input type="hidden" name="action" value="save_settings">        <!-- Game Settings -->
         <div class="form-section">
             <h3>Impostazioni Partita</h3>
             <div class="form-group">
@@ -185,7 +152,7 @@
             <div class="form-group">
                 <label for="points_clickfirst">Punti per il primo giocatore:</label>
                 <input type="number" id="points_clickfirst" name="points_clickfirst" 
-                       min="1" max="1000" value="50" required class="input-narrow">
+                       min="1" max="1000" value="<?php echo $gameSettings['points_clickfirst'] ?? 50; ?>" required class="input-narrow">
                 <small>Il primo giocatore che clicca ottiene questi punti (gli altri: 0 punti)</small>
             </div>
         </div>
@@ -195,14 +162,16 @@
             <h3>Visualizzazione</h3>
             <div class="form-group">
                 <label for="show_leaderboard">
-                    <input type="checkbox" id="show_leaderboard" name="show_leaderboard" value="1" checked>
+                    <input type="checkbox" id="show_leaderboard" name="show_leaderboard" value="1" 
+                           <?php echo !empty($gameSettings['show_leaderboard']) ? 'checked' : ''; ?>>
                     Mostra classifica in tempo reale
                 </label>
             </div>
             
             <div class="form-group">
                 <label for="show_correct_answer">
-                    <input type="checkbox" id="show_correct_answer" name="show_correct_answer" value="1" checked>
+                    <input type="checkbox" id="show_correct_answer" name="show_correct_answer" value="1" 
+                           <?php echo !empty($gameSettings['show_correct_answer']) ? 'checked' : ''; ?>>
                     Mostra risposta corretta dopo ogni round
                 </label>
             </div>

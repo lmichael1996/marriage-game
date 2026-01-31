@@ -114,15 +114,17 @@ body {
     font-weight: 400;
     cursor: pointer;
     text-decoration: none;
-    display: inline-block;
+    display: block;
+    margin: 0 auto;
     transition: all 0.2s ease;
     font-family: Georgia, serif;
+    width: fit-content;
 }
 
 .btn-primary {
     background: #1a1a1a;
     color: white;
-    width: 100%;
+    width: auto;
 }
 
 .btn-primary:hover {

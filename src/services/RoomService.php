@@ -70,13 +70,6 @@ class RoomService {
             ];
         }
         
-        if ($room['status_room'] !== 'waiting') {
-            return [
-                'success' => false,
-                'error' => 'La stanza non è in attesa'
-            ];
-        }
-        
         // Reset all rounds to pending status before starting
         if ($room['question_set_id']) {
             $this->roundRepo->resetRoundsBySetId($room['question_set_id']);
@@ -99,6 +92,22 @@ class RoomService {
         return [
             'success' => $success,
             'message' => $success ? 'Stanza chiusa' : 'Errore nella chiusura'
+        ];
+    }
+    
+    /**
+     * Delete room completely
+     */
+    public function deleteRoom($roomCode) {
+        // First, remove all players from the room
+        $this->playerRepo->deletePlayersByRoom($roomCode);
+        
+        // Then delete the room itself
+        $success = $this->roomRepo->deleteRoom($roomCode);
+        
+        return [
+            'success' => $success,
+            'message' => $success ? 'Stanza eliminata' : 'Errore nell\'eliminazione'
         ];
     }
     

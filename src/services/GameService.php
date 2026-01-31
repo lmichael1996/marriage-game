@@ -18,17 +18,61 @@ class GameService {
     }
     
     /**
-     * Avvia un nuovo round
+     * Avvia un nuovo round - persist active round in session
      */
-    public function startRound($roundId) {
-        return $this->roundRepo->startRound($roundId);
+    public function startRound($roundId, $roomCode = null) {
+        // Validate round exists
+        $round = $this->roundRepo->getRoundById($roundId);
+        if (!$round) {
+            throw new Exception('Round non trovato');
+        }
+
+        // Store active round in session (per-room, keyed by room code or global)
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
+
+        // Use roomCode from param or from session
+        if (!$roomCode && isset($_SESSION['room_code'])) {
+            $roomCode = $_SESSION['room_code'];
+        }
+
+        // Store active round in session keyed by room
+        if ($roomCode) {
+            $_SESSION['active_round_' . $roomCode] = $roundId;
+        } else {
+            // Fallback: store globally
+            $_SESSION['active_round'] = $roundId;
+        }
+
+        return true;
     }
     
     /**
-     * Get active round
+     * Get active round - from session storage
      */
     public function getActiveRound($questionSetId = null) {
-        return $this->roundRepo->getActiveRound($questionSetId);
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
+
+        $roomCode = $_SESSION['room_code'] ?? null;
+        
+        // Try to get active round from session (per-room)
+        if ($roomCode) {
+            $activeRoundId = $_SESSION['active_round_' . $roomCode] ?? null;
+        } else {
+            // Fallback to global session active round
+            $activeRoundId = $_SESSION['active_round'] ?? null;
+        }
+
+        // If we have an active round ID, fetch and return it
+        if ($activeRoundId) {
+            return $this->roundRepo->getRoundById($activeRoundId);
+        }
+
+        // No active round in session
+        return null;
     }
     
     /**
@@ -44,8 +88,21 @@ class GameService {
         // Calcola i punteggi in base al tipo di round
         $this->calculateScores($roundId, $round['round_type']);
         
-        // Chiudi il round
-        return $this->roundRepo->closeRound($roundId);
+        // Chiudi il round in repository (compatibility)
+        $closed = $this->roundRepo->closeRound($roundId);
+
+        // Clear active round from session
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
+        $roomCode = $_SESSION['room_code'] ?? null;
+        if ($roomCode) {
+            unset($_SESSION['active_round_' . $roomCode]);
+        } else {
+            unset($_SESSION['active_round']);
+        }
+
+        return $closed;
     }
     
     /**
@@ -159,15 +216,11 @@ class GameService {
             throw new Exception('Round non trovato');
         }
         
-        if ($round['status_round'] !== 'active') {
-            throw new Exception('Round non più attivo');
-        }
-        
         // Check if answer is correct
         $is_correct = ($answer == $round['correct_answer']) ? 1 : 0;
         
-        // Save answer
-        $this->answerRepo->submitAnswer($roundId, $userId, $answer, $timeTaken, $is_correct);
+        // Save answer (without storing the actual answer)
+        $this->answerRepo->submitAnswer($roundId, $userId, $timeTaken, $is_correct);
         
         return ['is_correct' => $is_correct];
     }

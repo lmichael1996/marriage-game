@@ -82,6 +82,10 @@ switch ($endpoint) {
         handleCloseRoom($room);
         break;
     
+    case 'delete_room':
+        handleDeleteRoom($room);
+        break;
+    
     case 'connected_devices':
         handleConnectedDevices($room);
         break;
@@ -342,6 +346,36 @@ function handleCloseRoom($room) {
         // Set a flag to signal room closure to connected players
         $flagFile = sys_get_temp_dir() . '/marriage_game_room_closed.flag';
         file_put_contents($flagFile, time());
+        
+        echo json_encode($result);
+        
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleDeleteRoom($room) {
+    requireAdmin();
+    
+    try {
+        // Get active room from session or request
+        $roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
+        
+        if (!$roomCode) {
+            throw new Exception('Codice stanza mancante');
+        }
+        
+        // Delete the room completely
+        $result = $room->deleteRoom($roomCode);
+        
+        // Clear room from session
+        if ($result['success']) {
+            unset($_SESSION['room_code']);
+        }
         
         echo json_encode($result);
         

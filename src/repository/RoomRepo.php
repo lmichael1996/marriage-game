@@ -13,8 +13,8 @@ class RoomRepo {
      */
     public function createRoom($code, $questionSetId = null) {
         $stmt = $this->conn->prepare("
-            INSERT INTO rooms (room_code, question_set_id, status_room) 
-            VALUES (?, ?, 'waiting')
+            INSERT INTO rooms (room_code, question_set_id) 
+            VALUES (?, ?)
         ");
         $stmt->bind_param("si", strtoupper($code), $questionSetId);
         
@@ -50,20 +50,10 @@ class RoomRepo {
      * Get active rooms (waiting or active status)
      */
     public function getActiveRooms($userId = null) {
-        if ($userId) {
-            $stmt = $this->conn->prepare("
-                SELECT * FROM rooms 
-                WHERE user_id = ? AND status_room IN ('waiting', 'active')
-                ORDER BY created_at DESC
-            ");
-            $stmt->bind_param("i", $userId);
-        } else {
-            $stmt = $this->conn->prepare("
-                SELECT * FROM rooms 
-                WHERE status_room IN ('waiting', 'active')
-                ORDER BY created_at DESC
-            ");
-        }
+        $stmt = $this->conn->prepare("
+            SELECT * FROM rooms 
+            ORDER BY id DESC
+        ");
         
         $stmt->execute();
         $result = $stmt->get_result();
@@ -75,14 +65,12 @@ class RoomRepo {
     
     /**
      * Update room status
+     * Note: status_room column was removed from database
+     * Kept for backward compatibility but does nothing
      */
     public function updateStatus($roomCode, $status) {
-        $stmt = $this->conn->prepare("UPDATE rooms SET status_room = ? WHERE room_code = ?");
-        $stmt->bind_param("ss", $status, strtoupper($roomCode));
-        $success = $stmt->execute();
-        $stmt->close();
-        
-        return $success;
+        // status_room column no longer exists
+        return true;
     }
     
     /**
@@ -96,9 +84,16 @@ class RoomRepo {
      * Close room and set closed_at timestamp
      */
     public function closeRoom($roomCode) {
+        // In new logic, just delete the room
+        return $this->deleteRoom($roomCode);
+    }
+    
+    /**
+     * Delete room completely
+     */
+    public function deleteRoom($roomCode) {
         $stmt = $this->conn->prepare("
-            UPDATE rooms 
-            SET status_room = 'closed', closed_at = NOW() 
+            DELETE FROM rooms 
             WHERE room_code = ?
         ");
         $stmt->bind_param("s", strtoupper($roomCode));
@@ -112,16 +107,8 @@ class RoomRepo {
      * Cancel room and set closed_at timestamp
      */
     public function cancelRoom($roomCode) {
-        $stmt = $this->conn->prepare("
-            UPDATE rooms 
-            SET status_room = 'canceled', closed_at = NOW() 
-            WHERE room_code = ?
-        ");
-        $stmt->bind_param("s", strtoupper($roomCode));
-        $success = $stmt->execute();
-        $stmt->close();
-        
-        return $success;
+        // In new logic, just delete the room
+        return $this->deleteRoom($roomCode);
     }
     
     /**
@@ -130,7 +117,7 @@ class RoomRepo {
     public function verifyRoomCode($code) {
         $stmt = $this->conn->prepare("
             SELECT id FROM rooms 
-            WHERE room_code = ? AND status_room IN ('waiting', 'active')
+            WHERE room_code = ?
         ");
         $stmt->bind_param("s", strtoupper($code));
         $stmt->execute();
@@ -160,7 +147,7 @@ class RoomRepo {
         $stmt = $this->conn->prepare("
             SELECT * FROM rooms 
             WHERE user_id = ?
-            ORDER BY created_at DESC
+            ORDER BY id DESC
         ");
         $stmt->bind_param("i", $userId);
         $stmt->execute();
@@ -177,7 +164,7 @@ class RoomRepo {
     public function getQuestionSetIdByRoomCode($roomCode) {
         $stmt = $this->conn->prepare("
             SELECT question_set_id FROM rooms 
-            WHERE room_code = ? AND status_room IN ('waiting', 'active')
+            WHERE room_code = ?
         ");
         $stmt->bind_param("s", strtoupper($roomCode));
         $stmt->execute();

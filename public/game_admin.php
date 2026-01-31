@@ -28,15 +28,8 @@ if ($roomCode) {
     // Get room by code from session (or from GET param if freshly set)
     $room = $roomRepo->getRoomByCode($roomCode);
     if ($room) {
-        // Check if room is in valid state (waiting or active)
-        if ($room['status_room'] === 'waiting' || $room['status_room'] === 'active') {
-            $questionSetId = $room['question_set_id'];
-        } else {
-            // Room is closed or canceled, clear from session
-            unset($_SESSION['room_code']);
-            $room = null;
-            $roomCode = null;
-        }
+        // Room exists, get question set
+        $questionSetId = $room['question_set_id'];
     } else {
         // Room not found, clear from session
         unset($_SESSION['room_code']);
@@ -44,14 +37,8 @@ if ($roomCode) {
     }
 }
 
-// If no valid room, cancel any active rooms and redirect to admin
+// If no valid room, redirect to admin
 if (!$room) {
-    // Cancel all active rooms that don't match the session (orphaned rooms)
-    $conn = getDBConnection();
-    $stmt = $conn->prepare("UPDATE rooms SET status_room = 'canceled', closed_at = NOW() WHERE status_room = 'active'");
-    $stmt->execute();
-    $conn->close();
-    
     // Redirect back to admin panel
     header('Location: admin.php');
     exit;
@@ -83,8 +70,9 @@ if ($roomCode) {
 
 // Find next question to start
 $nextQuestion = null;
+$activeRoundId = $activeRound ? $activeRound['id'] : null;
 foreach ($questions as $q) {
-    if ($q['status_round'] === 'pending') {
+    if ($q['id'] !== $activeRoundId) {
         $nextQuestion = $q;
         break;
     }
@@ -682,8 +670,10 @@ if (!$activeRound && !$nextQuestion && $roomCode) {
             .then(data => {
                 if (data.success) {
                     const questionSetId = <?php echo $questionSetId ?? 0; ?>;
+                    const questionSetName = <?php echo json_encode($setInfo['set_name'] ?? ''); ?>;
                     setTimeout(() => {
-                        window.location.href = 'admin.php?question_set_id=' + questionSetId;
+                        // Just redirect to admin without set parameters - user must select a new set
+                        window.location.href = 'admin.php?tab=game';
                     }, 500);
                 } else {
                     alert('Errore: ' + (data.error || 'Impossibile chiudere la partita'));

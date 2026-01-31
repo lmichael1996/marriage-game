@@ -59,6 +59,9 @@ body {
     transition: all 0.2s ease;
     font-family: Georgia, serif;
     font-size: 0.95em;
+    display: block;
+    margin: 0 auto;
+    width: fit-content;
 }
 
 .btn:hover {
@@ -245,6 +248,8 @@ body {
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 1px;
+    display: block;
+    margin: 0 auto;
 }
 
 .btn-submit:hover:not(:disabled) {

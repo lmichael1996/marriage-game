@@ -1,7 +1,7 @@
-<!-- Tab: Set di Domande -->
+<!-- Tab: Set di Domande e Gestione Partita -->
 <div class="admin-section">
-    <div class="header-actions">
-        <h2>Set di Domande</h2>
+    <div class="tab-header">
+        <h2>🎮 Set di Domande</h2>
         <button class="btn btn-success" id="btn-new-set">+ Nuovo Set</button>
     </div>
     
@@ -26,7 +26,8 @@
                     <th>Descrizione</th>
                     <th>Domande</th>
                     <th>Ultima Modifica</th>
-                    <th>Azioni</th>
+                    <th>Azioni Gestione</th>
+                    <th>Avvia Partita</th>
                 </tr>
             </thead>
             <tbody id="sets-table-body">
@@ -54,6 +55,11 @@
                             <button class="btn-icon btn-warning btn-edit-set" data-set-id="<?php echo $set['id']; ?>" data-set-name="<?php echo htmlspecialchars($set['set_name']); ?>" data-set-description="<?php echo htmlspecialchars($set['set_description']); ?>" title="Modifica">✎</button>
                             <button class="btn-icon btn-danger btn-delete-set" data-set-id="<?php echo $set['id']; ?>" data-set-name="<?php echo htmlspecialchars($set['set_name']); ?>" title="Elimina">×</button>
                         </div>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary btn-start-game" data-set-id="<?php echo $set['id']; ?>" data-set-name="<?php echo htmlspecialchars($set['set_name']); ?>" title="Avvia una nuova partita con questo set">
+                            🎮 Avvia
+                        </button>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -104,7 +110,6 @@
     </div>
 </div>
 
-
 <script>
     // Sets Tab - JavaScript
     let selectedSetId = <?php echo $selectedSetId ? $selectedSetId : 'null'; ?>;
@@ -112,7 +117,6 @@
     // Question Sets Management
     function editSet(id, name, description) {
         console.log('editSet called with:', { id, name, description });
-        // Carica il set con le sue domande nel modal
         fetch(`admin.php?action=get_set_questions&set_id=${id}`)
             .then(response => response.json())
             .then(data => {
@@ -142,6 +146,11 @@
         form.submit();
     }
     
+    // Start game - redirect to game management page
+    function startGameFlow(setId, setName) {
+        window.location.href = `game_management.php?set_id=${setId}`;
+    }
+    
     // Event listeners
     document.addEventListener('DOMContentLoaded', function() {
         // Edit set buttons (event delegation)
@@ -164,6 +173,17 @@
                 const setId = parseInt(btn.getAttribute('data-set-id'));
                 const setName = btn.getAttribute('data-set-name');
                 deleteSet(setId, setName);
+            }
+        });
+        
+        // Start game buttons (event delegation)
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.btn-start-game')) {
+                e.stopPropagation();
+                const btn = e.target.closest('.btn-start-game');
+                const setId = parseInt(btn.getAttribute('data-set-id'));
+                const setName = btn.getAttribute('data-set-name');
+                startGameFlow(setId, setName);
             }
         });
     });

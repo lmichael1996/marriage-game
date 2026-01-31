@@ -47,9 +47,11 @@ class AdminHelper {
         switch ($action) {
             case 'change_credentials':
             case 'update_credentials':
+            case 'update_admin_credentials':
                 return self::handleUpdateCredentials($admin);
                 
             case 'save_settings':
+            case 'update_general_settings':
                 return self::handleSaveSettings($admin);
                 
             case 'create_set_with_questions':
@@ -76,18 +78,26 @@ class AdminHelper {
      * Handle update credentials
      */
     private static function handleUpdateCredentials($admin) {
+        // Supporta sia i nomi vecchi che quelli nuovi dei campi
+        $newPassword = $_POST['new_password'] ?? $_POST['admin_new_password'] ?? null;
+        $confirmPassword = $_POST['confirm_password'] ?? $_POST['admin_confirm_password'] ?? null;
+        $newUsername = $_POST['new_username'] ?? '';
+        
         $result = $admin->updateCredentials(
             $_SESSION['user_id'],
-            $_POST['new_username'] ?? '',
-            $_POST['new_password'] ?? null,
-            $_POST['confirm_password'] ?? null
+            $newUsername,
+            $newPassword,
+            $confirmPassword
         );
         
         if ($result['success']) {
             $_SESSION['username'] = $result['new_username'];
-            self::redirectWithMessage('admin.php?tab=settings', 'credentials_updated');
+            // Determina il tab da cui viene la richiesta
+            $tab = isset($_POST['admin_new_password']) ? 'general' : 'settings';
+            self::redirectWithMessage('admin.php?tab=' . $tab, 'credentials_updated');
         } else {
-            self::redirectWithMessage('admin.php?tab=settings', null, $result['error']);
+            $tab = isset($_POST['admin_new_password']) ? 'general' : 'settings';
+            self::redirectWithMessage('admin.php?tab=' . $tab, null, $result['error']);
         }
     }
     
@@ -96,8 +106,10 @@ class AdminHelper {
      */
     private static function handleSaveSettings($admin) {
         $result = $admin->saveSettings($_POST);
+        // Determina il tab da cui viene la richiesta
+        $tab = isset($_POST['max_players']) ? 'general' : 'settings';
         self::redirectWithMessage(
-            'admin.php?tab=settings',
+            'admin.php?tab=' . $tab,
             $result['success'] ? 'settings_saved' : null,
             $result['success'] ? null : $result['error']
         );
