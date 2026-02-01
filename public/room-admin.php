@@ -98,21 +98,31 @@ $gameOver = !$activeRound && !$nextQuestion;
                     <p><strong>Domanda:</strong> <?php echo htmlspecialchars($activeRound['question']); ?></p>
 
                     <?php if ($activeRound['round_type'] !== 'clickfirst'): ?>
-                        <ol>
-                            <li id="option-1"><?php echo htmlspecialchars($activeRound['option1']); ?></li>
-                            <li id="option-2"><?php echo htmlspecialchars($activeRound['option2']); ?></li>
-                            <?php if ($activeRound['round_type'] === 'multiple'): ?>
-                                <li id="option-3"><?php echo htmlspecialchars($activeRound['option3']); ?></li>
-                                <li id="option-4"><?php echo htmlspecialchars($activeRound['option4']); ?></li>
-                            <?php endif; ?>
-                        </ol>
-                        <p><strong>✓ Risposta Corretta:</strong> Opzione <?php echo $activeRound['correct_answer']; ?></p>
+                        <div style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px;">
+                            <strong style="display: block; margin-bottom: 15px; font-size: 1.1em;">📋 Risposte:</strong>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <div id="option-1" style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s; font-size: 0.95em;">
+                                    <?php echo htmlspecialchars($activeRound['option1']); ?>
+                                </div>
+                                <div id="option-2" style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s; font-size: 0.95em;">
+                                    <?php echo htmlspecialchars($activeRound['option2']); ?>
+                                </div>
+                                <?php if ($activeRound['round_type'] === 'multiple'): ?>
+                                    <div id="option-3" style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s; font-size: 0.95em;">
+                                        <?php echo htmlspecialchars($activeRound['option3']); ?>
+                                    </div>
+                                    <div id="option-4" style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s; font-size: 0.95em;">
+                                        <?php echo htmlspecialchars($activeRound['option4']); ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     <?php else: ?>
                         <p style="color: #ffc107; font-weight: bold;">⚡ Chi clicca primo vince!</p>
                     <?php endif; ?>
 
                     <div class="info-box" style="margin-top: 20px; text-align: center;">
-                        <h4 style="margin: 0 0 10px 0;">⏱️ Timer: <span id="timer" style="font-size: 3em; font-weight: bold; color: #28a745;">30</span>s</h4>
+                        <h4 style="margin: 0 0 10px 0;">⏱️ Timer: <span id="timer" style="font-size: 3em; font-weight: bold; color: #28a745;"><?php echo isset($activeRound['timer']) ? $activeRound['timer'] : 30; ?></span>s</h4>
                     </div>
 
                     <div style="text-align: center; margin-top: 20px;">
@@ -128,37 +138,27 @@ $gameOver = !$activeRound && !$nextQuestion;
 
                     <?php if ($nextQuestion['round_type'] !== 'clickfirst'): ?>
                         <div style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px;">
-                            <strong style="display: block; margin-bottom: 10px;">Risposte:</strong>
-                            <ol style="margin: 0; padding-left: 20px;">
-                                <li id="option-1" style="padding: 8px; margin: 5px 0; background: white; border-radius: 4px; cursor: pointer;">
+                            <strong style="display: block; margin-bottom: 15px; font-size: 1.1em;">📋 Risposte:</strong>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <div id="option-1" style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s; font-size: 0.95em;">
                                     <?php echo htmlspecialchars($nextQuestion['option1']); ?>
-                                </li>
-                                <li id="option-2" style="padding: 8px; margin: 5px 0; background: white; border-radius: 4px; cursor: pointer;">
+                                </div>
+                                <div id="option-2" style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s; font-size: 0.95em;">
                                     <?php echo htmlspecialchars($nextQuestion['option2']); ?>
-                                </li>
+                                </div>
                                 <?php if ($nextQuestion['round_type'] === 'multiple'): ?>
-                                    <li id="option-3" style="padding: 8px; margin: 5px 0; background: white; border-radius: 4px; cursor: pointer;">
+                                    <div id="option-3" style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s; font-size: 0.95em;">
                                         <?php echo htmlspecialchars($nextQuestion['option3']); ?>
-                                    </li>
-                                    <li id="option-4" style="padding: 8px; margin: 5px 0; background: white; border-radius: 4px; cursor: pointer;">
+                                    </div>
+                                    <div id="option-4" style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s; font-size: 0.95em;">
                                         <?php echo htmlspecialchars($nextQuestion['option4']); ?>
-                                    </li>
+                                    </div>
                                 <?php endif; ?>
-                            </ol>
-                            <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
-                                <strong>✓ Risposta Corretta:</strong> Opzione <?php echo $nextQuestion['correct_answer']; ?>
-                            </p>
+                            </div>
                         </div>
                     <?php else: ?>
                         <p style="color: #ffc107; font-weight: bold; margin: 20px 0;">⚡ Chi clicca primo vince!</p>
                     <?php endif; ?>
-
-                    <div style="text-align: center; margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
-                        <p style="margin: 0 0 10px 0; font-size: 0.9em; color: #555;">Timer per questo round:</p>
-                        <h3 style="margin: 0; font-size: 2.5em; color: #1976d2;">
-                            <?php echo isset($nextQuestion['timer']) ? $nextQuestion['timer'] : 30; ?> secondi
-                        </h3>
-                    </div>
 
                     <div style="text-align: center; margin-top: 20px;">
                         <button class="btn btn-primary" onclick="startRound(<?php echo isset($nextQuestion['id']) ? $nextQuestion['id'] : '0'; ?>)" style="font-size: 1.1em; padding: 15px 40px;">
@@ -196,6 +196,8 @@ $gameOver = !$activeRound && !$nextQuestion;
 
         document.addEventListener('DOMContentLoaded', () => {
             <?php if ($activeRound): ?>
+            console.log('Active round timer value:', <?php echo isset($activeRound['timer']) ? $activeRound['timer'] : 'null'; ?>);
+            console.log('Active round data:', <?php echo json_encode($activeRound); ?>);
             startCountdown(<?php echo $activeRound['timer'] ?? 30; ?>);
             <?php endif; ?>
             loadLeaderboard();
@@ -235,19 +237,25 @@ $gameOver = !$activeRound && !$nextQuestion;
                         // After 2 seconds, show correct answer in green
                         setTimeout(() => {
                             if (correctAnswerNum) {
-                                const correctOption = document.querySelector('ol li:nth-child(' + correctAnswerNum + ')');
+                                const correctOption = document.querySelector('#option-' + correctAnswerNum);
                                 if (correctOption) {
                                     correctOption.style.background = '#4caf50';
-                                    correctOption.style.color = 'white';
-                                    correctOption.style.fontWeight = 'bold';
                                 }
                             }
+                            // Enable next button after showing correct answer
+                            if (nextBtn) {
+                                nextBtn.disabled = false;
+                                nextBtn.style.animation = 'pulse 1s infinite';
+                            }
                         }, 2000);
-                    }
-
-                    if (nextBtn) {
-                        nextBtn.disabled = false;
-                        nextBtn.style.animation = 'pulse 1s infinite';
+                    } else {
+                        // For clickfirst, enable button after 2 seconds too
+                        setTimeout(() => {
+                            if (nextBtn) {
+                                nextBtn.disabled = false;
+                                nextBtn.style.animation = 'pulse 1s infinite';
+                            }
+                        }, 2000);
                     }
                 }
                 timeLeft--;
