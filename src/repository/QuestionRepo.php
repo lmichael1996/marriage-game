@@ -194,11 +194,11 @@ class QuestionRepo {
                 $option4 = '';
             }
 
-            // For clickfirst, no timer
+            // For clickfirst, no correct answer and no options needed
             if ($type === 'clickfirst') {
                 $correct = null;
                 $option1 = $option2 = $option3 = $option4 = '';
-                $timer = null;
+                // timer is kept as-is from the input
             }
 
             // Update existing round or insert new one

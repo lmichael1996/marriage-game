@@ -17,11 +17,15 @@ function redirectWithMessage($location, $success = null, $error = null) {
  */
 function parseQuestionsFromPost($numQuestions) {
     $questions = [];
+    error_log("parseQuestionsFromPost - numQuestions: $numQuestions");
     for ($i = 1; $i <= $numQuestions; $i++) {
         $question = $_POST["question_$i"] ?? '';
-        if (!$question) continue;
+        if (!$question) {
+            error_log("parseQuestionsFromPost - Question $i is empty, skipping");
+            continue;
+        }
 
-        $questions[] = [
+        $questionData = [
             'question' => $question,
             'type' => $_POST["type_$i"] ?? 'multiple',
             'timer' => intval($_POST["timer_$i"] ?? 30),
@@ -31,7 +35,10 @@ function parseQuestionsFromPost($numQuestions) {
             'option4' => $_POST["option_{$i}_4"] ?? '',
             'correct' => intval($_POST["correct_$i"] ?? 1)
         ];
+        error_log("parseQuestionsFromPost - Question $i: " . json_encode($questionData));
+        $questions[] = $questionData;
     }
+    error_log("parseQuestionsFromPost - Total questions parsed: " . count($questions));
     return $questions;
 }
 

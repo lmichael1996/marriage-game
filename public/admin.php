@@ -249,6 +249,10 @@ $gameSettings = $settingsResult['success'] ? $settingsResult['settings'] : [];
 
                         if (timer) timer.value = q.timer || 30;
                         if (correct) correct.value = q.correct_answer || 1;
+                    } else if (q.round_type === 'clickfirst') {
+                        const timer = document.querySelector(`input[name="timer_${i}"]`);
+
+                        if (timer) timer.value = q.timer || 30;
                     }
                 });
             }
@@ -352,11 +356,11 @@ $gameSettings = $settingsResult['success'] ? $settingsResult['settings'] : [];
                             <label>Domanda:</label>
                             <textarea name="question_${i}" rows="2" placeholder="Inserisci la domanda..." required></textarea>
                         </div>
+                        <div class="form-group">
+                            <label>Timer (secondi):</label>
+                            <input type="number" name="timer_${i}" min="5" max="120" value="30">
+                        </div>
                         <div id="options-${i}">
-                            <div class="form-group">
-                                <label>Timer (secondi):</label>
-                                <input type="number" name="timer_${i}" min="5" max="120" value="30">
-                            </div>
                             <div class="form-group">
                                 <label>Opzione 1:</label>
                                 <input type="text" name="option_${i}_1" placeholder="Prima opzione">
@@ -406,10 +410,6 @@ $gameSettings = $settingsResult['success'] ? $settingsResult['settings'] : [];
             if (type === 'truefalse') {
                 optionsDiv.innerHTML = `
                     <div class="form-group">
-                        <label>Timer (secondi):</label>
-                        <input type="number" name="timer_${index}" min="5" max="120" value="30">
-                    </div>
-                    <div class="form-group">
                         <label>Risposta Corretta:</label>
                         <select name="correct_${index}">
                             <option value="1">Vero</option>
@@ -421,10 +421,6 @@ $gameSettings = $settingsResult['success'] ? $settingsResult['settings'] : [];
                 optionsDiv.innerHTML = '<p class="no-options-message">Nessuna opzione necessaria per questo tipo di domanda.</p>';
             } else {
                 optionsDiv.innerHTML = `
-                    <div class="form-group">
-                        <label>Timer (secondi):</label>
-                        <input type="number" name="timer_${index}" min="5" max="120" value="30">
-                    </div>
                     <div class="form-group">
                         <label>Opzione 1:</label>
                         <input type="text" name="option_${index}_1" placeholder="Prima opzione">
@@ -475,6 +471,18 @@ $gameSettings = $settingsResult['success'] ? $settingsResult['settings'] : [];
 
             const btnCancelModal = document.getElementById('btn-cancel-modal');
             if (btnCancelModal) btnCancelModal.addEventListener('click', closeCreateSetModal);
+
+            // Form submit logging
+            const createSetForm = document.getElementById('create-set-form');
+            if (createSetForm) {
+                createSetForm.addEventListener('submit', function(e) {
+                    const formData = new FormData(this);
+                    console.log('Form submitted with data:');
+                    for (let [key, value] of formData.entries()) {
+                        console.log(key + ': ' + value);
+                    }
+                });
+            }
 
             // Number of questions input
             const numQuestionsInput = document.getElementById('num-questions');

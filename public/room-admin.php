@@ -112,7 +112,7 @@ $gameOver = !$activeRound && !$nextQuestion;
                     <?php endif; ?>
 
                     <div class="info-box" style="margin-top: 20px; text-align: center;">
-                        <h4 style="margin: 0 0 10px 0;">⏱️ Timer: <span id="timer" style="font-size: 2em; font-weight: bold;">30</span>s</h4>
+                        <h4 style="margin: 0 0 10px 0;">⏱️ Timer: <span id="timer" style="font-size: 3em; font-weight: bold; color: #28a745;">30</span>s</h4>
                     </div>
 
                     <div style="text-align: center; margin-top: 20px;">
