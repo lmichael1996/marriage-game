@@ -67,16 +67,19 @@ class AnswerRepo {
 
             $room_id = $round['room_id'];
             $round_number = $round['round_number'];
-            $answer_time = date('Y-m-d H:i:s', time() - intval($time_taken));
+            // answer_time: tempo in secondi impiegato dal player per rispondere
+            $answer_time = floatval($time_taken);
+
+            error_log("submitAnswer DEBUG: time_taken type=" . gettype($time_taken) . ", value=$time_taken, answer_time=$answer_time");
 
             // Insert into player_answers table
             // Schema: (id, room_id, round_number, username, answer_time)
-            // NO is_correct column!
+            // answer_time: DECIMAL(10,4) tempo in secondi
             $stmt = $this->conn->prepare("
                 INSERT INTO player_answers (room_id, round_number, username, answer_time)
                 VALUES (?, ?, ?, ?)
             ");
-            $stmt->bind_param("iiss", $room_id, $round_number, $username, $answer_time);
+            $stmt->bind_param("iisd", $room_id, $round_number, $username, $answer_time);
             $success = $stmt->execute();
 
             if (!$success) {

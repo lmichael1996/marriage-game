@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS player_answers (
     room_id INT NOT NULL,
     round_number INT NOT NULL,
     username VARCHAR(50) NOT NULL,
-    answer_time datetime NOT NULL,
+    answer_time DECIMAL(10, 4) NOT NULL,
     FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
     UNIQUE (room_id, round_number, username)
 );
