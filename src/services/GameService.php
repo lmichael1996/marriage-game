@@ -291,6 +291,8 @@ class GameService {
 
         $roomCode = $_SESSION['room_code'] ?? null;
 
+        error_log("GameService.submitAnswer: userId=$userId, roundNumber=$roundNumber, roomCode=$roomCode");
+
         if (!$roomCode) {
             throw new Exception('Room code non trovato nella sessione');
         }
@@ -298,14 +300,20 @@ class GameService {
         // Get room info to get room_id
         $room = $this->roomRepo->getRoomByCode($roomCode);
         if (!$room) {
+            error_log("GameService.submitAnswer: Room not found for code=$roomCode");
             throw new Exception('Stanza non trovata');
         }
+
+        error_log("GameService.submitAnswer: Found room with id=" . $room['id']);
 
         // Get round by room_id and round_number
         $round = $this->roundRepo->getRoundByRoomAndNumber($room['id'], $roundNumber);
         if (!$round) {
+            error_log("GameService.submitAnswer: Round not found - room_id=" . $room['id'] . ", roundNumber=$roundNumber");
             throw new Exception('Round non trovato');
         }
+
+        error_log("GameService.submitAnswer: Found round with id=" . $round['id']);
 
         $roundId = $round['id'];
 

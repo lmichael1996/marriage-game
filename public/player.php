@@ -85,7 +85,7 @@ requirePlayer();
     </div>
 
     <script>
-        let currentRoundCounter = null;  // Sincronizzato con round_number dal DB
+        let currentRoundCounter = 1;  // Inizializza a 1
         let timerInterval = null;
         let startTime = null;
         let hasAnswered = false;
@@ -110,11 +110,12 @@ requirePlayer();
                 .catch(error => console.error('Room status error:', error));
         }
 
+
         function checkGameState() {
             fetch('../src/api/api.php?endpoint=game&action=get_game_state')
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Game state received:', data);
+                    console.log('Game state received:', data, 'currentRoundCounter:', currentRoundCounter);
 
                     if (data.success === false || !data.round_number) {
                         // Nessun round attivo, rimani in attesa
@@ -124,13 +125,13 @@ requirePlayer();
 
                     const roundNumber = data.round_number;
 
-                    // Se è un nuovo round (diverso dal counter attuale)
-                    if (currentRoundCounter === null) {
-                        // Primo caricamento, inizializza il counter
+                    // Se è il primo caricamento (currentRoundCounter === 1) e il round è disponibile
+                    if (currentRoundCounter === 1 && roundNumber >= 1 && !hasAnswered) {
+                        // Imposta il contatore al round disponibile
                         currentRoundCounter = roundNumber;
                         startRound(data);
                     } else if (roundNumber > currentRoundCounter && !hasAnswered) {
-                        // Nuovo round disponibile
+                        // Nuovo round disponibile (numero più alto)
                         currentRoundCounter = roundNumber;
                         startRound(data);
                     } else if (roundNumber === currentRoundCounter && hasAnswered) {
@@ -139,9 +140,7 @@ requirePlayer();
                     }
                 })
                 .catch(error => console.error('Game state error:', error));
-        }
-
-        function startRound(round) {
+        }        function startRound(round) {
             console.log('Starting round:', round);
 
             clearInterval(timerInterval);
