@@ -142,7 +142,16 @@ class RoundRepo {
      * Get round by ID
      */
     public function getRoundById($round_id) {
-        $stmt = $this->conn->prepare("SELECT * FROM questions WHERE id = ?");
+        $stmt = $this->conn->prepare("
+            SELECT r.id, r.room_id, r.round_number as round_num,
+                   q.id as question_id, q.question_set_id, q.round_number, q.round_type,
+                   q.question, q.option1, q.option2, q.option3, q.option4,
+                   q.correct_answer, q.timer
+            FROM rounds r
+            LEFT JOIN rooms ro ON r.room_id = ro.id
+            LEFT JOIN questions q ON r.round_number = q.round_number AND q.question_set_id = ro.question_set_id
+            WHERE r.id = ?
+        ");
         $stmt->bind_param("i", $round_id);
         $stmt->execute();
         $result = $stmt->get_result();

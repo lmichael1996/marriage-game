@@ -36,8 +36,6 @@ if (!$room) {
 
 $questions = [];
 $setInfo = null;
-$questions = [];
-$setInfo = null;
 if ($questionSetId) {
     $setInfo = $questionService->getQuestionSetWithQuestions($questionSetId);
     if ($setInfo) {
@@ -101,14 +99,14 @@ $gameOver = !$activeRound && !$nextQuestion;
 
                     <?php if ($activeRound['round_type'] !== 'clickfirst'): ?>
                         <ol>
-                            <li><?php echo htmlspecialchars($activeRound['option1']); ?></li>
-                            <li><?php echo htmlspecialchars($activeRound['option2']); ?></li>
+                            <li id="option-1"><?php echo htmlspecialchars($activeRound['option1']); ?></li>
+                            <li id="option-2"><?php echo htmlspecialchars($activeRound['option2']); ?></li>
                             <?php if ($activeRound['round_type'] === 'multiple'): ?>
-                                <li><?php echo htmlspecialchars($activeRound['option3']); ?></li>
-                                <li><?php echo htmlspecialchars($activeRound['option4']); ?></li>
+                                <li id="option-3"><?php echo htmlspecialchars($activeRound['option3']); ?></li>
+                                <li id="option-4"><?php echo htmlspecialchars($activeRound['option4']); ?></li>
                             <?php endif; ?>
                         </ol>
-    +                    <p><strong>✓ Risposta Corretta:</strong> Opzione <?php echo $activeRound['correct_answer']; ?></p>
+                        <p><strong>✓ Risposta Corretta:</strong> Opzione <?php echo $activeRound['correct_answer']; ?></p>
                     <?php else: ?>
                         <p style="color: #ffc107; font-weight: bold;">⚡ Chi clicca primo vince!</p>
                     <?php endif; ?>
@@ -118,7 +116,7 @@ $gameOver = !$activeRound && !$nextQuestion;
                     </div>
 
                     <div style="text-align: center; margin-top: 20px;">
-                        <button class="btn btn-success" id="next-btn" onclick="nextQuestion(<?php echo $activeRound['id']; ?>)" disabled style="font-size: 1.1em; padding: 15px 30px;">
+                        <button class="btn btn-success" id="next-btn" onclick="nextQuestion(<?php echo isset($activeRound['id']) ? $activeRound['id'] : '0'; ?>)" disabled style="font-size: 1.1em; padding: 15px 30px;">
                             ➡️ Prossima Domanda
                         </button>
                     </div>
@@ -127,8 +125,36 @@ $gameOver = !$activeRound && !$nextQuestion;
                 <div class="game-step">
                     <h3>📋 Round #<?php echo $nextQuestion['round_number']; ?> - Pronto a iniziare</h3>
                     <p><strong>Domanda:</strong> <?php echo htmlspecialchars($nextQuestion['question']); ?></p>
+
+                    <?php if ($nextQuestion['round_type'] !== 'clickfirst'): ?>
+                        <div style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px;">
+                            <strong style="display: block; margin-bottom: 10px;">Risposte:</strong>
+                            <ol style="margin: 0; padding-left: 20px;">
+                                <li id="option-1" style="padding: 8px; margin: 5px 0; background: white; border-radius: 4px; cursor: pointer;">
+                                    <?php echo htmlspecialchars($nextQuestion['option1']); ?>
+                                </li>
+                                <li id="option-2" style="padding: 8px; margin: 5px 0; background: white; border-radius: 4px; cursor: pointer;">
+                                    <?php echo htmlspecialchars($nextQuestion['option2']); ?>
+                                </li>
+                                <?php if ($nextQuestion['round_type'] === 'multiple'): ?>
+                                    <li id="option-3" style="padding: 8px; margin: 5px 0; background: white; border-radius: 4px; cursor: pointer;">
+                                        <?php echo htmlspecialchars($nextQuestion['option3']); ?>
+                                    </li>
+                                    <li id="option-4" style="padding: 8px; margin: 5px 0; background: white; border-radius: 4px; cursor: pointer;">
+                                        <?php echo htmlspecialchars($nextQuestion['option4']); ?>
+                                    </li>
+                                <?php endif; ?>
+                            </ol>
+                            <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
+                                <strong>✓ Risposta Corretta:</strong> Opzione <?php echo $nextQuestion['correct_answer']; ?>
+                            </p>
+                        </div>
+                    <?php else: ?>
+                        <p style="color: #ffc107; font-weight: bold; margin: 20px 0;">⚡ Chi clicca primo vince!</p>
+                    <?php endif; ?>
+
                     <div style="text-align: center; margin-top: 20px;">
-                        <button class="btn btn-primary" onclick="startRound(<?php echo $nextQuestion['id']; ?>)" style="font-size: 1.1em; padding: 15px 40px;">
+                        <button class="btn btn-primary" onclick="startRound(<?php echo isset($nextQuestion['id']) ? $nextQuestion['id'] : '0'; ?>)" style="font-size: 1.1em; padding: 15px 40px;">
                             ▶ AVVIA ROUND
                         </button>
                     </div>
@@ -169,9 +195,20 @@ $gameOver = !$activeRound && !$nextQuestion;
         });
 
         function startCountdown(seconds) {
-            let timeLeft = seconds;
+            let timeLeft = parseInt(seconds) || 30;  // Ensure it's a valid number
             const timerEl = document.getElementById('timer');
             const nextBtn = document.getElementById('next-btn');
+            let correctAnswerNum = null;
+            let isClickFirst = false;
+
+            console.log('startCountdown called with:', seconds, 'parsed to:', timeLeft);
+
+            // Get active round data to find correct answer
+            <?php if ($activeRound): ?>
+            correctAnswerNum = <?php echo $activeRound['correct_answer'] ?? 1; ?>;
+            isClickFirst = '<?php echo $activeRound['round_type']; ?>' === 'clickfirst';
+            console.log('isClickFirst:', isClickFirst, 'correctAnswerNum:', correctAnswerNum);
+            <?php endif; ?>
 
             timerInterval = setInterval(() => {
                 timerEl.textContent = timeLeft;
@@ -184,6 +221,23 @@ $gameOver = !$activeRound && !$nextQuestion;
 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
+                    console.log('Timer finished');
+
+                    // Only show correct answer for non-clickfirst rounds
+                    if (!isClickFirst) {
+                        // After 2 seconds, show correct answer in green
+                        setTimeout(() => {
+                            if (correctAnswerNum) {
+                                const correctOption = document.querySelector('ol li:nth-child(' + correctAnswerNum + ')');
+                                if (correctOption) {
+                                    correctOption.style.background = '#4caf50';
+                                    correctOption.style.color = 'white';
+                                    correctOption.style.fontWeight = 'bold';
+                                }
+                            }
+                        }, 2000);
+                    }
+
                     if (nextBtn) {
                         nextBtn.disabled = false;
                         nextBtn.style.animation = 'pulse 1s infinite';
