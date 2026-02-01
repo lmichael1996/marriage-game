@@ -215,9 +215,20 @@ function handleAjaxRequest($questionService) {
     if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
         if ($_GET['action'] === 'get_set_questions' && ($setId = intval($_GET['set_id'] ?? 0))) {
             header('Content-Type: application/json');
-            $result = $questionService->getSetQuestions($setId);
+            $result = $questionService->getQuestionSetWithQuestions($setId);
             error_log("handleAjaxRequest - get_set_questions for setId: $setId, result: " . json_encode($result));
-            echo json_encode($result);
+
+            if ($result) {
+                echo json_encode([
+                    'success' => true,
+                    'questions' => $result['questions'] ?? []
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Set di domande non trovato'
+                ]);
+            }
             exit;
         }
     }

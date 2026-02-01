@@ -300,7 +300,13 @@ function handleConnectedDevices($room) {
             exit();
         }
 
-        $result = $room->getRoomPlayers($roomCode);
+        try {
+            $result = $room->getRoomPlayers($roomCode);
+        } catch (Exception $e) {
+            // If there's an error (like missing column), return empty list
+            $result = [];
+        }
+
         echo json_encode([
             'success' => true,
             'devices' => is_array($result) ? $result : [],
@@ -314,9 +320,7 @@ function handleConnectedDevices($room) {
             'error' => $e->getMessage()
         ]);
     }
-}
-
-function handleGame($action, $game, $room, $question) {
+}function handleGame($action, $game, $room, $question) {
     requireLoginJson();
 
     if ($action === 'get_game_state') {

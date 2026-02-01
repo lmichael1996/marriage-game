@@ -493,19 +493,43 @@ if ($selectedSetId) {
 
         // Update connected devices
         function updateConnectedDevices() {
-            fetch('/src/api/api.php?endpoint=connected_devices')
-                .then(response => response.json())
+            if (!roomCode) {
+                console.log('Room code not set yet');
+                return;
+            }
+
+            const url = `/src/api/api.php?endpoint=connected_devices&room_code=${encodeURIComponent(roomCode)}`;
+            console.log('Fetching:', url);
+
+            fetch(url, {
+                credentials: 'include'  // Include cookies for session
+            })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Connected devices response:', data);
+
                     if (data.success) {
                         const tbody = document.getElementById('connected-devices-body');
                         const countSpan = document.getElementById('connected-count');
 
+                        // Ensure devices is an array
+                        const devices = Array.isArray(data.devices) ? data.devices : [];
+                        const count = data.count || devices.length || 0;
+
+                        console.log('Devices:', devices, 'Count:', count);
+
                         if (countSpan) {
-                            countSpan.textContent = data.count;
+                            countSpan.textContent = count;
                             updateStartButton();
                         }
 
-                        if (data.devices.length === 0) {
+                        if (devices.length === 0) {
                             tbody.innerHTML = `
                                 <tr>
                                     <td colspan="3" class="loading-text">
@@ -514,16 +538,27 @@ if ($selectedSetId) {
                                 </tr>
                             `;
                         } else {
-                            tbody.innerHTML = data.devices.map(device => {
-                                const connectedDate = new Date(device.connected_at);
-                                const timeString = connectedDate.toLocaleTimeString('it-IT', {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                    second: '2-digit'
-                                });
+                            tbody.innerHTML = devices.map(device => {
+                                // Handle different date formats
+                                let timeString = 'Ora sconosciuta';
+                                try {
+                                    if (device.connected_at) {
+                                        const connectedDate = new Date(device.connected_at);
+                                        if (!isNaN(connectedDate.getTime())) {
+                                            timeString = connectedDate.toLocaleTimeString('it-IT', {
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                second: '2-digit'
+                                            });
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error('Error parsing date:', device.connected_at);
+                                }
+
                                 return `
                                 <tr>
-                                    <td>${device.username}</td>
+                                    <td>${device.username || 'Giocatore'}</td>
                                     <td>
                                         <span class="status-indicator"></span>
                                         Online
@@ -533,6 +568,8 @@ if ($selectedSetId) {
                             `;
                             }).join('');
                         }
+                    } else {
+                        console.error('API error:', data.error);
                     }
                 })
                 .catch(error => {

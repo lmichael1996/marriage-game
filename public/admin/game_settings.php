@@ -4,13 +4,13 @@
         <h2>⚙️ Impostazioni Partita</h2>
     </div>
 
-    <!-- Popup Risultato - Fullscreen -->
-    <div id="settings-result-popup" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.8); z-index: 99999; justify-content: center; align-items: center;">
-        <div class="modal-content" style="background: white; padding: 60px 40px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); text-align: center; max-width: 600px; width: 90%;">
-            <div class="modal-body">
-                <p id="settings-result-message" style="font-size: 24px; margin: 30px 0; font-weight: bold;"></p>
-                <div style="text-align: center; margin-top: 40px;">
-                    <button type="button" class="btn btn-primary" onclick="closeSettingsPopup()" style="padding: 15px 40px; font-size: 16px;">OK</button>
+    <!-- Popup Risultato -->
+    <div id="settings-result-popup" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 10000;">
+        <div class="modal-content" style="max-width: 500px; width: 90%; margin: auto; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+            <div class="modal-body" style="text-align: center;">
+                <p id="settings-result-message" style="font-size: 18px; margin: 20px 0;"></p>
+                <div style="text-align: center; margin-top: 30px;">
+                    <button type="button" class="btn btn-primary" onclick="closeSettingsPopup()">OK</button>
                 </div>
             </div>
         </div>

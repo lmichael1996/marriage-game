@@ -168,7 +168,7 @@
 
     // Start game - redirect to game settings page
     function startGameFlow(setId, setName) {
-        window.location.href = `game-settings.php?set_id=${setId}`;
+        window.location.href = `game-room.php?set_id=${setId}`;
     }
 
     // Event listeners

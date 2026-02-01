@@ -57,6 +57,8 @@ class PlayerRepo {
         }
 
         $roomId = $room['id'];
+
+        // Select with connected_at from database
         $stmt = $this->conn->prepare("
             SELECT
                 id,
@@ -70,7 +72,7 @@ class PlayerRepo {
         $stmt->bind_param("i", $roomId);
         $stmt->execute();
         $result = $stmt->get_result();
-        $players = $result->fetch_all(MYSQLI_ASSOC);
+        $players = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
         $stmt->close();
 
         return $players;
