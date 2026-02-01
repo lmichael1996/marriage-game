@@ -139,15 +139,13 @@ function handleAdminLogin($auth) {
 function handleAnswer($action, $game) {
     requireLoginJson();
 
-    // Accept both with and without action parameter for backward compatibility
     if ($action === 'submit' || $_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = json_decode(file_get_contents('php://input'), true);
 
-        $round_id = $data['round_id'] ?? 0;
+        $round_number = $data['round_number'] ?? 0;
         $answer = $data['answer'] ?? 0;
         $time_taken = $data['time_taken'] ?? 0;
 
-        // Use player_id if available (for players), otherwise user_id (for admins in testing)
         $user_id = $_SESSION['player_id'] ?? $_SESSION['user_id'] ?? 0;
 
         if (!$user_id) {
@@ -158,7 +156,15 @@ function handleAnswer($action, $game) {
             exit();
         }
 
-        $result = $game->submitAnswer($user_id, $round_id, $answer, $time_taken);
+        if (!$round_number) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Round number mancante'
+            ]);
+            exit();
+        }
+
+        $result = $game->submitAnswer($user_id, $round_number, $answer, $time_taken);
         echo json_encode($result);
         exit();
     }
@@ -332,7 +338,14 @@ function handleConnectedDevices($room) {
         }
 
         $result = $game->getActiveRound($questionSetId);
-        echo json_encode($result);
+
+        if ($result) {
+            // Active round found
+            echo json_encode($result);
+        } else {
+            // No active round
+            echo json_encode(['success' => false]);
+        }
         exit();
     }
 

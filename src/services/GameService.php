@@ -284,23 +284,40 @@ class GameService {
     /**
      * Submit player answer
      */
-    public function submitAnswer($userId, $roundId, $answer, $timeTaken) {
+    public function submitAnswer($userId, $roundNumber, $answer, $timeTaken) {
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
+
+        $roomCode = $_SESSION['room_code'] ?? null;
+
+        if (!$roomCode) {
+            throw new Exception('Room code non trovato nella sessione');
+        }
+
+        // Get room info to get room_id
+        $room = $this->roomRepo->getRoomByCode($roomCode);
+        if (!$room) {
+            throw new Exception('Stanza non trovata');
+        }
+
+        // Get round by room_id and round_number
+        $round = $this->roundRepo->getRoundByRoomAndNumber($room['id'], $roundNumber);
+        if (!$round) {
+            throw new Exception('Round non trovato');
+        }
+
+        $roundId = $round['id'];
+
         // Check if user already answered this round
         if ($this->answerRepo->hasAnswered($roundId, $userId)) {
             throw new Exception('Hai già risposto a questo round');
         }
 
-        // Get round info
-        $round = $this->roundRepo->getRoundById($roundId);
-
-        if (!$round) {
-            throw new Exception('Round non trovato');
-        }
-
         // Check if answer is correct
         $is_correct = ($answer == $round['correct_answer']) ? 1 : 0;
 
-        // Save answer (without storing the actual answer)
+        // Save answer
         $this->answerRepo->submitAnswer($roundId, $userId, $timeTaken, $is_correct);
 
         return ['is_correct' => $is_correct];
