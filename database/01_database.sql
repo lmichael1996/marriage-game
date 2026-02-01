@@ -88,3 +88,14 @@ CREATE TABLE IF NOT EXISTS rounds (
     points_user_ten INT DEFAULT 0,
     FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS player_answers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    room_id INT NOT NULL,
+    round_number INT NOT NULL,
+    username VARCHAR(50) NOT NULL,
+    is_correct BOOLEAN NOT NULL,
+    answer_time datetime NOT NULL,
+    FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
+    UNIQUE (room_id, round_number, username)
+);
