@@ -22,7 +22,8 @@ requirePlayer();
             </div>
         </div>
 
-        <div class="game-area">
+        <div class="layout-wrapper">
+            <div class="game-area">
             <div id="waiting-screen" class="waiting-screen">
                 <div class="spinner"></div>
                 <h2>In attesa del prossimo round...</h2>
@@ -81,24 +82,27 @@ requirePlayer();
                     <p class="time-info">Tempo impiegato: <span id="time-taken"></span> secondi</p>
                 </div>
             </div>
+            </div>
         </div>
     </div>
 
     <script>
-        let currentRoundCounter = 1;  // Inizializza a 1
+        // ============ STATE ============
+        let currentRoundCounter = 1;
         let timerInterval = null;
         let startTime = null;
         let hasAnswered = false;
         let selectedAnswer = null;
-        let roundInProgress = false;  // Previene ri-esecuzione dello stesso round
+        let roundInProgress = false;
 
-        // Controlla lo stato della stanza ogni 2 secondi
-        setInterval(checkRoomStatus, 2000);
+        // ============ INIT ============
+        document.addEventListener('DOMContentLoaded', () => {
+            setInterval(checkRoomStatus, 1000);
+            setInterval(checkGameState, 1000);
+            checkGameState();
+        });
 
-        // Controlla il nuovo round ogni 2 secondi
-        setInterval(checkGameState, 2000);
-        checkGameState(); // Check iniziale
-
+        // ============ CHECKS ============
         function checkRoomStatus() {
             fetch('../src/api/api.php?endpoint=check_room_status')
                 .then(response => response.json())
@@ -111,56 +115,42 @@ requirePlayer();
                 .catch(error => console.error('Room status error:', error));
         }
 
-
         function checkGameState() {
             fetch('../src/api/api.php?endpoint=game&action=get_game_state')
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Game state received:', data, 'currentRoundCounter:', currentRoundCounter, 'roundInProgress:', roundInProgress);
-
                     if (data.success === false || !data.round_number) {
-                        // Nessun round attivo, rimani in attesa
                         showWaitingScreen();
                         return;
                     }
 
                     const roundNumber = data.round_number;
-
-                    // Se il round è nuovo (numero più alto del counter)
                     if (roundNumber > currentRoundCounter && !hasAnswered && !roundInProgress) {
-                        // Nuovo round disponibile
                         currentRoundCounter = roundNumber;
                         startRound(data);
-                    }
-                    // Se è lo stesso round e non abbiamo ancora risposto
-                    else if (roundNumber === currentRoundCounter && !hasAnswered && !roundInProgress) {
-                        // Stesso round, inizia se non è già in corso
+                    } else if (roundNumber === currentRoundCounter && !hasAnswered && !roundInProgress) {
                         startRound(data);
-                    }
-                    // Se abbiamo già risposto, rimani in attesa
-                    else if (hasAnswered) {
+                    } else if (hasAnswered) {
                         showWaitingScreen();
                     }
                 })
                 .catch(error => console.error('Game state error:', error));
         }
 
+        // ============ ROUND LOGIC ============
         function startRound(round) {
-            console.log('Starting round:', round);
-            console.log('Timer from server:', round.timer);
-
             roundInProgress = true;
-
             clearInterval(timerInterval);
 
             hasAnswered = false;
             selectedAnswer = null;
             startTime = Date.now();
 
+            // Update UI
             document.getElementById('round-number').textContent = round.round_number;
             document.getElementById('question-text').textContent = round.question || '';
 
-            // Nascondi tutte le schermate tranne quella di gioco
+            // Hide all screens
             document.getElementById('waiting-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'block';
@@ -169,48 +159,58 @@ requirePlayer();
             const answerGrid = document.getElementById('answer-grid');
             const clickFirstScreen = document.getElementById('click-first-screen');
 
+            // Setup buttons based on round type
             if (round.round_type === 'clickfirst') {
                 answerGrid.style.display = 'none';
                 clickFirstScreen.style.display = 'block';
                 document.getElementById('click-first-btn').disabled = false;
             } else if (round.round_type === 'truefalse') {
-                answerGrid.style.display = 'grid';
-                clickFirstScreen.style.display = 'none';
-
-                document.getElementById('option1-text').textContent = round.option1 || 'Vero';
-                document.getElementById('option2-text').textContent = round.option2 || 'Falso';
-
-                document.getElementById('btn-1').style.display = 'flex';
-                document.getElementById('btn-2').style.display = 'flex';
-                document.getElementById('btn-3').style.display = 'none';
-                document.getElementById('btn-4').style.display = 'none';
-
-                document.querySelectorAll('.answer-btn').forEach(btn => {
-                    btn.disabled = false;
-                    btn.classList.remove('selected');
-                });
+                setupTrueFalseRound(round);
             } else {
-                // Scelta multipla
-                answerGrid.style.display = 'grid';
-                clickFirstScreen.style.display = 'none';
-
-                document.getElementById('option1-text').textContent = round.option1 || 'Opzione 1';
-                document.getElementById('option2-text').textContent = round.option2 || 'Opzione 2';
-                document.getElementById('option3-text').textContent = round.option3 || 'Opzione 3';
-                document.getElementById('option4-text').textContent = round.option4 || 'Opzione 4';
-
-                document.getElementById('btn-1').style.display = 'flex';
-                document.getElementById('btn-2').style.display = 'flex';
-                document.getElementById('btn-3').style.display = 'flex';
-                document.getElementById('btn-4').style.display = 'flex';
-
-                document.querySelectorAll('.answer-btn').forEach(btn => {
-                    btn.disabled = false;
-                    btn.classList.remove('selected');
-                });
+                setupMultipleChoiceRound(round);
             }
 
             startTimer(round.timer || 10);
+        }
+
+        function setupTrueFalseRound(round) {
+            const answerGrid = document.getElementById('answer-grid');
+            answerGrid.style.display = 'grid';
+            document.getElementById('click-first-screen').style.display = 'none';
+
+            document.getElementById('option1-text').textContent = round.option1 || 'Vero';
+            document.getElementById('option2-text').textContent = round.option2 || 'Falso';
+
+            document.getElementById('btn-1').style.display = 'flex';
+            document.getElementById('btn-2').style.display = 'flex';
+            document.getElementById('btn-3').style.display = 'none';
+            document.getElementById('btn-4').style.display = 'none';
+
+            document.querySelectorAll('.answer-btn').forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('selected');
+            });
+        }
+
+        function setupMultipleChoiceRound(round) {
+            const answerGrid = document.getElementById('answer-grid');
+            answerGrid.style.display = 'grid';
+            document.getElementById('click-first-screen').style.display = 'none';
+
+            document.getElementById('option1-text').textContent = round.option1 || 'Opzione 1';
+            document.getElementById('option2-text').textContent = round.option2 || 'Opzione 2';
+            document.getElementById('option3-text').textContent = round.option3 || 'Opzione 3';
+            document.getElementById('option4-text').textContent = round.option4 || 'Opzione 4';
+
+            document.getElementById('btn-1').style.display = 'flex';
+            document.getElementById('btn-2').style.display = 'flex';
+            document.getElementById('btn-3').style.display = 'flex';
+            document.getElementById('btn-4').style.display = 'flex';
+
+            document.querySelectorAll('.answer-btn').forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('selected');
+            });
         }
 
         function selectAnswer(answer) {
@@ -218,55 +218,23 @@ requirePlayer();
 
             selectedAnswer = answer;
 
-            // Remove selection from all buttons
             document.querySelectorAll('.answer-btn').forEach(btn => {
                 btn.classList.remove('selected');
             });
 
-            // Highlight selected button
             document.querySelector(`button[data-answer="${answer}"]`).classList.add('selected');
-
-            // Show submit button
             document.getElementById('submit-container').style.display = 'block';
         }
 
+        // ============ SUBMIT ============
         function submitSelectedAnswer() {
             if (hasAnswered || !selectedAnswer) return;
 
             hasAnswered = true;
-            const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
+            const timeTaken = (Date.now() - startTime) / 1000;
             clearInterval(timerInterval);
 
-            fetch('../src/api/api.php?endpoint=answer', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    round_number: currentRoundCounter,
-                    answer: selectedAnswer,
-                    time_taken: timeTaken
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Incrementa il counter per il prossimo round
-                currentRoundCounter++;
-                console.log('Answer submitted, incremented counter to:', currentRoundCounter);
-
-                document.getElementById('game-screen').style.display = 'none';
-                document.getElementById('result-screen').style.display = 'block';
-                document.getElementById('result-content').innerHTML = `
-                    <h2>Risposta inviata!</h2>
-                    <p>Risposta: <span>${selectedAnswer}</span></p>
-                    <p>Tempo: <span>${timeTaken}</span> sec</p>
-                    <p>In attesa...</p>
-                `;
-
-                setTimeout(() => {
-                    document.getElementById('result-screen').style.display = 'none';
-                    showWaitingScreen();
-                }, 2000);
-            })
-            .catch(error => console.error('Submit error:', error));
+            submitAnswer(selectedAnswer, timeTaken);
         }
 
         function submitClickFirst() {
@@ -277,28 +245,29 @@ requirePlayer();
             document.getElementById('click-first-btn').disabled = true;
 
             const timeTaken = (Date.now() - startTime) / 1000;
+            submitAnswer(1, timeTaken);
+        }
 
+        function submitAnswer(answer, timeTaken) {
             fetch('../src/api/api.php?endpoint=answer', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     round_number: currentRoundCounter,
-                    answer: 1,
+                    answer: answer,
                     time_taken: timeTaken
                 })
             })
             .then(response => response.json())
             .then(data => {
-                // Incrementa il counter per il prossimo round
                 currentRoundCounter++;
-                console.log('Click first registered, incremented counter to:', currentRoundCounter);
 
                 document.getElementById('game-screen').style.display = 'none';
                 document.getElementById('result-screen').style.display = 'block';
                 document.getElementById('result-content').innerHTML = `
-                    <h2>⚡ Clic registrato!</h2>
-                    <p>Tempo: ${timeTaken.toFixed(3)} sec</p>
-                    <p>In attesa...</p>
+                    <h2>✓ Risposta registrata!</h2>
+                    <p>Tempo: ${timeTaken.toFixed(2)}s</p>
+                    <p style="margin-top: 15px; font-size: 0.9em; color: #666;">In attesa del prossimo round...</p>
                 `;
 
                 setTimeout(() => {
@@ -306,22 +275,21 @@ requirePlayer();
                     showWaitingScreen();
                 }, 2000);
             })
-            .catch(error => console.error('Click first error:', error));
+            .catch(error => {
+                console.error('Submit error:', error);
+                hasAnswered = false;
+                alert('Errore nell\'invio della risposta');
+            });
         }
 
+        // ============ TIMER ============
         function startTimer(initialTime = 10) {
-            console.log('startTimer called with initialTime:', initialTime);
             let timeLeft = parseInt(initialTime);
-
-            if (isNaN(timeLeft) || timeLeft <= 0) {
-                timeLeft = 10;
-            }
+            if (isNaN(timeLeft) || timeLeft <= 0) timeLeft = 10;
 
             document.getElementById('timer-value').textContent = timeLeft;
 
-            if (timerInterval) {
-                clearInterval(timerInterval);
-            }
+            if (timerInterval) clearInterval(timerInterval);
 
             timerInterval = setInterval(() => {
                 timeLeft--;
@@ -329,9 +297,7 @@ requirePlayer();
 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    if (!hasAnswered) {
-                        timeExpired();
-                    }
+                    if (!hasAnswered) timeExpired();
                 }
             }, 1000);
         }
@@ -340,19 +306,15 @@ requirePlayer();
             if (hasAnswered) return;
 
             hasAnswered = true;
-
-            // Incrementa il counter per il prossimo round
             currentRoundCounter++;
-            console.log('Time expired, incremented counter to:', currentRoundCounter);
 
             document.getElementById('submit-container').style.display = 'none';
-
             document.getElementById('game-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
             document.getElementById('result-content').innerHTML = `
-                <h2>Tempo scaduto!</h2>
+                <h2>⏱ Tempo scaduto!</h2>
                 <p>Non hai risposto in tempo</p>
-                <p>In attesa...</p>
+                <p style="margin-top: 15px; font-size: 0.9em; color: #666;">In attesa del prossimo round...</p>
             `;
 
             setTimeout(() => {
@@ -361,18 +323,18 @@ requirePlayer();
             }, 2000);
         }
 
+        // ============ UI ============
         function showWaitingScreen() {
             hasAnswered = false;
-            roundInProgress = false;  // Reset quando torniamo in attesa
+            roundInProgress = false;
 
-            if (timerInterval) {
-                clearInterval(timerInterval);
-            }
+            if (timerInterval) clearInterval(timerInterval);
 
             document.getElementById('waiting-screen').style.display = 'block';
             document.getElementById('game-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'none';
         }
+
     </script>
 </body>
 </html>

@@ -10,28 +10,16 @@ class RoundRepo {
 
     /**
      * Create a new round for a room (insert into rounds table)
+     * Stores only: room_id, round_number, type_game
+     * Rankings are computed on-demand from player_answers table
      */
-    public function createRound($roundData) {
+    public function createRound($room_id, $round_number, $type_game = 'multiple') {
         $stmt = $this->conn->prepare("
-            INSERT INTO rounds (room_id, round_number, user_one, user_two, user_three, user_four, user_five, user_six, user_seven, user_eight, user_nine, user_ten)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO rounds (room_id, round_number, type_game)
+            VALUES (?, ?, ?)
         ");
 
-        $stmt->bind_param(
-            "iissssssssss",
-            $roundData['room_id'],
-            $roundData['round_number'],
-            $roundData['user_one'],
-            $roundData['user_two'],
-            $roundData['user_three'],
-            $roundData['user_four'],
-            $roundData['user_five'],
-            $roundData['user_six'],
-            $roundData['user_seven'],
-            $roundData['user_eight'],
-            $roundData['user_nine'],
-            $roundData['user_ten']
-        );
+        $stmt->bind_param("iis", $room_id, $round_number, $type_game);
 
         if ($stmt->execute()) {
             $roundId = $this->conn->insert_id;
@@ -284,6 +272,34 @@ class RoundRepo {
         // No longer needs to do anything - player answers are handled separately
         // when game actually starts. This is just a placeholder for backward compatibility.
         return true;
+    }
+
+    /**
+     * Get all rounds for a specific room
+     */
+    public function getRoundsByRoom($room_id) {
+        try {
+            $stmt = $this->conn->prepare("
+                SELECT id, room_id, round_number, type_game
+                FROM rounds
+                WHERE room_id = ?
+                ORDER BY round_number ASC
+            ");
+            $stmt->bind_param("i", $room_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            $rounds = [];
+            while ($row = $result->fetch_assoc()) {
+                $rounds[] = $row;
+            }
+
+            $stmt->close();
+            return $rounds;
+        } catch (Exception $e) {
+            error_log("getRoundsByRoom ERROR: " . $e->getMessage());
+            return [];
+        }
     }
 
     public function __destruct() {

@@ -84,13 +84,12 @@ $gameOver = !$activeRound && !$nextQuestion;
             <button class="btn btn-secondary" onclick="goBack()">← Torna a Admin</button>
         </div>
 
-        <div class="admin-section">
-            <h2><?php echo $setInfo ? htmlspecialchars($setInfo['set_name']) : 'Set Domande'; ?></h2>
-
-            <div class="info-box">
-                <p><strong>👥 Giocatori connessi:</strong> <?php echo count($players); ?></p>
-                <p><strong>🎯 Room Code:</strong> <code><?php echo htmlspecialchars($roomCode); ?></code></p>
-            </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; width: 100%; background: white; padding: 30px; border: 2px solid #1a1a1a; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <div>
+                <div class="info-box">
+                    <p><strong>👥 Giocatori connessi:</strong> <?php echo count($players); ?></p>
+                    <p><strong>🎯 Room Code:</strong> <code><?php echo htmlspecialchars($roomCode); ?></code></p>
+                </div>
 
             <?php if ($activeRound): ?>
                 <div class="game-step">
@@ -180,21 +179,28 @@ $gameOver = !$activeRound && !$nextQuestion;
                     </div>
                 </div>
             <?php endif; ?>
-        </div>
+            </div>
 
-        <div class="admin-section" style="margin-top: 30px;">
-            <h3>🏆 Classifica Attuale</h3>
-            <div id="leaderboard" style="min-height: 100px;">
-                <p class="loading-text">Caricamento classifica...</p>
+            <div class="admin-section" style="position: sticky; top: 20px;">
+                <h3>🏆 Classifica</h3>
+                <div id="leaderboard" style="font-size: 1.1em; display: grid; grid-template-columns: 1fr; gap: 10px; min-height: 100px;">
+                    <p class="loading-text">Nessun dato</p>
+                </div>
             </div>
         </div>
-    </div>
 
     <script>
         const roomCode = '<?php echo $roomCode; ?>';
         let timerInterval = null;
+        let currentRoundResults = null;
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Load round results from session storage if available
+            const storedResults = sessionStorage.getItem('roundResults');
+            if (storedResults) {
+                currentRoundResults = JSON.parse(storedResults);
+                sessionStorage.removeItem('roundResults');  // Clear after reading
+            }
             <?php if ($activeRound): ?>
             console.log('Active round timer value:', <?php echo isset($activeRound['timer']) ? $activeRound['timer'] : 'null'; ?>);
             console.log('Active round data:', <?php echo json_encode($activeRound); ?>);
@@ -203,6 +209,11 @@ $gameOver = !$activeRound && !$nextQuestion;
             startCountdown(timerValue || 10);
             <?php endif; ?>
             loadLeaderboard();
+
+            <?php if ($gameOver): ?>
+            // Load final leaderboard when game is over
+            loadFinalLeaderboard();
+            <?php endif; ?>
         });
 
         function startCountdown(seconds) {
@@ -240,7 +251,7 @@ $gameOver = !$activeRound && !$nextQuestion;
 
                     // Only show correct answer for non-clickfirst rounds
                     if (!isClickFirst) {
-                        // After 2 seconds, show correct answer in green
+                        // After 2 seconds, show correct answer in green and fetch top answers
                         setTimeout(() => {
                             if (correctAnswerNum) {
                                 const correctOption = document.querySelector('#option-' + correctAnswerNum);
@@ -248,6 +259,32 @@ $gameOver = !$activeRound && !$nextQuestion;
                                     correctOption.style.background = '#4caf50';
                                 }
                             }
+
+                            // Fetch top 10 answers when timer expires
+                            const roundId = <?php echo isset($activeRound['id']) ? $activeRound['id'] : 'null'; ?>;
+                            console.log('Fetching top answers for roundId:', roundId);
+                            if (roundId) {
+                                fetch('../src/api/api.php?endpoint=round_answers&round_id=' + roundId)
+                                    .then(r => r.json())
+                                    .then(data => {
+                                        console.log('Full response:', data);
+                                        console.log('top_answers:', data.top_answers);
+                                        console.log('top_answers length:', data.top_answers ? data.top_answers.length : 0);
+                                        if (data.success && data.top_answers && data.top_answers.length > 0) {
+                                            console.log('Setting currentRoundResults:', data.top_answers);
+                                            currentRoundResults = data.top_answers;
+                                            loadLeaderboard();  // Update the leaderboard display
+                                        } else {
+                                            console.log('No top_answers in response or empty array');
+                                            currentRoundResults = [];
+                                            loadLeaderboard();
+                                        }
+                                    })
+                                    .catch(e => console.error('Error fetching top answers:', e));
+                            } else {
+                                console.log('roundId is null!');
+                            }
+
                             // Enable next button after showing correct answer
                             if (nextBtn) {
                                 nextBtn.disabled = false;
@@ -255,8 +292,33 @@ $gameOver = !$activeRound && !$nextQuestion;
                             }
                         }, 2000);
                     } else {
-                        // For clickfirst, enable button after 2 seconds too
+                        // For clickfirst, enable button after 2 seconds and fetch top answers
                         setTimeout(() => {
+                            // Fetch top 10 answers for clickfirst too
+                            const roundId = <?php echo isset($activeRound['id']) ? $activeRound['id'] : 'null'; ?>;
+                            console.log('Fetching top answers for clickfirst roundId:', roundId);
+                            if (roundId) {
+                                fetch('../src/api/api.php?endpoint=round_answers&round_id=' + roundId)
+                                    .then(r => r.json())
+                                    .then(data => {
+                                        console.log('Full response (clickfirst):', data);
+                                        console.log('top_answers:', data.top_answers);
+                                        console.log('top_answers length:', data.top_answers ? data.top_answers.length : 0);
+                                        if (data.success && data.top_answers && data.top_answers.length > 0) {
+                                            console.log('Setting currentRoundResults:', data.top_answers);
+                                            currentRoundResults = data.top_answers;
+                                            loadLeaderboard();  // Update the leaderboard display
+                                        } else {
+                                            console.log('No top_answers in response or empty array');
+                                            currentRoundResults = [];
+                                            loadLeaderboard();
+                                        }
+                                    })
+                                    .catch(e => console.error('Error fetching top answers:', e));
+                            } else {
+                                console.log('roundId is null!');
+                            }
+
                             if (nextBtn) {
                                 nextBtn.disabled = false;
                                 nextBtn.style.animation = 'pulse 1s infinite';
@@ -306,6 +368,10 @@ $gameOver = !$activeRound && !$nextQuestion;
             .then(data => {
                 console.log('close_round response data:', data);
                 if (data.success) {
+                    // Save top answers to session storage before reloading
+                    if (data.top_answers && data.top_answers.length > 0) {
+                        sessionStorage.setItem('roundResults', JSON.stringify(data.top_answers));
+                    }
                     location.reload();
                 } else {
                     alert('Errore: ' + (data.error || 'Impossibile passare al prossimo round'));
@@ -318,27 +384,51 @@ $gameOver = !$activeRound && !$nextQuestion;
         }
 
         function loadLeaderboard() {
-            fetch('../src/api/api.php?endpoint=leaderboard&room_code=' + roomCode)
+            // Check if there are round results
+            if (currentRoundResults && currentRoundResults.length > 0) {
+                const el = document.getElementById('leaderboard');
+                let html = '';
+                currentRoundResults.forEach((answer, i) => {
+                    const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : (i + 1) + '.'));
+                    const time = parseFloat(answer.answer_time).toFixed(2) + 's';
+                    html += `<div style="padding: 15px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; text-align: center;">
+                        <div style="font-size: 1.5em; font-weight: bold; margin-bottom: 8px;">${medal}</div>
+                        <div style="font-size: 1em; color: #333;">${answer.username}</div>
+                        <div style="font-size: 0.9em; color: #666; margin-top: 4px;">${time}</div>
+                    </div>`;
+                });
+                el.innerHTML = html;
+                return;
+            }
+
+            // Otherwise, show empty
+            document.getElementById('leaderboard').innerHTML = '<p class="loading-text">Nessun dato</p>';
+        }
+
+        function loadFinalLeaderboard() {
+            fetch('../src/api/api.php?endpoint=final_leaderboard')
                 .then(r => r.json())
                 .then(data => {
-                    const el = document.getElementById('leaderboard');
+                    console.log('Final leaderboard response:', data);
                     if (data.success && data.leaderboard && data.leaderboard.length > 0) {
-                        let html = '<ul style="list-style: none; padding: 0;">';
-                        data.leaderboard.forEach((player, i) => {
-                            const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : (i + 1) + '.'));
-                            html += `<li style="padding: 10px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between;">
-                                <span>${medal} ${player.username}</span>
-                                <strong>${player.total_answers || 0}</strong>
-                            </li>`;
+                        const el = document.getElementById('final-leaderboard');
+                        let html = '';
+                        data.leaderboard.forEach((player) => {
+                            html += `<div style="padding: 15px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; text-align: center; margin-bottom: 10px;">
+                                <div style="font-size: 1.8em; font-weight: bold; margin-bottom: 8px;">${player.medal}</div>
+                                <div style="font-size: 1.2em; color: #333; font-weight: 600;">${player.username}</div>
+                                <div style="font-size: 1.1em; color: #28a745; margin-top: 8px; font-weight: bold;">${player.score} punti</div>
+                            </div>`;
                         });
-                        html += '</ul>';
                         el.innerHTML = html;
                     } else {
-                        el.innerHTML = '<p class="loading-text">Nessun dato</p>';
+                        console.log('No leaderboard data');
+                        document.getElementById('final-leaderboard').innerHTML = '<p class="loading-text">Nessun dato disponibile</p>';
                     }
                 })
                 .catch(e => {
-                    document.getElementById('leaderboard').innerHTML = '<p class="loading-text">Errore</p>';
+                    console.error('Error loading final leaderboard:', e);
+                    document.getElementById('final-leaderboard').innerHTML = '<p class="loading-text">Errore nel caricamento</p>';
                 });
         }
 

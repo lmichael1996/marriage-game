@@ -88,26 +88,28 @@ body {
 
 /* Button */
 .btn {
-  padding: 15px 30px;
+  padding: 12px 30px;
   border: 2px solid #1a1a1a;
-  font-size: 16px;
+  font-size: 0.95em;
+  font-weight: 400;
   cursor: pointer;
   font-family: Georgia, serif;
-  transition: all 0.2s ease;
-  display: block;
-  margin: 0 auto;
-  width: fit-content;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+  display: inline-block;
+  background: #fff;
+  color: #1a1a1a;
 }
 
 .btn-primary {
   background: #1a1a1a;
-  color: white;
-  width: auto;
+  color: #fff;
 }
 
 .btn-primary:hover {
-  background: #dc143c;
-  border-color: #dc143c;
+  background: #fff;
+  color: #1a1a1a;
 }
 
 /* Error Message */

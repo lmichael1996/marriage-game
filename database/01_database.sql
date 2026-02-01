@@ -66,35 +66,15 @@ CREATE TABLE IF NOT EXISTS rounds (
     id INT AUTO_INCREMENT PRIMARY KEY,
     room_id INT NOT NULL,
     round_number INT NOT NULL,
-    user_one VARCHAR(50) DEFAULT NULL,
-    points_user_one INT DEFAULT 0,
-    user_two VARCHAR(50) DEFAULT NULL,
-    points_user_two INT DEFAULT 0,
-    user_three VARCHAR(50) DEFAULT NULL,
-    points_user_three INT DEFAULT 0,
-    user_four VARCHAR(50) DEFAULT NULL,
-    points_user_four INT DEFAULT 0,
-    user_five VARCHAR(50) DEFAULT NULL,
-    points_user_five INT DEFAULT 0,
-    user_six VARCHAR(50) DEFAULT NULL,
-    points_user_six INT DEFAULT 0,
-    user_seven VARCHAR(50) DEFAULT NULL,
-    points_user_seven INT DEFAULT 0,
-    user_eight VARCHAR(50) DEFAULT NULL,
-    points_user_eight INT DEFAULT 0,
-    user_nine VARCHAR(50) DEFAULT NULL,
-    points_user_nine INT DEFAULT 0,
-    user_ten VARCHAR(50) DEFAULT NULL,
-    points_user_ten INT DEFAULT 0,
+    type_game ENUM('multiple', 'truefalse', 'clickfirst') DEFAULT 'multiple',
     FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS player_answers (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    room_id INT NOT NULL,
-    round_number INT NOT NULL,
+    round_id INT NOT NULL,
     username VARCHAR(50) NOT NULL,
     answer_time DECIMAL(10, 4) NOT NULL,
-    FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
-    UNIQUE (room_id, round_number, username)
+    FOREIGN KEY (round_id) REFERENCES rounds(id) ON DELETE CASCADE,
+    UNIQUE (round_id, username)
 );

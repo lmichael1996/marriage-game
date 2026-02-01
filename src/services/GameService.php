@@ -72,27 +72,11 @@ class GameService {
                 ];
             }
 
-            // Get players in this room
-            $players = $this->playerRepo->getPlayersByRoom($room['id']);
-
-            // Create a new round record in the database with players
-            $roundData = [
-                'room_id' => $room['id'],
-                'round_number' => $question['round_number'],
-                'user_one' => $players[0]['username'] ?? null,
-                'user_two' => $players[1]['username'] ?? null,
-                'user_three' => $players[2]['username'] ?? null,
-                'user_four' => $players[3]['username'] ?? null,
-                'user_five' => $players[4]['username'] ?? null,
-                'user_six' => $players[5]['username'] ?? null,
-                'user_seven' => $players[6]['username'] ?? null,
-                'user_eight' => $players[7]['username'] ?? null,
-                'user_nine' => $players[8]['username'] ?? null,
-                'user_ten' => $players[9]['username'] ?? null,
-            ];
-
-            // Create the round in database
-            $roundId = $this->roundRepo->createRound($roundData);
+            // Create a new round record in the database
+            // Only store room_id, round_number, and type_game
+            // Rankings will be computed on-demand from player_answers
+            $type_game = $question['round_type'] ?? 'multiple';
+            $roundId = $this->roundRepo->createRound($room['id'], $question['round_number'], $type_game);
 
             if (!$roundId) {
                 return [
@@ -170,6 +154,9 @@ class GameService {
             // Chiudi il round in repository (compatibility)
             $closed = $this->roundRepo->closeRound($roundId);
 
+            // Get top 10 fastest answers
+            $topAnswers = $this->answerRepo->getTopFastestAnswers($roundId, 10);
+
             // Clear active round from session and file
             if (session_status() === PHP_SESSION_NONE) {
                 @session_start();
@@ -189,7 +176,8 @@ class GameService {
             return [
                 'success' => (bool)$closed,
                 'message' => 'Round chiuso',
-                'nextRound' => $round['round_number'] + 1
+                'nextRound' => $round['round_number'] + 1,
+                'top_answers' => $topAnswers
             ];
         } catch (Exception $e) {
             return [
@@ -331,9 +319,7 @@ class GameService {
 
         error_log("Answer check: user_answer=$answer, correct_answer={$round['correct_answer']}, is_correct=$is_correct");
 
-        // Salva il record SEMPRE (la risposta è già corretta se è qui)
-        // Se non è corretta, non saveremmo secondo la vecchia logica
-        // Ma se arriviamo qui, il record deve essere salvato
+        // Save the answer ONLY if correct
         if ($is_correct) {
             $this->answerRepo->submitAnswer($roundId, $userId, $timeTaken);
         }

@@ -1,6 +1,5 @@
 /* ============================================
-   MARRIAGE GAME - UNIFIED MINIMAL CSS
-   Simple, Clean & Consistent Across All Pages
+   MARRIAGE GAME - CLEAN MODERN CSS
    ============================================ */
 
 * {
@@ -10,16 +9,17 @@
 }
 
 body {
-  font-family: Georgia, serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: url("../image/background.jpg") no-repeat center center fixed;
   background-size: contain;
   min-height: 100vh;
-  padding: 30px;
-  color: #1a1a1a;
+  padding: 20px;
+  color: #2c3e50;
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -97,10 +97,9 @@ body {
 /* ========== SECTIONS ========== */
 
 .admin-section {
-  background: #fff;
-  padding: 30px;
-  margin-bottom: 25px;
-  border: 2px solid #1a1a1a;
+  background: transparent;
+  padding: 0;
+  border: none;
 }
 
 .admin-section h2 {
@@ -238,13 +237,13 @@ body {
   font-weight: 400;
   cursor: pointer;
   text-decoration: none;
-  display: block;
-  margin: 0 auto;
+  display: inline-block;
   background: #fff;
   color: #1a1a1a;
-  transition: all 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
   font-family: Georgia, serif;
-  width: fit-content;
 }
 
 .btn:hover {
@@ -258,26 +257,23 @@ body {
 }
 
 .btn-primary:hover {
-  background: #dc143c;
-  border-color: #dc143c;
+  background: #fff;
+  color: #1a1a1a;
 }
 
 .btn-primary:disabled {
-  background: #ddd;
-  color: #999;
+  opacity: 0.5;
   cursor: not-allowed;
-  border-color: #ccc;
-  opacity: 0.6;
 }
 
 .btn-secondary {
   background: #fff;
   color: #1a1a1a;
-  border: 2px solid #1a1a1a;
 }
 
 .btn-secondary:hover {
-  background: #f0f0f0;
+  background: #1a1a1a;
+  color: #fff;
 }
 
 .btn-success {
@@ -286,16 +282,13 @@ body {
 }
 
 .btn-success:hover {
-  background: #dc143c;
-  border-color: #dc143c;
+  background: #fff;
+  color: #1a1a1a;
 }
 
 .btn-success:disabled {
-  background: #ddd;
-  color: #999;
+  opacity: 0.5;
   cursor: not-allowed;
-  border-color: #ccc;
-  opacity: 0.6;
 }
 
 .btn-warning {
@@ -572,8 +565,8 @@ body {
 .info-box {
   padding: 20px;
   margin-bottom: 25px;
-  border: 2px solid #1a1a1a;
-  background: #fff;
+  border: none;
+  background: transparent;
 }
 
 .info-box h3 {
@@ -591,7 +584,7 @@ body {
 }
 
 .info-box.warning {
-  background: #fff;
+  background: transparent;
   border-color: #dc143c;
   color: #1a1a1a;
 }

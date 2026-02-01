@@ -16,24 +16,12 @@ class AnswerRepo {
             }
             $username = $_SESSION['username'] ?? 'unknown';
 
-            // Get room_id and round_number from rounds table
-            $stmtRound = $this->conn->prepare("SELECT room_id, round_number FROM rounds WHERE id = ?");
-            $stmtRound->bind_param("i", $round_id);
-            $stmtRound->execute();
-            $resultRound = $stmtRound->get_result();
-            $round = $resultRound->fetch_assoc();
-            $stmtRound->close();
-
-            if (!$round) {
-                return false;
-            }
-
-            // Check if user already answered this round in this room
+            // Check if user already answered this round
             $stmt = $this->conn->prepare("
                 SELECT id FROM player_answers
-                WHERE room_id = ? AND round_number = ? AND username = ?
+                WHERE round_id = ? AND username = ?
             ");
-            $stmt->bind_param("iis", $round['room_id'], $round['round_number'], $username);
+            $stmt->bind_param("is", $round_id, $username);
             $stmt->execute();
             $result = $stmt->get_result();
             $exists = $result->fetch_assoc() !== null;
@@ -73,19 +61,19 @@ class AnswerRepo {
             error_log("submitAnswer DEBUG: time_taken type=" . gettype($time_taken) . ", value=$time_taken, answer_time=$answer_time");
 
             // Insert into player_answers table
-            // Schema: (id, room_id, round_number, username, answer_time)
+            // Schema: (id, round_id, username, answer_time)
             // answer_time: DECIMAL(10,4) tempo in secondi
             $stmt = $this->conn->prepare("
-                INSERT INTO player_answers (room_id, round_number, username, answer_time)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO player_answers (round_id, username, answer_time)
+                VALUES (?, ?, ?)
             ");
-            $stmt->bind_param("iisd", $room_id, $round_number, $username, $answer_time);
+            $stmt->bind_param("isd", $round_id, $username, $answer_time);
             $success = $stmt->execute();
 
             if (!$success) {
                 error_log("AnswerRepo submitAnswer ERROR: " . $stmt->error);
             } else {
-                error_log("AnswerRepo submitAnswer SUCCESS: Saved answer for user=$username, room_id=$room_id, round=$round_number");
+                error_log("AnswerRepo submitAnswer SUCCESS: Saved answer for user=$username, round_id=$round_id");
             }
 
             $stmt->close();
@@ -124,6 +112,43 @@ class AnswerRepo {
         }
     }
 
+    /**
+     * Get top 10 fastest answers for a specific round
+     */
+    public function getTopFastestAnswers($round_id, $limit = 10) {
+        try {
+            error_log("getTopFastestAnswers: Fetching top $limit answers for round_id=$round_id");
+
+            $stmt = $this->conn->prepare("
+                SELECT
+                    username,
+                    answer_time,
+                    ROW_NUMBER() OVER (ORDER BY answer_time ASC) as position
+                FROM player_answers
+                WHERE round_id = ?
+                ORDER BY answer_time ASC
+                LIMIT ?
+            ");
+            $stmt->bind_param("ii", $round_id, $limit);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            $answers = [];
+            while ($row = $result->fetch_assoc()) {
+                $answers[] = $row;
+            }
+
+            error_log("getTopFastestAnswers: Found " . count($answers) . " answers");
+
+            $stmt->close();
+            return $answers;
+        } catch (Exception $e) {
+            error_log("getTopFastestAnswers ERROR: " . $e->getMessage());
+            // Table doesn't exist or query error - return empty array
+            return [];
+        }
+    }
+
     public function getLeaderboard($roomCode = null) {
         try {
             if ($roomCode) {
@@ -145,19 +170,16 @@ class AnswerRepo {
 
                 $roomId = $room['id'];
 
-                // Classifica semplice: mostra i giocatori che hanno risposto correttamente, ordinati per velocità media
+                // Get all players in this room with their answer count
                 $stmt = $this->conn->prepare("
                     SELECT
                         p.username,
-                        COUNT(pa.id) as total_answers,
-                        SUM(CASE WHEN pa.is_correct = 1 THEN 1 ELSE 0 END) as correct_answers,
-                        AVG(CASE WHEN pa.is_correct = 1 THEN pa.time_taken ELSE NULL END) as avg_time
+                        COUNT(pa.id) as total_answers
                     FROM players p
-                    LEFT JOIN player_answers pa ON pa.player_id = p.id
+                    LEFT JOIN player_answers pa ON pa.username = p.username
                     WHERE p.room_id = ?
-                    GROUP BY p.id, p.username
-                    HAVING correct_answers > 0
-                    ORDER BY correct_answers DESC, avg_time ASC
+                    GROUP BY p.username
+                    ORDER BY total_answers DESC
                     LIMIT 10
                 ");
                 $stmt->bind_param("i", $roomId);
@@ -177,31 +199,23 @@ class AnswerRepo {
                 ];
             }
 
-            $result = $this->conn->query("
-                SELECT
-                    p.username,
-                    COUNT(pa.id) as total_answers,
-                    SUM(pa.is_correct) as correct_answers,
-                    AVG(pa.time_taken) as avg_time
-                FROM players p
-                LEFT JOIN player_answers pa ON pa.player_id = p.id
-                GROUP BY p.id, p.username
-                HAVING correct_answers > 0
-                ORDER BY correct_answers DESC, avg_time ASC
-                LIMIT 10
-            ");
+            // If no room code, get leaderboard for current session room
+            if (session_status() === PHP_SESSION_NONE) {
+                @session_start();
+            }
+            $roomCode = $_SESSION['room_code'] ?? null;
 
-            $leaderboard = [];
-            while ($row = $result->fetch_assoc()) {
-                $leaderboard[] = $row;
+            if (!$roomCode) {
+                return [
+                    'success' => false,
+                    'leaderboard' => []
+                ];
             }
 
-            return [
-                'success' => true,
-                'leaderboard' => $leaderboard
-            ];
+            // Recursive call with room code
+            return $this->getLeaderboard($roomCode);
         } catch (Exception $e) {
-            // Table doesn't exist yet - return empty leaderboard
+            error_log("Leaderboard error: " . $e->getMessage());
             return [
                 'success' => true,
                 'leaderboard' => []
