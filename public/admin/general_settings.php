@@ -48,47 +48,7 @@
         </div>
     </div>
 
-    <hr class="settings-divider">
 
-    <div class="settings-group">
-        <h3>Informazioni Applicazione</h3>
-
-        <div class="setting-item">
-            <label>Nome Applicazione:</label>
-            <span class="setting-value">Marriage Game</span>
-        </div>
-
-        <div class="setting-item">
-            <label>Versione:</label>
-            <span class="setting-value">1.0.0</span>
-        </div>
-
-        <div class="setting-item">
-            <label>Data Creazione:</label>
-            <span class="setting-value"><?php echo date('d/m/Y'); ?></span>
-        </div>
-    </div>
-
-    <hr class="settings-divider">
-
-    <div class="settings-group">
-        <h3>Database</h3>
-
-        <div class="setting-item">
-            <label>Host Database:</label>
-            <span class="setting-value">localhost</span>
-        </div>
-
-        <div class="setting-item">
-            <label>Database:</label>
-            <span class="setting-value">marriage_game</span>
-        </div>
-
-        <div class="setting-item">
-            <label>Stato Connessione:</label>
-            <span class="setting-value status-ok">✓ Connesso</span>
-        </div>
-    </div>
 </div>
 
 <script>
