@@ -9,7 +9,27 @@
     <div class="search-bar">
         <form method="GET" action="admin.php" class="search-form">
             <input type="hidden" name="tab" value="sets">
+
+            <!-- Tipo di ricerca -->
+            <select name="search_type" id="search-type" class="search-filter">
+                <option value="contains" <?php echo ($_GET['search_type'] ?? 'contains') === 'contains' ? 'selected' : ''; ?>>
+                    📍 Contiene
+                </option>
+                <option value="starts_with" <?php echo ($_GET['search_type'] ?? '') === 'starts_with' ? 'selected' : ''; ?>>
+                    ▶️ Inizia con
+                </option>
+                <option value="exact" <?php echo ($_GET['search_type'] ?? '') === 'exact' ? 'selected' : ''; ?>>
+                    ✓ Esattamente
+                </option>
+                <option value="ends_with" <?php echo ($_GET['search_type'] ?? '') === 'ends_with' ? 'selected' : ''; ?>>
+                    ◀️ Finisce con
+                </option>
+            </select>
+
+            <!-- Campo ricerca -->
             <input type="text" name="search" id="search-sets" placeholder="Cerca set per nome..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
+
+            <!-- Bottoni azione -->
             <button type="submit" class="btn btn-primary">🔍 Cerca</button>
             <?php if (!empty($_GET['search'])): ?>
                 <a href="?tab=sets" class="btn btn-secondary">✖ Cancella</a>
@@ -112,7 +132,7 @@
 
 <script>
     // Sets Tab - JavaScript
-    let selectedSetId = <?php echo $selectedSetId ? $selectedSetId : 'null'; ?>;
+    let selectedSetId = <?php echo isset($selectedSetId) ? (int)$selectedSetId : 'null'; ?>;
 
     // Question Sets Management
     function editSet(id, name, description) {

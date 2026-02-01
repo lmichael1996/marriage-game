@@ -208,26 +208,73 @@ function handleAjaxRequest($questionService) {
 /**
  * Get question sets with optional search
  */
-function getQuestionSets($questionService, $searchQuery = '', $page = 1) {
-    if ($searchQuery) {
-        $searchResult = $questionService->searchQuestionSets($searchQuery);
+function getQuestionSets($questionService, $searchQuery = '', $page = 1, $searchType = 'contains') {
+    $questionSetsResult = $questionService->getAllQuestionSets($page, 10);
+
+    // QuestionService returns direct array, not wrapped in 'success'
+    if (!is_array($questionSetsResult) || !isset($questionSetsResult['sets'])) {
         return [
-            'sets' => $searchResult['success'] ? $searchResult['sets'] : [],
+            'sets' => [],
             'pagination' => ['total' => 0, 'page' => 1, 'perPage' => 10, 'totalPages' => 1]
         ];
     }
 
-    $questionSetsResult = $questionService->getAllQuestionSets($page, 10);
-    if ($questionSetsResult['success']) {
+    $allSets = $questionSetsResult['sets'];
+
+    // Apply search filter if query is provided
+    if ($searchQuery) {
+        $filtered = [];
+        $searchQuery = trim($searchQuery);
+        $searchLower = strtolower($searchQuery);
+
+        foreach ($allSets as $set) {
+            $setName = strtolower($set['set_name'] ?? '');
+            $match = false;
+
+            switch ($searchType) {
+                case 'exact':
+                    $match = ($setName === $searchLower);
+                    break;
+                case 'starts_with':
+                    $match = strpos($setName, $searchLower) === 0;
+                    break;
+                case 'ends_with':
+                    $match = (strlen($searchLower) <= strlen($setName)) &&
+                             substr($setName, -strlen($searchLower)) === $searchLower;
+                    break;
+                case 'contains':
+                default:
+                    $match = strpos($setName, $searchLower) !== false;
+                    break;
+            }
+
+            if ($match) {
+                $filtered[] = $set;
+            }
+        }
+
+        $total = count($filtered);
+        $totalPages = ceil($total / 10);
+
         return [
-            'sets' => $questionSetsResult['sets'],
-            'pagination' => $questionSetsResult['pagination']
+            'sets' => $filtered,
+            'pagination' => [
+                'total' => $total,
+                'page' => 1,
+                'perPage' => 10,
+                'totalPages' => $totalPages
+            ]
         ];
     }
 
     return [
-        'sets' => [],
-        'pagination' => ['total' => 0, 'page' => 1, 'perPage' => 10, 'totalPages' => 1]
+        'sets' => $allSets,
+        'pagination' => [
+            'total' => $questionSetsResult['total'] ?? 0,
+            'page' => $questionSetsResult['page'] ?? $page,
+            'perPage' => $questionSetsResult['perPage'] ?? 10,
+            'totalPages' => $questionSetsResult['totalPages'] ?? 1
+        ]
     ];
 }
 

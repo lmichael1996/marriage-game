@@ -23,8 +23,9 @@ handleAjaxRequest($question);
 
 // Get data
 $searchQuery = $_GET['search'] ?? '';
+$searchType = $_GET['search_type'] ?? 'contains';
 $currentPage = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$questionSetsData = getQuestionSets($question, $searchQuery, $currentPage);
+$questionSetsData = getQuestionSets($question, $searchQuery, $currentPage, $searchType);
 $questionSets = $questionSetsData['sets'];
 $pagination = $questionSetsData['pagination'];
 
