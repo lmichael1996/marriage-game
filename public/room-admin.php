@@ -153,6 +153,13 @@ $gameOver = !$activeRound && !$nextQuestion;
                         <p style="color: #ffc107; font-weight: bold; margin: 20px 0;">⚡ Chi clicca primo vince!</p>
                     <?php endif; ?>
 
+                    <div style="text-align: center; margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
+                        <p style="margin: 0 0 10px 0; font-size: 0.9em; color: #555;">Timer per questo round:</p>
+                        <h3 style="margin: 0; font-size: 2.5em; color: #1976d2;">
+                            <?php echo isset($nextQuestion['timer']) ? $nextQuestion['timer'] : 30; ?> secondi
+                        </h3>
+                    </div>
+
                     <div style="text-align: center; margin-top: 20px;">
                         <button class="btn btn-primary" onclick="startRound(<?php echo isset($nextQuestion['id']) ? $nextQuestion['id'] : '0'; ?>)" style="font-size: 1.1em; padding: 15px 40px;">
                             ▶ AVVIA ROUND
