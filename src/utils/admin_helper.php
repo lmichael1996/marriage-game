@@ -66,7 +66,26 @@ function handleUpdateCredentials($admin) {
  * Handle save settings
  */
 function handleSaveSettings($admin) {
-    $admin->saveSettings($_POST);
+    // Salva le impostazioni
+    $result = $admin->saveSettings($_POST);
+
+    // Se è una richiesta AJAX, restituisci JSON
+    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
+        header('Content-Type: application/json');
+
+        // Ricupera le nuove impostazioni
+        $settingsResult = $admin->getAllSettings();
+        $settings = $settingsResult['success'] ? $settingsResult['settings'] : [];
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Impostazioni salvate con successo',
+            'settings' => $settings
+        ]);
+        exit;
+    }
+
+    // Altrimenti fai il redirect classico
     // Determina il tab da cui viene la richiesta
     $tab = isset($_POST['max_players']) ? 'general' : 'settings';
     redirectWithMessage(

@@ -15,6 +15,13 @@ $question = new QuestionService();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     $game = new GameService();
+
+    // Se è una richiesta AJAX per save_settings, gestiscila direttamente
+    if ($action === 'save_settings' && !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
+        handleAction($action, $admin, $game, $question);
+        exit; // Ferma l'esecuzione dopo handleAction che ha già fatto l'output JSON
+    }
+
     handleAction($action, $admin, $game, $question);
 }
 
