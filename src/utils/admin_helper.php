@@ -245,7 +245,13 @@ function handleAjaxRequest($questionService) {
  * Get question sets with optional search
  */
 function getQuestionSets($questionService, $searchQuery = '', $page = 1, $searchType = 'contains') {
-    $questionSetsResult = $questionService->getAllQuestionSets($page, 10);
+    // Se c'è una ricerca, prendi TUTTI i set (non paginati)
+    if ($searchQuery) {
+        $questionSetsResult = $questionService->getAllQuestionSets(1, 9999);
+    } else {
+        // Altrimenti pagina normalmente
+        $questionSetsResult = $questionService->getAllQuestionSets($page, 10);
+    }
 
     // QuestionService returns direct array, not wrapped in 'success'
     if (!is_array($questionSetsResult) || !isset($questionSetsResult['sets'])) {
@@ -291,12 +297,17 @@ function getQuestionSets($questionService, $searchQuery = '', $page = 1, $search
 
         $total = count($filtered);
         $totalPages = ceil($total / 10);
+        $page = max(1, min($page, $totalPages));
+
+        // Pagina i risultati filtrati
+        $start = ($page - 1) * 10;
+        $paginatedSets = array_slice($filtered, $start, 10);
 
         return [
-            'sets' => $filtered,
+            'sets' => $paginatedSets,
             'pagination' => [
                 'total' => $total,
-                'page' => 1,
+                'page' => $page,
                 'perPage' => 10,
                 'totalPages' => $totalPages
             ]

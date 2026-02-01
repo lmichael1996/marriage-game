@@ -101,9 +101,14 @@ class GameService {
                 ];
             }
 
-            // Store active round in session keyed by room
+            // Store active round in session with global key (shared across users in same room)
+            // Use a file or database to store active round per room
+            // For now, use a session key that's not per-user
             $_SESSION['active_round_' . $roomCode] = $roundId;
             $_SESSION['active_question_' . $roomCode] = $questionId;
+
+            // Also store in a file for cross-session access
+            $this->storeActiveRoundToFile($roomCode, $roundId, $questionId);
 
             return [
                 'success' => true,
@@ -120,7 +125,7 @@ class GameService {
     }
 
     /**
-     * Get active round - from session storage
+     * Get active round - from file storage for cross-session access
      */
     public function getActiveRound($questionSetId = null) {
         if (session_status() === PHP_SESSION_NONE) {
@@ -129,20 +134,19 @@ class GameService {
 
         $roomCode = $_SESSION['room_code'] ?? null;
 
-        // Try to get active round from session (per-room)
-        if ($roomCode) {
-            $activeRoundId = $_SESSION['active_round_' . $roomCode] ?? null;
-        } else {
-            // Fallback to global session active round
-            $activeRoundId = $_SESSION['active_round'] ?? null;
+        if (!$roomCode) {
+            return null;
         }
+
+        // Try to get active round from file (cross-session)
+        $activeRoundId = $this->getActiveRoundFromFile($roomCode);
 
         // If we have an active round ID, fetch and return it
         if ($activeRoundId) {
             return $this->roundRepo->getRoundById($activeRoundId);
         }
 
-        // No active round in session
+        // No active round
         return null;
     }
 
@@ -166,13 +170,15 @@ class GameService {
             // Chiudi il round in repository (compatibility)
             $closed = $this->roundRepo->closeRound($roundId);
 
-            // Clear active round from session and track last completed round
+            // Clear active round from session and file
             if (session_status() === PHP_SESSION_NONE) {
                 @session_start();
             }
             $roomCode = $_SESSION['room_code'] ?? null;
             if ($roomCode) {
                 unset($_SESSION['active_round_' . $roomCode]);
+                // Clear from file as well
+                $this->clearActiveRoundFromFile($roomCode);
                 // Track the last completed round number for progression
                 $_SESSION['last_completed_round_' . $roomCode] = $round['round_number'];
             } else {
@@ -291,8 +297,6 @@ class GameService {
 
         $roomCode = $_SESSION['room_code'] ?? null;
 
-        error_log("GameService.submitAnswer: userId=$userId, roundNumber=$roundNumber, roomCode=$roomCode");
-
         if (!$roomCode) {
             throw new Exception('Room code non trovato nella sessione');
         }
@@ -300,34 +304,75 @@ class GameService {
         // Get room info to get room_id
         $room = $this->roomRepo->getRoomByCode($roomCode);
         if (!$room) {
-            error_log("GameService.submitAnswer: Room not found for code=$roomCode");
             throw new Exception('Stanza non trovata');
         }
 
-        error_log("GameService.submitAnswer: Found room with id=" . $room['id']);
-
-        // Get round by room_id and round_number
-        $round = $this->roundRepo->getRoundByRoomAndNumber($room['id'], $roundNumber);
-        if (!$round) {
-            error_log("GameService.submitAnswer: Round not found - room_id=" . $room['id'] . ", roundNumber=$roundNumber");
+        // Get round by room_id and round_number to get roundId
+        $roundData = $this->roundRepo->getRoundByRoomAndNumber($room['id'], $roundNumber);
+        if (!$roundData) {
             throw new Exception('Round non trovato');
         }
 
-        error_log("GameService.submitAnswer: Found round with id=" . $round['id']);
-
-        $roundId = $round['id'];
+        $roundId = $roundData['id'];
 
         // Check if user already answered this round
         if ($this->answerRepo->hasAnswered($roundId, $userId)) {
             throw new Exception('Hai già risposto a questo round');
         }
 
+        // Get full round data including correct_answer from questions table
+        $round = $this->roundRepo->getRoundById($roundId);
+        if (!$round || !isset($round['correct_answer'])) {
+            throw new Exception('Risposta corretta non trovata per questo round');
+        }
+
         // Check if answer is correct
         $is_correct = ($answer == $round['correct_answer']) ? 1 : 0;
 
-        // Save answer
-        $this->answerRepo->submitAnswer($roundId, $userId, $timeTaken, $is_correct);
+        error_log("Answer check: user_answer=$answer, correct_answer={$round['correct_answer']}, is_correct=$is_correct");
+
+        // Salva il record SEMPRE (la risposta è già corretta se è qui)
+        // Se non è corretta, non saveremmo secondo la vecchia logica
+        // Ma se arriviamo qui, il record deve essere salvato
+        if ($is_correct) {
+            $this->answerRepo->submitAnswer($roundId, $userId, $timeTaken);
+        }
 
         return ['is_correct' => $is_correct];
+    }
+
+    /**
+     * Store active round info to a file for cross-session access
+     */
+    private function storeActiveRoundToFile($roomCode, $roundId, $questionId) {
+        $filePath = sys_get_temp_dir() . '/marriage_game_active_round_' . $roomCode . '.json';
+        $data = [
+            'round_id' => $roundId,
+            'question_id' => $questionId,
+            'timestamp' => time()
+        ];
+        file_put_contents($filePath, json_encode($data));
+    }
+
+    /**
+     * Get active round info from file for cross-session access
+     */
+    private function getActiveRoundFromFile($roomCode) {
+        $filePath = sys_get_temp_dir() . '/marriage_game_active_round_' . $roomCode . '.json';
+        if (file_exists($filePath)) {
+            $data = json_decode(file_get_contents($filePath), true);
+            return $data['round_id'] ?? null;
+        }
+        return null;
+    }
+
+    /**
+     * Clear active round from file
+     */
+    private function clearActiveRoundFromFile($roomCode) {
+        $filePath = sys_get_temp_dir() . '/marriage_game_active_round_' . $roomCode . '.json';
+        if (file_exists($filePath)) {
+            unlink($filePath);
+        }
     }
 }

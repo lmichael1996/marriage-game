@@ -10,8 +10,30 @@ class AnswerRepo {
 
     public function hasAnswered($round_id, $player_id) {
         try {
-            $stmt = $this->conn->prepare("SELECT id FROM player_answers WHERE question_id = ? AND player_id = ?");
-            $stmt->bind_param("ii", $round_id, $player_id);
+            // Get session username
+            if (session_status() === PHP_SESSION_NONE) {
+                @session_start();
+            }
+            $username = $_SESSION['username'] ?? 'unknown';
+
+            // Get room_id and round_number from rounds table
+            $stmtRound = $this->conn->prepare("SELECT room_id, round_number FROM rounds WHERE id = ?");
+            $stmtRound->bind_param("i", $round_id);
+            $stmtRound->execute();
+            $resultRound = $stmtRound->get_result();
+            $round = $resultRound->fetch_assoc();
+            $stmtRound->close();
+
+            if (!$round) {
+                return false;
+            }
+
+            // Check if user already answered this round in this room
+            $stmt = $this->conn->prepare("
+                SELECT id FROM player_answers
+                WHERE room_id = ? AND round_number = ? AND username = ?
+            ");
+            $stmt->bind_param("iis", $round['room_id'], $round['round_number'], $username);
             $stmt->execute();
             $result = $stmt->get_result();
             $exists = $result->fetch_assoc() !== null;
@@ -23,16 +45,51 @@ class AnswerRepo {
         }
     }
 
-    public function submitAnswer($round_id, $player_id, $time_taken, $is_correct) {
+    public function submitAnswer($round_id, $player_id, $time_taken) {
         try {
-            $stmt = $this->conn->prepare("INSERT INTO player_answers (question_id, player_id, time_taken, is_correct) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param("iidi", $round_id, $player_id, $time_taken, $is_correct);
+            // Get player username from session
+            if (session_status() === PHP_SESSION_NONE) {
+                @session_start();
+            }
+            $username = $_SESSION['username'] ?? 'unknown';
+
+            // Get room_id and round_number from rounds table
+            $stmtRound = $this->conn->prepare("SELECT room_id, round_number FROM rounds WHERE id = ?");
+            $stmtRound->bind_param("i", $round_id);
+            $stmtRound->execute();
+            $resultRound = $stmtRound->get_result();
+            $round = $resultRound->fetch_assoc();
+            $stmtRound->close();
+
+            if (!$round) {
+                return false;
+            }
+
+            $room_id = $round['room_id'];
+            $round_number = $round['round_number'];
+            $answer_time = date('Y-m-d H:i:s', time() - intval($time_taken));
+
+            // Insert into player_answers table
+            // Schema: (id, room_id, round_number, username, answer_time)
+            // NO is_correct column!
+            $stmt = $this->conn->prepare("
+                INSERT INTO player_answers (room_id, round_number, username, answer_time)
+                VALUES (?, ?, ?, ?)
+            ");
+            $stmt->bind_param("iiss", $room_id, $round_number, $username, $answer_time);
             $success = $stmt->execute();
+
+            if (!$success) {
+                error_log("AnswerRepo submitAnswer ERROR: " . $stmt->error);
+            } else {
+                error_log("AnswerRepo submitAnswer SUCCESS: Saved answer for user=$username, room_id=$room_id, round=$round_number");
+            }
+
             $stmt->close();
             return $success;
         } catch (Exception $e) {
-            // Table doesn't exist yet - return true to continue game
-            return true;
+            error_log("AnswerRepo submitAnswer EXCEPTION: " . $e->getMessage());
+            return false;
         }
     }
 

@@ -198,13 +198,18 @@ $gameOver = !$activeRound && !$nextQuestion;
             <?php if ($activeRound): ?>
             console.log('Active round timer value:', <?php echo isset($activeRound['timer']) ? $activeRound['timer'] : 'null'; ?>);
             console.log('Active round data:', <?php echo json_encode($activeRound); ?>);
-            startCountdown(<?php echo $activeRound['timer'] ?? 30; ?>);
+            const timerValue = <?php echo isset($activeRound['timer']) && $activeRound['timer'] !== null ? (int)$activeRound['timer'] : 'null'; ?>;
+            console.log('Parsed timer value:', timerValue);
+            startCountdown(timerValue || 10);
             <?php endif; ?>
             loadLeaderboard();
         });
 
         function startCountdown(seconds) {
-            let timeLeft = parseInt(seconds) || 30;  // Ensure it's a valid number
+            let timeLeft = parseInt(seconds);
+            if (isNaN(timeLeft) || timeLeft <= 0) {
+                timeLeft = 10;  // Default a 10 secondi se il timer è invalido
+            }
             const timerEl = document.getElementById('timer');
             const nextBtn = document.getElementById('next-btn');
             let correctAnswerNum = null;
@@ -220,6 +225,7 @@ $gameOver = !$activeRound && !$nextQuestion;
             <?php endif; ?>
 
             timerInterval = setInterval(() => {
+                timeLeft--;
                 timerEl.textContent = timeLeft;
 
                 if (timeLeft <= 5) {
@@ -258,7 +264,6 @@ $gameOver = !$activeRound && !$nextQuestion;
                         }, 2000);
                     }
                 }
-                timeLeft--;
             }, 1000);
         }
 

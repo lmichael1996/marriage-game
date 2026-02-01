@@ -148,8 +148,6 @@ function handleAnswer($action, $game) {
 
         $user_id = $_SESSION['player_id'] ?? $_SESSION['user_id'] ?? 0;
 
-        error_log("API.handleAnswer: round_number=$round_number, answer=$answer, user_id=$user_id, time_taken=$time_taken");
-
         if (!$user_id) {
             echo json_encode([
                 'success' => false,
@@ -166,16 +164,8 @@ function handleAnswer($action, $game) {
             exit();
         }
 
-        try {
-            $result = $game->submitAnswer($user_id, $round_number, $answer, $time_taken);
-            echo json_encode($result);
-        } catch (Exception $e) {
-            error_log("API.handleAnswer error: " . $e->getMessage());
-            echo json_encode([
-                'success' => false,
-                'error' => $e->getMessage()
-            ]);
-        }
+        $result = $game->submitAnswer($user_id, $round_number, $answer, $time_taken);
+        echo json_encode($result);
         exit();
     }
 

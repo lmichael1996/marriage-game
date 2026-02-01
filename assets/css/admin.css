@@ -1089,3 +1089,222 @@ input:disabled {
     padding: 20px;
   }
 }
+
+@media (max-width: 480px) {
+  body {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+    padding: 12px;
+    margin-bottom: 15px;
+  }
+
+  .header h1 {
+    font-size: 1.3em;
+    margin: 0;
+  }
+
+  .user-info {
+    gap: 10px;
+  }
+
+  .btn {
+    padding: 8px 15px;
+    font-size: 0.9em;
+  }
+
+  .btn.btn-success {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .admin-nav {
+    flex-direction: row;
+    gap: 5px;
+    overflow-x: auto;
+    padding: 5px 0;
+  }
+
+  .nav-item {
+    padding: 8px 12px;
+    font-size: 0.85em;
+    white-space: nowrap;
+  }
+
+  .search-bar {
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 15px;
+  }
+
+  .search-bar input,
+  .search-bar select,
+  .search-bar button {
+    width: 100%;
+    font-size: 0.9em;
+  }
+
+  .sets-table {
+    font-size: 0.75em;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .sets-table th,
+  .sets-table td {
+    padding: 6px;
+    text-align: center;
+  }
+
+  .sets-table td:nth-child(2),
+  .sets-table td:nth-child(4) {
+    display: none;
+  }
+
+  .sets-table th:nth-child(2),
+  .sets-table th:nth-child(4) {
+    display: none;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 5px;
+  }
+
+  .btn-icon {
+    padding: 6px;
+    font-size: 0.9em;
+    min-width: 30px;
+  }
+
+  .btn-start-game {
+    padding: 8px 12px;
+    font-size: 0.85em;
+  }
+
+  .modal-content {
+    width: 95%;
+    max-height: 90vh;
+    padding: 15px;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  .modal-header h2 {
+    font-size: 1.2em;
+  }
+
+  .modal-close {
+    width: 30px;
+    height: 30px;
+    font-size: 1.5em;
+  }
+
+  .form-group {
+    margin-bottom: 10px;
+  }
+
+  .form-group label {
+    font-size: 0.9em;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    font-size: 0.9em;
+    padding: 8px;
+  }
+
+  .question-item {
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+
+  .question-item input {
+    font-size: 0.85em;
+    margin: 5px 0;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  .pagination-btn {
+    padding: 6px 10px;
+    font-size: 0.85em;
+  }
+}
+
+@media (max-width: 360px) {
+  body {
+    padding: 5px;
+    font-size: 13px;
+  }
+
+  .header {
+    padding: 8px;
+    margin-bottom: 10px;
+  }
+
+  .header h1 {
+    font-size: 1.1em;
+  }
+
+  .user-info {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .btn {
+    padding: 6px 12px;
+    font-size: 0.85em;
+  }
+
+  .admin-nav {
+    gap: 3px;
+  }
+
+  .nav-item {
+    padding: 6px 10px;
+    font-size: 0.75em;
+  }
+
+  .search-bar {
+    padding: 8px;
+  }
+
+  .sets-table {
+    font-size: 0.7em;
+  }
+
+  .sets-table th,
+  .sets-table td {
+    padding: 4px;
+  }
+
+  .btn-icon {
+    padding: 4px;
+    font-size: 0.75em;
+  }
+
+  .modal-content {
+    width: 98%;
+    padding: 10px;
+  }
+
+  .modal-header h2 {
+    font-size: 1.1em;
+  }
+}

@@ -90,6 +90,7 @@ requirePlayer();
         let startTime = null;
         let hasAnswered = false;
         let selectedAnswer = null;
+        let roundInProgress = false;  // Previene ri-esecuzione dello stesso round
 
         // Controlla lo stato della stanza ogni 2 secondi
         setInterval(checkRoomStatus, 2000);
@@ -115,7 +116,7 @@ requirePlayer();
             fetch('../src/api/api.php?endpoint=game&action=get_game_state')
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Game state received:', data, 'currentRoundCounter:', currentRoundCounter);
+                    console.log('Game state received:', data, 'currentRoundCounter:', currentRoundCounter, 'roundInProgress:', roundInProgress);
 
                     if (data.success === false || !data.round_number) {
                         // Nessun round attivo, rimani in attesa
@@ -125,23 +126,30 @@ requirePlayer();
 
                     const roundNumber = data.round_number;
 
-                    // Se è il primo caricamento (currentRoundCounter === 1) e il round è disponibile
-                    if (currentRoundCounter === 1 && roundNumber >= 1 && !hasAnswered) {
-                        // Imposta il contatore al round disponibile
+                    // Se il round è nuovo (numero più alto del counter)
+                    if (roundNumber > currentRoundCounter && !hasAnswered && !roundInProgress) {
+                        // Nuovo round disponibile
                         currentRoundCounter = roundNumber;
                         startRound(data);
-                    } else if (roundNumber > currentRoundCounter && !hasAnswered) {
-                        // Nuovo round disponibile (numero più alto)
-                        currentRoundCounter = roundNumber;
+                    }
+                    // Se è lo stesso round e non abbiamo ancora risposto
+                    else if (roundNumber === currentRoundCounter && !hasAnswered && !roundInProgress) {
+                        // Stesso round, inizia se non è già in corso
                         startRound(data);
-                    } else if (roundNumber === currentRoundCounter && hasAnswered) {
-                        // Abbiamo già risposto a questo round, rimani in attesa
+                    }
+                    // Se abbiamo già risposto, rimani in attesa
+                    else if (hasAnswered) {
                         showWaitingScreen();
                     }
                 })
                 .catch(error => console.error('Game state error:', error));
-        }        function startRound(round) {
+        }
+
+        function startRound(round) {
             console.log('Starting round:', round);
+            console.log('Timer from server:', round.timer);
+
+            roundInProgress = true;
 
             clearInterval(timerInterval);
 
@@ -240,6 +248,10 @@ requirePlayer();
             })
             .then(response => response.json())
             .then(data => {
+                // Incrementa il counter per il prossimo round
+                currentRoundCounter++;
+                console.log('Answer submitted, incremented counter to:', currentRoundCounter);
+
                 document.getElementById('game-screen').style.display = 'none';
                 document.getElementById('result-screen').style.display = 'block';
                 document.getElementById('result-content').innerHTML = `
@@ -277,6 +289,10 @@ requirePlayer();
             })
             .then(response => response.json())
             .then(data => {
+                // Incrementa il counter per il prossimo round
+                currentRoundCounter++;
+                console.log('Click first registered, incremented counter to:', currentRoundCounter);
+
                 document.getElementById('game-screen').style.display = 'none';
                 document.getElementById('result-screen').style.display = 'block';
                 document.getElementById('result-content').innerHTML = `
@@ -294,7 +310,13 @@ requirePlayer();
         }
 
         function startTimer(initialTime = 10) {
-            let timeLeft = initialTime;
+            console.log('startTimer called with initialTime:', initialTime);
+            let timeLeft = parseInt(initialTime);
+
+            if (isNaN(timeLeft) || timeLeft <= 0) {
+                timeLeft = 10;
+            }
+
             document.getElementById('timer-value').textContent = timeLeft;
 
             if (timerInterval) {
@@ -318,6 +340,11 @@ requirePlayer();
             if (hasAnswered) return;
 
             hasAnswered = true;
+
+            // Incrementa il counter per il prossimo round
+            currentRoundCounter++;
+            console.log('Time expired, incremented counter to:', currentRoundCounter);
+
             document.getElementById('submit-container').style.display = 'none';
 
             document.getElementById('game-screen').style.display = 'none';
@@ -336,6 +363,7 @@ requirePlayer();
 
         function showWaitingScreen() {
             hasAnswered = false;
+            roundInProgress = false;  // Reset quando torniamo in attesa
 
             if (timerInterval) {
                 clearInterval(timerInterval);
