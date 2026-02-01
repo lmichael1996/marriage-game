@@ -66,13 +66,13 @@ function handleUpdateCredentials($admin) {
  * Handle save settings
  */
 function handleSaveSettings($admin) {
-    $result = $admin->saveSettings($_POST);
+    $admin->saveSettings($_POST);
     // Determina il tab da cui viene la richiesta
     $tab = isset($_POST['max_players']) ? 'general' : 'settings';
     redirectWithMessage(
         'admin.php?tab=' . $tab,
-        $result['success'] ? 'settings_saved' : null,
-        $result['success'] ? null : $result['error']
+        'settings_saved',
+        null
     );
 }
 
@@ -81,15 +81,15 @@ function handleSaveSettings($admin) {
  */
 function handleCreateSet($questionService) {
     $questions = parseQuestionsFromPost(intval($_POST['num_questions'] ?? 0));
-    $result = $questionService->createSetWithQuestions(
+    $setId = $questionService->createQuestionSet(
         $_POST['set_name'] ?? '',
         $_POST['set_description'] ?? '',
         $questions
     );
     redirectWithMessage(
         'admin.php?tab=sets',
-        $result['success'] ? 'created' : null,
-        $result['success'] ? null : $result['error']
+        'created',
+        null
     );
 }
 
@@ -102,17 +102,16 @@ function handleUpdateSet($questionService) {
     error_log("handleUpdateSet - set_id: $setId");
 
     $questions = parseQuestionsFromPost(intval($_POST['num_questions'] ?? 0));
-    $result = $questionService->updateSetWithQuestions(
+    $questionService->updateQuestionSet(
         $setId,
         $_POST['set_name'] ?? '',
         $_POST['set_description'] ?? '',
         $questions
     );
-    error_log("handleUpdateSet - result: " . json_encode($result));
     redirectWithMessage(
         'admin.php?tab=sets',
-        $result['success'] ? 'updated' : null,
-        $result['success'] ? null : $result['error']
+        'updated',
+        null
     );
 }
 
@@ -120,11 +119,11 @@ function handleUpdateSet($questionService) {
  * Handle delete set
  */
 function handleDeleteSet($questionService) {
-    $result = $questionService->deleteQuestionSet(intval($_POST['set_id'] ?? 0));
+    $questionService->deleteQuestionSet(intval($_POST['set_id'] ?? 0));
     redirectWithMessage(
         'admin.php?tab=sets',
-        $result['success'] ? 'deleted' : null,
-        $result['success'] ? null : $result['error']
+        'deleted',
+        null
     );
 }
 

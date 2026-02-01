@@ -67,74 +67,109 @@ $conn->close();
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
             min-height: 100vh;
-            padding: 30px 20px;
+            padding: 20px;
         }
 
         .container {
-            max-width: 1600px;
+            max-width: 100%;
             margin: 0 auto;
         }
 
         .header {
             background: white;
-            padding: 30px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #333;
         }
 
         .header h1 {
-            font-size: 32px;
+            font-size: 24px;
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
+            font-weight: 600;
         }
 
         .header p {
             color: #666;
-            font-size: 16px;
+            font-size: 14px;
+        }
+
+        .stats {
+            background: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .stat-card {
+            padding: 15px;
+            text-align: center;
+            border-right: 1px solid #eee;
+        }
+
+        .stat-card:last-child {
+            border-right: none;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .tables-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(800px, 1fr));
-            gap: 30px;
+            display: block;
         }
 
         .table-card {
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
         }
 
         .table-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
+            background: #f8f8f8;
+            color: #333;
+            padding: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #ddd;
         }
 
         .table-header h2 {
-            font-size: 20px;
+            font-size: 16px;
             margin: 0;
+            font-weight: 600;
         }
 
         .table-count {
-            background: rgba(255,255,255,0.3);
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 14px;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 5px 10px;
+            font-size: 12px;
+            color: #666;
+            border-radius: 3px;
         }
 
         .table-content {
             overflow-x: auto;
-            max-height: 600px;
+            max-height: 500px;
             overflow-y: auto;
         }
 
@@ -145,26 +180,37 @@ $conn->close();
         }
 
         th {
-            background: #f8f9fa;
-            padding: 12px;
+            background: #fafafa;
+            padding: 10px;
             text-align: left;
             font-weight: 600;
             color: #333;
-            border-bottom: 2px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            border-right: 1px solid #ddd;
             position: sticky;
             top: 0;
             white-space: nowrap;
         }
 
+        th:last-child {
+            border-right: none;
+        }
+
         td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            border-right: 1px solid #f0f0f0;
             word-break: break-word;
             max-width: 200px;
+            font-size: 12px;
+        }
+
+        td:last-child {
+            border-right: none;
         }
 
         tr:hover {
-            background: #f9f9f9;
+            background: #fafafa;
         }
 
         .null-value {
@@ -173,62 +219,52 @@ $conn->close();
         }
 
         .bool-true {
-            background: #d4edda;
-            color: #155724;
-            padding: 3px 8px;
-            border-radius: 3px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 2px 6px;
+            border-radius: 2px;
             font-weight: 600;
             display: inline-block;
+            font-size: 11px;
         }
 
         .bool-false {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 3px 8px;
-            border-radius: 3px;
+            background: #ffebee;
+            color: #c62828;
+            padding: 2px 6px;
+            border-radius: 2px;
             font-weight: 600;
             display: inline-block;
+            font-size: 11px;
         }
 
         .empty-table {
             padding: 30px;
             text-align: center;
             color: #999;
-        }
-
-        .stats {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .stat-card {
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 32px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
             font-size: 14px;
-            opacity: 0.9;
         }
 
-        @media (max-width: 1200px) {
-            .tables-grid {
+        @media (max-width: 768px) {
+            .stats {
                 grid-template-columns: 1fr;
+            }
+
+            .stat-card {
+                border-right: none;
+                border-bottom: 1px solid #eee;
+            }
+
+            .stat-card:last-child {
+                border-bottom: none;
+            }
+
+            table {
+                font-size: 11px;
+            }
+
+            td, th {
+                padding: 8px;
             }
         }
     </style>
@@ -236,8 +272,8 @@ $conn->close();
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 Database Marriage Game</h1>
-            <p>Visualizza il contenuto di tutte le tabelle</p>
+            <h1>Database Marriage Game</h1>
+            <p>Contenuto di tutte le tabelle</p>
         </div>
 
         <div class="stats">

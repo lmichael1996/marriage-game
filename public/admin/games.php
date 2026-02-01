@@ -10,6 +10,9 @@
         <form method="GET" action="admin.php" class="search-form">
             <input type="hidden" name="tab" value="sets">
 
+            <!-- Campo ricerca -->
+            <input type="text" name="search" id="search-sets" placeholder="Cerca set per nome..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
+
             <!-- Tipo di ricerca -->
             <select name="search_type" id="search-type" class="search-filter">
                 <option value="contains" <?php echo ($_GET['search_type'] ?? 'contains') === 'contains' ? 'selected' : ''; ?>>
@@ -25,9 +28,6 @@
                     ◀️ Finisce con
                 </option>
             </select>
-
-            <!-- Campo ricerca -->
-            <input type="text" name="search" id="search-sets" placeholder="Cerca set per nome..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
 
             <!-- Bottoni azione -->
             <button type="submit" class="btn btn-primary">🔍 Cerca</button>
