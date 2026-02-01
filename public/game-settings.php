@@ -11,7 +11,8 @@ $admin = new AdminService();
 $questionService = new QuestionService();
 
 // Get game settings (AdminService returns key=>value settings)
-$gameSettings = $admin->getAllSettings() ?: [];
+$settingsResult = $admin->getAllSettings();
+$gameSettings = $settingsResult['settings'] ?? [];
 
 // Get all question sets for the dropdown (QuestionService returns structured array)
 $questionSetsResult = $questionService->getAllQuestionSets(1, 100);

@@ -4,13 +4,13 @@
         <h2>⚙️ Impostazioni Partita</h2>
     </div>
 
-    <!-- Popup Risultato -->
-    <div id="settings-result-popup" class="modal-overlay" style="display: none;">
-        <div class="modal-content" style="max-width: 400px;">
+    <!-- Popup Risultato - Fullscreen -->
+    <div id="settings-result-popup" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.8); z-index: 99999; justify-content: center; align-items: center;">
+        <div class="modal-content" style="background: white; padding: 60px 40px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); text-align: center; max-width: 600px; width: 90%;">
             <div class="modal-body">
-                <p id="settings-result-message"></p>
-                <div style="text-align: center; margin-top: 20px;">
-                    <button type="button" class="btn btn-primary" onclick="closeSettingsPopup()">OK</button>
+                <p id="settings-result-message" style="font-size: 24px; margin: 30px 0; font-weight: bold;"></p>
+                <div style="text-align: center; margin-top: 40px;">
+                    <button type="button" class="btn btn-primary" onclick="closeSettingsPopup()" style="padding: 15px 40px; font-size: 16px;">OK</button>
                 </div>
             </div>
         </div>
@@ -256,15 +256,17 @@
         messageElement.textContent = message;
         messageElement.style.color = isSuccess ? '#27ae60' : '#e74c3c';
         messageElement.style.fontWeight = 'bold';
-        messageElement.style.fontSize = '16px';
-        messageElement.style.textAlign = 'center';
 
         popup.style.display = 'flex';
+        popup.style.alignItems = 'center';
+        popup.style.justifyContent = 'center';
 
-        // Chiudi automaticamente dopo 3 secondi
-        setTimeout(() => {
-            closeSettingsPopup();
-        }, 3000);
+        // Chiudi automaticamente dopo 3 secondi SOLO se c'è errore
+        if (!isSuccess) {
+            setTimeout(() => {
+                closeSettingsPopup();
+            }, 3000);
+        }
     }
 
     /**

@@ -98,9 +98,13 @@ class AdminService {
 
     /**
      * Get all game settings
-     * @return array
+     * @return array with success and settings keys
      */
     public function getAllSettings() {
-        return $this->settingsRepo->getAllSettings();
+        $settings = $this->settingsRepo->getAllSettings();
+        return [
+            'success' => true,
+            'settings' => $settings
+        ];
     }
 }
