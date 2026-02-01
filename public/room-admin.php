@@ -194,37 +194,53 @@ $gameOver = !$activeRound && !$nextQuestion;
         }
 
         function startRound(roundId) {
+            console.log('startRound called with roundId:', roundId);
             fetch('../src/api/api.php?endpoint=game&action=start_round', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ round_id: roundId })
             })
-            .then(r => r.json())
+            .then(r => {
+                console.log('start_round response status:', r.status);
+                return r.json();
+            })
             .then(data => {
+                console.log('start_round response data:', data);
                 if (data.success) {
                     location.reload();
                 } else {
                     alert('Errore: ' + (data.error || 'Impossibile avviare il round'));
                 }
             })
-            .catch(e => alert('Errore: ' + e.message));
+            .catch(e => {
+                console.error('start_round error:', e);
+                alert('Errore: ' + e.message);
+            });
         }
 
         function nextQuestion(roundId) {
+            console.log('nextQuestion called with roundId:', roundId);
             fetch('../src/api/api.php?endpoint=game&action=close_round&round_id=' + roundId, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ round_id: roundId })
             })
-            .then(r => r.json())
+            .then(r => {
+                console.log('close_round response status:', r.status);
+                return r.json();
+            })
             .then(data => {
+                console.log('close_round response data:', data);
                 if (data.success) {
                     location.reload();
                 } else {
                     alert('Errore: ' + (data.error || 'Impossibile passare al prossimo round'));
                 }
             })
-            .catch(e => alert('Errore: ' + e.message));
+            .catch(e => {
+                console.error('close_round error:', e);
+                alert('Errore: ' + e.message);
+            });
         }
 
         function loadLeaderboard() {

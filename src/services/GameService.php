@@ -24,28 +24,41 @@ class GameService {
         // Validate round exists
         $round = $this->roundRepo->getRoundById($roundId);
         if (!$round) {
-            throw new Exception('Round non trovato');
+            return [
+                'success' => false,
+                'error' => 'Round non trovato'
+            ];
         }
 
-        // Store active round in session (per-room, keyed by room code or global)
-        if (session_status() === PHP_SESSION_NONE) {
-            @session_start();
-        }
+        try {
+            // Store active round in session (per-room, keyed by room code or global)
+            if (session_status() === PHP_SESSION_NONE) {
+                @session_start();
+            }
 
-        // Use roomCode from param or from session
-        if (!$roomCode && isset($_SESSION['room_code'])) {
-            $roomCode = $_SESSION['room_code'];
-        }
+            // Use roomCode from param or from session
+            if (!$roomCode && isset($_SESSION['room_code'])) {
+                $roomCode = $_SESSION['room_code'];
+            }
 
-        // Store active round in session keyed by room
-        if ($roomCode) {
-            $_SESSION['active_round_' . $roomCode] = $roundId;
-        } else {
-            // Fallback: store globally
-            $_SESSION['active_round'] = $roundId;
-        }
+            // Store active round in session keyed by room
+            if ($roomCode) {
+                $_SESSION['active_round_' . $roomCode] = $roundId;
+            } else {
+                // Fallback: store globally
+                $_SESSION['active_round'] = $roundId;
+            }
 
-        return true;
+            return [
+                'success' => true,
+                'message' => 'Round avviato'
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
     }
 
     /**
@@ -82,30 +95,44 @@ class GameService {
         $round = $this->roundRepo->getRoundById($roundId);
 
         if (!$round) {
-            return false;
+            return [
+                'success' => false,
+                'error' => 'Round non trovato'
+            ];
         }
 
-        // Calcola i punteggi in base al tipo di round
-        $this->calculateScores($roundId, $round['round_type']);
+        try {
+            // Calcola i punteggi in base al tipo di round
+            $this->calculateScores($roundId, $round['round_type']);
 
-        // Chiudi il round in repository (compatibility)
-        $closed = $this->roundRepo->closeRound($roundId);
+            // Chiudi il round in repository (compatibility)
+            $closed = $this->roundRepo->closeRound($roundId);
 
-        // Clear active round from session and track last completed round
-        if (session_status() === PHP_SESSION_NONE) {
-            @session_start();
+            // Clear active round from session and track last completed round
+            if (session_status() === PHP_SESSION_NONE) {
+                @session_start();
+            }
+            $roomCode = $_SESSION['room_code'] ?? null;
+            if ($roomCode) {
+                unset($_SESSION['active_round_' . $roomCode]);
+                // Track the last completed round number for progression
+                $_SESSION['last_completed_round_' . $roomCode] = $round['round_number'];
+            } else {
+                unset($_SESSION['active_round']);
+                $_SESSION['last_completed_round'] = $round['round_number'];
+            }
+
+            return [
+                'success' => (bool)$closed,
+                'message' => 'Round chiuso',
+                'nextRound' => $round['round_number'] + 1
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
         }
-        $roomCode = $_SESSION['room_code'] ?? null;
-        if ($roomCode) {
-            unset($_SESSION['active_round_' . $roomCode]);
-            // Track the last completed round number for progression
-            $_SESSION['last_completed_round_' . $roomCode] = $round['round_number'];
-        } else {
-            unset($_SESSION['active_round']);
-            $_SESSION['last_completed_round'] = $round['round_number'];
-        }
-
-        return $closed;
     }
 
     /**
