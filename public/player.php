@@ -1,8 +1,8 @@
 <?php
-require_once __DIR__ . '/../src/utils/AuthHelper.php';
+require_once __DIR__ . '/../src/utils/auth.php';
 
 // Check if player is logged in
-AuthHelper::requirePlayer();
+requirePlayer();
 ?>
 <!DOCTYPE html>
 <html lang="it">

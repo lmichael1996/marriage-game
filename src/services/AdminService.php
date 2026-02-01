@@ -9,12 +9,12 @@ require_once __DIR__ . '/../repository/SettingsRepo.php';
 class AdminService {
     private $userRepo;
     private $settingsRepo;
-    
+
     public function __construct() {
         $this->userRepo = new UserRepo();
         $this->settingsRepo = new SettingsRepo();
     }
-    
+
     /**
      * Update admin credentials
      * @return array with new username
@@ -24,7 +24,7 @@ class AdminService {
         if (empty($newUsername)) {
             throw new Exception('Username obbligatorio');
         }
-        
+
         // Validate password if provided
         if (!empty($newPassword)) {
             if ($newPassword !== $confirmPassword) {
@@ -34,16 +34,16 @@ class AdminService {
                 throw new Exception('La password deve essere di almeno 6 caratteri');
             }
         }
-        
+
         $success = $this->userRepo->updateCredentials($userId, $newUsername, $newPassword);
-        
+
         if (!$success) {
             throw new Exception('Errore nell\'aggiornamento delle credenziali');
         }
-        
+
         return ['username' => $newUsername];
     }
-    
+
     /**
      * Save game settings
      * @return bool true on success
@@ -55,7 +55,7 @@ class AdminService {
             'max_players' => intval($settingsData['max_players'] ?? 50),
             'auto_next_round' => isset($settingsData['auto_next_round']) ? 1 : 0,
             'auto_next_delay' => intval($settingsData['auto_next_delay'] ?? 5),
-            
+
             // Multiple Choice points
             'points_mult_1st' => intval($settingsData['points_mult_1st'] ?? 25),
             'points_mult_2nd' => intval($settingsData['points_mult_2nd'] ?? 18),
@@ -67,7 +67,7 @@ class AdminService {
             'points_mult_8th' => intval($settingsData['points_mult_8th'] ?? 4),
             'points_mult_9th' => intval($settingsData['points_mult_9th'] ?? 2),
             'points_mult_10th' => intval($settingsData['points_mult_10th'] ?? 1),
-            
+
             // True/False points
             'points_tf_1st' => intval($settingsData['points_tf_1st'] ?? 20),
             'points_tf_2nd' => intval($settingsData['points_tf_2nd'] ?? 15),
@@ -79,49 +79,28 @@ class AdminService {
             'points_tf_8th' => intval($settingsData['points_tf_8th'] ?? 3),
             'points_tf_9th' => intval($settingsData['points_tf_9th'] ?? 2),
             'points_tf_10th' => intval($settingsData['points_tf_10th'] ?? 1),
-            
+
             // Click First points
             'points_clickfirst' => intval($settingsData['points_clickfirst'] ?? 50),
-            
+
             'show_leaderboard' => isset($settingsData['show_leaderboard']) ? 1 : 0,
             'show_correct_answer' => isset($settingsData['show_correct_answer']) ? 1 : 0
         ];
-        
+
         $success = $this->settingsRepo->saveSettings($settings);
-        
+
         if (!$success) {
             throw new Exception('Errore nel salvataggio delle impostazioni');
         }
-        
+
         return true;
     }
-    
+
     /**
      * Get all game settings
      * @return array
      */
     public function getAllSettings() {
         return $this->settingsRepo->getAllSettings();
-    }
-    
-    /**
-     * Update timer
-     * @return bool
-     * @throws Exception on failure
-     */
-    public function updateTimer($seconds) {
-        $success = $this->settingsRepo->updateTimer($seconds);
-        if (!$success) {
-            throw new Exception('Errore nell\'aggiornamento del timer');
-        }
-        return true;
-    }
-    
-    /**
-     * Get timer
-     * @return int
-     */
-    public function getTimer() {
-        return $this->settingsRepo->getTimer();
     }
 }

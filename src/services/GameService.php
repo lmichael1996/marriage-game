@@ -10,13 +10,13 @@ class GameService {
     private $roundRepo;
     private $answerRepo;
     private $settingsRepo;
-    
+
     public function __construct() {
         $this->roundRepo = new RoundRepo();
         $this->answerRepo = new AnswerRepo();
         $this->settingsRepo = new SettingsRepo();
     }
-    
+
     /**
      * Avvia un nuovo round - persist active round in session
      */
@@ -47,7 +47,7 @@ class GameService {
 
         return true;
     }
-    
+
     /**
      * Get active round - from session storage
      */
@@ -57,7 +57,7 @@ class GameService {
         }
 
         $roomCode = $_SESSION['room_code'] ?? null;
-        
+
         // Try to get active round from session (per-room)
         if ($roomCode) {
             $activeRoundId = $_SESSION['active_round_' . $roomCode] ?? null;
@@ -74,20 +74,20 @@ class GameService {
         // No active round in session
         return null;
     }
-    
+
     /**
      * Chiudi un round e calcola i punteggi
      */
     public function closeRound($roundId) {
         $round = $this->roundRepo->getRoundById($roundId);
-        
+
         if (!$round) {
             return false;
         }
-        
+
         // Calcola i punteggi in base al tipo di round
         $this->calculateScores($roundId, $round['round_type']);
-        
+
         // Chiudi il round in repository (compatibility)
         $closed = $this->roundRepo->closeRound($roundId);
 
@@ -107,46 +107,46 @@ class GameService {
 
         return $closed;
     }
-    
+
     /**
      * Calcola i punteggi per un round
      */
     private function calculateScores($roundId, $roundType) {
         $answers = $this->answerRepo->getRoundAnswers($roundId);
-        
+
         if (empty($answers)) {
             return;
         }
-        
+
         // Ordina per tempo di risposta (più veloce prima)
         usort($answers, function($a, $b) {
             return $a['time_taken'] - $b['time_taken'];
         });
-        
+
         $position = 1;
         foreach ($answers as $answer) {
             if (!$answer['is_correct']) {
                 continue;
             }
-            
+
             // Points are calculated dynamically in the leaderboard query
             // No need to store them in player_answers table
             $points = $this->getPointsForPosition($roundType, $position);
-            
+
             // Solo per clickfirst, vince solo il primo
             if ($roundType === 'clickfirst') {
                 break;
             }
-            
+
             $position++;
-            
+
             // Max 10 posizioni premiate
             if ($position > 10) {
                 break;
             }
         }
     }
-    
+
     /**
      * Ottieni i punti per una posizione in base al tipo di round
      */
@@ -154,9 +154,9 @@ class GameService {
         if ($position > 10) {
             return 0;
         }
-        
+
         $settingKey = '';
-        
+
         switch ($roundType) {
             case 'multiple':
                 $settingKey = "points_mult_{$position}";
@@ -165,7 +165,7 @@ class GameService {
                 elseif ($position === 3) $settingKey = 'points_mult_3rd';
                 else $settingKey = "points_mult_{$position}th";
                 break;
-                
+
             case 'truefalse':
                 $settingKey = "points_tf_{$position}";
                 if ($position === 1) $settingKey = 'points_tf_1st';
@@ -173,36 +173,29 @@ class GameService {
                 elseif ($position === 3) $settingKey = 'points_tf_3rd';
                 else $settingKey = "points_tf_{$position}th";
                 break;
-                
+
             case 'clickfirst':
                 return $position === 1 ? intval($this->settingsRepo->getSetting('points_clickfirst')) : 0;
         }
-        
+
         $setting = $this->settingsRepo->getSetting($settingKey);
         return $setting ? intval($setting) : 0;
     }
-    
+
     /**
      * Ottieni statistiche del round
      */
     public function getRoundStats($roundId) {
         return $this->roundRepo->getRoundStats($roundId);
     }
-    
+
     /**
      * Ottieni la classifica generale
      */
     public function getLeaderboard($roomCode = null) {
         return $this->answerRepo->getLeaderboard($roomCode);
     }
-    
-    /**
-     * Ottieni la classifica del round corrente (top 10 risposte corrette più veloci)
-     */
-    public function getRoundLeaderboard($roomCode, $roundId) {
-        return $this->answerRepo->getRoundLeaderboard($roomCode, $roundId);
-    }
-    
+
     /**
      * Submit player answer
      */
@@ -211,20 +204,20 @@ class GameService {
         if ($this->answerRepo->hasAnswered($roundId, $userId)) {
             throw new Exception('Hai già risposto a questo round');
         }
-        
+
         // Get round info
         $round = $this->roundRepo->getRoundById($roundId);
-        
+
         if (!$round) {
             throw new Exception('Round non trovato');
         }
-        
+
         // Check if answer is correct
         $is_correct = ($answer == $round['correct_answer']) ? 1 : 0;
-        
+
         // Save answer (without storing the actual answer)
         $this->answerRepo->submitAnswer($roundId, $userId, $timeTaken, $is_correct);
-        
+
         return ['is_correct' => $is_correct];
     }
 }

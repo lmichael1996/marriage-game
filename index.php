@@ -12,15 +12,15 @@
         <div class="login-box landing-box">
             <h1>💍 Marriage Game</h1>
             <h2>Benvenuto! Scegli come accedere:</h2>
-            
+
             <div class="landing-buttons">
-                <a href="public/player_login.php" class="landing-btn">
+                <a href="public/login-player.php" class="landing-btn">
                     <div class="icon">🎮</div>
                     <h3>Giocatore</h3>
                     <p>Entra con il codice stanza</p>
                 </a>
-                
-                <a href="public/admin_login.php" class="landing-btn">
+
+                <a href="public/login-admin.php" class="landing-btn">
                     <div class="icon">🔐</div>
                     <h3>Amministratore</h3>
                     <p>Gestisci il gioco</p>

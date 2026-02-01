@@ -4,7 +4,7 @@
         <h2>🎮 Set di Domande</h2>
         <button class="btn btn-success" id="btn-new-set">+ Nuovo Set</button>
     </div>
-    
+
     <!-- Search Bar -->
     <div class="search-bar">
         <form method="GET" action="admin.php" class="search-form">
@@ -16,7 +16,7 @@
             <?php endif; ?>
         </form>
     </div>
-    
+
     <!-- Table View -->
     <div id="table-view">
         <table class="sets-table">
@@ -35,7 +35,7 @@
                 <tr data-set-id="<?php echo $set['id']; ?>" data-set-name="<?php echo htmlspecialchars($set['set_name']); ?>">
                     <td>
                         <strong>
-                            <?php 
+                            <?php
                             $setName = htmlspecialchars($set['set_name']);
                             // Evidenzia il testo cercato in giallo
                             if (!empty($_GET['search'])) {
@@ -65,11 +65,11 @@
                 <?php endforeach; ?>
             </tbody>
         </table>
-        
+
         <!-- Pagination -->
         <?php if ($pagination['totalPages'] > 1): ?>
         <div class="pagination">
-            <?php 
+            <?php
             $searchParam = !empty($_GET['search']) ? '&search=' . urlencode($_GET['search']) : '';
             ?>
             <?php if ($pagination['page'] > 1): ?>
@@ -79,12 +79,12 @@
             <?php else: ?>
                 <span class="pagination-btn disabled">← Precedente</span>
             <?php endif; ?>
-            
+
             <span class="pagination-info">
                 Pagina <?php echo $pagination['page']; ?> di <?php echo $pagination['totalPages']; ?>
                 (<?php echo $pagination['total']; ?> set totali)
             </span>
-            
+
             <?php if ($pagination['page'] < $pagination['totalPages']): ?>
                 <a href="?tab=sets&page=<?php echo $pagination['page'] + 1; ?><?php echo $searchParam; ?>" class="pagination-btn">
                     Successivo →
@@ -94,7 +94,7 @@
             <?php endif; ?>
         </div>
         <?php endif; ?>
-        
+
         <?php if (empty($questionSets)): ?>
         <div class="info-box loading-text">
             <?php if (!empty($_GET['search'])): ?>
@@ -113,7 +113,7 @@
 <script>
     // Sets Tab - JavaScript
     let selectedSetId = <?php echo $selectedSetId ? $selectedSetId : 'null'; ?>;
-    
+
     // Question Sets Management
     function editSet(id, name, description) {
         console.log('editSet called with:', { id, name, description });
@@ -132,10 +132,10 @@
                 alert('Errore nel caricamento del set');
             });
     }
-    
+
     function deleteSet(id, name) {
         if (!confirm(`⚠️ Sei sicuro di voler eliminare il set "${name}"?\nTutti i round associati verranno eliminati.`)) return;
-        
+
         const form = document.createElement('form');
         form.method = 'POST';
         form.innerHTML = `
@@ -145,12 +145,12 @@
         document.body.appendChild(form);
         form.submit();
     }
-    
-    // Start game - redirect to game management page
+
+    // Start game - redirect to game settings page
     function startGameFlow(setId, setName) {
-        window.location.href = `game_management.php?set_id=${setId}`;
+        window.location.href = `game-settings.php?set_id=${setId}`;
     }
-    
+
     // Event listeners
     document.addEventListener('DOMContentLoaded', function() {
         // Edit set buttons (event delegation)
@@ -164,7 +164,7 @@
                 editSet(setId, setName, setDescription);
             }
         });
-        
+
         // Delete set buttons (event delegation)
         document.addEventListener('click', function(e) {
             if (e.target.closest('.btn-delete-set')) {
@@ -175,7 +175,7 @@
                 deleteSet(setId, setName);
             }
         });
-        
+
         // Start game buttons (event delegation)
         document.addEventListener('click', function(e) {
             if (e.target.closest('.btn-start-game')) {

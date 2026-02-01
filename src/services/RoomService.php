@@ -12,23 +12,23 @@ class RoomService {
     private $playerRepo;
     private $questionRepo;
     private $roundRepo;
-    
+
     public function __construct() {
         $this->roomRepo = new RoomRepo();
         $this->playerRepo = new PlayerRepo();
         $this->questionRepo = new QuestionRepo();
         $this->roundRepo = new RoundRepo();
     }
-    
+
     /**
      * Crea una nuova stanza
      */
     public function createRoom($questionSetId = null) {
         // Genera un codice univoco di 6 caratteri
         $roomCode = $this->generateUniqueRoomCode();
-        
+
         $roomId = $this->roomRepo->createRoom($roomCode, $questionSetId);
-        
+
         if ($roomId) {
             return [
                 'success' => true,
@@ -36,13 +36,13 @@ class RoomService {
                 'room_code' => $roomCode
             ];
         }
-        
+
         return [
             'success' => false,
             'error' => 'Errore nella creazione della stanza'
         ];
     }
-    
+
     /**
      * Genera un codice stanza univoco
      */
@@ -53,119 +53,86 @@ class RoomService {
             $exists = $this->roomRepo->getRoomByCode($code);
             $attempts++;
         } while ($exists && $attempts < 10);
-        
+
         return $code;
     }
-    
+
     /**
      * Avvia una stanza
      */
     public function startRoom($roomCode) {
         $room = $this->roomRepo->getRoomByCode($roomCode);
-        
+
         if (!$room) {
             return [
                 'success' => false,
                 'error' => 'Stanza non trovata'
             ];
         }
-        
+
         // Reset all rounds to pending status before starting
         if ($room['question_set_id']) {
             $this->roundRepo->resetRoundsBySetId($room['question_set_id']);
         }
-        
+
         $success = $this->roomRepo->startRoom($roomCode);
-        
+
         return [
             'success' => $success,
             'message' => $success ? 'Stanza avviata' : 'Errore nell\'avvio'
         ];
     }
-    
-    /**
-     * Chiudi una stanza
-     */
-    public function closeRoom($roomCode) {
-        $success = $this->roomRepo->closeRoom($roomCode);
-        
-        return [
-            'success' => $success,
-            'message' => $success ? 'Stanza chiusa' : 'Errore nella chiusura'
-        ];
-    }
-    
+
     /**
      * Delete room completely
      */
     public function deleteRoom($roomCode) {
         // First, remove all players from the room
         $this->playerRepo->deletePlayersByRoom($roomCode);
-        
+
         // Then delete the room itself
         $success = $this->roomRepo->deleteRoom($roomCode);
-        
+
         return [
             'success' => $success,
             'message' => $success ? 'Stanza eliminata' : 'Errore nell\'eliminazione'
         ];
     }
-    
+
     /**
      * Ottieni i giocatori di una stanza
      */
     public function getRoomPlayers($roomCode) {
         return $this->playerRepo->getPlayersByRoom($roomCode);
     }
-    
+
     /**
      * Ottieni dettagli completi di una stanza
      */
     public function getRoomDetails($roomCode) {
         $room = $this->roomRepo->getRoomByCode($roomCode);
-        
+
         if (!$room) {
             return null;
         }
-        
+
         $room['players'] = $this->getRoomPlayers($roomCode);
         $room['player_count'] = count($room['players']);
-        
+
         if ($room['question_set_id']) {
             $room['question_set'] = $this->questionSetRepo->getById($room['question_set_id']);
         }
-        
+
         return $room;
     }
-    
+
     /**
      * Verifica se una stanza è valida e attiva
      */
     public function isRoomActive($roomCode) {
         return $this->roomRepo->verifyRoomCode($roomCode);
     }
-    
-    /**
-     * Cancella una stanza
-     */
-    public function cancelRoom($roomCode) {
-        $room = $this->roomRepo->getRoomByCode($roomCode);
-        
-        if (!$room) {
-            return [
-                'success' => false,
-                'error' => 'Stanza non trovata'
-            ];
-        }
-        
-        $success = $this->roomRepo->cancelRoom($roomCode);
-        
-        return [
-            'success' => $success,
-            'message' => $success ? 'Stanza cancellata con successo' : 'Errore nella cancellazione della stanza'
-        ];
-    }
-    
+
     /**
      * Get question set ID for a room
      */

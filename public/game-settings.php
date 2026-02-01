@@ -1,27 +1,28 @@
 <?php
-require_once __DIR__ . '/../src/utils/AuthHelper.php';
-require_once __DIR__ . '/../src/controllers/AdminController.php';
+require_once __DIR__ . '/../src/utils/auth.php';
+require_once __DIR__ . '/../src/services/AdminService.php';
+require_once __DIR__ . '/../src/services/QuestionService.php';
 
 // Check admin access
-AuthHelper::requireAdmin();
+requireAdmin();
 
-$admin = new AdminController();
+// Use services directly (Controller layer removed)
+$admin = new AdminService();
+$questionService = new QuestionService();
 
-// Get game settings
-$settingsResult = $admin->getSettings();
-$gameSettings = $settingsResult['success'] ? $settingsResult['settings'] : [];
+// Get game settings (AdminService returns key=>value settings)
+$gameSettings = $admin->getAllSettings() ?: [];
 
-// Get all question sets for the dropdown
-$questionSetsResult = $admin->getAllQuestionSets(1, 100);
-$questionSets = $questionSetsResult['success'] ? $questionSetsResult['sets'] : [];
+// Get all question sets for the dropdown (QuestionService returns structured array)
+$questionSetsResult = $questionService->getAllQuestionSets(1, 100);
+$questionSets = $questionSetsResult['sets'] ?? [];
 
 // Get selected set ID from URL if available
 $selectedSetId = isset($_GET['set_id']) ? (int)$_GET['set_id'] : null;
 $selectedSet = null;
 
 if ($selectedSetId) {
-    $setResult = $admin->getQuestionSetById($selectedSetId);
-    $selectedSet = $setResult['success'] ? $setResult['set'] : null;
+    $selectedSet = $questionService->getQuestionSetById($selectedSetId);
 }
 ?>
 <!DOCTYPE html>
@@ -171,7 +172,7 @@ if ($selectedSetId) {
         <div class="admin-section">
             <div class="game-step" id="step-select-set">
                 <h2>1. Seleziona Set di Domande</h2>
-                
+
                 <div class="set-selector">
                     <label for="set-select">Scegli un set:</label>
                     <select id="set-select">
@@ -277,24 +278,24 @@ if ($selectedSetId) {
         function initializeFromUrl() {
             const urlParams = new URLSearchParams(window.location.search);
             const setIdFromUrl = urlParams.get('set_id');
-            
+
             if (setIdFromUrl) {
                 const setId = parseInt(setIdFromUrl);
                 const selectElement = document.getElementById('set-select');
                 const option = selectElement.querySelector(`option[value="${setId}"]`);
-                
+
                 if (option) {
                     selectElement.value = setId;
                     selectedGameSetId = setId;
                     selectedGameSetName = option.getAttribute('data-name');
-                    
+
                     // Trigger confirmation automatically
                     document.getElementById('btn-confirm-set').disabled = false;
                     confirmSelection();
                 }
             }
         }
-        
+
         function confirmSelection() {
             if (!selectedGameSetId) {
                 alert('Seleziona un set di domande');
@@ -407,15 +408,15 @@ if ($selectedSetId) {
                         // Hide room info and show create room button again
                         document.getElementById('room-info').style.display = 'none';
                         document.getElementById('btn-create-room').style.display = 'block';
-                        
+
                         // Enable back button
                         const backBtn = document.getElementById('btn-back-admin');
                         backBtn.disabled = false;
                         backBtn.title = 'Torna a Admin';
-                        
+
                         // Hide step 3 (devices)
                         document.getElementById('step-devices').classList.add('hidden');
-                        
+
                         // Clear devices table
                         document.getElementById('connected-devices-body').innerHTML = `
                             <tr>
@@ -424,7 +425,7 @@ if ($selectedSetId) {
                                 </td>
                             </tr>
                         `;
-                        
+
                         // Reset devices count
                         document.getElementById('connected-count').textContent = '0';
                     }
@@ -474,7 +475,7 @@ if ($selectedSetId) {
                     console.log('start_room response:', data, 'roomCode:', roomCode);
                     if (data.success) {
                         setTimeout(() => {
-                            const redirectUrl = 'game_admin.php?room_code=' + encodeURIComponent(roomCode);
+                            const redirectUrl = 'room-admin.php?room_code=' + encodeURIComponent(roomCode);
                             console.log('Redirecting to:', redirectUrl);
                             window.location.href = redirectUrl;
                         }, 1000);
@@ -512,16 +513,24 @@ if ($selectedSetId) {
                                 </tr>
                             `;
                         } else {
-                            tbody.innerHTML = data.devices.map(device => `
+                            tbody.innerHTML = data.devices.map(device => {
+                                const connectedDate = new Date(device.connected_at);
+                                const timeString = connectedDate.toLocaleTimeString('it-IT', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    second: '2-digit'
+                                });
+                                return `
                                 <tr>
                                     <td>${device.username}</td>
                                     <td>
                                         <span class="status-indicator"></span>
                                         Online
                                     </td>
-                                    <td>${new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</td>
+                                    <td>${timeString}</td>
                                 </tr>
-                            `).join('');
+                            `;
+                            }).join('');
                         }
                     }
                 })

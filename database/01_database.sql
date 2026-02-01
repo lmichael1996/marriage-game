@@ -1,5 +1,6 @@
 -- Database setup for Marriage Game
 CREATE DATABASE IF NOT EXISTS marriage_game;
+
 USE marriage_game;
 
 -- Users table (for admin login only)
@@ -34,7 +35,10 @@ CREATE TABLE IF NOT EXISTS questions (
     option2 TEXT,
     option3 TEXT,
     option4 TEXT,
-    correct_answer INT CHECK (correct_answer BETWEEN 1 AND 4),
+    correct_answer INT CHECK (
+        correct_answer BETWEEN 1
+        AND 4
+    ),
     timer INT DEFAULT 10,
     FOREIGN KEY (question_set_id) REFERENCES question_sets(id) ON DELETE CASCADE
 );
@@ -52,6 +56,7 @@ CREATE TABLE IF NOT EXISTS players (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL,
     room_id INT NOT NULL,
+    connected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
     UNIQUE (username, room_id)
 );

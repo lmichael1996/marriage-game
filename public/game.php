@@ -1,13 +1,15 @@
 <?php
-require_once __DIR__ . '/../src/utils/AuthHelper.php';
-require_once __DIR__ . '/../src/controllers/GameController.php';
-require_once __DIR__ . '/../src/controllers/AdminController.php';
+require_once __DIR__ . '/../src/utils/auth.php';
+require_once __DIR__ . '/../src/services/GameService.php';
+require_once __DIR__ . '/../src/services/AdminService.php';
+require_once __DIR__ . '/../src/services/QuestionService.php';
 
 // Check admin access
-AuthHelper::requireAdmin();
+requireAdmin();
 
-$game = new GameController();
-$admin = new AdminController();
+$game = new GameService();
+$admin = new AdminService();
+$questionService = new QuestionService();
 
 // Get room info
 $roomCode = $_SESSION['room_code'] ?? null;
@@ -27,19 +29,14 @@ if ($roomCode) {
 $questions = [];
 $setInfo = null;
 if ($questionSetId) {
-    $setResult = $admin->getQuestionSetRounds($questionSetId);
-    if ($setResult['success']) {
-        $questions = $setResult['rounds'];
-        $setInfoResult = $admin->getQuestionSetById($questionSetId);
-        if ($setInfoResult['success']) {
-            $setInfo = $setInfoResult['set'];
-        }
+    $setInfo = $questionService->getQuestionSetWithQuestions($questionSetId);
+    if ($setInfo) {
+        $questions = $setInfo['questions'] ?? [];
     }
 }
 
-// Get current game state
-$gameState = $game->getGameState();
-$activeRound = $gameState['active_round'] ?? null;
+// Get current game state (use GameService directly)
+$activeRound = $game->getActiveRound($questionSetId);
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -271,17 +268,17 @@ $activeRound = $gameState['active_round'] ?? null;
                         </li>
                     <?php else: ?>
                         <?php foreach ($questions as $index => $q): ?>
-                            <li class="question-item <?php echo ($activeRound && $activeRound['id'] == $q['id']) ? 'active' : ''; ?>" 
+                            <li class="question-item <?php echo ($activeRound && $activeRound['id'] == $q['id']) ? 'active' : ''; ?>"
                                 data-question-id="<?php echo $q['id']; ?>">
                                 <span>
                                     <span class="question-number"><?php echo ($index + 1); ?>.</span>
-                                    <?php 
+                                    <?php
                                         $preview = substr($q['question'] ?? 'Domanda', 0, 30);
                                         echo htmlspecialchars($preview) . (strlen($q['question']) > 30 ? '...' : '');
                                     ?>
                                 </span>
                                 <span class="question-status">
-                                    <?php 
+                                    <?php
                                         if ($activeRound && $activeRound['id'] == $q['id']) echo '▶';
                                         else echo '○';
                                     ?>
@@ -298,7 +295,7 @@ $activeRound = $gameState['active_round'] ?? null;
                     <div class="question-header">
                         <h2>Round <?php echo $activeRound['round_number']; ?></h2>
                         <span class="question-type-badge">
-                            <?php 
+                            <?php
                                 $types = [
                                     'multiple' => 'Scelta Multipla',
                                     'truefalse' => 'Vero o Falso',
@@ -383,10 +380,10 @@ $activeRound = $gameState['active_round'] ?? null;
         function startNextRound() {
             const questions = <?php echo json_encode($questions); ?>;
             const activeRoundId = <?php echo $activeRound ? $activeRound['id'] : 'null'; ?>;
-            
+
             // Find first question that's not the active one
             const nextQuestion = questions.find(q => q.id !== activeRoundId);
-            
+
             if (nextQuestion) {
                 fetch('../src/api/api.php?endpoint=game&action=start_round', {
                     method: 'POST',
@@ -686,8 +683,8 @@ $activeRound = $gameState['active_round'] ?? null;
             <?php if ($active_round): ?>
                 <div class="round-display">
                     <h2>Round #<?php echo $active_round['round_number']; ?></h2>
-                    
-                    <?php 
+
+                    <?php
                     $type_labels = [
                         'multiple' => 'Scelta Multipla',
                         'truefalse' => 'Vero o Falso',
@@ -711,7 +708,7 @@ $activeRound = $gameState['active_round'] ?? null;
                         </ol>
 
                         <div style="margin-top: 30px;">
-                            <strong>Risposta Corretta:</strong> 
+                            <strong>Risposta Corretta:</strong>
                             Opzione <?php echo $active_round['correct_answer']; ?>
                         </div>
                     <?php else: ?>
@@ -738,7 +735,7 @@ $activeRound = $gameState['active_round'] ?? null;
                                 Chiudi Round
                             </button>
                         </form>
-                        
+
                         <button class="btn btn-success" onclick="showResults()" style="flex: 1;">
                             Mostra Risultati
                         </button>
@@ -763,14 +760,14 @@ $activeRound = $gameState['active_round'] ?? null;
                         Nessun giocatore connesso
                     </p>
                 <?php else: ?>
-                    <?php 
+                    <?php
                     $rank = 1;
-                    foreach ($players as $player): 
+                    foreach ($players as $player):
                         $rankClass = '';
                         if ($rank === 1) $rankClass = 'gold';
                         elseif ($rank === 2) $rankClass = 'silver';
                         elseif ($rank === 3) $rankClass = 'bronze';
-                        
+
                         $itemClass = $rank <= 3 ? 'player-item top-3' : 'player-item';
                     ?>
                         <div class="<?php echo $itemClass; ?>">
@@ -778,9 +775,9 @@ $activeRound = $gameState['active_round'] ?? null;
                             <span class="player-name"><?php echo htmlspecialchars($player['username']); ?></span>
                             <span class="player-score"><?php echo $player['total_score']; ?>pt</span>
                         </div>
-                    <?php 
+                    <?php
                         $rank++;
-                    endforeach; 
+                    endforeach;
                     ?>
                 <?php endif; ?>
             </div>
@@ -832,11 +829,11 @@ $activeRound = $gameState['active_round'] ?? null;
         <?php if ($active_round && $active_round['timer']): ?>
         let timeLeft = <?php echo $active_round['timer']; ?>;
         const timerDisplay = document.getElementById('timer');
-        
+
         const countdown = setInterval(() => {
             timeLeft--;
             timerDisplay.textContent = timeLeft + 's';
-            
+
             if (timeLeft <= 0) {
                 clearInterval(countdown);
                 timerDisplay.textContent = 'Tempo scaduto!';

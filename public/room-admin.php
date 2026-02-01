@@ -1,14 +1,16 @@
 <?php
-require_once __DIR__ . '/../src/utils/AuthHelper.php';
-require_once __DIR__ . '/../src/controllers/GameController.php';
-require_once __DIR__ . '/../src/controllers/AdminController.php';
+require_once __DIR__ . '/../src/utils/auth.php';
+require_once __DIR__ . '/../src/services/GameService.php';
+require_once __DIR__ . '/../src/services/AdminService.php';
+require_once __DIR__ . '/../src/services/QuestionService.php';
 require_once __DIR__ . '/../src/repository/RoomRepo.php';
 require_once __DIR__ . '/../src/repository/PlayerRepo.php';
 
-AuthHelper::requireAdmin();
+requireAdmin();
 
-$game = new GameController();
-$admin = new AdminController();
+$game = new GameService();
+$admin = new AdminService();
+$questionService = new QuestionService();
 $roomRepo = new RoomRepo();
 $playerRepo = new PlayerRepo();
 
@@ -34,19 +36,16 @@ if (!$room) {
 
 $questions = [];
 $setInfo = null;
+$questions = [];
+$setInfo = null;
 if ($questionSetId) {
-    $setResult = $admin->getQuestionSetRounds($questionSetId);
-    if ($setResult['success']) {
-        $questions = $setResult['rounds'];
-    }
-    $setResult = $admin->getQuestionSetById($questionSetId);
-    if ($setResult['success']) {
-        $setInfo = $setResult['set'];
+    $setInfo = $questionService->getQuestionSetWithQuestions($questionSetId);
+    if ($setInfo) {
+        $questions = $setInfo['questions'] ?? [];
     }
 }
 
-$gameState = $game->getGameState($questionSetId);
-$activeRound = $gameState['active_round'] ?? null;
+$activeRound = $game->getActiveRound($questionSetId);
 $players = $playerRepo->getPlayersByRoom($roomCode) ?? [];
 
 // Determine which question should be next
@@ -89,7 +88,7 @@ $gameOver = !$activeRound && !$nextQuestion;
 
         <div class="admin-section">
             <h2><?php echo $setInfo ? htmlspecialchars($setInfo['set_name']) : 'Set Domande'; ?></h2>
-            
+
             <div class="info-box">
                 <p><strong>👥 Giocatori connessi:</strong> <?php echo count($players); ?></p>
                 <p><strong>🎯 Room Code:</strong> <code><?php echo htmlspecialchars($roomCode); ?></code></p>
@@ -99,7 +98,7 @@ $gameOver = !$activeRound && !$nextQuestion;
                 <div class="game-step">
                     <h3>📋 Round Attivo: #<?php echo $activeRound['round_number']; ?></h3>
                     <p><strong>Domanda:</strong> <?php echo htmlspecialchars($activeRound['question']); ?></p>
-                    
+
                     <?php if ($activeRound['round_type'] !== 'clickfirst'): ?>
                         <ol>
                             <li><?php echo htmlspecialchars($activeRound['option1']); ?></li>
@@ -109,7 +108,7 @@ $gameOver = !$activeRound && !$nextQuestion;
                                 <li><?php echo htmlspecialchars($activeRound['option4']); ?></li>
                             <?php endif; ?>
                         </ol>
-                        <p><strong>✓ Risposta Corretta:</strong> Opzione <?php echo $activeRound['correct_answer']; ?></p>
+    +                    <p><strong>✓ Risposta Corretta:</strong> Opzione <?php echo $activeRound['correct_answer']; ?></p>
                     <?php else: ?>
                         <p style="color: #ffc107; font-weight: bold;">⚡ Chi clicca primo vince!</p>
                     <?php endif; ?>
