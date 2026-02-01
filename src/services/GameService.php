@@ -2,6 +2,9 @@
 require_once __DIR__ . '/../repository/RoundRepo.php';
 require_once __DIR__ . '/../repository/AnswerRepo.php';
 require_once __DIR__ . '/../repository/SettingsRepo.php';
+require_once __DIR__ . '/../repository/PlayerRepo.php';
+require_once __DIR__ . '/../repository/RoomRepo.php';
+require_once __DIR__ . '/QuestionService.php';
 
 /**
  * GameService - Gestisce la logica di business del gioco
@@ -10,28 +13,31 @@ class GameService {
     private $roundRepo;
     private $answerRepo;
     private $settingsRepo;
+    private $playerRepo;
+    private $roomRepo;
+    private $questionService;
 
     public function __construct() {
         $this->roundRepo = new RoundRepo();
         $this->answerRepo = new AnswerRepo();
         $this->settingsRepo = new SettingsRepo();
+        $this->playerRepo = new PlayerRepo();
+        $this->roomRepo = new RoomRepo();
+        $this->questionService = new QuestionService();
+    }
+
+    /**
+     * Get room by code
+     */
+    private function getRoomByCode($roomCode) {
+        return $this->roomRepo->getRoomByCode($roomCode);
     }
 
     /**
      * Avvia un nuovo round - persist active round in session
      */
-    public function startRound($roundId, $roomCode = null) {
-        // Validate round exists
-        $round = $this->roundRepo->getRoundById($roundId);
-        if (!$round) {
-            return [
-                'success' => false,
-                'error' => 'Round non trovato'
-            ];
-        }
-
+    public function startRound($questionId, $roomCode = null) {
         try {
-            // Store active round in session (per-room, keyed by room code or global)
             if (session_status() === PHP_SESSION_NONE) {
                 @session_start();
             }
@@ -41,17 +47,69 @@ class GameService {
                 $roomCode = $_SESSION['room_code'];
             }
 
-            // Store active round in session keyed by room
-            if ($roomCode) {
-                $_SESSION['active_round_' . $roomCode] = $roundId;
-            } else {
-                // Fallback: store globally
-                $_SESSION['active_round'] = $roundId;
+            if (!$roomCode) {
+                return [
+                    'success' => false,
+                    'error' => 'Nessuna stanza attiva'
+                ];
             }
+
+            // Get the question details (this is the question to start)
+            $question = $this->questionService->getQuestionById($questionId);
+            if (!$question) {
+                return [
+                    'success' => false,
+                    'error' => 'Domanda non trovata'
+                ];
+            }
+
+            // Get room info to get room_id
+            $room = $this->getRoomByCode($roomCode);
+            if (!$room) {
+                return [
+                    'success' => false,
+                    'error' => 'Stanza non trovata'
+                ];
+            }
+
+            // Get players in this room
+            $players = $this->playerRepo->getPlayersByRoom($room['id']);
+
+            // Create a new round record in the database with players
+            $roundData = [
+                'room_id' => $room['id'],
+                'round_number' => $question['round_number'],
+                'user_one' => $players[0]['username'] ?? null,
+                'user_two' => $players[1]['username'] ?? null,
+                'user_three' => $players[2]['username'] ?? null,
+                'user_four' => $players[3]['username'] ?? null,
+                'user_five' => $players[4]['username'] ?? null,
+                'user_six' => $players[5]['username'] ?? null,
+                'user_seven' => $players[6]['username'] ?? null,
+                'user_eight' => $players[7]['username'] ?? null,
+                'user_nine' => $players[8]['username'] ?? null,
+                'user_ten' => $players[9]['username'] ?? null,
+            ];
+
+            // Create the round in database
+            $roundId = $this->roundRepo->createRound($roundData);
+
+            if (!$roundId) {
+                return [
+                    'success' => false,
+                    'error' => 'Errore nella creazione del round'
+                ];
+            }
+
+            // Store active round in session keyed by room
+            $_SESSION['active_round_' . $roomCode] = $roundId;
+            $_SESSION['active_question_' . $roomCode] = $questionId;
 
             return [
                 'success' => true,
-                'message' => 'Round avviato'
+                'message' => 'Round avviato',
+                'roundId' => $roundId,
+                'questionId' => $questionId
             ];
         } catch (Exception $e) {
             return [

@@ -66,7 +66,6 @@ CREATE TABLE IF NOT EXISTS rounds (
     id INT AUTO_INCREMENT PRIMARY KEY,
     room_id INT NOT NULL,
     round_number INT NOT NULL,
-    is_running BOOLEAN DEFAULT FALSE,
     user_one VARCHAR(50) DEFAULT NULL,
     points_user_one INT DEFAULT 0,
     user_two VARCHAR(50) DEFAULT NULL,

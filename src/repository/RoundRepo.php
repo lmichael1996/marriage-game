@@ -3,31 +3,66 @@ require_once __DIR__ . '/../config/database.php';
 
 class RoundRepo {
     private $conn;
-    
+
     public function __construct() {
         $this->conn = getDBConnection();
     }
-    
+
     /**
-     * Create a new round
+     * Create a new round for a room (insert into rounds table)
      */
-    public function create($questionSetId, $round_number, $round_type, $question, $option1, $option2, $option3, $option4, $correct_answer, $timer = 10) {
+    public function createRound($roundData) {
         $stmt = $this->conn->prepare("
-            INSERT INTO questions (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO rounds (room_id, round_number, user_one, user_two, user_three, user_four, user_five, user_six, user_seven, user_eight, user_nine, user_ten)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
-        $stmt->bind_param("iissssssii", $questionSetId, $round_number, $round_type, $question, $option1, $option2, $option3, $option4, $correct_answer, $timer);
-        
+
+        $stmt->bind_param(
+            "iissssssssss",
+            $roundData['room_id'],
+            $roundData['round_number'],
+            $roundData['user_one'],
+            $roundData['user_two'],
+            $roundData['user_three'],
+            $roundData['user_four'],
+            $roundData['user_five'],
+            $roundData['user_six'],
+            $roundData['user_seven'],
+            $roundData['user_eight'],
+            $roundData['user_nine'],
+            $roundData['user_ten']
+        );
+
         if ($stmt->execute()) {
             $roundId = $this->conn->insert_id;
             $stmt->close();
             return $roundId;
         }
-        
+
         $stmt->close();
         return false;
     }
-    
+
+    /**
+     * Create a new round
+     */
+    public function create($questionSetId, $round_number, $round_type, $question, $option1, $option2, $option3, $option4, $correct_answer, $timer = 10) {
+        $stmt = $this->conn->prepare("
+            INSERT INTO questions (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->bind_param("iissssssii", $questionSetId, $round_number, $round_type, $question, $option1, $option2, $option3, $option4, $correct_answer, $timer);
+
+        if ($stmt->execute()) {
+            $roundId = $this->conn->insert_id;
+            $stmt->close();
+            return $roundId;
+        }
+
+        $stmt->close();
+        return false;
+    }
+
     /**
      * Get all rounds
      */
@@ -39,13 +74,13 @@ class RoundRepo {
         }
         return $rounds;
     }
-    
+
     /**
      * Get rounds by question set
      */
     public function getRoundsByQuestionSet($questionSetId) {
         $stmt = $this->conn->prepare("
-            SELECT * FROM questions 
+            SELECT * FROM questions
             WHERE question_set_id = ?
             ORDER BY round_number ASC
         ");
@@ -54,10 +89,10 @@ class RoundRepo {
         $result = $stmt->get_result();
         $rounds = $result->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
-        
+
         return $rounds;
     }
-    
+
     /**
      * Get active round - This method is no longer used since status_round column was removed
      * Kept for backward compatibility but returns null
@@ -67,7 +102,7 @@ class RoundRepo {
         // Active round tracking should be done in session or a separate status table
         return null;
     }
-    
+
     /**
      * Start a round (set to active)
      * Note: status_round column was removed from database
@@ -77,7 +112,7 @@ class RoundRepo {
         // status_round column no longer exists
         return true;
     }
-    
+
     /**
      * Close a round
      * Note: status_round column was removed from database
@@ -87,7 +122,7 @@ class RoundRepo {
         // status_round column no longer exists
         return true;
     }
-    
+
     /**
      * Update correct answer for a round
      */
@@ -96,13 +131,13 @@ class RoundRepo {
         $stmt->bind_param("ii", $correct_answer, $round_id);
         $stmt->execute();
         $stmt->close();
-        
+
         // Note: player_answers table handling would go here if it existed
         // For now, just update the question's correct answer
-        
+
         return true;
     }
-    
+
     /**
      * Get round by ID
      */
@@ -115,7 +150,7 @@ class RoundRepo {
         $stmt->close();
         return $round;
     }
-    
+
     /**
      * Get round statistics from player_answers
      * Note: player_answers table doesn't exist yet - return empty stats
@@ -129,7 +164,7 @@ class RoundRepo {
             'avg_time' => null
         ];
     }
-    
+
     /**
      * Get all rounds with statistics
      */
@@ -141,7 +176,7 @@ class RoundRepo {
         }
         return $rounds;
     }
-    
+
     /**
      * Get winning players for a round based on round type
      */
@@ -167,16 +202,16 @@ class RoundRepo {
                 LIMIT 10
             ");
         }
-        
+
         $stmt->bind_param("i", $round_id);
         $stmt->execute();
         $result = $stmt->get_result();
         $winners = $result->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
-        
+
         return $winners;
     }
-    
+
     /**
      * Add a round to a question set
      */
@@ -189,19 +224,19 @@ class RoundRepo {
         $row = $result->fetch_assoc();
         $nextNumber = ($row['max_num'] ?? 0) + 1;
         $stmt->close();
-        
+
         // Insert round
         $stmt = $this->conn->prepare("
-            INSERT INTO questions (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer) 
+            INSERT INTO questions (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->bind_param("iissssssi", $setId, $nextNumber, $roundType, $question, $option1, $option2, $option3, $option4, $correctAnswer);
         $success = $stmt->execute();
         $stmt->close();
-        
+
         return $success;
     }
-    
+
     /**
      * Delete round by ID
      */
@@ -210,10 +245,10 @@ class RoundRepo {
         $stmt->bind_param("i", $round_id);
         $success = $stmt->execute();
         $stmt->close();
-        
+
         return $success;
     }
-    
+
     /**
      * Reset all rounds of a question set to pending status
      * Note: status_round column was removed from database
@@ -224,7 +259,7 @@ class RoundRepo {
         // when game actually starts. This is just a placeholder for backward compatibility.
         return true;
     }
-    
+
     public function __destruct() {
         if ($this->conn) {
             $this->conn->close();

@@ -3,21 +3,21 @@ require_once __DIR__ . '/../config/database.php';
 
 class QuestionRepo {
     private $conn;
-    
+
     public function __construct() {
         $this->conn = getDBConnection();
     }
-    
+
     public function create($name, $description = '') {
         $stmt = $this->conn->prepare("INSERT INTO question_sets (set_name, set_description) VALUES (?, ?)");
         $stmt->bind_param("ss", $name, $description);
         $stmt->execute();
         return $this->conn->insert_id;
     }
-    
+
     public function getAll($page = 1, $perPage = 10) {
         $offset = ($page - 1) * $perPage;
-        
+
         $result = $this->conn->query("
             SELECT qs.id,
                    qs.set_name,
@@ -33,42 +33,49 @@ class QuestionRepo {
         $data = $result->fetch_all(MYSQLI_ASSOC);
         return $data;
     }
-    
+
     public function getTotalCount() {
         $result = $this->conn->query("SELECT COUNT(*) as total FROM question_sets");
         $row = $result->fetch_assoc();
         return (int)$row['total'];
     }
-    
+
     public function getById($id) {
         $stmt = $this->conn->prepare("SELECT * FROM question_sets WHERE id = ?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc();
     }
-    
+
+    public function getQuestionById($questionId) {
+        $stmt = $this->conn->prepare("SELECT * FROM questions WHERE id = ?");
+        $stmt->bind_param("i", $questionId);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
+    }
+
     public function update($id, $name, $description) {
         $stmt = $this->conn->prepare("UPDATE question_sets SET set_name = ?, set_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
         $stmt->bind_param("ssi", $name, $description, $id);
         return $stmt->execute();
     }
-    
+
     public function delete($id) {
         // Delete all rounds in this set
         $stmt = $this->conn->prepare("DELETE FROM questions WHERE question_set_id = ?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
-        
+
         // Delete the set
         $stmt = $this->conn->prepare("DELETE FROM question_sets WHERE id = ?");
         $stmt->bind_param("i", $id);
         return $stmt->execute();
     }
-    
+
     public function search($query) {
         $searchTerm = "%$query%";
         $stmt = $this->conn->prepare("
-            SELECT qs.*, 
+            SELECT qs.*,
                    COUNT(r.id) as total_rounds
             FROM question_sets qs
             LEFT JOIN questions r ON r.question_set_id = qs.id
@@ -80,44 +87,44 @@ class QuestionRepo {
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
-    
+
     public function getRounds($setId) {
         $stmt = $this->conn->prepare("
-            SELECT * FROM questions 
-            WHERE question_set_id = ? 
+            SELECT * FROM questions
+            WHERE question_set_id = ?
             ORDER BY round_number ASC
         ");
         $stmt->bind_param("i", $setId);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
-    
+
     /**
      * Create a question set with multiple questions
      */
     public function createWithQuestions($setName, $setDescription, $questions) {
         // Create the question set
         $setId = $this->create($setName, $setDescription);
-        
+
         if (!$setId) {
             return false;
         }
-        
+
         // Add questions
         foreach ($questions as $i => $q) {
             $roundNumber = $i + 1;
             $question = $q['question'] ?? '';
             $type = $q['type'] ?? 'multiple';
             $timer = isset($q['timer']) ? intval($q['timer']) : 30;
-            
+
             if (!$question) continue;
-            
+
             $option1 = $q['option1'] ?? '';
             $option2 = $q['option2'] ?? '';
             $option3 = $q['option3'] ?? '';
             $option4 = $q['option4'] ?? '';
             $correct = isset($q['correct']) ? intval($q['correct']) : 1;
-            
+
             // Auto-set options for true/false
             if ($type === 'truefalse') {
                 $option1 = 'Vero';
@@ -125,34 +132,34 @@ class QuestionRepo {
                 $option3 = '';
                 $option4 = '';
             }
-            
+
             // For clickfirst, no correct answer needed and no timer
             if ($type === 'clickfirst') {
                 $correct = null;
                 $option1 = $option2 = $option3 = $option4 = '';
                 $timer = null;
             }
-            
+
             // Insert round
             $stmt = $this->conn->prepare("
-                INSERT INTO questions (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer) 
+                INSERT INTO questions (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->bind_param("iissssssii", $setId, $roundNumber, $type, $question, $option1, $option2, $option3, $option4, $correct, $timer);
             $stmt->execute();
             $stmt->close();
         }
-        
+
         return $setId;
     }
-    
+
     /**
      * Update a question set with questions
      */
     public function updateWithQuestions($setId, $setName, $setDescription, $questions) {
         // Update set name and description
         $this->update($setId, $setName, $setDescription);
-        
+
         // Get existing rounds for this set
         $stmt = $this->conn->prepare("SELECT id, round_number FROM questions WHERE question_set_id = ? ORDER BY round_number");
         $stmt->bind_param("i", $setId);
@@ -163,22 +170,22 @@ class QuestionRepo {
             $existingRounds[$row['round_number']] = $row['id'];
         }
         $stmt->close();
-        
+
         // Update or insert questions
         foreach ($questions as $i => $q) {
             $roundNumber = $i + 1;
             $question = $q['question'] ?? '';
             $type = $q['type'] ?? 'multiple';
             $timer = isset($q['timer']) ? intval($q['timer']) : 30;
-            
+
             if (!$question) continue;
-            
+
             $option1 = $q['option1'] ?? '';
             $option2 = $q['option2'] ?? '';
             $option3 = $q['option3'] ?? '';
             $option4 = $q['option4'] ?? '';
             $correct = isset($q['correct']) ? intval($q['correct']) : 1;
-            
+
             // Auto-set options for true/false
             if ($type === 'truefalse') {
                 $option1 = 'Vero';
@@ -186,19 +193,19 @@ class QuestionRepo {
                 $option3 = '';
                 $option4 = '';
             }
-            
+
             // For clickfirst, no timer
             if ($type === 'clickfirst') {
                 $correct = null;
                 $option1 = $option2 = $option3 = $option4 = '';
                 $timer = null;
             }
-            
+
             // Update existing round or insert new one
             if (isset($existingRounds[$roundNumber])) {
                 // Update existing round
                 $stmt = $this->conn->prepare("
-                    UPDATE questions 
+                    UPDATE questions
                     SET round_type = ?, question = ?, option1 = ?, option2 = ?, option3 = ?, option4 = ?, correct_answer = ?, timer = ?
                     WHERE id = ?
                 ");
@@ -210,7 +217,7 @@ class QuestionRepo {
             } else {
                 // Insert new round
                 $stmt = $this->conn->prepare("
-                    INSERT INTO questions (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer) 
+                    INSERT INTO questions (question_set_id, round_number, round_type, question, option1, option2, option3, option4, correct_answer, timer)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ");
                 $stmt->bind_param("iissssssii", $setId, $roundNumber, $type, $question, $option1, $option2, $option3, $option4, $correct, $timer);
@@ -218,7 +225,7 @@ class QuestionRepo {
                 $stmt->close();
             }
         }
-        
+
         // Delete remaining rounds
         foreach ($existingRounds as $roundId) {
             $stmt = $this->conn->prepare("DELETE FROM questions WHERE id = ?");
@@ -226,7 +233,7 @@ class QuestionRepo {
             $stmt->execute();
             $stmt->close();
         }
-        
+
         return true;
     }
 }
