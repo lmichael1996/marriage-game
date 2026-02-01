@@ -19,17 +19,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Handle GET requests for AJAX
-handleAjaxRequest($admin, $question);
+handleAjaxRequest($question);
 
 // Get data
 $searchQuery = $_GET['search'] ?? '';
 $currentPage = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$questionSetsData = getQuestionSets($admin, $searchQuery, $currentPage);
+$questionSetsData = getQuestionSets($question, $searchQuery, $currentPage);
 $questionSets = $questionSetsData['sets'];
 $pagination = $questionSetsData['pagination'];
 
 // Get game settings
-$settingsResult = $admin->getSettings();
+$settingsResult = $admin->getAllSettings();
 $gameSettings = $settingsResult['success'] ? $settingsResult['settings'] : [];
 ?>
 <!DOCTYPE html>
@@ -64,17 +64,17 @@ $gameSettings = $settingsResult['success'] ? $settingsResult['settings'] : [];
 
         <!-- Tab: Partita -->
         <div id="tab-sets" class="tab-content active">
-            <?php include 'admin/admin_games.php'; ?>
+            <?php include 'admin/games.php'; ?>
         </div>
 
         <!-- Tab: Gestione Partita -->
         <div id="tab-settings" class="tab-content">
-            <?php include 'admin/admin_game_settings.php'; ?>
+            <?php include 'admin/game_settings.php'; ?>
         </div>
 
         <!-- Tab: Impostazioni Generali -->
         <div id="tab-general" class="tab-content">
-            <?php include 'admin/admin_general_settings.php'; ?>
+            <?php include 'admin/general_settings.php'; ?>
         </div>
     </div>
 

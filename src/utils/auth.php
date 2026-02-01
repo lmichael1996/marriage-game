@@ -33,3 +33,45 @@ function requirePlayer() {
         exit();
     }
 }
+
+/**
+ * API: Check if user is logged in (admin or player)
+ * Returns JSON error if not authenticated
+ */
+function requireLoginJson() {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    // Accept both admin (user_id) and player (player_id)
+    if (!isset($_SESSION['user_id']) && !isset($_SESSION['player_id'])) {
+        http_response_code(401);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Autenticazione richiesta'
+        ]);
+        exit();
+    }
+}
+
+/**
+ * API: Check if user is admin
+ * Returns JSON error if not authenticated as admin
+ */
+function requireAdminJson() {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    requireLoginJson();
+
+    if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1) {
+        http_response_code(403);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Accesso riservato agli amministratori'
+        ]);
+        exit();
+    }
+}
+

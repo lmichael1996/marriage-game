@@ -79,9 +79,9 @@ function handleSaveSettings($admin) {
 /**
  * Handle create set
  */
-function handleCreateSet($admin) {
+function handleCreateSet($questionService) {
     $questions = parseQuestionsFromPost(intval($_POST['num_questions'] ?? 0));
-    $result = $admin->createSetWithQuestions(
+    $result = $questionService->createSetWithQuestions(
         $_POST['set_name'] ?? '',
         $_POST['set_description'] ?? '',
         $questions
@@ -96,13 +96,13 @@ function handleCreateSet($admin) {
 /**
  * Handle update set
  */
-function handleUpdateSet($admin) {
+function handleUpdateSet($questionService) {
     error_log("handleUpdateSet - POST data: " . json_encode($_POST));
     $setId = intval($_POST['set_id'] ?? 0);
     error_log("handleUpdateSet - set_id: $setId");
 
     $questions = parseQuestionsFromPost(intval($_POST['num_questions'] ?? 0));
-    $result = $admin->updateSetWithQuestions(
+    $result = $questionService->updateSetWithQuestions(
         $setId,
         $_POST['set_name'] ?? '',
         $_POST['set_description'] ?? '',
@@ -119,8 +119,8 @@ function handleUpdateSet($admin) {
 /**
  * Handle delete set
  */
-function handleDeleteSet($admin) {
-    $result = $admin->deleteQuestionSet(intval($_POST['set_id'] ?? 0));
+function handleDeleteSet($questionService) {
+    $result = $questionService->deleteQuestionSet(intval($_POST['set_id'] ?? 0));
     redirectWithMessage(
         'admin.php?tab=sets',
         $result['success'] ? 'deleted' : null,
@@ -171,13 +171,13 @@ function handleAction($action, $admin, $game, $question = null) {
             return handleSaveSettings($admin);
 
         case 'create_set_with_questions':
-            return handleCreateSet($question ?? $admin);
+            return handleCreateSet($question);
 
         case 'update_set_with_questions':
-            return handleUpdateSet($question ?? $admin);
+            return handleUpdateSet($question);
 
         case 'delete_question_set':
-            return handleDeleteSet($question ?? $admin);
+            return handleDeleteSet($question);
 
         case 'start_round':
             return handleStartRound($game);
@@ -193,11 +193,11 @@ function handleAction($action, $admin, $game, $question = null) {
 /**
  * Handle AJAX request for set questions
  */
-function handleAjaxRequest($admin) {
+function handleAjaxRequest($questionService) {
     if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action'])) {
         if ($_GET['action'] === 'get_set_questions' && ($setId = intval($_GET['set_id'] ?? 0))) {
             header('Content-Type: application/json');
-            $result = $admin->getSetQuestions($setId);
+            $result = $questionService->getSetQuestions($setId);
             error_log("handleAjaxRequest - get_set_questions for setId: $setId, result: " . json_encode($result));
             echo json_encode($result);
             exit;
@@ -208,16 +208,16 @@ function handleAjaxRequest($admin) {
 /**
  * Get question sets with optional search
  */
-function getQuestionSets($admin, $searchQuery = '', $page = 1) {
+function getQuestionSets($questionService, $searchQuery = '', $page = 1) {
     if ($searchQuery) {
-        $searchResult = $admin->searchQuestionSets($searchQuery);
+        $searchResult = $questionService->searchQuestionSets($searchQuery);
         return [
             'sets' => $searchResult['success'] ? $searchResult['sets'] : [],
             'pagination' => ['total' => 0, 'page' => 1, 'perPage' => 10, 'totalPages' => 1]
         ];
     }
 
-    $questionSetsResult = $admin->getAllQuestionSets($page, 10);
+    $questionSetsResult = $questionService->getAllQuestionSets($page, 10);
     if ($questionSetsResult['success']) {
         return [
             'sets' => $questionSetsResult['sets'],
@@ -234,15 +234,15 @@ function getQuestionSets($admin, $searchQuery = '', $page = 1) {
 /**
  * Get selected set with rounds
  */
-function getSelectedSet($admin, $selectedSetId) {
+function getSelectedSet($questionService, $selectedSetId) {
     if (!$selectedSetId) {
         return [null, []];
     }
 
-    $setResult = $admin->getQuestionSetById($selectedSetId);
+    $setResult = $questionService->getQuestionSetById($selectedSetId);
     $selectedSet = $setResult['success'] ? $setResult['set'] : null;
 
-    $roundsResult = $admin->getQuestionSetRounds($selectedSetId);
+    $roundsResult = $questionService->getQuestionSetWithQuestions($selectedSetId);
     $setRounds = $roundsResult['success'] ? $roundsResult['rounds'] : [];
 
     return [$selectedSet, $setRounds];

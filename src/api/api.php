@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+require_once __DIR__ . '/../utils/auth.php';
 require_once __DIR__ . '/../services/AuthService.php';
 require_once __DIR__ . '/../services/GameService.php';
 require_once __DIR__ . '/../services/RoomService.php';
@@ -8,32 +9,6 @@ require_once __DIR__ . '/../services/AdminService.php';
 require_once __DIR__ . '/../services/QuestionService.php';
 
 header('Content-Type: application/json');
-
-// Helper function to check if user is logged in
-function requireLogin() {
-    // Accept both admin (user_id) and player (player_id)
-    if (!isset($_SESSION['user_id']) && !isset($_SESSION['player_id'])) {
-        http_response_code(401);
-        echo json_encode([
-            'success' => false,
-            'error' => 'Autenticazione richiesta'
-        ]);
-        exit();
-    }
-}
-
-// Helper function to check if user is admin
-function requireAdmin() {
-    requireLogin();
-    if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1) {
-        http_response_code(403);
-        echo json_encode([
-            'success' => false,
-            'error' => 'Accesso riservato agli amministratori'
-        ]);
-        exit();
-    }
-}
 
 // Initialize services
 $auth = new AuthService();
@@ -81,7 +56,7 @@ switch ($endpoint) {
         break;
 
     case 'game':
-        handleGame($action, $game, $room, $admin);
+        handleGame($action, $game, $room, $question);
         break;
 
     case 'leaderboard':
@@ -116,9 +91,19 @@ function handlePlayerLogin($auth) {
     $username = $data['username'] ?? '';
     $roomCode = $data['room_code'] ?? '';
 
-    $result = $auth->playerLogin($username, $roomCode);
+    try {
+        $result = $auth->playerLogin($username, $roomCode);
 
-    echo json_encode($result);
+        echo json_encode([
+            'success' => true,
+            'redirect' => '../public/player.php'
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
 }
 
 function handleAdminLogin($auth) {
@@ -136,13 +121,23 @@ function handleAdminLogin($auth) {
     $username = $data['username'] ?? '';
     $password = $data['password'] ?? '';
 
-    $result = $auth->adminLogin($username, $password);
+    try {
+        $result = $auth->adminLogin($username, $password);
 
-    echo json_encode($result);
+        echo json_encode([
+            'success' => true,
+            'redirect' => '../public/admin.php'
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
 }
 
 function handleAnswer($action, $game) {
-    requireLogin();
+    requireLoginJson();
 
     // Accept both with and without action parameter for backward compatibility
     if ($action === 'submit' || $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -175,7 +170,7 @@ function handleAnswer($action, $game) {
 }
 
 function handleCreateRoom($room) {
-    requireLogin();
+    requireLoginJson();
 
     try {
         $input = json_decode(file_get_contents('php://input'), true);
@@ -200,7 +195,7 @@ function handleCreateRoom($room) {
 }
 
 function handleStartRoom($room) {
-    requireLogin();
+    requireLoginJson();
 
     try {
         $roomCode = $_SESSION['room_code'] ?? null;
@@ -223,7 +218,7 @@ function handleStartRoom($room) {
 }
 
 function handleCheckRoomStatus($room) {
-    requireLogin();
+    requireLoginJson();
 
     try {
         $flagFile = sys_get_temp_dir() . '/marriage_game_room_closed.flag';
@@ -260,7 +255,7 @@ function handleCheckRoomStatus($room) {
 }
 
 function handleDeleteRoom($room) {
-    requireAdmin();
+    requireAdminJson();
 
     try {
         // Get active room from session or request
@@ -290,7 +285,7 @@ function handleDeleteRoom($room) {
 }
 
 function handleConnectedDevices($room) {
-    requireAdmin();
+    requireAdminJson();
 
     try {
         // Get room code from session or request
@@ -321,8 +316,8 @@ function handleConnectedDevices($room) {
     }
 }
 
-function handleGame($action, $game, $room, $admin) {
-    requireLogin();
+function handleGame($action, $game, $room, $question) {
+    requireLoginJson();
 
     if ($action === 'get_game_state') {
         $questionSetId = null;
@@ -348,7 +343,7 @@ function handleGame($action, $game, $room, $admin) {
             exit();
         }
 
-        $result = $admin->getSetQuestions($setId);
+        $result = $question->getSetQuestions($setId);
 
         if ($result['success']) {
             echo json_encode([
@@ -422,7 +417,7 @@ function handleGame($action, $game, $room, $admin) {
     }
 
     if ($action === 'reset_game') {
-        requireAdmin();
+        requireAdminJson();
 
         $postData = json_decode(file_get_contents('php://input'), true);
         $questionSetId = $postData['question_set_id'] ?? 0;
@@ -462,7 +457,7 @@ function handleGame($action, $game, $room, $admin) {
 }
 
 function handleLeaderboard($game) {
-    requireLogin();
+    requireLoginJson();
 
     $roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
     $result = $game->getLeaderboard($roomCode);
