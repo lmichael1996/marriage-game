@@ -61,6 +61,94 @@ function handleCloseRound($game) {
     redirectWithMessage('admin.php', null, $result['success'] ? null : $result['error']);
 }
 
+function handleAddQuestion($question) {
+    if (!$question) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'Question service not available']);
+        exit;
+    }
+
+    try {
+        $questionText = $_POST['question'] ?? '';
+        $type = $_POST['round_type'] ?? '';
+        $categoryId = intval($_POST['category_id'] ?? 1);
+        $timer = intval($_POST['timer'] ?? 30);
+
+        if (empty($questionText)) {
+            throw new Exception('Domanda obbligatoria');
+        }
+        if (empty($type)) {
+            throw new Exception('Tipo domanda obbligatorio');
+        }
+
+        // Inserisci domanda con answers in base al tipo
+        $result = null;
+
+        if ($type === 'truefalse') {
+            $answer1 = $_POST['answer1'] ?? 'Vero';
+            $answer2 = $_POST['answer2'] ?? 'Falso';
+            $correctAnswer = intval($_POST['correct_answer'] ?? 1);
+
+            $result = $question->addQuestion([
+                'question' => $questionText,
+                'round_type' => $type,
+                'category_id' => $categoryId,
+                'timer' => $timer,
+                'answer1' => $answer1,
+                'answer2' => $answer2,
+                'correct_answer' => $correctAnswer
+            ]);
+        } else if ($type === 'multiple') {
+            $answer1 = $_POST['answer1'] ?? '';
+            $answer2 = $_POST['answer2'] ?? '';
+            $answer3 = $_POST['answer3'] ?? '';
+            $answer4 = $_POST['answer4'] ?? '';
+            $correctAnswer = intval($_POST['correct_answer'] ?? 1);
+
+            if (empty($answer1) || empty($answer2) || empty($answer3) || empty($answer4)) {
+                throw new Exception('Tutte le risposte sono obbligatorie per Multiple Choice');
+            }
+
+            $result = $question->addQuestion([
+                'question' => $questionText,
+                'round_type' => $type,
+                'category_id' => $categoryId,
+                'timer' => $timer,
+                'answer1' => $answer1,
+                'answer2' => $answer2,
+                'answer3' => $answer3,
+                'answer4' => $answer4,
+                'correct_answer' => $correctAnswer
+            ]);
+        } else if ($type === 'clickfirst') {
+            $result = $question->addQuestion([
+                'question' => $questionText,
+                'round_type' => $type,
+                'category_id' => $categoryId,
+                'timer' => $timer
+            ]);
+        }
+
+        if (is_array($result) && isset($result['success'])) {
+            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => true, 'message' => 'Domanda aggiunta con successo', 'question_id' => $result['question_id'] ?? null]);
+                exit;
+            }
+            redirectWithMessage('admin.php?tab=questions', 'question_added');
+        } else {
+            throw new Exception('Errore nell\'aggiunta della domanda');
+        }
+    } catch (Exception $e) {
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            exit;
+        }
+        redirectWithMessage('admin.php?tab=questions', null, $e->getMessage());
+    }
+}
+
 function handleAction($action, $admin, $game, $question = null) {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
@@ -78,6 +166,19 @@ function handleAction($action, $admin, $game, $question = null) {
             return handleStartRound($game);
         case 'close_round':
             return handleCloseRound($game);
+        case 'add_question':
+        case 'save_question':
+            return handleAddQuestion($question);
+        case 'delete_question':
+            // Gestione eliminazione domanda
+            if (isset($_POST['question_id'])) {
+                $qId = intval($_POST['question_id']);
+                if ($question && method_exists($question, 'deleteQuestion')) {
+                    $result = $question->deleteQuestion($qId);
+                    redirectWithMessage('admin.php?tab=questions', $result['success'] ? 'question_deleted' : null, $result['error'] ?? null);
+                }
+            }
+            redirectWithMessage('admin.php?tab=questions', null, 'Errore nell\'eliminazione');
         default:
             redirectWithMessage('admin.php', null, 'invalid_action');
     }

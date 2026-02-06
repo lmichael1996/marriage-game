@@ -261,4 +261,75 @@ class QuestionRepo {
         $row = $result->fetch_assoc();
         return (int)$row['total'];
     }
+
+    /**
+     * Insert a single question
+     */
+    public function insertQuestion($questionData) {
+        $question = $questionData['question'] ?? '';
+        $roundType = $questionData['round_type'] ?? 'multiple';
+        $categoryId = intval($questionData['category_id'] ?? 1);
+        $timer = intval($questionData['timer'] ?? 30);
+
+        // Campi risposte
+        $answer1 = $questionData['answer1'] ?? '';
+        $answer2 = $questionData['answer2'] ?? '';
+        $answer3 = $questionData['answer3'] ?? '';
+        $answer4 = $questionData['answer4'] ?? '';
+        $correctAnswer = isset($questionData['correct_answer']) ? intval($questionData['correct_answer']) : null;
+
+        // Validazione base
+        if (empty($question)) {
+            return false;
+        }
+
+        // Normalizza i dati in base al tipo
+        if ($roundType === 'truefalse') {
+            $answer1 = $answer1 ?: 'Vero';
+            $answer2 = $answer2 ?: 'Falso';
+            $answer3 = '';
+            $answer4 = '';
+            $correctAnswer = intval($correctAnswer ?? 1);
+        } else if ($roundType === 'multiple') {
+            // Assicura che tutte le risposte siano presenti
+            $correctAnswer = intval($correctAnswer ?? 1);
+        } else if ($roundType === 'clickfirst') {
+            $answer1 = $answer2 = $answer3 = $answer4 = '';
+            $correctAnswer = null;
+        }
+
+        // Inserisci la domanda
+        $stmt = $this->conn->prepare("
+            INSERT INTO questions (round_type, question, option1, option2, option3, option4, correct_answer, timer, category_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+
+        $stmt->bind_param(
+            "sssssssii",
+            $roundType,
+            $question,
+            $answer1,
+            $answer2,
+            $answer3,
+            $answer4,
+            $correctAnswer,
+            $timer,
+            $categoryId
+        );
+
+        if ($stmt->execute()) {
+            return $this->conn->insert_id;
+        }
+
+        return false;
+    }
+
+    /**
+     * Delete a single question
+     */
+    public function deleteQuestion($questionId) {
+        $stmt = $this->conn->prepare("DELETE FROM questions WHERE id = ?");
+        $stmt->bind_param("i", $questionId);
+        return $stmt->execute();
+    }
 }

@@ -172,4 +172,178 @@
 
     // Aggiorna UI paginazione al caricamento
     updatePaginationUI();
+
+    // Gestione popup Nuova Domanda
+    const btnNewQuestion = document.getElementById('btn-new-question');
+    const modalOverlay = document.getElementById('modal-add-question');
+
+    if (btnNewQuestion) {
+        btnNewQuestion.addEventListener('click', () => {
+            modalOverlay.style.display = 'flex';
+        });
+    }
+
+    // Chiudi modal
+    const closeBtn = document.querySelector('#modal-add-question .modal-close');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modalOverlay.style.display = 'none';
+            document.getElementById('form-new-question').reset();
+        });
+    }
+
+    // Chiudi modal quando clicchi sul overlay
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                modalOverlay.style.display = 'none';
+                document.getElementById('form-new-question').reset();
+            }
+        });
+    }
+
+    // Invia form aggiunta domanda
+    const formNewQuestion = document.getElementById('form-new-question');
+    if (formNewQuestion) {
+        formNewQuestion.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(formNewQuestion);
+            formData.append('action', 'add_question');
+
+            fetch('admin.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log('Response:', data);
+                // Chiudi modal e ricarica la pagina
+                modalOverlay.style.display = 'none';
+                formNewQuestion.reset();
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Errore nell\'aggiunta della domanda');
+            });
+        });
+    }
+
+    // Gestisci visibilità campi risposte basato sul tipo
+    const typeSelect = document.getElementById('new-type');
+    const answersContainer = document.getElementById('answers-container');
+    const answer3Group = document.getElementById('answer3-group');
+    const answer4Group = document.getElementById('answer4-group');
+    const correctSelect = document.getElementById('new-correct');
+
+    if (typeSelect) {
+        typeSelect.addEventListener('change', (e) => {
+            const type = e.target.value;
+
+            // Mostra/nascondi sezione risposte
+            if (type === 'truefalse') {
+                answersContainer.style.display = 'block';
+                answer3Group.style.display = 'none';
+                answer4Group.style.display = 'none';
+                document.getElementById('new-answer1').placeholder = 'Vero';
+                document.getElementById('new-answer2').placeholder = 'Falso';
+                // Limita a 2 risposte
+                correctSelect.innerHTML = '<option value="">Seleziona...</option><option value="1">Vero</option><option value="2">Falso</option>';
+            } else if (type === 'multiple') {
+                answersContainer.style.display = 'block';
+                answer3Group.style.display = 'block';
+                answer4Group.style.display = 'block';
+                document.getElementById('new-answer1').placeholder = 'Risposta corretta';
+                document.getElementById('new-answer2').placeholder = 'Risposta sbagliata';
+                document.getElementById('new-answer3').placeholder = 'Risposta sbagliata';
+                document.getElementById('new-answer4').placeholder = 'Risposta sbagliata';
+                correctSelect.innerHTML = '<option value="">Seleziona...</option><option value="1">Risposta 1</option><option value="2">Risposta 2</option><option value="3">Risposta 3</option><option value="4">Risposta 4</option>';
+            } else if (type === 'clickfirst') {
+                answersContainer.style.display = 'none';
+            } else {
+                answersContainer.style.display = 'none';
+            }
+        });
+    }
 </script>
+
+<!-- Modal per aggiungere nuova domanda -->
+<div id="modal-add-question" class="modal-overlay" style="display: none;">
+    <div class="modal-content modal-content-large">
+        <div class="modal-header">
+            <h2>➕ Nuova Domanda</h2>
+            <button type="button" class="modal-close">✕</button>
+        </div>
+        <form id="form-new-question" class="modal-body">
+            <div class="form-group">
+                <label for="new-question">Domanda *</label>
+                <textarea id="new-question" name="question" required rows="3" placeholder="Inserisci il testo della domanda..."></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="new-type">Tipo *</label>
+                    <select id="new-type" name="round_type" required>
+                        <option value="">Seleziona tipo...</option>
+                        <option value="multiple">📋 Multiple Choice</option>
+                        <option value="truefalse">✔️ Vero/Falso</option>
+                        <option value="clickfirst">⚡ Clicca il Primo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="new-category">Categoria *</label>
+                    <select id="new-category" name="category_id" required>
+                        <option value="">Seleziona categoria...</option>
+                        <option value="1">Generale</option>
+                        <option value="2">Scienza</option>
+                        <option value="3">Storia</option>
+                        <option value="4">Sport</option>
+                        <option value="5">Intrattenimento</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="new-timer">Timer (secondi) *</label>
+                    <input type="number" id="new-timer" name="timer" required min="5" max="120" value="30">
+                </div>
+            </div>
+
+            <div id="answers-container" style="display: none;">
+                <h3>Risposte</h3>
+                <div class="form-group">
+                    <label for="new-answer1">Risposta 1 *</label>
+                    <input type="text" id="new-answer1" name="answer1" placeholder="Risposta corretta">
+                </div>
+                <div class="form-group">
+                    <label for="new-answer2">Risposta 2 *</label>
+                    <input type="text" id="new-answer2" name="answer2" placeholder="Risposta sbagliata">
+                </div>
+                <div class="form-group" id="answer3-group" style="display: none;">
+                    <label for="new-answer3">Risposta 3 *</label>
+                    <input type="text" id="new-answer3" name="answer3" placeholder="Risposta sbagliata">
+                </div>
+                <div class="form-group" id="answer4-group" style="display: none;">
+                    <label for="new-answer4">Risposta 4 *</label>
+                    <input type="text" id="new-answer4" name="answer4" placeholder="Risposta sbagliata">
+                </div>
+                <div class="form-group">
+                    <label for="new-correct">Risposta Corretta *</label>
+                    <select id="new-correct" name="correct_answer" required>
+                        <option value="">Seleziona...</option>
+                        <option value="1">Risposta 1</option>
+                        <option value="2">Risposta 2</option>
+                        <option value="3">Risposta 3</option>
+                        <option value="4">Risposta 4</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-add-question').style.display='none'; document.getElementById('form-new-question').reset();">Annulla</button>
+                <button type="submit" class="btn btn-success">✓ Aggiungi Domanda</button>
+            </div>
+        </form>
+    </div>
+</div>

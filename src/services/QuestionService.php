@@ -157,26 +157,19 @@ class QuestionService {
      * @return bool true on success
      * @throws Exception on failure
      */
-    public function addQuestion($setId, $questionData) {
-        if (!$setId || empty($questionData['question'])) {
-            throw new Exception('Dati incompleti');
+    public function addQuestion($questionData) {
+        // Se è un array con question, è il nuovo metodo
+        if (is_array($questionData) && isset($questionData['question'])) {
+            $questionId = $this->questionRepo->insertQuestion($questionData);
+
+            if (!$questionId) {
+                throw new Exception('Errore nell\'aggiunta della domanda');
+            }
+
+            return ['success' => true, 'question_id' => $questionId];
         }
 
-        $roundType = $questionData['round_type'] ?? 'multiple';
-        $question = $questionData['question'];
-        $option1 = $questionData['option1'] ?? '';
-        $option2 = $questionData['option2'] ?? '';
-        $option3 = $questionData['option3'] ?? '';
-        $option4 = $questionData['option4'] ?? '';
-        $correctAnswer = $roundType === 'clickfirst' ? null : intval($questionData['correct_answer'] ?? 0);
-
-        $success = $this->roundRepo->addRoundToSet($setId, $roundType, $question, $option1, $option2, $option3, $option4, $correctAnswer);
-
-        if (!$success) {
-            throw new Exception('Errore nell\'aggiunta della domanda');
-        }
-
-        return true;
+        throw new Exception('Dati incompleti');
     }
 
     /**
