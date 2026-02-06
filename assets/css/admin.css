@@ -421,6 +421,94 @@ body {
   border: 1px solid #1a1a1a;
 }
 
+/* ========== QUESTIONS TABLE ========== */
+
+.questions-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 2px solid #1a1a1a;
+  margin-top: 20px;
+}
+
+.questions-table thead {
+  background: #1a1a1a;
+}
+
+.questions-table th {
+  padding: 15px 12px;
+  text-align: left;
+  font-weight: 400;
+  color: #fff;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  border-right: 1px solid #333;
+}
+
+.questions-table th:last-child {
+  border-right: none;
+}
+
+.questions-table tbody tr {
+  border-bottom: 1px solid #ddd;
+  transition: all 0.2s ease;
+}
+
+.questions-table tbody tr:hover {
+  background: #f8f8f8;
+}
+
+.questions-table td {
+  padding: 15px 12px;
+  font-size: 0.95em;
+  color: #1a1a1a;
+}
+
+.questions-table td strong {
+  font-weight: 600;
+}
+
+.questions-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Badge for question type */
+.badge-type {
+  background: #1a1a1a;
+  color: #fff;
+  padding: 5px 12px;
+  font-size: 0.85em;
+  font-weight: 400;
+  display: inline-block;
+  border: 1px solid #1a1a1a;
+  border-radius: 3px;
+}
+
+.badge-type:hover {
+  background: #333;
+}
+
+/* Loading/Empty state text */
+.loading-text {
+  text-align: center;
+  padding: 40px 20px;
+  background: transparent;
+  border: 2px dashed #1a1a1a;
+  margin-top: 20px;
+}
+
+.loading-text h3 {
+  color: #1a1a1a;
+  font-weight: 400;
+  font-size: 1.3em;
+  margin-bottom: 10px;
+}
+
+.loading-text p {
+  color: #666;
+  font-size: 0.95em;
+}
+
 .points-table {
   width: 100%;
   border-collapse: collapse;
@@ -593,29 +681,40 @@ body {
 
 .search-bar {
   display: flex;
-  gap: 10px;
+  gap: 0;
   margin-bottom: 20px;
-  padding: 15px;
-  background: #fff;
-  border: 2px solid #1a1a1a;
+  padding: 0;
+  background: transparent;
+  border: none;
 }
 
-.search-bar form {
+.search-form {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .search-bar input {
   flex: 1;
-  padding: 10px 12px;
+  min-width: 250px;
+  padding: 12px 15px;
   border: 2px solid #1a1a1a;
+  background: #fff;
   font-family: Georgia, serif;
+  font-size: 0.95em;
+  color: #1a1a1a;
+}
+
+.search-bar input::placeholder {
+  color: #999;
 }
 
 .search-bar input:focus {
   outline: none;
   border-color: #dc143c;
+  box-shadow: 0 0 0 3px rgba(220, 20, 60, 0.1);
 }
 
 .search-bar input:disabled,
@@ -634,31 +733,37 @@ body {
   opacity: 0.6;
 }
 
-.search-bar select {
-  padding: 10px 12px;
-  border: 2px solid #1a1a1a;
-  background: #fff;
-  cursor: pointer;
-  font-family: Georgia, serif;
-}
-
-.search-bar select:focus {
-  outline: none;
-  border-color: #dc143c;
-}
-
 .search-filter {
-  min-width: 150px;
-  padding: 10px 12px;
+  min-width: 140px;
+  padding: 12px 15px;
   border: 2px solid #1a1a1a;
   background: #fff;
   font-family: Georgia, serif;
+  font-size: 0.95em;
   cursor: pointer;
+  color: #1a1a1a;
 }
 
 .search-filter:focus {
   outline: none;
   border-color: #dc143c;
+  box-shadow: 0 0 0 3px rgba(220, 20, 60, 0.1);
+}
+
+.search-bar select {
+  padding: 12px 15px;
+  border: 2px solid #1a1a1a;
+  background: #fff;
+  cursor: pointer;
+  font-family: Georgia, serif;
+  font-size: 0.95em;
+  color: #1a1a1a;
+}
+
+.search-bar select:focus {
+  outline: none;
+  border-color: #dc143c;
+  box-shadow: 0 0 0 3px rgba(220, 20, 60, 0.1);
 }
 
 .search-form {
@@ -1135,6 +1240,11 @@ input:disabled {
     margin-bottom: 15px;
   }
 
+  .search-form {
+    flex-direction: column;
+    gap: 8px;
+  }
+
   .search-bar input,
   .search-bar select,
   .search-bar button {
@@ -1142,16 +1252,32 @@ input:disabled {
     font-size: 0.9em;
   }
 
-  .sets-table {
+  .search-filter {
+    width: 100%;
+  }
+
+  .sets-table,
+  .questions-table {
     font-size: 0.75em;
     width: 100%;
     overflow-x: auto;
   }
 
   .sets-table th,
-  .sets-table td {
+  .sets-table td,
+  .questions-table th,
+  .questions-table td {
     padding: 6px;
-    text-align: center;
+  }
+
+  .questions-table td:nth-child(2),
+  .questions-table td:nth-child(3) {
+    display: none;
+  }
+
+  .questions-table th:nth-child(2),
+  .questions-table th:nth-child(3) {
+    display: none;
   }
 
   .sets-table td:nth-child(2),
@@ -1278,12 +1404,15 @@ input:disabled {
     padding: 8px;
   }
 
-  .sets-table {
+  .sets-table,
+  .questions-table {
     font-size: 0.7em;
   }
 
   .sets-table th,
-  .sets-table td {
+  .sets-table td,
+  .questions-table th,
+  .questions-table td {
     padding: 4px;
   }
 
