@@ -183,6 +183,20 @@ class QuestionService {
      * Search question sets
      * @return array
      */
+    public function getAllQuestions($page = 1, $perPage = 10) {
+        return [
+            'questions' => $this->questionRepo->getAllQuestions($page, $perPage),
+            'total' => $this->questionRepo->getTotalQuestionsCount(),
+            'page' => $page,
+            'perPage' => $perPage,
+            'totalPages' => ceil($this->questionRepo->getTotalQuestionsCount() / $perPage)
+        ];
+    }
+
+    /**
+     * Search question sets
+     * @return array
+     */
     public function searchQuestionSets($query) {
         return $this->questionRepo->search($query);
     }

@@ -326,6 +326,75 @@ function getQuestionSets($questionService, $searchQuery = '', $page = 1, $search
 }
 
 /**
+ * Get all individual questions with pagination and search
+ */
+function getAllQuestions($questionService, $searchQuery = '', $page = 1, $searchType = 'contains') {
+    // Get all questions (with pagination)
+    $questionsResult = $questionService->getAllQuestions($page, 10);
+
+    if (!is_array($questionsResult) || !isset($questionsResult['questions'])) {
+        return [
+            'questions' => [],
+            'pagination' => ['total' => 0, 'page' => 1, 'perPage' => 10, 'totalPages' => 1]
+        ];
+    }
+
+    $allQuestions = $questionsResult['questions'];
+
+    // Apply search filter if query is provided
+    if ($searchQuery) {
+        $filtered = [];
+        $searchQuery = trim($searchQuery);
+        $searchLower = strtolower($searchQuery);
+
+        foreach ($allQuestions as $question) {
+            $questionText = strtolower($question['question'] ?? '');
+            $match = false;
+
+            switch ($searchType) {
+                case 'exact':
+                    $match = ($questionText === $searchLower);
+                    break;
+                case 'starts_with':
+                    $match = strpos($questionText, $searchLower) === 0;
+                    break;
+                case 'ends_with':
+                    $match = (strlen($searchLower) <= strlen($questionText)) &&
+                             substr($questionText, -strlen($searchLower)) === $searchLower;
+                    break;
+                case 'contains':
+                default:
+                    $match = strpos($questionText, $searchLower) !== false;
+                    break;
+            }
+
+            if ($match) {
+                $filtered[] = $question;
+            }
+        }
+
+        $allQuestions = $filtered;
+    }
+
+    // Calculate pagination
+    $total = count($allQuestions);
+    $perPage = 10;
+    $totalPages = ceil($total / $perPage);
+    $offset = ($page - 1) * $perPage;
+    $paginatedQuestions = array_slice($allQuestions, $offset, $perPage);
+
+    return [
+        'questions' => $paginatedQuestions,
+        'pagination' => [
+            'total' => $total,
+            'page' => $page,
+            'perPage' => $perPage,
+            'totalPages' => $totalPages
+        ]
+    ];
+}
+
+/**
  * Get selected set with rounds
  */
 function getSelectedSet($questionService, $selectedSetId) {

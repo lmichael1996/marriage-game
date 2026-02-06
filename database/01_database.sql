@@ -17,30 +17,47 @@ CREATE TABLE IF NOT EXISTS game_settings (
 );
 
 -- Question Sets table
-CREATE TABLE IF NOT EXISTS question_sets (
+CREATE TABLE IF NOT EXISTS qsets (
     id INT AUTO_INCREMENT PRIMARY KEY,
     set_name VARCHAR(255) UNIQUE NOT NULL,
     set_description TEXT,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Questions table (previously called rounds)
+-- Questions table (stores individual questions)
 CREATE TABLE IF NOT EXISTS questions (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    question_set_id INT DEFAULT NULL,
-    round_number INT NOT NULL,
     round_type ENUM('multiple', 'truefalse', 'clickfirst') DEFAULT 'multiple',
     question TEXT,
     option1 TEXT,
     option2 TEXT,
     option3 TEXT,
     option4 TEXT,
+    category ENUM(
+        'general',
+        'science',
+        'history',
+        'sports',
+        'entertainment'
+    ) DEFAULT 'general',
     correct_answer INT CHECK (
         correct_answer BETWEEN 1
         AND 4
     ),
-    timer INT DEFAULT 10,
-    FOREIGN KEY (question_set_id) REFERENCES question_sets(id) ON DELETE CASCADE
+    timer INT DEFAULT 10
+);
+
+-- Junction table for Many-to-Many relationship between qsets and questions
+CREATE TABLE IF NOT EXISTS qset_questions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    question_set_id INT NOT NULL,
+    question_id INT NOT NULL,
+    order_in_set INT DEFAULT 0,
+    FOREIGN KEY (question_set_id) REFERENCES qsets(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+    UNIQUE (question_set_id, question_id),
+    INDEX idx_question_set (question_set_id),
+    INDEX idx_question (question_id)
 );
 
 -- Rooms table (stores active game rooms)
@@ -48,7 +65,7 @@ CREATE TABLE IF NOT EXISTS rooms (
     id INT AUTO_INCREMENT PRIMARY KEY,
     room_code VARCHAR(10) UNIQUE NOT NULL,
     question_set_id INT DEFAULT NULL,
-    FOREIGN KEY (question_set_id) REFERENCES question_sets(id) ON DELETE CASCADE
+    FOREIGN KEY (question_set_id) REFERENCES qsets(id) ON DELETE CASCADE
 );
 
 -- Players table (for game participants associated with a room)

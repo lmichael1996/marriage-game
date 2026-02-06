@@ -32,9 +32,9 @@ handleAjaxRequest($question);
 $searchQuery = $_GET['search'] ?? '';
 $searchType = $_GET['search_type'] ?? 'contains';
 $currentPage = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$questionSetsData = getQuestionSets($question, $searchQuery, $currentPage, $searchType);
-$questionSets = $questionSetsData['sets'];
-$pagination = $questionSetsData['pagination'];
+$questionsData = getAllQuestions($question, $searchQuery, $currentPage, $searchType);
+$questions = $questionsData['questions'];
+$pagination = $questionsData['pagination'];
 
 // Get game settings
 $settingsResult = $admin->getAllSettings();

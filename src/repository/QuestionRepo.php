@@ -9,7 +9,7 @@ class QuestionRepo {
     }
 
     public function create($name, $description = '') {
-        $stmt = $this->conn->prepare("INSERT INTO question_sets (set_name, set_description) VALUES (?, ?)");
+        $stmt = $this->conn->prepare("INSERT INTO qsets (set_name, set_description) VALUES (?, ?)");
         $stmt->bind_param("ss", $name, $description);
         $stmt->execute();
         return $this->conn->insert_id;
@@ -24,7 +24,7 @@ class QuestionRepo {
                    qs.set_description,
                    qs.updated_at,
                    COUNT(r.id) as total_rounds
-            FROM question_sets qs
+            FROM qsets qs
             LEFT JOIN questions r ON r.question_set_id = qs.id
             GROUP BY qs.id, qs.set_name, qs.set_description, qs.updated_at
             ORDER BY qs.set_name ASC
@@ -35,13 +35,13 @@ class QuestionRepo {
     }
 
     public function getTotalCount() {
-        $result = $this->conn->query("SELECT COUNT(*) as total FROM question_sets");
+        $result = $this->conn->query("SELECT COUNT(*) as total FROM qsets");
         $row = $result->fetch_assoc();
         return (int)$row['total'];
     }
 
     public function getById($id) {
-        $stmt = $this->conn->prepare("SELECT * FROM question_sets WHERE id = ?");
+        $stmt = $this->conn->prepare("SELECT * FROM qsets WHERE id = ?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc();
@@ -55,7 +55,7 @@ class QuestionRepo {
     }
 
     public function update($id, $name, $description) {
-        $stmt = $this->conn->prepare("UPDATE question_sets SET set_name = ?, set_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
+        $stmt = $this->conn->prepare("UPDATE qsets SET set_name = ?, set_description = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
         $stmt->bind_param("ssi", $name, $description, $id);
         return $stmt->execute();
     }
@@ -67,7 +67,7 @@ class QuestionRepo {
         $stmt->execute();
 
         // Delete the set
-        $stmt = $this->conn->prepare("DELETE FROM question_sets WHERE id = ?");
+        $stmt = $this->conn->prepare("DELETE FROM qsets WHERE id = ?");
         $stmt->bind_param("i", $id);
         return $stmt->execute();
     }
@@ -77,7 +77,7 @@ class QuestionRepo {
         $stmt = $this->conn->prepare("
             SELECT qs.*,
                    COUNT(r.id) as total_rounds
-            FROM question_sets qs
+            FROM qsets qs
             LEFT JOIN questions r ON r.question_set_id = qs.id
             WHERE qs.set_name LIKE ?
             GROUP BY qs.id, qs.set_name, qs.set_description, qs.updated_at
@@ -235,5 +235,28 @@ class QuestionRepo {
         }
 
         return true;
+    }
+
+    /**
+     * Get all individual questions with pagination
+     */
+    public function getAllQuestions($page = 1, $perPage = 10) {
+        $offset = ($page - 1) * $perPage;
+        $result = $this->conn->query("
+            SELECT id, round_type, question, option1, option2, option3, option4, correct_answer, timer, category
+            FROM questions
+            ORDER BY id DESC
+            LIMIT $perPage OFFSET $offset
+        ");
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
+
+    /**
+     * Get total count of questions
+     */
+    public function getTotalQuestionsCount() {
+        $result = $this->conn->query("SELECT COUNT(*) as total FROM questions");
+        $row = $result->fetch_assoc();
+        return (int)$row['total'];
     }
 }
