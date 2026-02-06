@@ -44,7 +44,9 @@ $activeRound = $game->getActiveRound($questionSetId);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Partita - Marriage Game</title>
+    <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
+    <link rel="stylesheet" href="../assets/css/mobile.css">
     <style>
         .game-container {
             display: grid;

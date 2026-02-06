@@ -94,8 +94,9 @@ function handleAjaxRequest($questionService) {
     }
 }
 
-function getAllQuestions($questionService, $searchQuery = '', $page = 1, $searchType = 'contains') {
-    $questionsResult = $questionService->getAllQuestions($page, 10);
+function getAllQuestions($questionService, $searchQuery = '', $page = 1, $searchType = 'contains', $category = '') {
+    // Recupera TUTTE le domande (non paginate dal DB)
+    $questionsResult = $questionService->getAllQuestions(1, 1000);
 
     if (!is_array($questionsResult) || !isset($questionsResult['questions'])) {
         return [
@@ -105,6 +106,26 @@ function getAllQuestions($questionService, $searchQuery = '', $page = 1, $search
     }
 
     $allQuestions = $questionsResult['questions'];
+
+    // Filtra per categoria
+    if ($category) {
+        $filtered = [];
+        foreach ($allQuestions as $question) {
+            $categoryId = (int)$question['category_id'] ?? 1;
+            // Mappa categoria_id a nome
+            $categoryMap = [
+                1 => 'general',
+                2 => 'science',
+                3 => 'history',
+                4 => 'sports',
+                5 => 'entertainment'
+            ];
+            if (($categoryMap[$categoryId] ?? 'general') === $category) {
+                $filtered[] = $question;
+            }
+        }
+        $allQuestions = $filtered;
+    }
 
     if ($searchQuery) {
         $filtered = [];

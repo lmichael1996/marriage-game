@@ -1,9 +1,1566 @@
 USE marriage_game;
 
-INSERT INTO qsets (set_name, set_description) VALUES ('Animali', 'Animals'), ('Arte', 'Art'), ('Astronomia', 'Astronomy'), ('Cinema', 'Cinema'), ('Cucina', 'Food'), ('Geografia EU', 'Europe'), ('Geografia', 'Geography'), ('Giochi', 'Games'), ('Harry Potter', 'HP'), ('Invenzioni', 'Inventions'), ('Letteratura', 'Literature'), ('Matematica', 'Math'), ('Mitologia', 'Mythology'), ('Musica', 'Music'), ('Personaggi', 'Characters'), ('Quiz', 'Quiz'), ('Scienze', 'Science'), ('Sport', 'Sports'), ('Storia', 'History'), ('Videogiochi', 'Video Games');
-INSERT INTO questions (round_type, question, option1, option2, option3, option4, correct_answer, timer) VALUES 
-('multiple', 'Question 1?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 2?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 3?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 4?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 5?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 6?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 7?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 8?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 9?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 10?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 11?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 12?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 13?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 14?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 15?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 16?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 17?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 18?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 19?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 20?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 21?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 22?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 23?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 24?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 25?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 26?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 27?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 28?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 29?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 30?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 31?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 32?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 33?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 34?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 35?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 36?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 37?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 38?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 39?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 40?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 41?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 42?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 43?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 44?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 45?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 46?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 47?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 48?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 49?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 50?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 51?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 52?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 53?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 54?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 55?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 56?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 57?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 58?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 59?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 60?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 61?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 62?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 63?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 64?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 65?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 66?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 67?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 68?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 69?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 70?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 71?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 72?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 73?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 74?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 75?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 76?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 77?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 78?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 79?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 80?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 81?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 82?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 83?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 84?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 85?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 86?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 87?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 88?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 89?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 90?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 91?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 92?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 93?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 94?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 95?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 96?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 97?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 98?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 99?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 100?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 101?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 102?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 103?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 104?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 105?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 106?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 107?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 108?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 109?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 110?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 111?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 112?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 113?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 114?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 115?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 116?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 117?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 118?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10), ('multiple', 'Question 119?', 'Option A', 'Option B', 'Option C', 'Option D', 1, 10);
+-- Test Data: 119 Questions with realistic content
+INSERT INTO
+    questions (
+        round_type,
+        question,
+        option1,
+        option2,
+        option3,
+        option4,
+        category_id,
+        correct_answer,
+        timer
+    )
+VALUES
+    (
+        'multiple',
+        'Qual è la capitale della Francia?',
+        'Lione',
+        'Parigi',
+        'Marsiglia',
+        'Tolosa',
+        1,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Quanti continenti ci sono sulla Terra?',
+        '5',
+        '6',
+        '7',
+        '8',
+        1,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'Chi ha scritto "Don Chisciotte"?',
+        'Machado',
+        'Cervantes',
+        'Lorca',
+        'Borges',
+        5,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il pianeta più grande del nostro sistema solare?',
+        'Saturno',
+        'Nettuno',
+        'Giove',
+        'Urano',
+        2,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è iniziata la Seconda Guerra Mondiale?',
+        '1937',
+        '1939',
+        '1941',
+        '1945',
+        3,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Quanti lati ha un esagono?',
+        '5',
+        '6',
+        '7',
+        '8',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Chi dipinse la Cappella Sistina?',
+        'Leonardo da Vinci',
+        'Michelangelo',
+        'Raffaello',
+        'Botticelli',
+        5,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è l''elemento chimico più abbondante nell''universo?',
+        'Ossigeno',
+        'Idrogeno',
+        'Elio',
+        'Carbonio',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Quanti anni ha vissuto Gesù?',
+        '30',
+        '33',
+        '35',
+        '40',
+        3,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Chi è l''autore di "1984"?',
+        'Aldous Huxley',
+        'George Orwell',
+        'Ray Bradbury',
+        'Kurt Vonnegut',
+        5,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è la montagna più alta del mondo?',
+        'K2',
+        'Everest',
+        'Kangchenjunga',
+        'Makalu',
+        1,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è caduto il Muro di Berlino?',
+        '1987',
+        '1988',
+        '1989',
+        '1990',
+        3,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'Quanti giorni ha febbraio in un anno bisestile?',
+        '28',
+        '29',
+        '30',
+        '31',
+        1,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Chi ha inventato il telefono?',
+        'Nikola Tesla',
+        'Alexander Graham Bell',
+        'Thomas Edison',
+        'Guglielmo Marconi',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il gas più abbondante nell''atmosfera terrestre?',
+        'Ossigeno',
+        'Azoto',
+        'Anidride carbonica',
+        'Argon',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'In che città si trova la Statua della Libertà?',
+        'Boston',
+        'New York',
+        'Washington',
+        'Philadelphia',
+        1,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Chi era il primo presidente degli Stati Uniti?',
+        'Thomas Jefferson',
+        'George Washington',
+        'Benjamin Franklin',
+        'John Adams',
+        3,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il fiume più lungo del mondo?',
+        'Amazzonia',
+        'Nilo',
+        'Yangtze',
+        'Mississippi',
+        1,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Quanti colori ha l''arcobaleno?',
+        '5',
+        '6',
+        '7',
+        '8',
+        2,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è stata scoperta l''America?',
+        '1490',
+        '1491',
+        '1492',
+        '1493',
+        3,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'Chi scrisse "Orgoglio e Pregiudizio"?',
+        'Charlotte Brontë',
+        'Jane Austen',
+        'Emily Dickinson',
+        'George Eliot',
+        5,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è la velocità della luce?',
+        '300.000 km/s',
+        '200.000 km/s',
+        '400.000 km/s',
+        '500.000 km/s',
+        2,
+        1,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno nacque Albert Einstein?',
+        '1877',
+        '1879',
+        '1881',
+        '1883',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Quanti muscoli ha il corpo umano?',
+        '206',
+        '306',
+        '406',
+        '506',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Chi scrisse "La Divina Commedia"?',
+        'Petrarca',
+        'Dante Alighieri',
+        'Boccaccio',
+        'Malherbe',
+        5,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è la capitale del Giappone?',
+        'Osaka',
+        'Tokio',
+        'Kyoto',
+        'Kobe',
+        1,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'In che continente si trova l''Egitto?',
+        'Asia',
+        'Africa',
+        'Europa',
+        'Oceania',
+        1,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Chi ha scritto "Amleto"?',
+        'Christopher Marlowe',
+        'William Shakespeare',
+        'Ben Jonson',
+        'John Fletcher',
+        5,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Quanti anni ha un decennio?',
+        '5',
+        '10',
+        '15',
+        '20',
+        1,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è stata inventata l''elettricità?',
+        '1747',
+        '1752',
+        '1795',
+        '1831',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Chi ha dipinto "La Notte Stellata"?',
+        'Pablo Picasso',
+        'Vincent van Gogh',
+        'Claude Monet',
+        'Paul Cézanne',
+        5,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è la capitale della Germania?',
+        'Monaco',
+        'Berlino',
+        'Amburgo',
+        'Colonia',
+        1,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è finita la Prima Guerra Mondiale?',
+        '1916',
+        '1917',
+        '1918',
+        '1919',
+        3,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'Quanti giorni ha un anno bisestile?',
+        '364',
+        '365',
+        '366',
+        '367',
+        1,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'Chi è il padre della medicina?',
+        'Ippocrate',
+        'Galeno',
+        'Paracelso',
+        'Vesalio',
+        2,
+        1,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il deserto più grande del mondo?',
+        'Sahara',
+        'Gobi',
+        'Patagonia',
+        'Kalahari',
+        1,
+        1,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è nato Leonardo da Vinci?',
+        '1450',
+        '1452',
+        '1454',
+        '1456',
+        3,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Chi ha scritto "I Promessi Sposi"?',
+        'Ugo Foscolo',
+        'Alessandro Manzoni',
+        'Vincenzo Monti',
+        'Giosuè Carducci',
+        5,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il sistema solare più vicino al nostro?',
+        'Sirio',
+        'Proxima Centauri',
+        'Alfa Centauri',
+        'Vega',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'In che città si trova il Colosseo?',
+        'Napoli',
+        'Roma',
+        'Firenze',
+        'Venezia',
+        3,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Quanti occhi ha un ragno?',
+        '4',
+        '6',
+        '8',
+        '10',
+        2,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'Chi ha scoperto l''America?',
+        'Bartolomeo Diaz',
+        'Cristoforo Colombo',
+        'Vasco da Gama',
+        'Ferdinand Magellano',
+        3,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il metallo più prezioso del mondo?',
+        'Argento',
+        'Oro',
+        'Platino',
+        'Palladio',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è iniziata la Rivoluzione Francese?',
+        '1787',
+        '1788',
+        '1789',
+        '1790',
+        3,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'Chi era il leader dell''Unione Sovietica durante la WWII?',
+        'Lenin',
+        'Stalin',
+        'Krusciov',
+        'Breznev',
+        3,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il libro più venduto di tutti i tempi?',
+        'Il Signore degli Anelli',
+        'La Bibbia',
+        'Harry Potter',
+        'Quarto Stato',
+        5,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Quanti lati ha un triangolo?',
+        '2',
+        '3',
+        '4',
+        '5',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è stata inaugurata la Torre Eiffel?',
+        '1887',
+        '1888',
+        '1889',
+        '1890',
+        3,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'Chi ha inventato il computer moderno?',
+        'Blaise Pascal',
+        'Charles Babbage',
+        'Alan Turing',
+        'John von Neumann',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il paese più piccolo del mondo?',
+        'Monaco',
+        'Liechtenstein',
+        'Vaticano',
+        'San Marino',
+        1,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è nato Michelangelo?',
+        '1472',
+        '1473',
+        '1474',
+        '1475',
+        5,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Chi scrisse "Orgoglio e Pregiudizio"?',
+        'Charlotte Brontë',
+        'Jane Austen',
+        'Emily Dickinson',
+        'George Eliot',
+        5,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Quanti continenti ci sono?',
+        '5',
+        '6',
+        '7',
+        '8',
+        1,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il nome della marea più alta?',
+        'Marea bassa',
+        'Marea alta',
+        'Marea morta',
+        'Marea massima',
+        2,
+        4,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è stato inventato il microscopio?',
+        '1590',
+        '1595',
+        '1600',
+        '1605',
+        2,
+        1,
+        10
+    ),
+    (
+        'multiple',
+        'Chi era il filosofo greco che ha fondato l''Accademia?',
+        'Socrate',
+        'Platone',
+        'Aristotele',
+        'Pitagora',
+        3,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il pianeta con i più anelli?',
+        'Giove',
+        'Saturno',
+        'Urano',
+        'Nettuno',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è iniziata la Guerra Fredda?',
+        '1945',
+        '1947',
+        '1950',
+        '1952',
+        3,
+        1,
+        10
+    ),
+    (
+        'multiple',
+        'Chi ha dipinto "La Persistenza della Memoria"?',
+        'Joan Miró',
+        'Salvador Dalí',
+        'Max Ernst',
+        'André Breton',
+        5,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è la capitale della Spagna?',
+        'Barcellona',
+        'Madrid',
+        'Valencia',
+        'Siviglia',
+        1,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Quanti atomi ha una molecola di acqua?',
+        '2',
+        '3',
+        '4',
+        '5',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è finita la Guerra Fredda?',
+        '1987',
+        '1988',
+        '1989',
+        '1991',
+        3,
+        4,
+        10
+    ),
+    (
+        'multiple',
+        'Chi è considerato il padre della democrazia?',
+        'Pericle',
+        'Solone',
+        'Clistene',
+        'Tucidide',
+        3,
+        1,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il vulcano più attivo del mondo?',
+        'Vesuvio',
+        'Etna',
+        'Kilauea',
+        'Sakurajima',
+        2,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è stata costruita la Grande Muraglia Cinese?',
+        '1200',
+        '1368',
+        '1600',
+        'Durante il VII sec. AC',
+        3,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Chi ha scritto "Il Piccolo Principe"?',
+        'Jules Verne',
+        'Antoine de Saint-Exupéry',
+        'Émile Zola',
+        'Victor Hugo',
+        5,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il gas utilizzato per la fotosintesi?',
+        'Ossigeno',
+        'Anidride carbonica',
+        'Azoto',
+        'Argon',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è stato inventato il telegrafo?',
+        '1820',
+        '1835',
+        '1840',
+        '1845',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Chi era il presidente degli USA durante il Watergate?',
+        'Lyndon B. Johnson',
+        'Richard Nixon',
+        'Gerald Ford',
+        'Jimmy Carter',
+        3,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il vulcano più grande del mondo?',
+        'Etna',
+        'Sakurajima',
+        'Mauna Loa',
+        'Kilauea',
+        2,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è stato scoperto l''ossigeno?',
+        '1770',
+        '1772',
+        '1774',
+        '1776',
+        2,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'Chi ha scritto "Le Miserabilí"?',
+        'Honoré de Balzac',
+        'Victor Hugo',
+        'Alexandre Dumas',
+        'Gustave Flaubert',
+        5,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il numero atomico dell''oro?',
+        '79',
+        '80',
+        '81',
+        '82',
+        2,
+        1,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è stata assassinata Giulio Cesare?',
+        '44 AC',
+        '45 AC',
+        '46 AC',
+        '47 AC',
+        3,
+        1,
+        10
+    ),
+    (
+        'multiple',
+        'Chi ha inventato la lampadina a incandescenza?',
+        'Nikola Tesla',
+        'Thomas Edison',
+        'Joseph Swan',
+        'Humphry Davy',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è la capitale dell''Australia?',
+        'Sydney',
+        'Melbourne',
+        'Canberra',
+        'Brisbane',
+        1,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'Quanti oceani ci sono sulla Terra?',
+        '4',
+        '5',
+        '6',
+        '7',
+        1,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è stato lanciato lo Sputnik 1?',
+        '1955',
+        '1956',
+        '1957',
+        '1958',
+        2,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'Chi era il padre di Alexander Magno?',
+        'Filippo II',
+        'Aminta III',
+        'Archelaio',
+        'Perdicca I',
+        3,
+        1,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il minerale più duro sulla scala di Mohs?',
+        'Zaffiro',
+        'Diamante',
+        'Corindone',
+        'Rubino',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è stato inaugurato il Canale di Suez?',
+        '1867',
+        '1868',
+        '1869',
+        '1870',
+        3,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'Chi ha scritto "Moby Dick"?',
+        'Mark Twain',
+        'Herman Melville',
+        'Jack London',
+        'Robert Louis Stevenson',
+        5,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il punto di ebollizione dell''acqua in Celsius?',
+        '90',
+        '95',
+        '100',
+        '105',
+        2,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è stato costruito il Big Ben?',
+        '1855',
+        '1859',
+        '1863',
+        '1867',
+        3,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Chi era l''imperatore romano durante il grande incendio di Roma?',
+        'Tiberio',
+        'Caligola',
+        'Claudio',
+        'Nerone',
+        3,
+        4,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è la capitale della Grecia?',
+        'Salonicco',
+        'Atene',
+        'Patrasso',
+        'Volos',
+        1,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Quanti anni ha un secolo?',
+        '50',
+        '75',
+        '100',
+        '125',
+        1,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è stato inventato il cinematografo?',
+        '1892',
+        '1893',
+        '1894',
+        '1895',
+        5,
+        4,
+        10
+    ),
+    (
+        'multiple',
+        'Chi ha scoperto la radioattività?',
+        'Pierre Curie',
+        'Marie Curie',
+        'Henri Becquerel',
+        'Ernest Rutherford',
+        2,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il peso atomico del carbonio?',
+        '12',
+        '13',
+        '14',
+        '15',
+        2,
+        1,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è stata abolita la schiavitù negli USA?',
+        '1860',
+        '1861',
+        '1862',
+        '1863',
+        3,
+        4,
+        10
+    ),
+    (
+        'multiple',
+        'Chi ha scritto "Fiore e il Leone"?',
+        'Leo Tolstoi',
+        'Lev Tolstoj',
+        'Dostoevskij',
+        'Turgenev',
+        5,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il mammifero più grande del mondo?',
+        'Elefante africano',
+        'Balenottera azzurra',
+        'Giraffa',
+        'Ippopotamo',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è iniziato il Rinascimento italiano?',
+        '1300',
+        '1350',
+        '1400',
+        '1450',
+        3,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'Chi era il dittatore della Germania durante la WWII?',
+        'Hindenburg',
+        'Adolf Hitler',
+        'Goring',
+        'Goebbels',
+        3,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è la capitale della Norvegia?',
+        'Bergen',
+        'Oslo',
+        'Stavanger',
+        'Trondheim',
+        1,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Quanti lati ha un decagono?',
+        '8',
+        '9',
+        '10',
+        '11',
+        2,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è stato inventato il telefono cellulare?',
+        '1973',
+        '1980',
+        '1983',
+        '1985',
+        2,
+        1,
+        10
+    ),
+    (
+        'multiple',
+        'Chi ha scoperto il vaccino contro il vaiolo?',
+        'Louis Pasteur',
+        'Edward Jenner',
+        'Jonas Salk',
+        'Albert Sabin',
+        2,
+        2,
+        10
+    ),
+    (
+        'multiple',
+        'Qual è il numero di elementi nella tavola periodica?',
+        '104',
+        '108',
+        '118',
+        '120',
+        2,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'In che anno è stato dichiarato lo Stato di Israele?',
+        '1946',
+        '1947',
+        '1948',
+        '1949',
+        3,
+        3,
+        10
+    ),
+    (
+        'multiple',
+        'Chi ha scritto "Viaggio al centro della Terra"?',
+        'Arthur Conan Doyle',
+        'Jules Verne',
+        'H.G. Wells',
+        'Robert Louis Stevenson',
+        5,
+        2,
+        10
+    );
 
-INSERT INTO qset_questions (question_set_id, question_id, order_in_set) VALUES (1, 1, 1), (1, 2, 2), (1, 3, 3), (1, 4, 4), (1, 5, 5), (1, 6, 6), (2, 7, 1), (2, 8, 2), (2, 9, 3), (2, 10, 4), (2, 11, 5), (2, 12, 6), (3, 13, 1), (3, 14, 2), (3, 15, 3), (3, 16, 4), (3, 17, 5), (3, 18, 6), (4, 19, 1), (4, 20, 2), (4, 21, 3), (4, 22, 4), (4, 23, 5), (4, 24, 6), (5, 25, 1), (5, 26, 2), (5, 27, 3), (5, 28, 4), (5, 29, 5), (5, 30, 6), (6, 31, 1), (6, 32, 2), (6, 33, 3), (6, 34, 4), (6, 35, 5), (6, 36, 6), (7, 37, 1), (7, 38, 2), (7, 39, 3), (7, 40, 4), (7, 41, 5), (7, 42, 6), (8, 43, 1), (8, 44, 2), (8, 45, 3), (8, 46, 4), (8, 47, 5), (8, 48, 6), (9, 49, 1), (9, 50, 2), (9, 51, 3), (9, 52, 4), (9, 53, 5), (9, 54, 6), (10, 55, 1), (10, 56, 2), (10, 57, 3), (10, 58, 4), (10, 59, 5), (10, 60, 6), (11, 61, 1), (11, 62, 2), (11, 63, 3), (11, 64, 4), (11, 65, 5), (11, 66, 6), (12, 67, 1), (12, 68, 2), (12, 69, 3), (12, 70, 4), (12, 71, 5), (12, 72, 6), (13, 73, 1), (13, 74, 2), (13, 75, 3), (13, 76, 4), (13, 77, 5), (13, 78, 6), (14, 79, 1), (14, 80, 2), (14, 81, 3), (14, 82, 4), (14, 83, 5), (14, 84, 6), (15, 85, 1), (15, 86, 2), (15, 87, 3), (15, 88, 4), (15, 89, 5), (15, 90, 6), (16, 91, 1), (16, 92, 2), (16, 93, 3), (16, 94, 4), (16, 95, 5), (16, 96, 6), (17, 97, 1), (17, 98, 2), (17, 99, 3), (17, 100, 4), (17, 101, 5), (17, 102, 6), (18, 103, 1), (18, 104, 2), (18, 105, 3), (18, 106, 4), (18, 107, 5), (18, 108, 6), (19, 109, 1), (19, 110, 2), (19, 111, 3), (19, 112, 4), (19, 113, 5), (19, 114, 6), (20, 115, 1), (20, 116, 2), (20, 117, 3), (20, 118, 4), (20, 119, 5);
+-- Test Data: True/False Questions (20 domande)
+INSERT INTO
+    questions (
+        round_type,
+        question,
+        option1,
+        option2,
+        category_id,
+        correct_answer,
+        timer
+    )
+VALUES
+    (
+        'truefalse',
+        'La Terra è il pianeta più vicino al Sole.',
+        'Vero',
+        'Falso',
+        2,
+        2,
+        8
+    ),
+    (
+        'truefalse',
+        'L\'acqua bolle a 100 gradi Celsius a livello del mare.',
+        'Vero',
+        'Falso',
+        2,
+        1,
+        8
+    ),
+    (
+        'truefalse',
+        'La Grande Muraglia Cinese è visibile dallo spazio a occhio nudo.',
+        'Vero',
+        'Falso',
+        3,
+        2,
+        8
+    ),
+    (
+        'truefalse',
+        'Napoleone era francese.',
+        'Vero',
+        'Falso',
+        3,
+        1,
+        8
+    ),
+    (
+        'truefalse',
+        'Un anno luce misura il tempo.',
+        'Vero',
+        'Falso',
+        2,
+        2,
+        8
+    ),
+    (
+        'truefalse',
+        'La velocità della luce è maggiore della velocità del suono.',
+        'Vero',
+        'Falso',
+        2,
+        1,
+        8
+    ),
+    (
+        'truefalse',
+        'Roma è la capitale dell\'Italia.',
+        'Vero',
+        'Falso',
+        3,
+        1,
+        8
+    ),
+    (
+        'truefalse',
+        'Il diamante è la sostanza naturale più dura sulla Terra.',
+        'Vero',
+        'Falso',
+        2,
+        1,
+        8
+    ),
+    (
+        'truefalse',
+        'Il calcio è uno sport con 11 giocatori per squadra.',
+        'Vero',
+        'Falso',
+        4,
+        1,
+        8
+    ),
+    (
+        'truefalse',
+        'Un decennio equivale a 10 anni.',
+        'Vero',
+        'Falso',
+        1,
+        1,
+        8
+    ),
+    (
+        'truefalse',
+        'Il Polo Nord è il punto più settentrionale della Terra.',
+        'Vero',
+        'Falso',
+        3,
+        1,
+        8
+    ),
+    (
+        'truefalse',
+        'La fotosintesi è un processo che assorbe anidride carbonica.',
+        'Vero',
+        'Falso',
+        2,
+        1,
+        8
+    ),
+    (
+        'truefalse',
+        'Il basket è stato inventato in Giappone.',
+        'Vero',
+        'Falso',
+        4,
+        2,
+        8
+    ),
+    (
+        'truefalse',
+        'Mona Lisa è dipinta su tela.',
+        'Vero',
+        'Falso',
+        5,
+        2,
+        8
+    ),
+    (
+        'truefalse',
+        'La piramide di Cheope è in Egitto.',
+        'Vero',
+        'Falso',
+        3,
+        1,
+        8
+    ),
+    (
+        'truefalse',
+        'Il computer è stato inventato nel XIX secolo.',
+        'Vero',
+        'Falso',
+        3,
+        2,
+        8
+    ),
+    (
+        'truefalse',
+        'Il colore blu è il colore preferito dalla maggior parte degli umani.',
+        'Vero',
+        'Falso',
+        1,
+        1,
+        8
+    ),
+    (
+        'truefalse',
+        'L\'ossigeno è l\'elemento più abbondante nell\'atmosfera terrestre.',
+        'Vero',
+        'Falso',
+        2,
+        2,
+        8
+    ),
+    (
+        'truefalse',
+        'Il Titanic affondò nel 1912.',
+        'Vero',
+        'Falso',
+        3,
+        1,
+        8
+    ),
+    (
+        'truefalse',
+        'Usain Bolt è un nuotatore olimpico.',
+        'Vero',
+        'Falso',
+        4,
+        2,
+        8
+    );
 
-INSERT INTO game_settings (setting_key, setting_value) VALUES ('clickfirst', 50), ('multiple_1', 25), ('multiple_2', 24), ('multiple_3', 23), ('multiple_4', 22), ('multiple_5', 21), ('multiple_6', 20), ('multiple_7', 19), ('multiple_8', 18), ('multiple_9', 17), ('multiple_10', 16), ('multiple_11', 15), ('multiple_12', 14), ('multiple_13', 13), ('multiple_14', 12), ('multiple_15', 11), ('multiple_16', 10), ('truefalse_1', 20), ('truefalse_2', 15), ('truefalse_3', 10), ('truefalse_4', 5);
+-- Test Data: Click First Questions (20 domande)
+INSERT INTO
+    questions (
+        round_type,
+        question,
+        option1,
+        option2,
+        option3,
+        option4,
+        category_id,
+        correct_answer,
+        timer
+    )
+VALUES
+    (
+        'clickfirst',
+        'Clicca sul numero più grande:',
+        '42',
+        '157',
+        '89',
+        '203',
+        1,
+        4,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sulla capitale più grande per popolazione:',
+        'Berlino',
+        'Parigi',
+        'Londra',
+        'Tokyo',
+        3,
+        4,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sul pianeta più grande del Sistema Solare:',
+        'Saturno',
+        'Giove',
+        'Urano',
+        'Nettuno',
+        2,
+        2,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sullo sport più popolare nel mondo:',
+        'Pallavolo',
+        'Tennis',
+        'Calcio',
+        'Badminton',
+        4,
+        3,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sulla montagna più alta del mondo:',
+        'K2',
+        'Monte Bianco',
+        'Everest',
+        'Kilimanjaro',
+        3,
+        3,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sull\'elemento chimico con il simbolo Au:',
+        'Argento',
+        'Oro',
+        'Alluminio',
+        'Argo',
+        2,
+        2,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sul libro più venduto nel mondo:',
+        'Harry Potter',
+        'Il Signore degli Anelli',
+        'La Bibbia',
+        'Don Chisciotte',
+        3,
+        3,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sul colore che rappresenta il ferro nella tavola periodica:',
+        'Blu',
+        'Rosso',
+        'Verde',
+        'Grigio',
+        2,
+        2,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sul regista di "Pulp Fiction":',
+        'Scorsese',
+        'Fincher',
+        'Tarantino',
+        'Nolan',
+        5,
+        3,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sul giocatore che ha vinto più Palloni d\'Oro:',
+        'Pelé',
+        'Maradona',
+        'Messi',
+        'Ronaldo',
+        4,
+        3,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sulla città con la popolazione più grande:',
+        'Mumbai',
+        'Shanghai',
+        'Tokyo',
+        'Delhi',
+        3,
+        3,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sull\'oceano più grande:',
+        'Atlantico',
+        'Indiano',
+        'Pacifico',
+        'Artico',
+        3,
+        3,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sulla velocità della luce in km/s:',
+        '186',
+        '299',
+        '350',
+        '250',
+        2,
+        2,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sul compositore di "La Nona Sinfonia":',
+        'Mozart',
+        'Bach',
+        'Beethoven',
+        'Vivaldi',
+        5,
+        3,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sulla squadra di calcio con più Champions League:',
+        'AC Milan',
+        'Bayern Monaco',
+        'Liverpool',
+        'Real Madrid',
+        4,
+        4,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sul numero primo più grande tra questi:',
+        '17',
+        '19',
+        '20',
+        '18',
+        1,
+        2,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sul paese che ha il più alto PIL del mondo:',
+        'Cina',
+        'Giappone',
+        'USA',
+        'Germania',
+        1,
+        3,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sul peso atomico dell\'oro:',
+        '187',
+        '197',
+        '207',
+        '217',
+        2,
+        2,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sulla nota musicale più alta:',
+        'Do',
+        'Mi',
+        'Si',
+        'La',
+        5,
+        3,
+        5
+    ),
+    (
+        'clickfirst',
+        'Clicca sul vincitore della prima Coppa del Mondo FIFA:',
+        'Brasile',
+        'Italia',
+        'Germania',
+        'Uruguay',
+        4,
+        4,
+        5
+    );

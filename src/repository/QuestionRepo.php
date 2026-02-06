@@ -243,9 +243,11 @@ class QuestionRepo {
     public function getAllQuestions($page = 1, $perPage = 10) {
         $offset = ($page - 1) * $perPage;
         $result = $this->conn->query("
-            SELECT id, round_type, question, option1, option2, option3, option4, correct_answer, timer, category
-            FROM questions
-            ORDER BY id DESC
+            SELECT q.id, q.round_type, q.question, q.option1, q.option2, q.option3, q.option4, q.correct_answer, q.timer, q.category_id,
+                   c.category_name, c.color
+            FROM questions q
+            LEFT JOIN questions_categories c ON q.category_id = c.id
+            ORDER BY q.id DESC
             LIMIT $perPage OFFSET $offset
         ");
         return $result->fetch_all(MYSQLI_ASSOC);

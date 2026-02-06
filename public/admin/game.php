@@ -181,7 +181,7 @@
                 </label>
             </div>
         </div>
-        <div class="form-actions">
+        <div class="button-container">
             <button type="submit" class="btn btn-primary">Salva Impostazioni</button>
         </div>
     </form>

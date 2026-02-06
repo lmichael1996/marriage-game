@@ -27,8 +27,9 @@ handleAjaxRequest($question);
 // Get data
 $searchQuery = $_GET['search'] ?? '';
 $searchType = $_GET['search_type'] ?? 'contains';
+$category = $_GET['category'] ?? '';
 $currentPage = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$questionsData = getAllQuestions($question, $searchQuery, $currentPage, $searchType);
+$questionsData = getAllQuestions($question, $searchQuery, $currentPage, $searchType, $category);
 $questions = $questionsData['questions'];
 $pagination = $questionsData['pagination'];
 
@@ -41,7 +42,9 @@ $gameSettings = $settingsResult['success'] ? $settingsResult['settings'] : [];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Marriage Game</title>
+    <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
+    <link rel="stylesheet" href="../assets/css/mobile.css">
 </head>
 <body>
     <div class="container">
@@ -55,10 +58,10 @@ $gameSettings = $settingsResult['success'] ? $settingsResult['settings'] : [];
         <!-- Navigation Menu -->
         <div class="admin-nav">
             <a href="#sets" class="nav-item active" data-tab="sets">
-                <span class="nav-label">🎮 Partita</span>
+                <span class="nav-label">❓ Domande</span>
             </a>
             <a href="#settings" class="nav-item" data-tab="settings">
-                <span class="nav-label">⚙️ Gestione Partita</span>
+                <span class="nav-label">🎮 Partita</span>
             </a>
             <a href="#general" class="nav-item" data-tab="general">
                 <span class="nav-label">ℹ️ Impostazioni Generali</span>
@@ -67,17 +70,17 @@ $gameSettings = $settingsResult['success'] ? $settingsResult['settings'] : [];
 
         <!-- Tab: Partita -->
         <div id="tab-sets" class="tab-content active">
-            <?php include 'admin/games.php'; ?>
+            <?php include 'admin/questions.php'; ?>
         </div>
 
         <!-- Tab: Gestione Partita -->
         <div id="tab-settings" class="tab-content">
-            <?php include 'admin/game_settings.php'; ?>
+            <?php include 'admin/game.php'; ?>
         </div>
 
         <!-- Tab: Impostazioni Generali -->
         <div id="tab-general" class="tab-content">
-            <?php include 'admin/general_settings.php'; ?>
+            <?php include 'admin/settings.php'; ?>
         </div>
     </div>
 

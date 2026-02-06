@@ -1,0 +1,22 @@
+/* BASE STYLES - Body & Reset */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: url("../image/background.jpg") no-repeat center center fixed;
+  background-size: contain;
+  color: #000;
+  line-height: 1.5;
+  min-height: 100vh;
+  padding: 20px;
+}

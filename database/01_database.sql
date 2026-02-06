@@ -24,6 +24,13 @@ CREATE TABLE IF NOT EXISTS qsets (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+-- Categories table (for question categorization and color coding)
+CREATE TABLE IF NOT EXISTS questions_categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    category_name VARCHAR(50) UNIQUE NOT NULL,
+    color VARCHAR(20) DEFAULT '#6c757d'
+);
+
 -- Questions table (stores individual questions)
 CREATE TABLE IF NOT EXISTS questions (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -33,18 +40,17 @@ CREATE TABLE IF NOT EXISTS questions (
     option2 TEXT,
     option3 TEXT,
     option4 TEXT,
-    category ENUM(
-        'general',
-        'science',
-        'history',
-        'sports',
-        'entertainment'
-    ) DEFAULT 'general',
+    category_id INT DEFAULT 1,
     correct_answer INT CHECK (
         correct_answer BETWEEN 1
         AND 4
     ),
-    timer INT DEFAULT 10
+    timer INT DEFAULT 10,
+    FOREIGN KEY (category_id) REFERENCES questions_categories(id) ON DELETE
+    SET
+        DEFAULT,
+        INDEX idx_category (category_id),
+        INDEX idx_round_type (round_type)
 );
 
 -- Junction table for Many-to-Many relationship between qsets and questions

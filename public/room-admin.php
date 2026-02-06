@@ -74,8 +74,10 @@ $gameOver = !$activeRound && !$nextQuestion;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestione Partita - Marriage Game</title>
+    <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
     <link rel="stylesheet" href="../assets/css/game_admin.css">
+    <link rel="stylesheet" href="../assets/css/mobile.css">
 </head>
 <body>
     <div class="container">
