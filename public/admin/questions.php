@@ -259,6 +259,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
+            // Validazione risposte non vuote
+            const answer1 = document.getElementById('new-answer1').value.trim();
+            const answer2 = document.getElementById('new-answer2').value.trim();
+
+            if (typeSelected === 'truefalse') {
+                if (!answer1 || !answer2) {
+                    e.preventDefault();
+                    alert('Tutte le risposte sono obbligatorie');
+                    return;
+                }
+            } else if (typeSelected === 'multiple') {
+                const answer3 = document.getElementById('new-answer3').value.trim();
+                const answer4 = document.getElementById('new-answer4').value.trim();
+
+                if (!answer1 || !answer2 || !answer3 || !answer4) {
+                    e.preventDefault();
+                    alert('Tutte le risposte sono obbligatorie');
+                    return;
+                }
+            }
+
             e.preventDefault();
             const formData = new FormData(formNewQuestion);
             formData.append('action', 'add_question');
@@ -391,6 +412,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 alert('Seleziona il tipo di domanda');
                 return;
+            }
+
+            // Validazione risposte non vuote
+            const answer1 = document.getElementById('edit-answer1').value.trim();
+            const answer2 = document.getElementById('edit-answer2').value.trim();
+
+            if (typeSelected === 'truefalse') {
+                if (!answer1 || !answer2) {
+                    e.preventDefault();
+                    alert('Tutte le risposte sono obbligatorie');
+                    return;
+                }
+            } else if (typeSelected === 'multiple') {
+                const answer3 = document.getElementById('edit-answer3').value.trim();
+                const answer4 = document.getElementById('edit-answer4').value.trim();
+
+                if (!answer1 || !answer2 || !answer3 || !answer4) {
+                    e.preventDefault();
+                    alert('Tutte le risposte sono obbligatorie');
+                    return;
+                }
             }
 
             e.preventDefault();
