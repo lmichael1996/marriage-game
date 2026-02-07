@@ -609,6 +609,8 @@
   font-weight: 600;
   transition: all 0.2s;
   color: white;
+  display: inline-block;
+  user-select: none;
 }
 
 .btn-icon:hover {

@@ -20,3 +20,13 @@ body {
   min-height: 100vh;
   padding: 20px;
 }
+
+/* Button Reset & Default */
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+}
