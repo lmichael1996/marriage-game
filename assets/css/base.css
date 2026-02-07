@@ -19,30 +19,4 @@ body {
   line-height: 1.5;
   min-height: 100vh;
   padding: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Per pagine di login e landing */
-body.login-page,
-body.landing-page {
-  background: #fafafa;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  margin: 0;
-  font-weight: 600;
-}
-
-input,
-textarea,
-select,
-button {
-  font: inherit;
 }

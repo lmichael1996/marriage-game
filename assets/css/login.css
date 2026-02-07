@@ -2,9 +2,16 @@
    MARRIAGE GAME - LOGIN CSS (MINIMAL STYLE)
    ============================================ */
 
-/* Override background for login pages */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
-  background: #fafafa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* CONTAINER */
@@ -14,10 +21,9 @@ body {
   padding: 30px;
 }
 
-/* BOXES - LOGIN & LANDING */
-.login-box,
-.landing-content {
-  max-width: 600px;
+/* LOGIN BOX */
+.login-box {
+  max-width: 400px;
   margin: 0 auto;
   background: #fff;
   padding: 40px;
@@ -26,16 +32,10 @@ body {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
-.login-box {
-  max-width: 400px;
-}
-
-/* HEADINGS */
-.login-box h1,
-.landing-content h1 {
+.login-box h1 {
   color: #000;
   text-align: center;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   font-size: 1.8em;
   font-weight: 600;
 }
@@ -46,18 +46,6 @@ body {
   margin-bottom: 30px;
   font-size: 1em;
   font-weight: 400;
-}
-
-.landing-content h1 {
-  font-size: 2.2em;
-  margin-bottom: 15px;
-}
-
-.landing-content p {
-  font-size: 1em;
-  color: #666;
-  line-height: 1.6;
-  margin: 15px 0;
 }
 
 /* FORMS */
@@ -103,10 +91,7 @@ body {
 }
 
 /* BUTTONS */
-.btn,
-form button[type="submit"],
-.button-group a,
-.button-group button {
+.btn {
   padding: 12px 28px;
   border: 2px solid #333;
   font-size: 1em;
@@ -114,31 +99,24 @@ form button[type="submit"],
   cursor: pointer;
   font-family: inherit;
   transition: all 0.3s ease;
+  display: inline-block;
+  background: #fff;
+  color: #000;
   border-radius: 6px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   user-select: none;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-}
-
-.btn {
-  background: #fff;
-  color: #000;
   letter-spacing: 0.5px;
+  text-align: center;
 }
 
-.btn:hover,
-.button-group a:hover {
+.btn:hover {
   background: #f0f0f0;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
   transform: translateY(-2px);
   border-color: #222;
 }
 
-.btn:active,
-.button-group a:active,
-.button-group button:active {
+.btn:active {
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -154,17 +132,52 @@ form button[type="submit"],
   background: #222;
   border-color: #222;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
 }
 
-/* FORM BUTTONS */
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* FORM BUTTONS - Full Width */
 form button[type="submit"] {
   width: 100%;
   display: block;
   margin-top: 10px;
+  padding: 12px 28px;
   border: 2px solid #333;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  background: #000;
+  color: #fff;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  user-select: none;
+  text-align: center;
 }
 
-/* ERROR & MESSAGES */
+form button[type="submit"]:hover {
+  background: #222;
+  border-color: #222;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+form button[type="submit"]:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.btn-block {
+  width: 100%;
+  display: block;
+}
+
+/* ERROR MESSAGE */
 .error {
   background: #fff5f5;
   color: #e74c3c;
@@ -180,14 +193,7 @@ form button[type="submit"] {
   font-weight: 600;
 }
 
-/* LOGIN NAV */
-.login-nav {
-  margin-top: 20px;
-  text-align: center;
-  padding-top: 15px;
-  border-top: 1px solid #e0e0e0;
-}
-
+/* LOGIN NAVIGATION LINKS */
 .login-nav-link {
   color: #666;
   text-decoration: none;
@@ -199,16 +205,25 @@ form button[type="submit"] {
   color: #000;
 }
 
-/* HELPER TEXT */
-.form-helper-text,
-.login-nav p {
-  color: #666;
-  font-size: 0.85em;
+/* LOGIN NAVIGATION CONTAINER */
+.login-nav {
+  margin-top: 20px;
+  text-align: center;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
 }
 
 .login-nav p {
   margin: 0;
   font-size: 0.9em;
+  color: #666;
+}
+
+/* HELPER TEXT */
+.form-helper-text {
+  color: #666;
+  font-size: 0.85em;
+  margin-top: 5px;
 }
 
 /* HIDDEN */
@@ -216,7 +231,32 @@ form button[type="submit"] {
   display: none;
 }
 
-/* BUTTON GROUP (LANDING) */
+/* LANDING PAGE STYLES */
+.landing-content {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 50px 40px;
+  border: 1px solid #333;
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.landing-content h1 {
+  font-size: 2.2em;
+  color: #000;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.landing-content p {
+  font-size: 1em;
+  color: #666;
+  line-height: 1.6;
+  margin: 15px 0;
+}
+
 .button-group {
   display: flex;
   gap: 15px;
@@ -227,12 +267,26 @@ form button[type="submit"] {
 
 .button-group a,
 .button-group button {
-  background: #fff;
-  color: #000;
+  padding: 12px 30px;
   border: 1px solid #333;
   font-size: 0.95em;
   font-weight: 500;
-  padding: 12px 30px;
+  text-decoration: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.button-group a {
+  background: #fff;
+  color: #000;
+  display: inline-block;
+}
+
+.button-group a:hover {
+  background: #f5f5f5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .button-group button {
@@ -246,28 +300,27 @@ form button[type="submit"] {
   background: #333;
   border-color: #333;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-  transform: translateY(-2px);
 }
 
-/* ========== RESPONSIVE ========== */
-
+/* RESPONSIVE */
 @media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+
   .container {
     padding: 15px;
   }
 
-  .login-box,
-  .landing-content {
+  .login-box {
     padding: 30px 20px;
+    margin: 10px;
+    max-width: 100%;
   }
 
-  .login-box h1,
-  .landing-content h1 {
+  .login-box h1 {
     font-size: 1.5em;
-  }
-
-  .landing-content h1 {
-    font-size: 1.8em;
+    margin-bottom: 8px;
   }
 
   .login-box h2 {
@@ -289,10 +342,7 @@ form button[type="submit"] {
     font-size: 0.95em;
   }
 
-  .btn,
-  form button[type="submit"],
-  .button-group a,
-  .button-group button {
+  .btn {
     padding: 11px 20px;
     font-size: 0.9em;
   }
@@ -303,6 +353,14 @@ form button[type="submit"] {
     font-size: 0.9em;
   }
 
+  .landing-content {
+    padding: 40px 30px;
+  }
+
+  .landing-content h1 {
+    font-size: 1.8em;
+  }
+
   .landing-content p {
     font-size: 0.95em;
   }
@@ -311,15 +369,17 @@ form button[type="submit"] {
     gap: 12px;
     margin-top: 25px;
   }
+
+  .button-group a,
+  .button-group button {
+    padding: 11px 20px;
+    font-size: 0.9em;
+  }
 }
 
 @media (max-width: 480px) {
   .login-box {
     padding: 25px 15px;
-  }
-
-  .landing-content {
-    padding: 30px 20px;
   }
 
   .login-box h1 {
@@ -330,24 +390,29 @@ form button[type="submit"] {
     font-size: 0.9em;
   }
 
-  .landing-content h1 {
-    font-size: 1.4em;
-  }
-
-  .landing-content p {
-    font-size: 0.9em;
-  }
-
   .form-group input {
     padding: 10px 12px;
     font-size: 16px;
   }
 
-  .btn,
-  form button[type="submit"],
-  .button-group a,
-  .button-group button {
+  .btn {
     padding: 10px 18px;
+    font-size: 0.9em;
+  }
+
+  .btn-block {
+    width: 100%;
+  }
+
+  .landing-content {
+    padding: 30px 20px;
+  }
+
+  .landing-content h1 {
+    font-size: 1.4em;
+  }
+
+  .landing-content p {
     font-size: 0.9em;
   }
 
@@ -364,16 +429,16 @@ form button[type="submit"] {
 }
 
 @media (max-width: 360px) {
-  .container {
+  body {
     padding: 10px;
+  }
+
+  .container {
+    max-width: 100%;
   }
 
   .login-box {
     padding: 20px 12px;
-  }
-
-  .landing-content {
-    padding: 20px 15px;
   }
 
   .login-box h1 {
@@ -384,14 +449,6 @@ form button[type="submit"] {
   .login-box h2 {
     font-size: 0.85em;
     margin-bottom: 15px;
-  }
-
-  .landing-content h1 {
-    font-size: 1.2em;
-  }
-
-  .landing-content p {
-    font-size: 0.85em;
   }
 
   .form-group {
@@ -408,11 +465,20 @@ form button[type="submit"] {
     font-size: 0.9em;
   }
 
-  .btn,
-  form button[type="submit"],
-  .button-group a,
-  .button-group button {
+  .btn {
     padding: 10px 15px;
+    font-size: 0.9em;
+  }
+
+  .landing-content {
+    padding: 20px 15px;
+  }
+
+  .landing-content h1 {
+    font-size: 1.2em;
+  }
+
+  .landing-content p {
     font-size: 0.85em;
   }
 
@@ -425,5 +491,6 @@ form button[type="submit"] {
   .button-group button {
     width: 100%;
     padding: 10px;
+    font-size: 0.85em;
   }
 }
