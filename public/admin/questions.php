@@ -163,6 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <input type="hidden" name="question_id" value="${questionId}">
                 `;
                 document.body.appendChild(form);
+                alert('✓ Domanda eliminata con successo!');
                 form.submit();
             };
         }
@@ -272,6 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Chiudi modal e ricarica la pagina
                 modalOverlay.style.display = 'none';
                 formNewQuestion.reset();
+                alert('✓ Domanda aggiunta con successo!');
                 location.reload();
             })
             .catch(error => {
@@ -402,6 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.text())
             .then(data => {
                 console.log('Response:', data);
+                alert('✓ Domanda modificata con successo!');
                 modalEditQuestion.style.display = 'none';
                 location.reload();
             })

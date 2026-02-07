@@ -247,7 +247,7 @@ class QuestionRepo {
                    c.category_name, c.color
             FROM questions q
             LEFT JOIN question_categories c ON q.category_id = c.id
-            ORDER BY q.id DESC
+            ORDER BY q.question ASC
             LIMIT $perPage OFFSET $offset
         ");
         return $result->fetch_all(MYSQLI_ASSOC);
@@ -337,7 +337,7 @@ class QuestionRepo {
         $answer2 = $data['answer2'] ?? '';
         $answer3 = $data['answer3'] ?? '';
         $answer4 = $data['answer4'] ?? '';
-        $correctAnswer = $data['correct_answer'] ?? 1;
+        $correctAnswer = intval($data['correct_answer'] ?? 1);
 
         $stmt = $this->conn->prepare("
             UPDATE questions
@@ -347,7 +347,7 @@ class QuestionRepo {
         ");
 
         $stmt->bind_param(
-            "ssiiiiiiiii",
+            "ssiissssii",
             $question, $type, $categoryId, $timer,
             $answer1, $answer2, $answer3, $answer4, $correctAnswer, $id
         );
