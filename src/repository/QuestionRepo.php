@@ -375,5 +375,57 @@ class QuestionRepo {
         ");
         return $result->fetch_all(MYSQLI_ASSOC);
     }
+
+    /**
+     * Add a new category
+     */
+    public function addCategory($name, $color) {
+        $stmt = $this->conn->prepare("
+            INSERT INTO question_categories (category_name, color)
+            VALUES (?, ?)
+        ");
+        $stmt->bind_param("ss", $name, $color);
+        if ($stmt->execute()) {
+            return $this->conn->insert_id;
+        }
+        return false;
+    }
+
+    /**
+     * Update a category
+     */
+    public function updateCategory($id, $name, $color) {
+        $stmt = $this->conn->prepare("
+            UPDATE question_categories
+            SET category_name = ?, color = ?
+            WHERE id = ?
+        ");
+        $stmt->bind_param("ssi", $name, $color, $id);
+        return $stmt->execute();
+    }
+
+    /**
+     * Delete a category
+     * @return array|bool - Returns array with message or bool on success
+     */
+    public function deleteCategory($id) {
+        // Non permettere eliminazione della categoria 1 (Generale)
+        if ($id == 1) {
+            return false;
+        }
+
+        // STEP 1: Sposta tutte le domande della categoria da eliminare a categoria id=1
+        $updateStmt = $this->conn->prepare("UPDATE questions SET category_id = 1 WHERE category_id = ?");
+        $updateStmt->bind_param("i", $id);
+        if (!$updateStmt->execute()) {
+            return false;
+        }
+        $updateStmt->close();
+
+        // STEP 2: Elimina la categoria
+        $stmt = $this->conn->prepare("DELETE FROM question_categories WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        return $stmt->execute();
+    }
 }
 

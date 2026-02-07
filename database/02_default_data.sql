@@ -4,20 +4,23 @@
 USE marriage_game;
 
 -- Insert default admin user
-INSERT INTO users (username, user_password)
-VALUES ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
+INSERT INTO
+    users (username, user_password)
+VALUES
+    (
+        'admin',
+        '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'
+    );
 
 -- Insert default question categories
-INSERT INTO question_categories (category_name, color)
-VALUES 
-    ('Generale', '#ecf0f1'),
-    ('Scienza', '#e3f2fd'),
-    ('Storia', '#f3e5f5'),
-    ('Sport', '#fff3e0'),
-    ('Intrattenimento', '#fce4ec');
+INSERT INTO
+    question_categories (category_name, color)
+VALUES
+    ('Generale', '#ecf0f1');
 
 -- Insert default game settings
-INSERT INTO game_settings (setting_key, setting_value)
+INSERT INTO
+    game_settings (setting_key, setting_value)
 VALUES
     ('min_players', 1),
     ('max_players', 50),

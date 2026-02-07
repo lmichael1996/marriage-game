@@ -75,6 +75,22 @@ switch ($endpoint) {
         handleGetQuestion($question);
         break;
 
+    case 'add_category':
+        handleAddCategory($question);
+        break;
+
+    case 'update_category':
+        handleUpdateCategory($question);
+        break;
+
+    case 'get_categories':
+        handleGetCategories($question);
+        break;
+
+    case 'delete_category':
+        handleDeleteCategory($question);
+        break;
+
     default:
         http_response_code(404);
         echo json_encode([
@@ -695,6 +711,165 @@ function handleGetQuestion($question) {
         echo json_encode([
             'success' => true,
             'question' => $result
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleAddCategory($question) {
+    try {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Metodo non consentito'
+            ]);
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $name = $data['name'] ?? null;
+        $color = $data['color'] ?? null;
+
+        if (!$name || !$color) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Nome e colore obbligatori'
+            ]);
+            return;
+        }
+
+        $result = $question->addCategory($name, $color);
+
+        if ($result) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Categoria aggiunta con successo',
+                'categoryId' => $result
+            ]);
+        } else {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Errore nell\'aggiunta della categoria'
+            ]);
+        }
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleUpdateCategory($question) {
+    try {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Metodo non consentito'
+            ]);
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $id = $data['id'] ?? null;
+        $name = $data['name'] ?? null;
+        $color = $data['color'] ?? null;
+
+        if (!$id || !$name || !$color) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'ID, nome e colore obbligatori'
+            ]);
+            return;
+        }
+
+        $result = $question->updateCategory($id, $name, $color);
+
+        if ($result) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Categoria aggiornata con successo'
+            ]);
+        } else {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Errore nell\'aggiornamento della categoria'
+            ]);
+        }
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleDeleteCategory($question) {
+    try {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Metodo non consentito'
+            ]);
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $id = $data['id'] ?? null;
+
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'ID obbligatorio'
+            ]);
+            return;
+        }
+
+        $result = $question->deleteCategory($id);
+
+        if ($result) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Categoria eliminata con successo. Le domande associate sono state spostate alla categoria Generale.'
+            ]);
+        } else {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Non puoi eliminare la categoria Generale. Le domande orfane verranno spostate in questa categoria.'
+            ]);
+        }
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleGetCategories($question) {
+    try {
+        $categories = $question->getAllCategories();
+
+        echo json_encode([
+            'success' => true,
+            'categories' => $categories
         ]);
     } catch (Exception $e) {
         http_response_code(500);

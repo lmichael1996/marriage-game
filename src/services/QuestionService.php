@@ -265,5 +265,38 @@ class QuestionService {
     public function getAllCategories() {
         return $this->questionRepo->getAllCategories();
     }
+
+    /**
+     * Add a new category
+     * @return bool
+     */
+    public function addCategory($name, $color) {
+        if (empty($name) || empty($color)) {
+            throw new Exception('Nome e colore obbligatori');
+        }
+        return $this->questionRepo->addCategory($name, $color);
+    }
+
+    /**
+     * Update a category
+     * @return bool
+     */
+    public function updateCategory($id, $name, $color) {
+        if (empty($id) || empty($name) || empty($color)) {
+            throw new Exception('ID, nome e colore obbligatori');
+        }
+        return $this->questionRepo->updateCategory($id, $name, $color);
+    }
+
+    /**
+     * Delete a category
+     * @return bool
+     */
+    public function deleteCategory($id) {
+        if (empty($id)) {
+            throw new Exception('ID obbligatorio');
+        }
+        return $this->questionRepo->deleteCategory($id);
+    }
 }
 

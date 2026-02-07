@@ -163,6 +163,13 @@
   cursor: pointer;
 }
 
+.form-group input[type="color"] {
+  width: 60px;
+  height: 40px;
+  cursor: pointer;
+  padding: 2px;
+}
+
 .form-section {
   background: #f9f9f9;
   padding: 15px;

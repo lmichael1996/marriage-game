@@ -4,7 +4,7 @@
         <h2>❓ Domande Disponibili</h2>
         <div style="display: flex; gap: 10px;">
             <button class="btn btn-success" id="btn-new-question">+ Nuova Domanda</button>
-            <button class="btn btn-warning" id="btn-new-category">+ Nuova Categoria</button>
+            <button class="btn btn-warning" id="btn-new-category">Categorie</button>
         </div>
     </div>
 
@@ -19,11 +19,11 @@
             </select>
             <select name="category" id="filter-category" class="search-filter">
                 <option value="">🌐 Tutte</option>
-                <option value="general" <?php echo ($_GET['category'] ?? '') === 'general' ? 'selected' : ''; ?>>Generale</option>
-                <option value="science" <?php echo ($_GET['category'] ?? '') === 'science' ? 'selected' : ''; ?>>Scienza</option>
-                <option value="history" <?php echo ($_GET['category'] ?? '') === 'history' ? 'selected' : ''; ?>>Storia</option>
-                <option value="sports" <?php echo ($_GET['category'] ?? '') === 'sports' ? 'selected' : ''; ?>>Sport</option>
-                <option value="entertainment" <?php echo ($_GET['category'] ?? '') === 'entertainment' ? 'selected' : ''; ?>>Intrattenimento</option>
+                <?php foreach ($categories as $cat): ?>
+                <option value="<?php echo $cat['id']; ?>" <?php echo ($_GET['category'] ?? '') === (string)$cat['id'] ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($cat['category_name']); ?>
+                </option>
+                <?php endforeach; ?>
             </select>
             <button type="submit" class="btn btn-primary">🔍 Cerca</button>
             <?php if (!empty($_GET['search']) || !empty($_GET['category'])): ?>
@@ -239,6 +239,173 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Funzione per aggiornare la listbox categorie
+    function updateCategorySelect() {
+        fetch('/src/api/api.php?endpoint=get_categories')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && Array.isArray(data.categories)) {
+                    // Aggiorna il select di filtro ricerca
+                    const filterSelect = document.getElementById('filter-category');
+                    const filterCurrentValue = filterSelect.value;
+                    while (filterSelect.options.length > 1) {
+                        filterSelect.remove(1);
+                    }
+                    data.categories.forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat.id;
+                        option.textContent = cat.category_name;
+                        filterSelect.appendChild(option);
+                    });
+                    if (filterCurrentValue) {
+                        filterSelect.value = filterCurrentValue;
+                    }
+
+                    // Aggiorna il select di "Aggiungi Domanda"
+                    const newQuestionSelect = document.getElementById('new-category');
+                    if (newQuestionSelect) {
+                        const newCurrentValue = newQuestionSelect.value;
+                        while (newQuestionSelect.options.length > 1) {
+                            newQuestionSelect.remove(1);
+                        }
+                        data.categories.forEach(cat => {
+                            const option = document.createElement('option');
+                            option.value = cat.id;
+                            option.textContent = cat.category_name;
+                            newQuestionSelect.appendChild(option);
+                        });
+                        if (newCurrentValue) {
+                            newQuestionSelect.value = newCurrentValue;
+                        }
+                    }
+
+                    // Aggiorna il select di "Modifica Domanda"
+                    const editQuestionSelect = document.getElementById('edit-category');
+                    if (editQuestionSelect) {
+                        const editCurrentValue = editQuestionSelect.value;
+                        while (editQuestionSelect.options.length > 1) {
+                            editQuestionSelect.remove(1);
+                        }
+                        data.categories.forEach(cat => {
+                            const option = document.createElement('option');
+                            option.value = cat.id;
+                            option.textContent = cat.category_name;
+                            editQuestionSelect.appendChild(option);
+                        });
+                        if (editCurrentValue) {
+                            editQuestionSelect.value = editCurrentValue;
+                        }
+                    }
+                }
+            })
+            .catch(err => console.error('Errore aggiornamento categorie:', err));
+    }
+
+    // Funzione per ri-attaccare gli event listener alle categorie
+    function attachCategoryEventListeners() {
+        // Gestione edit categorie
+        document.querySelectorAll('.btn-edit-category').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const categoryCard = btn.closest('.category-card');
+                const viewMode = categoryCard.querySelector('.category-view-mode');
+                const editMode = categoryCard.querySelector('.category-edit-mode');
+
+                viewMode.style.display = 'none';
+                editMode.style.display = 'block';
+            });
+        });
+
+        // Annulla edit
+        document.querySelectorAll('.btn-cancel-edit').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const categoryCard = btn.closest('.category-card');
+                const viewMode = categoryCard.querySelector('.category-view-mode');
+                const editMode = categoryCard.querySelector('.category-edit-mode');
+
+                viewMode.style.display = 'flex';
+                editMode.style.display = 'none';
+            });
+        });
+
+        // Salva categoria
+        document.querySelectorAll('.btn-save-category').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const categoryCard = btn.closest('.category-card');
+                const categoryId = categoryCard.dataset.categoryId;
+                const newName = categoryCard.querySelector('.edit-category-name').value.trim();
+                const newColor = categoryCard.querySelector('.edit-category-color').value;
+
+                if (!newName) {
+                    alert('Inserisci il nome della categoria');
+                    return;
+                }
+
+                // Chiamata API per aggiornare la categoria
+                fetch('/src/api/api.php?endpoint=update_category', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        id: categoryId,
+                        name: newName,
+                        color: newColor
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('✓ Categoria "' + newName + '" aggiornata con successo!');
+                        location.reload();
+                    } else {
+                        alert('❌ Errore: ' + (data.message || 'Errore sconosciuto'));
+                    }
+                })
+                .catch(err => {
+                    alert('❌ Errore di rete: ' + err.message);
+                });
+            });
+        });
+
+        // Elimina categoria
+        document.querySelectorAll('.btn-delete-category').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if (confirm('Sei sicuro di voler eliminare questa categoria?')) {
+                    const categoryCard = btn.closest('.category-card');
+                    const categoryId = categoryCard.dataset.categoryId;
+                    const categoryName = categoryCard.querySelector('.category-name').textContent;
+
+                    categoryCard.style.opacity = '0.5';
+
+                    // Chiamata API per eliminare la categoria
+                    fetch('/src/api/api.php?endpoint=delete_category', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            id: categoryId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('✓ Categoria "' + categoryName + '" eliminata con successo!');
+                            location.reload();
+                        } else {
+                            alert('❌ Errore: ' + (data.message || 'Errore sconosciuto'));
+                            categoryCard.style.opacity = '1';
+                        }
+                    })
+                    .catch(err => {
+                        alert('❌ Errore di rete: ' + err.message);
+                        categoryCard.style.opacity = '1';
+                    });
+                }
+            });
+        });
+    }
+
     // Gestione modal categorie
     const modalCategories = document.getElementById('modal-categories');
     const closeCategoryBtn = document.querySelector('#modal-categories .modal-close');
@@ -268,79 +435,92 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            alert('✓ Categoria "' + categoryName + '" aggiunta con successo!');
-            document.getElementById('new-category-name').value = '';
-            document.getElementById('new-category-color').value = '#3498db';
-            modalCategories.style.display = 'none';
+            // Chiamata API per aggiungere la categoria
+            fetch('/src/api/api.php?endpoint=add_category', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: categoryName,
+                    color: categoryColor
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✓ Categoria "' + categoryName + '" aggiunta con successo!');
+
+                    // Crea l'HTML per la nuova categoria
+                    const categoriesList = document.getElementById('categories-list');
+                    const newCategoryHTML = `
+                        <div class="category-card" data-category-id="${data.categoryId}" style="background: #f9f9f9; padding: 15px; border-radius: 6px; border-left: 5px solid ${categoryColor};">
+                            <!-- View Mode -->
+                            <div class="category-view-mode" style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong class="category-name">${categoryName}</strong>
+                                    <div style="font-size: 0.85em; color: #666; margin-top: 5px;">
+                                        Colore: <span class="category-color-preview" style="display: inline-block; width: 20px; height: 20px; background: ${categoryColor}; border: 1px solid #ccc; border-radius: 3px; vertical-align: middle;"></span>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 5px;">
+                                    <button type="button" class="btn-icon btn-warning btn-edit-category" data-category-id="${data.categoryId}" title="Modifica">✎</button>
+                                    <button type="button" class="btn-icon btn-danger btn-delete-category" data-category-id="${data.categoryId}" title="Elimina">×</button>
+                                </div>
+                            </div>
+
+                            <!-- Edit Mode -->
+                            <div class="category-edit-mode" style="display: none;">
+                                <div style="display: flex; gap: 10px; align-items: flex-end;">
+                                    <div class="form-group" style="flex: 1;">
+                                        <label>Nome Categoria</label>
+                                        <input type="text" class="edit-category-name" value="${categoryName}" placeholder="Nome categoria">
+                                    </div>
+                                    <div class="form-group" style="flex: 0 0 auto;">
+                                        <label>Colore</label>
+                                        <input type="color" class="edit-category-color" value="${categoryColor}">
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 5px;">
+                                    <button type="button" class="btn btn-secondary btn-cancel-edit" style="flex: 1;">Annulla</button>
+                                    <button type="button" class="btn btn-success btn-save-category" style="flex: 1;">✓ Salva</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Aggiungi la nuova categoria alla lista
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = newCategoryHTML;
+                    const newCard = tempDiv.firstElementChild;
+                    categoriesList.appendChild(newCard);
+
+                    // Rimuovi il messaggio "Nessuna categoria" se esiste
+                    const emptyMsg = categoriesList.querySelector('p');
+                    if (emptyMsg) {
+                        emptyMsg.remove();
+                    }
+
+                    // Reset form
+                    document.getElementById('new-category-name').value = '';
+                    document.getElementById('new-category-color').value = '#3498db';
+                    updateCategorySelect(); // Aggiorna la listbox
+
+                    // Re-attach event listeners per i nuovi button
+                    attachCategoryEventListeners();
+                } else {
+                    alert('❌ Errore: ' + (data.message || 'Errore sconosciuto'));
+                }
+            })
+            .catch(err => {
+                alert('❌ Errore di rete: ' + err.message);
+            });
         });
     }
 
     // Gestione edit categorie
-    document.querySelectorAll('.btn-edit-category').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const categoryCard = btn.closest('.category-card');
-            const viewMode = categoryCard.querySelector('.category-view-mode');
-            const editMode = categoryCard.querySelector('.category-edit-mode');
-            
-            viewMode.style.display = 'none';
-            editMode.style.display = 'block';
-        });
-    });
-
-    // Annulla edit
-    document.querySelectorAll('.btn-cancel-edit').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const categoryCard = btn.closest('.category-card');
-            const viewMode = categoryCard.querySelector('.category-view-mode');
-            const editMode = categoryCard.querySelector('.category-edit-mode');
-            
-            viewMode.style.display = 'flex';
-            editMode.style.display = 'none';
-        });
-    });
-
-    // Salva categoria
-    document.querySelectorAll('.btn-save-category').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const categoryCard = btn.closest('.category-card');
-            const categoryId = categoryCard.dataset.categoryId;
-            const newName = categoryCard.querySelector('.edit-category-name').value.trim();
-            const newColor = categoryCard.querySelector('.edit-category-color').value;
-
-            if (!newName) {
-                alert('Inserisci il nome della categoria');
-                return;
-            }
-
-            // Aggiorna il display
-            const viewMode = categoryCard.querySelector('.category-view-mode');
-            const nameElement = viewMode.querySelector('.category-name');
-            const colorPreview = viewMode.querySelector('.category-color-preview');
-            
-            nameElement.textContent = newName;
-            colorPreview.style.background = newColor;
-            categoryCard.style.borderLeftColor = newColor;
-
-            // Chiudi edit mode
-            const editMode = categoryCard.querySelector('.category-edit-mode');
-            viewMode.style.display = 'flex';
-            editMode.style.display = 'none';
-
-            alert('✓ Categoria "' + newName + '" aggiornata con successo!');
-        });
-    });
-
-    // Elimina categoria
-    document.querySelectorAll('.btn-delete-category').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            if (confirm('Sei sicuro di voler eliminare questa categoria?')) {
-                const categoryCard = btn.closest('.category-card');
-                categoryCard.style.opacity = '0.5';
-                alert('✓ Categoria eliminata con successo!');
-                // Qui faremmo una chiamata AJAX per eliminare dal DB
-            }
-        });
-    });
+    // Attach event listeners alle categorie
+    attachCategoryEventListeners();
 
     const closeBtn = document.querySelector('#modal-add-question .modal-close');
     if (closeBtn) {
@@ -373,17 +553,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Validazione risposte non vuote
-            const answer1 = document.getElementById('new-answer1').value.trim();
-            const answer2 = document.getElementById('new-answer2').value.trim();
-
-            if (typeSelected === 'truefalse') {
-                if (!answer1 || !answer2) {
-                    e.preventDefault();
-                    alert('Tutte le risposte sono obbligatorie');
-                    return;
-                }
-            } else if (typeSelected === 'multiple') {
+            // Validazione risposte non vuote (solo per multiple choice)
+            if (typeSelected === 'multiple') {
+                const answer1 = document.getElementById('new-answer1').value.trim();
+                const answer2 = document.getElementById('new-answer2').value.trim();
                 const answer3 = document.getElementById('new-answer3').value.trim();
                 const answer4 = document.getElementById('new-answer4').value.trim();
 
@@ -393,6 +566,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
             }
+            // Per "Vero/Falso" e "Clicca il Primo" non servono risposte
 
             e.preventDefault();
             const formData = new FormData(formNewQuestion);
@@ -528,17 +702,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Validazione risposte non vuote
-            const answer1 = document.getElementById('edit-answer1').value.trim();
-            const answer2 = document.getElementById('edit-answer2').value.trim();
-
-            if (typeSelected === 'truefalse') {
-                if (!answer1 || !answer2) {
-                    e.preventDefault();
-                    alert('Tutte le risposte sono obbligatorie');
-                    return;
-                }
-            } else if (typeSelected === 'multiple') {
+            // Validazione risposte non vuote (solo per multiple choice)
+            if (typeSelected === 'multiple') {
+                const answer1 = document.getElementById('edit-answer1').value.trim();
+                const answer2 = document.getElementById('edit-answer2').value.trim();
                 const answer3 = document.getElementById('edit-answer3').value.trim();
                 const answer4 = document.getElementById('edit-answer4').value.trim();
 
@@ -548,6 +715,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
             }
+            // Per "Vero/Falso" e "Clicca il Primo" non servono risposte
 
             e.preventDefault();
             const formData = new FormData(formEditQuestion);
@@ -616,11 +784,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="form-group">
                     <label for="new-category">Categoria</label>
                     <select id="new-category" name="category_id" required>
-                        <option value="1">Generale</option>
-                        <option value="2">Scienza</option>
-                        <option value="3">Storia</option>
-                        <option value="4">Sport</option>
-                        <option value="5">Intrattenimento</option>
+                        <?php foreach ($categories as $cat): ?>
+                        <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['category_name']); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
             </div>
@@ -695,11 +861,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="form-group">
                     <label for="edit-category">Categoria</label>
                     <select id="edit-category" name="category_id" required>
-                        <option value="1">Generale</option>
-                        <option value="2">Scienza</option>
-                        <option value="3">Storia</option>
-                        <option value="4">Sport</option>
-                        <option value="5">Intrattenimento</option>
+                        <?php foreach ($categories as $cat): ?>
+                        <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['category_name']); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
             </div>
@@ -775,16 +939,18 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         <div class="modal-body">
             <h3 style="margin-bottom: 15px;">Aggiungi Nuova Categoria</h3>
-            <div class="form-group">
-                <label for="new-category-name">Nome Categoria</label>
-                <input type="text" id="new-category-name" name="category_name" placeholder="Es: Scienze, Storia, Sport..." required>
-            </div>
+            <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 15px;">
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label for="new-category-name">Nome Categoria</label>
+                    <input type="text" id="new-category-name" name="category_name" placeholder="Es: Scienze, Storia, Sport..." required>
+                </div>
 
-            <div class="form-group">
-                <label for="new-category-color">Colore</label>
-                <input type="color" id="new-category-color" name="category_color" value="#3498db" required>
-                <small>Scegli il colore di sfondo per la categoria</small>
+                <div class="form-group" style="flex: 0 0 auto; margin-bottom: 0;">
+                    <label for="new-category-color">Colore</label>
+                    <input type="color" id="new-category-color" name="category_color" value="#3498db" required>
+                </div>
             </div>
+            <small style="display: block; margin-bottom: 20px;">Scegli il colore di sfondo per la categoria</small>
 
             <div style="margin-bottom: 20px;">
                 <button type="button" id="btn-add-category" class="btn btn-success">✓ Aggiungi Categoria</button>
@@ -806,19 +972,23 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <div style="display: flex; gap: 5px;">
                             <button type="button" class="btn-icon btn-warning btn-edit-category" data-category-id="<?php echo $cat['id']; ?>" title="Modifica">✎</button>
+                            <?php if ((int)$cat['id'] !== 1): ?>
                             <button type="button" class="btn-icon btn-danger btn-delete-category" data-category-id="<?php echo $cat['id']; ?>" title="Elimina">×</button>
+                            <?php endif; ?>
                         </div>
                     </div>
 
                     <!-- Edit Mode -->
                     <div class="category-edit-mode" style="display: none;">
-                        <div class="form-group">
-                            <label>Nome Categoria</label>
-                            <input type="text" class="edit-category-name" value="<?php echo htmlspecialchars($cat['category_name']); ?>" placeholder="Nome categoria">
-                        </div>
-                        <div class="form-group">
-                            <label>Colore</label>
-                            <input type="color" class="edit-category-color" value="<?php echo htmlspecialchars($cat['color']); ?>">
+                        <div style="display: flex; gap: 10px; align-items: flex-end;">
+                            <div class="form-group" style="flex: 1;">
+                                <label>Nome Categoria</label>
+                                <input type="text" class="edit-category-name" value="<?php echo htmlspecialchars($cat['category_name']); ?>" placeholder="Nome categoria">
+                            </div>
+                            <div class="form-group" style="flex: 0 0 auto;">
+                                <label>Colore</label>
+                                <input type="color" class="edit-category-color" value="<?php echo $cat['color']; ?>">
+                            </div>
                         </div>
                         <div style="display: flex; gap: 5px;">
                             <button type="button" class="btn btn-secondary btn-cancel-edit" style="flex: 1;">Annulla</button>
@@ -833,8 +1003,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
 
             <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-categories').style.display='none';">Chiudi</button>
-                <button type="button" id="btn-add-category" class="btn btn-success">✓ Aggiungi Categoria</button>
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-categories').style.display='none'; location.reload();">Chiudi</button>
             </div>
         </div>
     </div>
