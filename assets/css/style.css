@@ -1048,6 +1048,15 @@
   color: #e74c3c;
 }
 
+/* Modal sizes */
+.modal-content-large {
+  max-width: 700px;
+}
+
+.modal-content-small {
+  max-width: 400px;
+}
+
 /* Game Area */
 .game-area {
   background: #fff;

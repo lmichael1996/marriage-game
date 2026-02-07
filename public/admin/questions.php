@@ -99,6 +99,7 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
     // Auto-submit form quando cambia la categoria
     document.getElementById('filter-category').addEventListener('change', function() {
         const form = this.closest('form');
@@ -108,11 +109,53 @@
     document.addEventListener('click', function(e) {
         if (e.target.closest('.btn-edit-question')) {
             const questionId = e.target.closest('.btn-edit-question').getAttribute('data-question-id');
-            console.log('Edit question:', questionId);
+
+            // Carica dati domanda tramite API
+            fetch(`/src/api/api.php?endpoint=get_question&id=${questionId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.question) {
+                        const q = data.question;
+
+                        // Popola i campi del form
+                        document.getElementById('edit-question-id').value = q.id;
+                        document.getElementById('edit-question').value = q.question;
+                        document.getElementById('edit-type').value = q.round_type;
+                        document.getElementById('edit-category').value = q.category_id;
+                        document.getElementById('edit-timer').value = q.timer;
+
+                        // Trigger change per mostrare i campi risposte
+                        document.getElementById('edit-type').dispatchEvent(new Event('change'));
+
+                        // Popola le risposte se disponibili
+                        if (q.answer1) document.getElementById('edit-answer1').value = q.answer1;
+                        if (q.answer2) document.getElementById('edit-answer2').value = q.answer2;
+                        if (q.answer3) document.getElementById('edit-answer3').value = q.answer3;
+                        if (q.answer4) document.getElementById('edit-answer4').value = q.answer4;
+                        if (q.correct_answer) document.getElementById('edit-correct').value = q.correct_answer;
+
+                        // Mostra il modal
+                        const modal = document.getElementById('modal-edit-question');
+                        modal.style.display = 'flex';
+                    } else {
+                        alert('Errore nel caricamento della domanda');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Errore nel caricamento della domanda');
+                });
+            return;
         }
         if (e.target.closest('.btn-delete-question')) {
             const questionId = e.target.closest('.btn-delete-question').getAttribute('data-question-id');
-            if (confirm('Sei sicuro di voler eliminare questa domanda?')) {
+            const modal = document.getElementById('modal-delete-question');
+            const btnConfirmDelete = document.getElementById('btn-confirm-delete');
+
+            modal.style.display = 'flex';
+
+            // Aggiorna il button per eliminare con l'ID corretto
+            btnConfirmDelete.onclick = function() {
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.innerHTML = `
@@ -121,7 +164,7 @@
                 `;
                 document.body.appendChild(form);
                 form.submit();
-            }
+            };
         }
     });
 
@@ -265,6 +308,102 @@
             }
         });
     }
+
+    // ========== MODAL MODIFICA DOMANDA ==========
+    const modalEditQuestion = document.getElementById('modal-edit-question');
+    const closeEditBtn = document.querySelector('#modal-edit-question .modal-close');
+    const formEditQuestion = document.getElementById('form-edit-question');
+
+    if (closeEditBtn) {
+        closeEditBtn.addEventListener('click', () => {
+            modalEditQuestion.style.display = 'none';
+        });
+    }
+
+    if (modalEditQuestion) {
+        modalEditQuestion.addEventListener('click', (e) => {
+            if (e.target === modalEditQuestion) {
+                modalEditQuestion.style.display = 'none';
+            }
+        });
+    }
+
+    // Gestisci visibilità campi risposte per modal edit
+    const editTypeSelect = document.getElementById('edit-type');
+    const editAnswersContainer = document.getElementById('edit-answers-container');
+    const editAnswer3Group = document.getElementById('edit-answer3-group');
+    const editAnswer4Group = document.getElementById('edit-answer4-group');
+    const editCorrectSelect = document.getElementById('edit-correct');
+
+    if (editTypeSelect) {
+        editTypeSelect.addEventListener('change', (e) => {
+            const type = e.target.value;
+
+            if (type === 'truefalse') {
+                editAnswersContainer.style.display = 'block';
+                editAnswer3Group.style.display = 'none';
+                editAnswer4Group.style.display = 'none';
+                document.getElementById('edit-answer1').placeholder = 'Vero';
+                document.getElementById('edit-answer2').placeholder = 'Falso';
+                editCorrectSelect.innerHTML = '<option value="">Seleziona...</option><option value="1">Vero</option><option value="2">Falso</option>';
+            } else if (type === 'multiple') {
+                editAnswersContainer.style.display = 'block';
+                editAnswer3Group.style.display = 'block';
+                editAnswer4Group.style.display = 'block';
+                document.getElementById('edit-answer1').placeholder = 'Risposta corretta';
+                document.getElementById('edit-answer2').placeholder = 'Risposta sbagliata';
+                document.getElementById('edit-answer3').placeholder = 'Risposta sbagliata';
+                document.getElementById('edit-answer4').placeholder = 'Risposta sbagliata';
+                editCorrectSelect.innerHTML = '<option value="">Seleziona...</option><option value="1">Risposta 1</option><option value="2">Risposta 2</option><option value="3">Risposta 3</option><option value="4">Risposta 4</option>';
+            } else if (type === 'clickfirst') {
+                editAnswersContainer.style.display = 'none';
+            } else {
+                editAnswersContainer.style.display = 'none';
+            }
+        });
+    }
+
+    if (formEditQuestion) {
+        formEditQuestion.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(formEditQuestion);
+            formData.append('action', 'update_question');
+
+            fetch('admin.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log('Response:', data);
+                modalEditQuestion.style.display = 'none';
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Errore nella modifica della domanda');
+            });
+        });
+    }
+
+    // ========== MODAL ELIMINAZIONE DOMANDA ==========
+    const modalDeleteQuestion = document.getElementById('modal-delete-question');
+    const closeDeleteBtn = document.querySelector('#modal-delete-question .modal-close');
+
+    if (closeDeleteBtn) {
+        closeDeleteBtn.addEventListener('click', () => {
+            modalDeleteQuestion.style.display = 'none';
+        });
+    }
+
+    if (modalDeleteQuestion) {
+        modalDeleteQuestion.addEventListener('click', (e) => {
+            if (e.target === modalDeleteQuestion) {
+                modalDeleteQuestion.style.display = 'none';
+            }
+        });
+    }
+});
 </script>
 
 <!-- Modal per aggiungere nuova domanda -->
@@ -345,5 +484,105 @@
                 <button type="submit" class="btn btn-success">✓ Aggiungi Domanda</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Modal per modificare domanda -->
+<div id="modal-edit-question" class="modal-overlay" style="display: none;">
+    <div class="modal-content modal-content-large">
+        <div class="modal-header">
+            <h2>✎ Modifica Domanda</h2>
+            <button type="button" class="modal-close">✕</button>
+        </div>
+        <form id="form-edit-question" class="modal-body">
+            <input type="hidden" id="edit-question-id" name="question_id">
+            <div class="form-group">
+                <label for="edit-question">Domanda *</label>
+                <textarea id="edit-question" name="question" required rows="3" placeholder="Inserisci il testo della domanda..."></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="edit-type">Tipo *</label>
+                    <select id="edit-type" name="round_type" required>
+                        <option value="">Seleziona tipo...</option>
+                        <option value="multiple">📋 Multiple Choice</option>
+                        <option value="truefalse">✔️ Vero/Falso</option>
+                        <option value="clickfirst">⚡ Clicca il Primo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-category">Categoria *</label>
+                    <select id="edit-category" name="category_id" required>
+                        <option value="">Seleziona categoria...</option>
+                        <option value="1">Generale</option>
+                        <option value="2">Scienza</option>
+                        <option value="3">Storia</option>
+                        <option value="4">Sport</option>
+                        <option value="5">Intrattenimento</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="edit-timer">Timer (secondi) *</label>
+                    <input type="number" id="edit-timer" name="timer" required min="5" max="120" value="30">
+                </div>
+            </div>
+
+            <div id="edit-answers-container" style="display: none;">
+                <h3>Risposte</h3>
+                <div class="form-group">
+                    <label for="edit-answer1">Risposta 1 *</label>
+                    <input type="text" id="edit-answer1" name="answer1" placeholder="Risposta corretta">
+                </div>
+                <div class="form-group">
+                    <label for="edit-answer2">Risposta 2 *</label>
+                    <input type="text" id="edit-answer2" name="answer2" placeholder="Risposta sbagliata">
+                </div>
+                <div class="form-group" id="edit-answer3-group" style="display: none;">
+                    <label for="edit-answer3">Risposta 3 *</label>
+                    <input type="text" id="edit-answer3" name="answer3" placeholder="Risposta sbagliata">
+                </div>
+                <div class="form-group" id="edit-answer4-group" style="display: none;">
+                    <label for="edit-answer4">Risposta 4 *</label>
+                    <input type="text" id="edit-answer4" name="answer4" placeholder="Risposta sbagliata">
+                </div>
+                <div class="form-group">
+                    <label for="edit-correct">Risposta Corretta *</label>
+                    <select id="edit-correct" name="correct_answer" required>
+                        <option value="">Seleziona...</option>
+                        <option value="1">Risposta 1</option>
+                        <option value="2">Risposta 2</option>
+                        <option value="3">Risposta 3</option>
+                        <option value="4">Risposta 4</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-edit-question').style.display='none';">Annulla</button>
+                <button type="submit" class="btn btn-success">✓ Salva Modifiche</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal per confermare eliminazione domanda -->
+<div id="modal-delete-question" class="modal-overlay" style="display: none;">
+    <div class="modal-content modal-content-small">
+        <div class="modal-header">
+            <h2>⚠️ Conferma Eliminazione</h2>
+            <button type="button" class="modal-close">✕</button>
+        </div>
+        <div class="modal-body">
+            <p>Sei sicuro di voler eliminare questa domanda?</p>
+            <p style="color: #666; font-size: 0.9em;">Questa azione non può essere annullata.</p>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-delete-question').style.display='none';">Annulla</button>
+            <button type="button" id="btn-confirm-delete" class="btn btn-danger">✓ Elimina</button>
+        </div>
     </div>
 </div>

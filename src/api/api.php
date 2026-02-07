@@ -71,6 +71,10 @@ switch ($endpoint) {
         handleFinalLeaderboard($game);
         break;
 
+    case 'get_question':
+        handleGetQuestion($question);
+        break;
+
     default:
         http_response_code(404);
         echo json_encode([
@@ -662,5 +666,42 @@ function handleFinalLeaderboard($game) {
         'success' => true,
         'leaderboard' => $leaderboard
     ]);
+}
+
+function handleGetQuestion($question) {
+    try {
+        $questionId = $_GET['id'] ?? null;
+
+        if (!$questionId) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Question ID required'
+            ]);
+            return;
+        }
+
+        $result = $question->getQuestionById($questionId);
+
+        if (!$result) {
+            http_response_code(404);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Question not found'
+            ]);
+            return;
+        }
+
+        echo json_encode([
+            'success' => true,
+            'question' => $result
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
 }
 ?>
