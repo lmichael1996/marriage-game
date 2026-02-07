@@ -44,7 +44,7 @@
         <p style="margin-bottom: 15px; color: #666;">Visualizza il contenuto di tutte le tabelle del database.</p>
 
         <div class="button-container">
-            <a href="../../src/utils/all_tables.php" target="_blank" class="btn btn-secondary">📊 Visualizza Database</a>
+            <a href="/public/utils/all_tables.php" target="_blank" class="btn btn-secondary">📊 Visualizza Database</a>
         </div>
     </div>
 

@@ -1,31 +1,23 @@
 -- ============================================
--- DATI DEFAULT - Marriage Game
+-- DEFAULT DATA - Marriage Game
 -- ============================================
 USE marriage_game;
 
--- Inserimento utente admin di default
-INSERT INTO
-    users (username, user_password)
-VALUES
-    (
-        'admin',
-        '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'
-    );
+-- Insert default admin user
+INSERT INTO users (username, user_password)
+VALUES ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
 
--- Inserimento categorie di prova
-INSERT INTO
-    questions_categories (category_name, color)
-VALUES
+-- Insert default question categories
+INSERT INTO question_categories (category_name, color)
+VALUES 
     ('Generale', '#ecf0f1'),
     ('Scienza', '#e3f2fd'),
     ('Storia', '#f3e5f5'),
     ('Sport', '#fff3e0'),
     ('Intrattenimento', '#fce4ec');
 
--- Inserimento valori predefiniti
--- 3 tabelle separate per 3 tipi di gioco
-INSERT INTO
-    game_settings (setting_key, setting_value)
+-- Insert default game settings
+INSERT INTO game_settings (setting_key, setting_value)
 VALUES
     ('min_players', 1),
     ('max_players', 50),

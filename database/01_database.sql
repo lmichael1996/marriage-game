@@ -10,22 +10,15 @@ CREATE TABLE IF NOT EXISTS users (
     user_password VARCHAR(255) NOT NULL
 );
 
--- Tabella per le impostazioni del gioco
+-- Game settings
 CREATE TABLE IF NOT EXISTS game_settings (
-    setting_key VARCHAR(50) PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    setting_key VARCHAR(50) UNIQUE NOT NULL,
     setting_value INT
 );
 
--- Question Sets table
-CREATE TABLE IF NOT EXISTS qsets (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    set_name VARCHAR(255) UNIQUE NOT NULL,
-    set_description TEXT,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
 -- Categories table (for question categorization and color coding)
-CREATE TABLE IF NOT EXISTS questions_categories (
+CREATE TABLE IF NOT EXISTS question_categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
     category_name VARCHAR(50) UNIQUE NOT NULL,
     color VARCHAR(20) DEFAULT '#6c757d'
@@ -34,7 +27,6 @@ CREATE TABLE IF NOT EXISTS questions_categories (
 -- Questions table (stores individual questions)
 CREATE TABLE IF NOT EXISTS questions (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    round_type ENUM('multiple', 'truefalse', 'clickfirst') DEFAULT 'multiple',
     question TEXT,
     option1 TEXT,
     option2 TEXT,
@@ -46,32 +38,38 @@ CREATE TABLE IF NOT EXISTS questions (
         AND 4
     ),
     timer INT DEFAULT 10,
-    FOREIGN KEY (category_id) REFERENCES questions_categories(id) ON DELETE
+    round_type ENUM('multiple', 'truefalse', 'clickfirst') DEFAULT 'multiple',
+    FOREIGN KEY (category_id) REFERENCES question_categories(id) ON DELETE
     SET
-        DEFAULT,
-        INDEX idx_category (category_id),
-        INDEX idx_round_type (round_type)
+        DEFAULT
+);
+
+-- Question Sets table
+CREATE TABLE IF NOT EXISTS qsets (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    set_name VARCHAR(255) UNIQUE NOT NULL,
+    set_description TEXT,
+    is_saved BOOLEAN DEFAULT FALSE,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Junction table for Many-to-Many relationship between qsets and questions
 CREATE TABLE IF NOT EXISTS qset_questions (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    question_set_id INT NOT NULL,
+    qset_id INT NOT NULL,
     question_id INT NOT NULL,
     order_in_set INT DEFAULT 0,
-    FOREIGN KEY (question_set_id) REFERENCES qsets(id) ON DELETE CASCADE,
+    FOREIGN KEY (qset_id) REFERENCES qsets(id) ON DELETE CASCADE,
     FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
-    UNIQUE (question_set_id, question_id),
-    INDEX idx_question_set (question_set_id),
-    INDEX idx_question (question_id)
+    UNIQUE (qset_id, question_id)
 );
 
 -- Rooms table (stores active game rooms)
 CREATE TABLE IF NOT EXISTS rooms (
     id INT AUTO_INCREMENT PRIMARY KEY,
     room_code VARCHAR(10) UNIQUE NOT NULL,
-    question_set_id INT DEFAULT NULL,
-    FOREIGN KEY (question_set_id) REFERENCES qsets(id) ON DELETE CASCADE
+    qset_id INT DEFAULT NULL,
+    FOREIGN KEY (qset_id) REFERENCES qsets(id) ON DELETE CASCADE
 );
 
 -- Players table (for game participants associated with a room)
@@ -84,15 +82,17 @@ CREATE TABLE IF NOT EXISTS players (
     UNIQUE (username, room_id)
 );
 
--- Player Answers table (stores answers submitted by players)
+-- Rounds table (stores game rounds with associated questions from qset_questions)
 CREATE TABLE IF NOT EXISTS rounds (
     id INT AUTO_INCREMENT PRIMARY KEY,
     room_id INT NOT NULL,
-    round_number INT NOT NULL,
-    type_game ENUM('multiple', 'truefalse', 'clickfirst') DEFAULT 'multiple',
-    FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE
+    qset_question_id INT NOT NULL,
+    FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
+    FOREIGN KEY (qset_question_id) REFERENCES qset_questions(id) ON DELETE CASCADE,
+    UNIQUE(room_id, qset_question_id)
 );
 
+-- Player Answers table (stores players' answers for each round)
 CREATE TABLE IF NOT EXISTS player_answers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     round_id INT NOT NULL,
