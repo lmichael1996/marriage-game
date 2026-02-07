@@ -249,6 +249,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const formNewQuestion = document.getElementById('form-new-question');
     if (formNewQuestion) {
         formNewQuestion.addEventListener('submit', (e) => {
+            // Validazione: controlla che correct_answer sia compilato se il form è visibile
+            const typeSelected = document.getElementById('new-type').value;
+            const correctSelected = document.getElementById('new-correct').value;
+
+            if (typeSelected !== 'clickfirst' && !correctSelected) {
+                e.preventDefault();
+                alert('Seleziona la risposta corretta');
+                return;
+            }
+
             e.preventDefault();
             const formData = new FormData(formNewQuestion);
             formData.append('action', 'add_question');
@@ -365,6 +375,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (formEditQuestion) {
         formEditQuestion.addEventListener('submit', (e) => {
+            // Validazione: controlla che correct_answer sia compilato se il form è visibile
+            const typeSelected = document.getElementById('edit-type').value;
+            const correctSelected = document.getElementById('edit-correct').value;
+
+            if (typeSelected !== 'clickfirst' && !correctSelected) {
+                e.preventDefault();
+                alert('Seleziona la risposta corretta');
+                return;
+            }
+
             e.preventDefault();
             const formData = new FormData(formEditQuestion);
             formData.append('action', 'update_question');
@@ -469,7 +489,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="form-group">
                     <label for="new-correct">Risposta Corretta *</label>
-                    <select id="new-correct" name="correct_answer" required>
+                    <select id="new-correct" name="correct_answer">
                         <option value="">Seleziona...</option>
                         <option value="1">Risposta 1</option>
                         <option value="2">Risposta 2</option>
@@ -551,7 +571,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="form-group">
                     <label for="edit-correct">Risposta Corretta *</label>
-                    <select id="edit-correct" name="correct_answer" required>
+                    <select id="edit-correct" name="correct_answer">
                         <option value="">Seleziona...</option>
                         <option value="1">Risposta 1</option>
                         <option value="2">Risposta 2</option>
