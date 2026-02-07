@@ -608,7 +608,6 @@
   font-size: 0.9em;
   font-weight: 600;
   transition: all 0.2s;
-  color: white;
   display: inline-block;
   user-select: none;
 }
@@ -619,10 +618,12 @@
 
 .btn-icon.btn-success {
   background: #51cf66;
+  color: white;
 }
 
 .btn-icon.btn-primary {
   background: #4a90e2;
+  color: white;
 }
 
 .btn-icon.btn-warning {
@@ -637,6 +638,7 @@
 
 .btn-icon.btn-danger {
   background: #ff6b6b;
+  color: white;
 }
 
 .admin-form {
