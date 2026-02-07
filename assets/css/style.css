@@ -612,8 +612,7 @@
 }
 
 .btn-icon:hover {
-  opacity: 0.8;
-  transform: scale(1.05);
+  opacity: 0.85;
 }
 
 .btn-icon.btn-success {
@@ -627,6 +626,11 @@
 .btn-icon.btn-warning {
   background: #ffc107;
   color: #333;
+}
+
+.btn-icon.btn-warning:hover {
+  opacity: 0.9;
+  background: #ffb300;
 }
 
 .btn-icon.btn-danger {
