@@ -149,6 +149,99 @@ function handleAddQuestion($question) {
     }
 }
 
+function handleUpdateQuestion($question) {
+    if (!$question) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'Question service not available']);
+        exit;
+    }
+
+    try {
+        $questionId = intval($_POST['question_id'] ?? 0);
+        $questionText = $_POST['question'] ?? '';
+        $type = $_POST['round_type'] ?? '';
+        $categoryId = intval($_POST['category_id'] ?? 1);
+        $timer = intval($_POST['timer'] ?? 30);
+
+        if (empty($questionId)) {
+            throw new Exception('ID domanda mancante');
+        }
+        if (empty($questionText)) {
+            throw new Exception('Domanda obbligatoria');
+        }
+        if (empty($type)) {
+            throw new Exception('Tipo domanda obbligatorio');
+        }
+
+        // Prepara dati per aggiornamento
+        $updateData = [
+            'id' => $questionId,
+            'question' => $questionText,
+            'round_type' => $type,
+            'category_id' => $categoryId,
+            'timer' => $timer
+        ];
+
+        if ($type === 'truefalse') {
+            $answer1 = $_POST['answer1'] ?? 'Vero';
+            $answer2 = $_POST['answer2'] ?? 'Falso';
+            $correctAnswer = intval($_POST['correct_answer'] ?? 1);
+
+            $updateData['answer1'] = $answer1;
+            $updateData['answer2'] = $answer2;
+            $updateData['correct_answer'] = $correctAnswer;
+        } else if ($type === 'multiple') {
+            $answer1 = $_POST['answer1'] ?? '';
+            $answer2 = $_POST['answer2'] ?? '';
+            $answer3 = $_POST['answer3'] ?? '';
+            $answer4 = $_POST['answer4'] ?? '';
+            $correctAnswer = intval($_POST['correct_answer'] ?? 1);
+
+            if (empty($answer1) || empty($answer2) || empty($answer3) || empty($answer4)) {
+                throw new Exception('Tutte le risposte sono obbligatorie per Multiple Choice');
+            }
+
+            $updateData['answer1'] = $answer1;
+            $updateData['answer2'] = $answer2;
+            $updateData['answer3'] = $answer3;
+            $updateData['answer4'] = $answer4;
+            $updateData['correct_answer'] = $correctAnswer;
+        } else if ($type === 'clickfirst') {
+            // No answers needed for clickfirst
+        }
+
+        // Chiama metodo di aggiornamento
+        if ($question && method_exists($question, 'updateQuestion')) {
+            $result = $question->updateQuestion($updateData);
+
+            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
+                header('Content-Type: application/json');
+                if ($result['success'] ?? false) {
+                    echo json_encode(['success' => true, 'message' => 'Domanda aggiornata con successo']);
+                } else {
+                    echo json_encode(['success' => false, 'error' => $result['error'] ?? 'Errore nell\'aggiornamento']);
+                }
+                exit;
+            }
+
+            if ($result['success'] ?? false) {
+                redirectWithMessage('admin.php?tab=questions', 'question_updated');
+            } else {
+                throw new Exception($result['error'] ?? 'Errore nell\'aggiornamento della domanda');
+            }
+        } else {
+            throw new Exception('Metodo updateQuestion non disponibile');
+        }
+    } catch (Exception $e) {
+        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            exit;
+        }
+        redirectWithMessage('admin.php?tab=questions', null, $e->getMessage());
+    }
+}
+
 function handleAction($action, $admin, $game, $question = null) {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
@@ -169,6 +262,8 @@ function handleAction($action, $admin, $game, $question = null) {
         case 'add_question':
         case 'save_question':
             return handleAddQuestion($question);
+        case 'update_question':
+            return handleUpdateQuestion($question);
         case 'delete_question':
             // Gestione eliminazione domanda
             if (isset($_POST['question_id'])) {

@@ -325,6 +325,37 @@ class QuestionRepo {
     }
 
     /**
+     * Update a single question
+     */
+    public function updateQuestion($data) {
+        $id = $data['id'] ?? null;
+        $question = $data['question'] ?? '';
+        $type = $data['round_type'] ?? '';
+        $categoryId = $data['category_id'] ?? 1;
+        $timer = $data['timer'] ?? 30;
+        $answer1 = $data['answer1'] ?? '';
+        $answer2 = $data['answer2'] ?? '';
+        $answer3 = $data['answer3'] ?? '';
+        $answer4 = $data['answer4'] ?? '';
+        $correctAnswer = $data['correct_answer'] ?? 1;
+
+        $stmt = $this->conn->prepare("
+            UPDATE questions
+            SET question = ?, round_type = ?, category_id = ?, timer = ?,
+                option1 = ?, option2 = ?, option3 = ?, option4 = ?, correct_answer = ?
+            WHERE id = ?
+        ");
+
+        $stmt->bind_param(
+            "ssiiiiiiiii",
+            $question, $type, $categoryId, $timer,
+            $answer1, $answer2, $answer3, $answer4, $correctAnswer, $id
+        );
+
+        return $stmt->execute();
+    }
+
+    /**
      * Delete a single question
      */
     public function deleteQuestion($questionId) {

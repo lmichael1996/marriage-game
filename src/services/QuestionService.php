@@ -173,6 +173,54 @@ class QuestionService {
     }
 
     /**
+     * Update a single question
+     * @return array with success and error keys
+     */
+    public function updateQuestion($questionData) {
+        try {
+            if (!isset($questionData['id'])) {
+                return ['success' => false, 'error' => 'ID domanda mancante'];
+            }
+
+            if (empty($questionData['question'])) {
+                return ['success' => false, 'error' => 'Testo domanda obbligatorio'];
+            }
+
+            $success = $this->questionRepo->updateQuestion($questionData);
+
+            if (!$success) {
+                return ['success' => false, 'error' => 'Errore nell\'aggiornamento della domanda'];
+            }
+
+            return ['success' => true];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Delete a single question
+     * @return array with success and error keys
+     */
+    public function deleteQuestion($questionId) {
+        try {
+            if (empty($questionId)) {
+                return ['success' => false, 'error' => 'ID domanda mancante'];
+            }
+
+            $success = $this->questionRepo->deleteQuestion($questionId);
+
+            if (!$success) {
+                return ['success' => false, 'error' => 'Errore nell\'eliminazione della domanda'];
+            }
+
+            return ['success' => true];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
      * Search question sets
      * @return array
      */
