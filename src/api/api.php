@@ -619,7 +619,9 @@ function handleFinalLeaderboard($game) {
 
     foreach ($allRounds as $round) {
         $roundId = $round['id'];
-        $gameType = $round['type_game'];
+        // Get game type from the associated question through qset_questions
+        // For now, default to 'multiple' as all rounds track answers the same way
+        $gameType = 'multiple';
 
         // Get top 10 answers for this round
         $topAnswers = $answerRepo->getTopFastestAnswers($roundId, 10);

@@ -73,10 +73,10 @@ class GameService {
             }
 
             // Create a new round record in the database
-            // Only store room_id, round_number, and type_game
+            // Store: room_id, qset_question_id
             // Rankings will be computed on-demand from player_answers
-            $type_game = $question['round_type'] ?? 'multiple';
-            $roundId = $this->roundRepo->createRound($room['id'], $question['round_number'], $type_game);
+            // Note: questionId refers to a question in qset_questions table
+            $roundId = $this->roundRepo->createRound($room['id'], $questionId);
 
             if (!$roundId) {
                 return [

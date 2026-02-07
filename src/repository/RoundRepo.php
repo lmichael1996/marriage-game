@@ -10,16 +10,16 @@ class RoundRepo {
 
     /**
      * Create a new round for a room (insert into rounds table)
-     * Stores only: room_id, round_number, type_game
+     * Stores only: room_id, qset_question_id
      * Rankings are computed on-demand from player_answers table
      */
-    public function createRound($room_id, $round_number, $type_game = 'multiple') {
+    public function createRound($room_id, $qset_question_id) {
         $stmt = $this->conn->prepare("
-            INSERT INTO rounds (room_id, round_number, type_game)
-            VALUES (?, ?, ?)
+            INSERT INTO rounds (room_id, qset_question_id, created_at)
+            VALUES (?, ?, CURRENT_TIMESTAMP)
         ");
 
-        $stmt->bind_param("iis", $room_id, $round_number, $type_game);
+        $stmt->bind_param("ii", $room_id, $qset_question_id);
 
         if ($stmt->execute()) {
             $roundId = $this->conn->insert_id;
@@ -195,27 +195,14 @@ class RoundRepo {
      * Get winning players for a round based on round type
      */
     public function getWinningPlayers($round_id, $round_type) {
-        if ($round_type === 'clickfirst') {
-            // For click first, only the fastest correct answer wins
-            $stmt = $this->conn->prepare("
-                SELECT p.username, pa.time_taken
-                FROM player_answers pa
-                JOIN players p ON pa.player_id = p.id
-                WHERE pa.question_id = ? AND pa.is_correct = 1
-                ORDER BY pa.time_taken ASC
-                LIMIT 1
-            ");
-        } else {
-            // For multiple choice and true/false, top 10 by speed
-            $stmt = $this->conn->prepare("
-                SELECT p.username, pa.time_taken
-                FROM player_answers pa
-                JOIN players p ON pa.player_id = p.id
-                WHERE pa.question_id = ? AND pa.is_correct = 1
-                ORDER BY pa.time_taken ASC
-                LIMIT 10
-            ");
-        }
+        // Get top 10 fastest answerers (by answer_time)
+        $stmt = $this->conn->prepare("
+            SELECT pa.username, pa.answer_time
+            FROM player_answers pa
+            WHERE pa.round_id = ?
+            ORDER BY pa.answer_time ASC
+            LIMIT 10
+        ");
 
         $stmt->bind_param("i", $round_id);
         $stmt->execute();

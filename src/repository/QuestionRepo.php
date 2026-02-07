@@ -246,7 +246,7 @@ class QuestionRepo {
             SELECT q.id, q.round_type, q.question, q.option1, q.option2, q.option3, q.option4, q.correct_answer, q.timer, q.category_id,
                    c.category_name, c.color
             FROM questions q
-            LEFT JOIN questions_categories c ON q.category_id = c.id
+            LEFT JOIN question_categories c ON q.category_id = c.id
             ORDER BY q.id DESC
             LIMIT $perPage OFFSET $offset
         ");

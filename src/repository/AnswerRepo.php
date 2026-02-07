@@ -88,12 +88,13 @@ class AnswerRepo {
         try {
             $stmt = $this->conn->prepare("
                 SELECT
-                    pa.*,
-                    p.username
+                    pa.id,
+                    pa.round_id,
+                    pa.username,
+                    pa.answer_time
                 FROM player_answers pa
-                JOIN players p ON p.id = pa.player_id
-                WHERE pa.question_id = ?
-                ORDER BY pa.time_taken ASC
+                WHERE pa.round_id = ?
+                ORDER BY pa.answer_time ASC
             ");
             $stmt->bind_param("i", $round_id);
             $stmt->execute();
