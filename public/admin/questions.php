@@ -249,13 +249,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const formNewQuestion = document.getElementById('form-new-question');
     if (formNewQuestion) {
         formNewQuestion.addEventListener('submit', (e) => {
-            // Validazione: controlla che correct_answer sia compilato se il form è visibile
+            // Validazione: controlla che sia selezionato un tipo valido
             const typeSelected = document.getElementById('new-type').value;
-            const correctSelected = document.getElementById('new-correct').value;
 
-            if (typeSelected !== 'clickfirst' && !correctSelected) {
+            if (!typeSelected) {
                 e.preventDefault();
-                alert('Seleziona la risposta corretta');
+                alert('Seleziona il tipo di domanda');
                 return;
             }
 
@@ -298,19 +297,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 answersContainer.style.display = 'block';
                 answer3Group.style.display = 'none';
                 answer4Group.style.display = 'none';
-                document.getElementById('new-answer1').placeholder = 'Vero';
-                document.getElementById('new-answer2').placeholder = 'Falso';
+                // Nascondi i campi input answer1 e answer2 per vero/falso
+                document.getElementById('new-answer1').parentElement.style.display = 'none';
+                document.getElementById('new-answer2').parentElement.style.display = 'none';
                 // Limita a 2 risposte
-                correctSelect.innerHTML = '<option value="">Seleziona...</option><option value="1">Vero</option><option value="2">Falso</option>';
+                correctSelect.innerHTML = '<option value="1">Vero</option><option value="2">Falso</option>';
             } else if (type === 'multiple') {
                 answersContainer.style.display = 'block';
                 answer3Group.style.display = 'block';
                 answer4Group.style.display = 'block';
+                // Mostra i campi input answer
+                document.getElementById('new-answer1').parentElement.style.display = 'block';
+                document.getElementById('new-answer2').parentElement.style.display = 'block';
                 document.getElementById('new-answer1').placeholder = 'Risposta corretta';
                 document.getElementById('new-answer2').placeholder = 'Risposta sbagliata';
                 document.getElementById('new-answer3').placeholder = 'Risposta sbagliata';
                 document.getElementById('new-answer4').placeholder = 'Risposta sbagliata';
-                correctSelect.innerHTML = '<option value="">Seleziona...</option><option value="1">Risposta 1</option><option value="2">Risposta 2</option><option value="3">Risposta 3</option><option value="4">Risposta 4</option>';
+                correctSelect.innerHTML = '<option value="1">Risposta 1</option><option value="2">Risposta 2</option><option value="3">Risposta 3</option><option value="4">Risposta 4</option>';
             } else if (type === 'clickfirst') {
                 answersContainer.style.display = 'none';
             } else {
@@ -353,18 +356,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 editAnswersContainer.style.display = 'block';
                 editAnswer3Group.style.display = 'none';
                 editAnswer4Group.style.display = 'none';
-                document.getElementById('edit-answer1').placeholder = 'Vero';
-                document.getElementById('edit-answer2').placeholder = 'Falso';
-                editCorrectSelect.innerHTML = '<option value="">Seleziona...</option><option value="1">Vero</option><option value="2">Falso</option>';
+                // Nascondi i campi input answer1 e answer2 per vero/falso
+                document.getElementById('edit-answer1').parentElement.style.display = 'none';
+                document.getElementById('edit-answer2').parentElement.style.display = 'none';
+                editCorrectSelect.innerHTML = '<option value="1">Vero</option><option value="2">Falso</option>';
             } else if (type === 'multiple') {
                 editAnswersContainer.style.display = 'block';
                 editAnswer3Group.style.display = 'block';
                 editAnswer4Group.style.display = 'block';
+                // Mostra i campi input answer
+                document.getElementById('edit-answer1').parentElement.style.display = 'block';
+                document.getElementById('edit-answer2').parentElement.style.display = 'block';
                 document.getElementById('edit-answer1').placeholder = 'Risposta corretta';
                 document.getElementById('edit-answer2').placeholder = 'Risposta sbagliata';
                 document.getElementById('edit-answer3').placeholder = 'Risposta sbagliata';
                 document.getElementById('edit-answer4').placeholder = 'Risposta sbagliata';
-                editCorrectSelect.innerHTML = '<option value="">Seleziona...</option><option value="1">Risposta 1</option><option value="2">Risposta 2</option><option value="3">Risposta 3</option><option value="4">Risposta 4</option>';
+                editCorrectSelect.innerHTML = '<option value="1">Risposta 1</option><option value="2">Risposta 2</option><option value="3">Risposta 3</option><option value="4">Risposta 4</option>';
             } else if (type === 'clickfirst') {
                 editAnswersContainer.style.display = 'none';
             } else {
@@ -375,13 +382,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (formEditQuestion) {
         formEditQuestion.addEventListener('submit', (e) => {
-            // Validazione: controlla che correct_answer sia compilato se il form è visibile
+            // Validazione: controlla che sia selezionato un tipo valido
             const typeSelected = document.getElementById('edit-type').value;
-            const correctSelected = document.getElementById('edit-correct').value;
 
-            if (typeSelected !== 'clickfirst' && !correctSelected) {
+            if (!typeSelected) {
                 e.preventDefault();
-                alert('Seleziona la risposta corretta');
+                alert('Seleziona il tipo di domanda');
                 return;
             }
 
@@ -490,7 +496,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="form-group">
                     <label for="new-correct">Risposta Corretta *</label>
                     <select id="new-correct" name="correct_answer">
-                        <option value="">Seleziona...</option>
                         <option value="1">Risposta 1</option>
                         <option value="2">Risposta 2</option>
                         <option value="3">Risposta 3</option>
@@ -572,7 +577,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="form-group">
                     <label for="edit-correct">Risposta Corretta *</label>
                     <select id="edit-correct" name="correct_answer">
-                        <option value="">Seleziona...</option>
                         <option value="1">Risposta 1</option>
                         <option value="2">Risposta 2</option>
                         <option value="3">Risposta 3</option>
