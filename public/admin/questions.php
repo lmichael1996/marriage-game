@@ -441,7 +441,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         <form id="form-new-question" class="modal-body">
             <div class="form-group">
-                <label for="new-question">Domanda *</label>
+                <label for="new-question">Domanda</label>
                 <textarea id="new-question" name="question" required rows="3" placeholder="Inserisci il testo della domanda..."></textarea>
             </div>
 
@@ -455,7 +455,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="new-category">Categoria *</label>
+                    <label for="new-category">Categoria</label>
                     <select id="new-category" name="category_id" required>
                         <option value="1">Generale</option>
                         <option value="2">Scienza</option>
@@ -468,7 +468,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="new-timer">Timer (secondi) *</label>
+                    <label for="new-timer">Timer (secondi)</label>
                     <input type="number" id="new-timer" name="timer" required min="5" max="120" value="30">
                 </div>
             </div>
@@ -476,23 +476,23 @@ document.addEventListener('DOMContentLoaded', function() {
             <div id="answers-container" style="display: none;">
                 <h3>Risposte</h3>
                 <div class="form-group">
-                    <label for="new-answer1">Risposta 1 *</label>
+                    <label for="new-answer1">Risposta 1</label>
                     <input type="text" id="new-answer1" name="answer1" placeholder="Risposta corretta">
                 </div>
                 <div class="form-group">
-                    <label for="new-answer2">Risposta 2 *</label>
+                    <label for="new-answer2">Risposta 2</label>
                     <input type="text" id="new-answer2" name="answer2" placeholder="Risposta sbagliata">
                 </div>
                 <div class="form-group" id="answer3-group" style="display: none;">
-                    <label for="new-answer3">Risposta 3 *</label>
+                    <label for="new-answer3">Risposta 3</label>
                     <input type="text" id="new-answer3" name="answer3" placeholder="Risposta sbagliata">
                 </div>
                 <div class="form-group" id="answer4-group" style="display: none;">
-                    <label for="new-answer4">Risposta 4 *</label>
+                    <label for="new-answer4">Risposta 4</label>
                     <input type="text" id="new-answer4" name="answer4" placeholder="Risposta sbagliata">
                 </div>
                 <div class="form-group">
-                    <label for="new-correct">Risposta Corretta *</label>
+                    <label for="new-correct">Risposta Corretta</label>
                     <select id="new-correct" name="correct_answer">
                         <option value="1">Risposta 1</option>
                         <option value="2">Risposta 2</option>
@@ -520,7 +520,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <form id="form-edit-question" class="modal-body">
             <input type="hidden" id="edit-question-id" name="question_id">
             <div class="form-group">
-                <label for="edit-question">Domanda *</label>
+                <label for="edit-question">Domanda</label>
                 <textarea id="edit-question" name="question" required rows="3" placeholder="Inserisci il testo della domanda..."></textarea>
             </div>
 
@@ -534,7 +534,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="edit-category">Categoria *</label>
+                    <label for="edit-category">Categoria</label>
                     <select id="edit-category" name="category_id" required>
                         <option value="1">Generale</option>
                         <option value="2">Scienza</option>
@@ -547,7 +547,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="edit-timer">Timer (secondi) *</label>
+                    <label for="edit-timer">Timer (secondi)</label>
                     <input type="number" id="edit-timer" name="timer" required min="5" max="120" value="30">
                 </div>
             </div>
@@ -555,23 +555,23 @@ document.addEventListener('DOMContentLoaded', function() {
             <div id="edit-answers-container" style="display: none;">
                 <h3>Risposte</h3>
                 <div class="form-group">
-                    <label for="edit-answer1">Risposta 1 *</label>
+                    <label for="edit-answer1">Risposta 1</label>
                     <input type="text" id="edit-answer1" name="answer1" placeholder="Risposta corretta">
                 </div>
                 <div class="form-group">
-                    <label for="edit-answer2">Risposta 2 *</label>
+                    <label for="edit-answer2">Risposta 2</label>
                     <input type="text" id="edit-answer2" name="answer2" placeholder="Risposta sbagliata">
                 </div>
                 <div class="form-group" id="edit-answer3-group" style="display: none;">
-                    <label for="edit-answer3">Risposta 3 *</label>
+                    <label for="edit-answer3">Risposta 3</label>
                     <input type="text" id="edit-answer3" name="answer3" placeholder="Risposta sbagliata">
                 </div>
                 <div class="form-group" id="edit-answer4-group" style="display: none;">
-                    <label for="edit-answer4">Risposta 4 *</label>
+                    <label for="edit-answer4">Risposta 4</label>
                     <input type="text" id="edit-answer4" name="answer4" placeholder="Risposta sbagliata">
                 </div>
                 <div class="form-group">
-                    <label for="edit-correct">Risposta Corretta *</label>
+                    <label for="edit-correct">Risposta Corretta</label>
                     <select id="edit-correct" name="correct_answer">
                         <option value="1">Risposta 1</option>
                         <option value="2">Risposta 2</option>
