@@ -257,4 +257,13 @@ class QuestionService {
     public function getQuestionSetRounds($setId) {
         return $this->questionRepo->getRounds($setId);
     }
+
+    /**
+     * Get all categories
+     * @return array
+     */
+    public function getAllCategories() {
+        return $this->questionRepo->getAllCategories();
+    }
 }
+

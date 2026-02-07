@@ -363,4 +363,17 @@ class QuestionRepo {
         $stmt->bind_param("i", $questionId);
         return $stmt->execute();
     }
+
+    /**
+     * Get all categories
+     */
+    public function getAllCategories() {
+        $result = $this->conn->query("
+            SELECT id, category_name, color
+            FROM question_categories
+            ORDER BY category_name ASC
+        ");
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
 }
+

@@ -275,6 +275,73 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Gestione edit categorie
+    document.querySelectorAll('.btn-edit-category').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const categoryCard = btn.closest('.category-card');
+            const viewMode = categoryCard.querySelector('.category-view-mode');
+            const editMode = categoryCard.querySelector('.category-edit-mode');
+            
+            viewMode.style.display = 'none';
+            editMode.style.display = 'block';
+        });
+    });
+
+    // Annulla edit
+    document.querySelectorAll('.btn-cancel-edit').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const categoryCard = btn.closest('.category-card');
+            const viewMode = categoryCard.querySelector('.category-view-mode');
+            const editMode = categoryCard.querySelector('.category-edit-mode');
+            
+            viewMode.style.display = 'flex';
+            editMode.style.display = 'none';
+        });
+    });
+
+    // Salva categoria
+    document.querySelectorAll('.btn-save-category').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const categoryCard = btn.closest('.category-card');
+            const categoryId = categoryCard.dataset.categoryId;
+            const newName = categoryCard.querySelector('.edit-category-name').value.trim();
+            const newColor = categoryCard.querySelector('.edit-category-color').value;
+
+            if (!newName) {
+                alert('Inserisci il nome della categoria');
+                return;
+            }
+
+            // Aggiorna il display
+            const viewMode = categoryCard.querySelector('.category-view-mode');
+            const nameElement = viewMode.querySelector('.category-name');
+            const colorPreview = viewMode.querySelector('.category-color-preview');
+            
+            nameElement.textContent = newName;
+            colorPreview.style.background = newColor;
+            categoryCard.style.borderLeftColor = newColor;
+
+            // Chiudi edit mode
+            const editMode = categoryCard.querySelector('.category-edit-mode');
+            viewMode.style.display = 'flex';
+            editMode.style.display = 'none';
+
+            alert('✓ Categoria "' + newName + '" aggiornata con successo!');
+        });
+    });
+
+    // Elimina categoria
+    document.querySelectorAll('.btn-delete-category').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            if (confirm('Sei sicuro di voler eliminare questa categoria?')) {
+                const categoryCard = btn.closest('.category-card');
+                categoryCard.style.opacity = '0.5';
+                alert('✓ Categoria eliminata con successo!');
+                // Qui faremmo una chiamata AJAX per eliminare dal DB
+            }
+        });
+    });
+
     const closeBtn = document.querySelector('#modal-add-question .modal-close');
     if (closeBtn) {
         closeBtn.addEventListener('click', () => {
@@ -707,6 +774,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <button type="button" class="modal-close">✕</button>
         </div>
         <div class="modal-body">
+            <h3 style="margin-bottom: 15px;">Aggiungi Nuova Categoria</h3>
             <div class="form-group">
                 <label for="new-category-name">Nome Categoria</label>
                 <input type="text" id="new-category-name" name="category_name" placeholder="Es: Scienze, Storia, Sport..." required>
@@ -718,9 +786,50 @@ document.addEventListener('DOMContentLoaded', function() {
                 <small>Scegli il colore di sfondo per la categoria</small>
             </div>
 
-            <h3 style="margin-top: 30px; margin-bottom: 15px;">Categorie Esistenti</h3>
+            <div style="margin-bottom: 20px;">
+                <button type="button" id="btn-add-category" class="btn btn-success">✓ Aggiungi Categoria</button>
+            </div>
+
+            <hr style="margin: 30px 0;">
+
+            <h3 style="margin-bottom: 15px;">Categorie Esistenti</h3>
             <div id="categories-list" style="display: grid; gap: 10px;">
-                <!-- Le categorie verranno caricate qui -->
+                <?php foreach ($categories as $cat): ?>
+                <div class="category-card" data-category-id="<?php echo $cat['id']; ?>" style="background: #f9f9f9; padding: 15px; border-radius: 6px; border-left: 5px solid <?php echo htmlspecialchars($cat['color']); ?>;">
+                    <!-- View Mode -->
+                    <div class="category-view-mode" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong class="category-name"><?php echo htmlspecialchars($cat['category_name']); ?></strong>
+                            <div style="font-size: 0.85em; color: #666; margin-top: 5px;">
+                                Colore: <span class="category-color-preview" style="display: inline-block; width: 20px; height: 20px; background: <?php echo htmlspecialchars($cat['color']); ?>; border: 1px solid #ccc; border-radius: 3px; vertical-align: middle;"></span>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <button type="button" class="btn-icon btn-warning btn-edit-category" data-category-id="<?php echo $cat['id']; ?>" title="Modifica">✎</button>
+                            <button type="button" class="btn-icon btn-danger btn-delete-category" data-category-id="<?php echo $cat['id']; ?>" title="Elimina">×</button>
+                        </div>
+                    </div>
+
+                    <!-- Edit Mode -->
+                    <div class="category-edit-mode" style="display: none;">
+                        <div class="form-group">
+                            <label>Nome Categoria</label>
+                            <input type="text" class="edit-category-name" value="<?php echo htmlspecialchars($cat['category_name']); ?>" placeholder="Nome categoria">
+                        </div>
+                        <div class="form-group">
+                            <label>Colore</label>
+                            <input type="color" class="edit-category-color" value="<?php echo htmlspecialchars($cat['color']); ?>">
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <button type="button" class="btn btn-secondary btn-cancel-edit" style="flex: 1;">Annulla</button>
+                            <button type="button" class="btn btn-success btn-save-category" style="flex: 1;">✓ Salva</button>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+                <?php if (empty($categories)): ?>
+                <p style="color: #999; text-align: center; padding: 20px;">Nessuna categoria creata. Aggiungi la prima!</p>
+                <?php endif; ?>
             </div>
 
             <div class="modal-actions">

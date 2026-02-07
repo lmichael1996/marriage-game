@@ -35,6 +35,9 @@ $pagination = $questionsData['pagination'];
 
 $settingsResult = $admin->getAllSettings();
 $gameSettings = $settingsResult['success'] ? $settingsResult['settings'] : [];
+
+// Get categories
+$categories = $question->getAllCategories();
 ?>
 <!DOCTYPE html>
 <html lang="it">
