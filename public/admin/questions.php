@@ -2,7 +2,10 @@
 <div class="admin-section">
     <div class="tab-header-with-button">
         <h2>❓ Domande Disponibili</h2>
-        <button class="btn btn-success" id="btn-new-question">+ Nuova Domanda</button>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn btn-success" id="btn-new-question">+ Nuova Domanda</button>
+            <button class="btn btn-warning" id="btn-new-category">+ Nuova Categoria</button>
+        </div>
     </div>
 
     <!-- Search Bar -->
@@ -227,7 +230,51 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Chiudi modal
+    // Gestione popup Nuova Categoria
+    const btnNewCategory = document.getElementById('btn-new-category');
+
+    if (btnNewCategory) {
+        btnNewCategory.addEventListener('click', () => {
+            document.getElementById('modal-categories').style.display = 'flex';
+        });
+    }
+
+    // Gestione modal categorie
+    const modalCategories = document.getElementById('modal-categories');
+    const closeCategoryBtn = document.querySelector('#modal-categories .modal-close');
+    const btnAddCategory = document.getElementById('btn-add-category');
+
+    if (closeCategoryBtn) {
+        closeCategoryBtn.addEventListener('click', () => {
+            modalCategories.style.display = 'none';
+        });
+    }
+
+    if (modalCategories) {
+        modalCategories.addEventListener('click', (e) => {
+            if (e.target === modalCategories) {
+                modalCategories.style.display = 'none';
+            }
+        });
+    }
+
+    if (btnAddCategory) {
+        btnAddCategory.addEventListener('click', () => {
+            const categoryName = document.getElementById('new-category-name').value.trim();
+            const categoryColor = document.getElementById('new-category-color').value;
+
+            if (!categoryName) {
+                alert('Inserisci il nome della categoria');
+                return;
+            }
+
+            alert('✓ Categoria "' + categoryName + '" aggiunta con successo!');
+            document.getElementById('new-category-name').value = '';
+            document.getElementById('new-category-color').value = '#3498db';
+            modalCategories.style.display = 'none';
+        });
+    }
+
     const closeBtn = document.querySelector('#modal-add-question .modal-close');
     if (closeBtn) {
         closeBtn.addEventListener('click', () => {
@@ -648,6 +695,38 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="modal-actions">
             <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-delete-question').style.display='none';">Annulla</button>
             <button type="button" id="btn-confirm-delete" class="btn btn-danger">✓ Elimina</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal per gestire categorie -->
+<div id="modal-categories" class="modal-overlay" style="display: none;">
+    <div class="modal-content modal-content-large">
+        <div class="modal-header">
+            <h2>📁 Gestisci Categorie</h2>
+            <button type="button" class="modal-close">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="new-category-name">Nome Categoria</label>
+                <input type="text" id="new-category-name" name="category_name" placeholder="Es: Scienze, Storia, Sport..." required>
+            </div>
+
+            <div class="form-group">
+                <label for="new-category-color">Colore</label>
+                <input type="color" id="new-category-color" name="category_color" value="#3498db" required>
+                <small>Scegli il colore di sfondo per la categoria</small>
+            </div>
+
+            <h3 style="margin-top: 30px; margin-bottom: 15px;">Categorie Esistenti</h3>
+            <div id="categories-list" style="display: grid; gap: 10px;">
+                <!-- Le categorie verranno caricate qui -->
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-categories').style.display='none';">Chiudi</button>
+                <button type="button" id="btn-add-category" class="btn btn-success">✓ Aggiungi Categoria</button>
+            </div>
         </div>
     </div>
 </div>
