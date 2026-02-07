@@ -447,9 +447,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="new-type">Tipo *</label>
+                    <label for="new-type">Tipo</label>
                     <select id="new-type" name="round_type" required>
-                        <option value="">Seleziona tipo...</option>
                         <option value="multiple">📋 Multiple Choice</option>
                         <option value="truefalse">✔️ Vero/Falso</option>
                         <option value="clickfirst">⚡ Clicca il Primo</option>
@@ -458,7 +457,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="form-group">
                     <label for="new-category">Categoria *</label>
                     <select id="new-category" name="category_id" required>
-                        <option value="">Seleziona categoria...</option>
                         <option value="1">Generale</option>
                         <option value="2">Scienza</option>
                         <option value="3">Storia</option>
@@ -528,9 +526,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="edit-type">Tipo *</label>
+                    <label for="edit-type">Tipo</label>
                     <select id="edit-type" name="round_type" required>
-                        <option value="">Seleziona tipo...</option>
                         <option value="multiple">📋 Multiple Choice</option>
                         <option value="truefalse">✔️ Vero/Falso</option>
                         <option value="clickfirst">⚡ Clicca il Primo</option>
@@ -539,7 +536,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="form-group">
                     <label for="edit-category">Categoria *</label>
                     <select id="edit-category" name="category_id" required>
-                        <option value="">Seleziona categoria...</option>
                         <option value="1">Generale</option>
                         <option value="2">Scienza</option>
                         <option value="3">Storia</option>
