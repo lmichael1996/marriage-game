@@ -101,54 +101,14 @@
     </div>
 </div>
 
-<!-- Modal: Aggiungi Set -->
-<div id="modal-add-set" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="max-width: 600px;">
-        <div class="modal-header">
-            <h2>Aggiungi Nuovo Set</h2>
-            <button type="button" class="btn-close" onclick="document.getElementById('modal-add-set').style.display='none';">&times;</button>
-        </div>
-        <div class="modal-body">
-            <form id="add-set-form" onsubmit="submitAddSet(event)">
-                <input type="hidden" name="action" value="add_questionset">
-                <div class="form-group">
-                    <label for="add-set-name">Nome Set *</label>
-                    <input type="text" id="add-set-name" name="set_name" placeholder="Es: Set di Matematica" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="add-set-description">Descrizione</label>
-                    <textarea id="add-set-description" name="set_description" placeholder="Descrizione opzionale" rows="3"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="add-set-questions">Domande da aggiungere</label>
-                    <div id="add-set-questions" class="questions-list" style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 4px;">
-                        <p style="text-align: center; color: #999;">Caricamento domande...</p>
-                    </div>
-                </div>
-
-                <div id="add-set-message" class="form-message"></div>
-
-                <div class="button-container">
-                    <button type="submit" class="btn btn-primary">Crea Set</button>
-                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-add-set').style.display='none';">Annulla</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <!-- Modal: Modifica Set -->
 <div id="modal-edit-set" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="max-width: 1200px; width: 98%;">
+    <div class="modal-content" style="max-width: 1400px; width: 99%;">
         <div class="modal-header">
             <h2>Modifica Set</h2>
-            <button type="button" class="btn-close" onclick="document.getElementById('modal-edit-set').style.display='none';">&times;</button>
         </div>
-        <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
-            <form id="edit-set-form" onsubmit="submitEditSet(event)">
-                <input type="hidden" name="action" value="update_questionset">
+        <div class="modal-body" style="max-height: 80vh;">
+            <form id="edit-set-form">
                 <input type="hidden" id="edit-set-id" name="set_id">
 
                 <div class="form-group">
@@ -164,8 +124,17 @@
                 <div class="form-group">
                     <label for="edit-search-questions">Cerca e Aggiungi Domande</label>
                     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                        <input type="text" id="edit-search-questions" placeholder="Cerca domande..." style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                        <button type="button" class="btn btn-info" onclick="searchAvailableQuestions()">Cerca</button>
+                        <input type="text" id="edit-search-questions" placeholder="Cerca domande..." style="flex: 2; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        <select id="edit-search-type" style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff;">
+                            <option value="starts_with">Inizia con</option>
+                            <option value="contains">Contiene</option>
+                            <option value="ends_with">Finisce con</option>
+                            <option value="exact">Esattamente</option>
+                        </select>
+                        <select id="edit-category-filter" style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff;">
+                            <option value="">🌐 Tutte Categorie</option>
+                        </select>
+                        <button type="button" class="btn btn-info" style="flex-shrink: 0;" onclick="searchAvailableQuestions()">Cerca</button>
                     </div>
                     <div id="edit-available-questions" class="questions-list" style="max-height: 350px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px; background-color: #fff;">
                         <p style="text-align: center; color: #999;">Inserisci un termine di ricerca e clicca Cerca</p>
@@ -184,8 +153,7 @@
                 <div id="edit-set-message" class="form-message"></div>
 
                 <div class="button-container">
-                    <button type="submit" class="btn btn-primary">Salva</button>
-                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-edit-set').style.display='none';">Annulla</button>
+                    <button type="button" class="btn btn-secondary" id="btn-close-edit-set" onclick="closeEditSetModal()">Chiudi</button>
                 </div>
             </form>
         </div>
@@ -197,7 +165,6 @@
     <div class="modal-content" style="max-width: 500px;">
         <div class="modal-header">
             <h2>Elimina Set</h2>
-            <button type="button" class="btn-close" onclick="document.getElementById('modal-delete-set').style.display='none';">&times;</button>
         </div>
         <div class="modal-body">
             <p>Sei sicuro di voler eliminare questo set? <strong>Questa azione non può essere annullata.</strong></p>
@@ -281,6 +248,104 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
+// Variabili globali per tracciare i valori originali del set in modifica
+let editSetOriginalData = {
+    id: null,
+    name: null,
+    description: null
+};
+
+// Flag per tracciare se stiamo creando un nuovo set (non ancora salvato)
+let isNewSet = false;
+
+// Chiude il modal "Modifica Set" e salva i metadati se modificati
+function closeEditSetModal() {
+    const setId = document.getElementById('edit-set-id').value;
+    const currentName = document.getElementById('edit-set-name').value.trim();
+    const currentDescription = document.getElementById('edit-set-description').value.trim();
+    const messageDiv = document.getElementById('edit-set-message');
+
+    // Se è un nuovo set, salva sempre (anche se il nome è vuoto diventa "Nuovo Set")
+    if (isNewSet) {
+        if (!currentName) {
+            messageDiv.innerHTML = '<div class="alert-error">✗ Il nome del set è obbligatorio</div>';
+            return;
+        }
+
+        // Salva il nuovo set
+        fetch('/src/api/api.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                endpoint: 'update_questionset_metadata',
+                set_id: setId,
+                set_name: currentName,
+                set_description: currentDescription,
+                is_saved: true
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                messageDiv.innerHTML = '<div class="alert-success">✓ Set salvato con successo!</div>';
+                isNewSet = false; // Non è più nuovo
+                setTimeout(() => {
+                    document.getElementById('modal-edit-set').style.display = 'none';
+                    window.location.reload();
+                }, 1000);
+            } else {
+                messageDiv.innerHTML = '<div class="alert-error">✗ Errore nel salvataggio</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Errore:', error);
+            messageDiv.innerHTML = '<div class="alert-error">✗ Errore durante il salvataggio</div>';
+        });
+    } else {
+        // Set esistente: salva solo se ci sono modifiche
+        const nameChanged = currentName !== editSetOriginalData.name;
+        const descriptionChanged = currentDescription !== editSetOriginalData.description;
+
+        if (nameChanged || descriptionChanged) {
+            // Salva i metadati via API
+            fetch('/src/api/api.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    endpoint: 'update_questionset_metadata',
+                    set_id: setId,
+                    set_name: currentName,
+                    set_description: currentDescription
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    messageDiv.innerHTML = '<div class="alert-success">✓ Modifiche salvate!</div>';
+                    setTimeout(() => {
+                        document.getElementById('modal-edit-set').style.display = 'none';
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    messageDiv.innerHTML = '<div class="alert-error">✗ Errore nel salvataggio</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                messageDiv.innerHTML = '<div class="alert-error">✗ Errore durante il salvataggio</div>';
+            });
+        } else {
+            // Nessuna modifica, chiudi direttamente
+            document.getElementById('modal-edit-set').style.display = 'none';
+        }
+    }
+}
+
+// Chiude il modal "Aggiungi Set" e pulisce il localStorage
 // ============================================================================
 // GESTIONE MODALI E AZIONI SET
 // ============================================================================
@@ -291,9 +356,74 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (btnNewSet) {
         btnNewSet.addEventListener('click', () => {
-            document.getElementById('add-set-form').reset();
-            document.getElementById('add-set-message').innerHTML = '';
-            modalAddSet.style.display = 'flex';
+            // Crea un set vuoto nel database via API
+            fetch('/src/api/api.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    endpoint: 'add_questionset',
+                    set_name: 'Nuovo Set',
+                    set_description: ''
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.set_id) {
+                    // Carica il modal come se fosse un "Modifica Set"
+                    const setId = data.set_id;
+
+                    // Marca come nuovo set (non ancora salvato)
+                    isNewSet = true;
+
+                    fetch(`/src/api/api.php?endpoint=get_questionset&id=${setId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success && data.set) {
+                                const s = data.set;
+                                document.getElementById('edit-set-id').value = s.id;
+                                document.getElementById('edit-set-name').value = s.set_name;
+                                document.getElementById('edit-set-description').value = s.set_description || '';
+
+                                // Salva i valori originali per confronto al chiusura
+                                editSetOriginalData = {
+                                    id: s.id,
+                                    name: s.set_name,
+                                    description: s.set_description || ''
+                                };
+
+                                // Cambia il titolo del modal per "Aggiungi Set"
+                                document.querySelector('.modal-header h2').textContent = 'Aggiungi Set';
+
+                                // Cambia il bottone per "Salva Set"
+                                document.getElementById('btn-close-edit-set').textContent = 'Salva Set';
+                                document.getElementById('btn-close-edit-set').className = 'btn btn-primary';
+
+                                document.getElementById('edit-set-message').innerHTML = '';
+                                document.getElementById('modal-edit-set').style.display = 'flex';
+
+                                // Carica categorie nel filtro
+                                loadCategoriesForFilter();
+
+                                // Carica domande associate al set
+                                loadSetQuestions(s.id);
+                            } else {
+                                alert('Errore nel caricamento del set');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Errore nel caricamento del set');
+                        });
+                } else {
+                    alert('Errore nella creazione del set');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Errore nella creazione del set');
+            });
         });
     }
 
@@ -317,8 +447,29 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('edit-set-id').value = s.id;
                         document.getElementById('edit-set-name').value = s.set_name;
                         document.getElementById('edit-set-description').value = s.set_description || '';
+
+                        // Salva i valori originali per confronto al chiusura
+                        editSetOriginalData = {
+                            id: s.id,
+                            name: s.set_name,
+                            description: s.set_description || ''
+                        };
+
+                        // Cambia il titolo del modal a "Modifica Set"
+                        document.querySelector('.modal-header h2').textContent = 'Modifica Set';
+
+                        // Cambia il bottone a "Chiudi"
+                        document.getElementById('btn-close-edit-set').textContent = 'Chiudi';
+                        document.getElementById('btn-close-edit-set').className = 'btn btn-secondary';
+
+                        // Reset flag nuovo set
+                        isNewSet = false;
+
                         document.getElementById('edit-set-message').innerHTML = '';
                         document.getElementById('modal-edit-set').style.display = 'flex';
+
+                        // Carica categorie nel filtro
+                        loadCategoriesForFilter();
 
                         // Carica domande associate al set
                         loadSetQuestions(s.id);
@@ -357,33 +508,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================================================
 // FORM SUBMISSION
 // ============================================================================
-function submitAddSet(event) {
-    event.preventDefault();
 
-    const form = document.getElementById('add-set-form');
-    const formData = new FormData(form);
-    const messageDiv = document.getElementById('add-set-message');
-
-    fetch('admin.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            messageDiv.innerHTML = '<div class="alert-success">✓ Set creato con successo!</div>';
-            setTimeout(() => {
-                window.location.reload();
-            }, 1500);
-        } else {
-            messageDiv.innerHTML = `<div class="alert-error">✗ ${data.error || 'Errore'}</div>`;
-        }
-    })
-    .catch(error => {
-        console.error('Errore:', error);
-        messageDiv.innerHTML = '<div class="alert-error">✗ Errore durante la creazione del set</div>';
-    });
-}
 
 function submitEditSet(event) {
     event.preventDefault();
@@ -413,6 +538,59 @@ function submitEditSet(event) {
     });
 }
 
+// Carica le categorie nel dropdown dei filtri
+function loadCategoriesForFilter() {
+    const select = document.getElementById('edit-category-filter');
+    if (!select || select.options.length > 1) {
+        return; // Già caricate
+    }
+
+    fetch(`/src/api/api.php?endpoint=get_categories`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.categories) {
+                data.categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.id;
+                    option.textContent = cat.category_name;
+                    select.appendChild(option);
+                });
+
+                // Aggiungi event listener per trigghernare la ricerca al cambio di categoria
+                select.addEventListener('change', function() {
+                    searchAvailableQuestions();
+                });
+            }
+        })
+        .catch(error => console.error('Errore nel caricamento categorie:', error));
+}
+
+// Carica categorie per il filtro nel modal di aggiunta set
+function loadCategoriesForAddSetFilter() {
+    const select = document.getElementById('add-category-filter');
+    if (!select || select.options.length > 1) {
+        return; // Già caricate
+    }
+
+    fetch(`/src/api/api.php?endpoint=get_categories`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.categories) {
+                data.categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.id;
+                    option.textContent = cat.category_name;
+                    select.appendChild(option);
+                });
+
+                select.addEventListener('change', function() {
+                    searchAvailableQuestionsForNewSet();
+                });
+            }
+        })
+        .catch(error => console.error('Errore nel caricamento categorie:', error));
+}
+
 // Carica domande associate a un set
 function loadSetQuestions(setId) {
     const containerAssociated = document.getElementById('edit-set-questions');
@@ -421,19 +599,34 @@ function loadSetQuestions(setId) {
         .then(response => response.json())
         .then(data => {
             if (data.success && data.questions && data.questions.length > 0) {
-                let html = '<div class="questions-associated">';
-                data.questions.forEach(q => {
+                let html = '<div class="questions-associated" id="questions-list-' + setId + '">';
+                const total = data.questions.length;
+
+                data.questions.forEach((q, index) => {
+                    const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 15px; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
+
+                    const moveUpBtn = index > 0 ? `<button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveQuestionUp(${setId}, ${index})" title="Sposta su">⬆</button>` : '';
+                    const moveDownBtn = index < total - 1 ? `<button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveQuestionDown(${setId}, ${index})" title="Sposta giù">⬇</button>` : '';
+
                     html += `
-                        <div class="question-item" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <strong>${q.id}.</strong> ${q.question}
+                        <div class="question-item" data-question-id="${q.id}" data-set-id="${setId}" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 10px; background-color: #fff;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="width: 30px; text-align: center; font-weight: 600; color: #666; background-color: #f5f5f5; padding: 5px; border-radius: 4px;">${index + 1}</span>
+                                <div style="flex: 1;">
+                                    ${q.question}${categoryBadge}
+                                </div>
                             </div>
-                            <button type="button" class="btn btn-danger btn-sm" onclick="removeQuestionFromSet(${setId}, ${q.id})">
-                                Elimina
-                            </button>
+                            <div style="display: flex; gap: 5px; flex-shrink: 0;">
+                                ${moveUpBtn}
+                                ${moveDownBtn}
+                                <button type="button" class="btn btn-danger btn-sm" onclick="removeQuestionFromSet(${setId}, ${q.id})">
+                                    Elimina
+                                </button>
+                            </div>
                         </div>
                     `;
                 });
+
                 html += '</div>';
                 containerAssociated.innerHTML = html;
             } else {
@@ -446,6 +639,170 @@ function loadSetQuestions(setId) {
         });
 }
 
+// Setup drag and drop per riordinamento domande
+function setupDragAndDrop(setId) {
+    const container = document.getElementById('questions-list-' + setId);
+    if (!container) return;
+
+    let draggedElement = null;
+    let dragStarted = false;
+
+    // Usa event delegation sul container
+    container.addEventListener('dragstart', (e) => {
+        if (e.target.draggable === true || e.target.hasAttribute('draggable')) {
+            draggedElement = e.target;
+            dragStarted = true;
+            draggedElement.style.opacity = '0.5';
+            e.dataTransfer.effectAllowed = 'move';
+        }
+    }, false);
+
+    container.addEventListener('dragend', (e) => {
+        if (draggedElement) {
+            draggedElement.style.opacity = '1';
+            draggedElement = null;
+            dragStarted = false;
+        }
+        // Rimuovi i border da tutti gli elementi
+        const items = container.querySelectorAll('[draggable="true"]');
+        items.forEach(item => {
+            item.style.borderTop = 'none';
+        });
+    }, false);
+
+    container.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+
+        if (dragStarted && e.target.draggable === true) {
+            if (draggedElement && e.target !== draggedElement) {
+                e.target.style.borderTop = '3px solid #0066cc';
+            }
+        }
+    }, false);
+
+    container.addEventListener('dragleave', (e) => {
+        if (e.target.draggable === true && dragStarted) {
+            e.target.style.borderTop = 'none';
+        }
+    }, false);
+
+    container.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (dragStarted && draggedElement && e.target.draggable === true && e.target !== draggedElement) {
+            e.target.style.borderTop = 'none';
+
+            // Ripulisci l'opacity immediatamente
+            if (draggedElement) {
+                draggedElement.style.opacity = '1';
+            }
+            // Rimuovi i border da tutti gli elementi
+            const items = container.querySelectorAll('[draggable="true"]');
+            items.forEach(item => {
+                item.style.borderTop = 'none';
+            });
+
+            // Inserisci l'elemento trascinato prima dell'elemento target
+            // Se lo trascini giù, inserisci dopo; se lo trascini su, inserisci prima
+            const allItems = Array.from(container.querySelectorAll('[draggable="true"]'));
+            const draggedIndex = allItems.indexOf(draggedElement);
+            const targetIndex = allItems.indexOf(e.target);
+
+            if (draggedIndex >= 0 && targetIndex >= 0) {
+                if (draggedIndex < targetIndex) {
+                    // Trascini verso il basso: inserisci dopo il target
+                    if (e.target.nextSibling) {
+                        e.target.parentNode.insertBefore(draggedElement, e.target.nextSibling);
+                    } else {
+                        e.target.parentNode.appendChild(draggedElement);
+                    }
+                } else {
+                    // Trascini verso l'alto: inserisci prima del target
+                    e.target.parentNode.insertBefore(draggedElement, e.target);
+                }
+
+                // Aggiorna l'ordine nel database
+                updateOrderInDatabase(setId);
+            }
+        }
+
+        dragStarted = false;
+        draggedElement = null;
+    }, false);
+}
+
+// Aggiorna l'ordine nel database
+function updateOrderInDatabase(setId) {
+    const container = document.getElementById('questions-list-' + setId);
+    if (!container) {
+        console.error('Container non trovato per setId:', setId);
+        return;
+    }
+
+    const items = container.querySelectorAll('[draggable="true"]');
+
+    if (items.length === 0) {
+        console.warn('Nessuna domanda trovata nel container');
+        return;
+    }
+
+    const questionOrder = Array.from(items).map((item, index) => {
+        const questionId = parseInt(item.getAttribute('data-question-id'));
+        if (isNaN(questionId)) {
+            console.error('ID domanda non valido:', item.getAttribute('data-question-id'));
+            return null;
+        }
+        return {
+            question_id: questionId,
+            order: index + 1
+        };
+    }).filter(item => item !== null);
+
+    if (questionOrder.length === 0) {
+        console.error('Nessun ordine valido da salvare');
+        return;
+    }
+
+    fetch('/src/api/api.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            endpoint: 'update_question_order',
+            set_id: setId,
+            questions: questionOrder
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Errore HTTP: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (!data.success) {
+            console.error('Errore nell\'aggiornamento ordine:', data.error);
+            // Ricarica solo dopo un ritardo per evitare race condition
+            setTimeout(() => {
+                loadSetQuestions(setId);
+            }, 300);
+        } else {
+            console.log('Ordine aggiornato con successo');
+        }
+    })
+    .catch(error => {
+        console.error('Errore nel salvataggio ordine:', error);
+        // Ricarica con ritardo per evitare race condition
+        setTimeout(() => {
+            loadSetQuestions(setId);
+        }, 300);
+    });
+}
+
+// Sposta una domanda su nel set
 // Rimuove una domanda da un set
 function removeQuestionFromSet(setId, questionId) {
     if (confirm('Vuoi eliminare questa domanda dal set?')) {
@@ -455,7 +812,7 @@ function removeQuestionFromSet(setId, questionId) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                action: 'remove_question_from_set',
+                endpoint: 'remove_question_from_set',
                 set_id: setId,
                 question_id: questionId
             })
@@ -463,8 +820,10 @@ function removeQuestionFromSet(setId, questionId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Ricarica le domande del set
+                alert('✓ Domanda eliminata con successo!');
+                // Ricarica sia le domande del set che la ricerca
                 loadSetQuestions(setId);
+                searchAvailableQuestions();
             } else {
                 alert('Errore: ' + (data.error || 'Non è stato possibile eliminare la domanda'));
             }
@@ -476,16 +835,103 @@ function removeQuestionFromSet(setId, questionId) {
     }
 }
 
+// Sposta una domanda su nella lista
+function moveQuestionUp(setId, currentIndex) {
+    if (currentIndex === 0) return; // Non puoi spostare il primo elemento su
+
+    const container = document.getElementById('questions-list-' + setId);
+    if (!container) return;
+
+    const items = Array.from(container.querySelectorAll('.question-item'));
+    if (currentIndex <= 0 || currentIndex >= items.length) return;
+
+    // Scambia gli elementi nel DOM
+    const currentItem = items[currentIndex];
+    const previousItem = items[currentIndex - 1];
+    previousItem.parentNode.insertBefore(currentItem, previousItem);
+
+    // Ottieni l'ID della domanda spostata
+    const questionId = parseInt(currentItem.getAttribute('data-question-id'));
+
+    // Aggiorna l'ordine nel database
+    updateOrderAfterMove(setId, questionId);
+}
+
+// Sposta una domanda giù nella lista
+function moveQuestionDown(setId, currentIndex) {
+    const container = document.getElementById('questions-list-' + setId);
+    if (!container) return;
+
+    const items = Array.from(container.querySelectorAll('.question-item'));
+    if (currentIndex < 0 || currentIndex >= items.length - 1) return;
+
+    // Scambia gli elementi nel DOM
+    const currentItem = items[currentIndex];
+    const nextItem = items[currentIndex + 1];
+    currentItem.parentNode.insertBefore(nextItem, currentItem);
+
+    // Ottieni l'ID della domanda spostata
+    const questionId = parseInt(currentItem.getAttribute('data-question-id'));
+
+    // Aggiorna l'ordine nel database
+    updateOrderAfterMove(setId, questionId);
+}
+
+// Aggiorna l'ordine dopo lo spostamento con frecce
+function updateOrderAfterMove(setId, questionId) {
+    const container = document.getElementById('questions-list-' + setId);
+    if (!container) return;
+
+    const items = Array.from(container.querySelectorAll('.question-item'));
+    const questionOrder = items.map((item, index) => ({
+        question_id: parseInt(item.getAttribute('data-question-id')),
+        order: index + 1
+    }));
+
+    fetch('/src/api/api.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            endpoint: 'update_question_order',
+            set_id: setId,
+            questions: questionOrder
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            console.error('Errore nell\'aggiornamento ordine:', data.error);
+            setTimeout(() => {
+                loadSetQuestions(setId);
+            }, 300);
+        } else {
+            // Ricarica gli elementi per rigenerare i bottoni freccia
+            alert('✓ Ordine aggiornato con successo!');
+            loadSetQuestions(setId);
+            if (questionId) {
+                setTimeout(() => {
+                    highlightQuestion(questionId, setId);
+                }, 100);
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Errore:', error);
+        setTimeout(() => {
+            loadSetQuestions(setId);
+        }, 300);
+    });
+}
+
 // Ricerca domande disponibili
 function searchAvailableQuestions() {
     const searchTerm = document.getElementById('edit-search-questions').value.trim();
+    const searchType = document.getElementById('edit-search-type').value;
+    const categoryId = document.getElementById('edit-category-filter').value;
     const container = document.getElementById('edit-available-questions');
     const setId = document.getElementById('edit-set-id').value;
-
-    if (!searchTerm) {
-        container.innerHTML = '<p style="text-align: center; color: #999;">Inserisci un termine di ricerca</p>';
-        return;
-    }
 
     container.innerHTML = '<p style="text-align: center; color: #999;">Ricerca in corso...</p>';
 
@@ -494,10 +940,30 @@ function searchAvailableQuestions() {
         .then(response => response.json())
         .then(data => {
             if (data.success && data.questions) {
-                // Filtra le domande in base al termine di ricerca
-                const filtered = data.questions.filter(q =>
-                    q.question && q.question.toLowerCase().includes(searchTerm.toLowerCase())
-                );
+                // Applica filtro per tipo di ricerca
+                let pattern = null;
+                if (searchTerm) {
+                    switch(searchType) {
+                        case 'starts_with':
+                            pattern = new RegExp('^' + searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+                            break;
+                        case 'ends_with':
+                            pattern = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i');
+                            break;
+                        case 'exact':
+                            pattern = new RegExp('^' + searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i');
+                            break;
+                        default:
+                            pattern = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+                    }
+                }
+
+                // Filtra le domande in base al termine di ricerca e alla categoria
+                const filtered = data.questions.filter(q => {
+                    const matchesSearch = !pattern || (q.question && pattern.test(q.question));
+                    const matchesCategory = !categoryId || (q.category_id && q.category_id.toString() === categoryId);
+                    return matchesSearch && matchesCategory;
+                });
 
                 if (filtered.length === 0) {
                     container.innerHTML = '<p style="text-align: center; color: #999;">Nessuna domanda trovata</p>';
@@ -510,21 +976,30 @@ function searchAvailableQuestions() {
                     .then(setData => {
                         const setQuestionIds = setData.questions ? setData.questions.map(q => q.id) : [];
 
+                        // Escludi le domande già associate dal risultato della ricerca
+                        const availableQuestions = filtered.filter(q => !setQuestionIds.includes(q.id));
+
+                        if (availableQuestions.length === 0) {
+                            container.innerHTML = '<p style="text-align: center; color: #999;">Tutte le domande trovate sono già associate</p>';
+                            return;
+                        }
+
                         let html = '';
-                        filtered.forEach(q => {
-                            const isInSet = setQuestionIds.includes(q.id);
-                            const buttonText = isInSet ? 'Già Aggiunta' : 'Aggiungi';
-                            const buttonClass = isInSet ? 'btn-secondary' : 'btn-success';
-                            const buttonDisabled = isInSet ? 'disabled' : '';
+                        availableQuestions.forEach(q => {
+                            const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 15px; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
+
+                            // Evidenzia il testo della ricerca nella domanda
+                            let questionText = q.question;
+                            if (searchTerm && pattern) {
+                                questionText = q.question.replace(pattern, '<mark style="background-color: #ffff00; font-weight: bold;">$&</mark>');
+                            }
 
                             html += `
-                                <div class="question-item" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                                <div class="question-item" data-question-id="${q.id}" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 10px; background-color: #fff;">
                                     <div style="flex: 1;">
-                                        <strong>${q.id}.</strong> ${q.question}
+                                        ${questionText}${categoryBadge}
                                     </div>
-                                    <button type="button" class="btn ${buttonClass} btn-sm" onclick="${!isInSet ? `addQuestionToSet(${setId}, ${q.id})` : ''}" ${buttonDisabled}>
-                                        ${buttonText}
-                                    </button>
+                                    <button type="button" class="btn btn-success btn-sm" onclick="addQuestionToSet(${setId}, ${q.id})" title="Aggiungi al set">+ Aggiungi</button>
                                 </div>
                             `;
                         });
@@ -538,6 +1013,118 @@ function searchAvailableQuestions() {
             console.error('Errore:', error);
             container.innerHTML = '<p style="text-align: center; color: #d9534f;">Errore durante la ricerca</p>';
         });
+}
+
+// Ricerca domande per il nuovo set (senza ID set)
+function searchAvailableQuestionsForNewSet() {
+    const searchTerm = document.getElementById('add-search-questions').value.trim();
+    const searchType = document.getElementById('add-search-type').value;
+    const categoryId = document.getElementById('add-category-filter').value;
+    const container = document.getElementById('add-available-questions');
+    const associatedContainer = document.getElementById('add-set-associated-questions');
+
+    // Fetch tutte le domande (sempre, per aggiornare l'elenco escludendo quelle appena aggiunte)
+    fetch(`/src/api/api.php?endpoint=get_questions`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.questions) {
+                // Applica filtro per tipo di ricerca
+                let pattern = null;
+                if (searchTerm) {
+                    switch(searchType) {
+                        case 'starts_with':
+                            pattern = new RegExp('^' + searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+                            break;
+                        case 'ends_with':
+                            pattern = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i');
+                            break;
+                        case 'exact':
+                            pattern = new RegExp('^' + searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i');
+                            break;
+                        default:
+                            pattern = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+                    }
+                }
+
+                // Filtra le domande in base al termine di ricerca e alla categoria
+                const filtered = data.questions.filter(q => {
+                    const matchesSearch = !pattern || (q.question && pattern.test(q.question));
+                    const matchesCategory = !categoryId || (q.category_id && q.category_id.toString() === categoryId);
+                    return matchesSearch && matchesCategory;
+                });
+
+                if (filtered.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #999;">Nessuna domanda trovata</p>';
+                    return;
+                }
+
+                // Ottieni le domande già associate al nuovo set (da localStorage)
+                const addedQuestionIds = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
+
+                // Escludi le domande già associate dal risultato della ricerca
+                const availableQuestions = filtered.filter(q => !addedQuestionIds.includes(q.id));
+
+                if (availableQuestions.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #999;">Tutte le domande trovate sono già associate</p>';
+                    return;
+                }
+
+                let html = '';
+                availableQuestions.forEach(q => {
+                    const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 15px; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
+
+                    // Evidenzia il testo della ricerca nella domanda
+                    let questionText = q.question;
+                    if (searchTerm && pattern) {
+                        questionText = q.question.replace(pattern, '<mark style="background-color: #ffff00; font-weight: bold;">$&</mark>');
+                    }
+
+                    html += `
+                        <div class="question-item" data-question-id="${q.id}" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 10px; background-color: #fff;">
+                            <div style="flex: 1;">
+                                ${questionText}${categoryBadge}
+                            </div>
+                            <button type="button" class="btn btn-success btn-sm" onclick="addQuestionToNewSet(${q.id})" title="Aggiungi al set">+ Aggiungi</button>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<p style="text-align: center; color: #d9534f;">Errore nel caricamento domande</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Errore:', error);
+            container.innerHTML = '<p style="text-align: center; color: #d9534f;">Errore durante la ricerca</p>';
+        });
+}
+
+// Evidenzia una domanda temporaneamente
+function highlightQuestion(questionId, setId) {
+    const container = document.getElementById('questions-list-' + setId);
+    if (!container) return;
+
+    const questionItem = container.querySelector(`[data-question-id="${questionId}"]`);
+    if (questionItem) {
+        questionItem.classList.add('highlight');
+        setTimeout(() => {
+            questionItem.classList.remove('highlight');
+        }, 1500);
+    }
+}
+
+// Evidenzia una domanda nella sezione di ricerca
+function highlightSearchResult(questionId) {
+    const container = document.getElementById('edit-available-questions');
+    if (!container) return;
+
+    const questionItem = container.querySelector(`[data-question-id="${questionId}"]`);
+    if (questionItem) {
+        questionItem.classList.add('highlight');
+        setTimeout(() => {
+            questionItem.classList.remove('highlight');
+        }, 1500);
+    }
 }
 
 // Aggiunge una domanda al set
@@ -556,7 +1143,242 @@ function addQuestionToSet(setId, questionId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            alert('✓ Domanda aggiunta con successo!');
             // Ricarica sia le domande associate che la ricerca
+            loadSetQuestions(setId);
+            setTimeout(() => {
+                highlightQuestion(questionId, setId);
+            }, 100);
+            // Evidenzia la domanda nella ricerca
+            highlightSearchResult(questionId);
+            searchAvailableQuestions();
+        } else {
+            // Estrai il messaggio di errore specifico
+            const errorMsg = data.error || data.message || 'Non è stato possibile aggiungere la domanda';
+            if (errorMsg.includes('already')) {
+                alert('⚠ Questa domanda è già presente nel set!');
+            } else {
+                alert('Errore: ' + errorMsg);
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Errore:', error);
+        alert('Errore durante l\'aggiunta della domanda');
+    });
+}
+
+// Aggiunge una domanda al nuovo set (prima della creazione)
+function addQuestionToNewSet(questionId) {
+    // Ottieni le domande già aggiunte dal localStorage
+    let addedQuestions = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
+
+    // Aggiungi il nuovo ID se non esiste già
+    if (!addedQuestions.includes(questionId)) {
+        addedQuestions.push(questionId);
+        localStorage.setItem('addSetQuestions', JSON.stringify(addedQuestions));
+    }
+
+    // Ricarica la lista e la ricerca per riflettere i cambiamenti
+    loadNewSetQuestions();
+    setTimeout(() => {
+        highlightNewSetQuestion(questionId);
+    }, 100);
+    highlightSearchResultForNewSet(questionId);
+    searchAvailableQuestionsForNewSet();
+}
+
+// Carica le domande associate al nuovo set (dal localStorage)
+function loadNewSetQuestions(highlightId = null) {
+    const container = document.getElementById('add-set-associated-questions');
+    const addedQuestionIds = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
+
+    if (addedQuestionIds.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #999;">Nessuna domanda associata</p>';
+        return;
+    }
+
+    // Fetch tutte le domande per ottenere i dettagli
+    fetch(`/src/api/api.php?endpoint=get_questions`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('Domande dal fetch:', data.questions);
+            console.log('IDs nel localStorage:', addedQuestionIds);
+
+            if (data.success && data.questions) {
+                const associatedQuestions = data.questions.filter(q => {
+                    const qId = parseInt(q.id);
+                    const isAdded = addedQuestionIds.includes(qId) || addedQuestionIds.includes(q.id);
+                    console.log(`Checking q.id=${q.id} (parsed=${qId}):`, isAdded);
+                    return isAdded;
+                });
+
+                console.log('Domande filtrate:', associatedQuestions);
+
+                let html = '<div class="questions-associated" id="new-set-questions-list">';
+                const total = associatedQuestions.length;
+                associatedQuestions.forEach((q, index) => {
+                    const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 15px; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
+
+                    const moveUpBtn = index > 0 ? `<button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveNewSetQuestionUp(${index})" title="Sposta su">⬆</button>` : '';
+                    const moveDownBtn = index < total - 1 ? `<button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveNewSetQuestionDown(${index})" title="Sposta giù">⬇</button>` : '';
+
+                    html += `
+                        <div class="question-item" data-question-id="${q.id}" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 10px; background-color: #fff;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="width: 30px; text-align: center; font-weight: 600; color: #666; background-color: #f5f5f5; padding: 5px; border-radius: 4px;">${index + 1}</span>
+                                <div style="flex: 1;">
+                                    ${q.question}${categoryBadge}
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 5px; flex-shrink: 0;">
+                                ${moveUpBtn}
+                                ${moveDownBtn}
+                                <button type="button" class="btn btn-danger btn-sm" onclick="removeQuestionFromNewSet(${q.id})">
+                                    Elimina
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+
+                // Se c'è un ID da evidenziare, fallo dopo che il DOM è aggiornato
+                if (highlightId) {
+                    setTimeout(() => {
+                        highlightNewSetQuestion(highlightId);
+                    }, 0);
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Errore nel caricamento domande:', error);
+            container.innerHTML = '<p style="text-align: center; color: #d9534f;">Errore nel caricamento</p>';
+        });
+}
+
+// Rimuove una domanda dal nuovo set
+function removeQuestionFromNewSet(questionId) {
+    if (confirm('Vuoi eliminare questa domanda dal set?')) {
+        let addedQuestions = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
+        addedQuestions = addedQuestions.filter(id => id !== questionId);
+        localStorage.setItem('addSetQuestions', JSON.stringify(addedQuestions));
+
+        loadNewSetQuestions();
+        searchAvailableQuestionsForNewSet();
+    }
+}
+
+// Evidenzia una domanda nel nuovo set
+function highlightNewSetQuestion(questionId) {
+    const container = document.getElementById('new-set-questions-list');
+    if (!container) return;
+
+    const questionItem = container.querySelector(`[data-question-id="${questionId}"]`);
+    if (questionItem) {
+        questionItem.classList.add('highlight');
+        setTimeout(() => {
+            questionItem.classList.remove('highlight');
+        }, 1500);
+    }
+}
+
+// Evidenzia una domanda nella ricerca del nuovo set
+function highlightSearchResultForNewSet(questionId) {
+    const container = document.getElementById('add-available-questions');
+    if (!container) return;
+
+    const questionItem = container.querySelector(`[data-question-id="${questionId}"]`);
+    if (questionItem) {
+        questionItem.classList.add('highlight');
+        setTimeout(() => {
+            questionItem.classList.remove('highlight');
+        }, 1500);
+    }
+}
+
+// Sposta una domanda su nel nuovo set (solo grafico + localStorage, niente DB)
+function moveNewSetQuestionUp(index) {
+    if (index === 0) return; // Non puoi spostare il primo elemento su
+
+    const addedQuestionIds = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
+    if (index <= 0 || index >= addedQuestionIds.length) return;
+
+    // Scambia nel localStorage PRIMA
+    [addedQuestionIds[index - 1], addedQuestionIds[index]] = [addedQuestionIds[index], addedQuestionIds[index - 1]];
+    localStorage.setItem('addSetQuestions', JSON.stringify(addedQuestionIds));
+
+    // Ottieni l'ID della domanda spostata
+    const questionId = addedQuestionIds[index - 1];
+
+    // Ricarica la lista (come fa Modifica Set)
+    loadNewSetQuestions();
+
+    // Ricarica anche la ricerca per aggiornare le domande disponibili
+    searchAvailableQuestionsForNewSet();
+
+    // Evidenzia la domanda mossa dopo un breve delay
+    setTimeout(() => {
+        highlightNewSetQuestion(questionId);
+    }, 100);
+}
+
+// Sposta una domanda giù nel nuovo set (solo grafico + localStorage, niente DB)
+function moveNewSetQuestionDown(index) {
+    const addedQuestionIds = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
+    if (index < 0 || index >= addedQuestionIds.length - 1) return;
+
+    // Scambia nel localStorage PRIMA
+    [addedQuestionIds[index], addedQuestionIds[index + 1]] = [addedQuestionIds[index + 1], addedQuestionIds[index]];
+    localStorage.setItem('addSetQuestions', JSON.stringify(addedQuestionIds));
+
+    // Ottieni l'ID della domanda spostata
+    const questionId = addedQuestionIds[index];
+
+    // Ricarica la lista (come fa Modifica Set)
+    loadNewSetQuestions();
+
+    // Ricarica anche la ricerca per aggiornare le domande disponibili
+    searchAvailableQuestionsForNewSet();
+
+    // Evidenzia la domanda mossa dopo un breve delay
+    setTimeout(() => {
+        highlightNewSetQuestion(questionId);
+    }, 100);
+}
+
+// Apri modal per aggiungere domanda sotto una specifica
+function openAddBelowModal(setId, positionIndex) {
+    // Salva il setId e l'indice in variabili globali per usarle successivamente
+    window.selectedSetId = setId;
+    window.selectedPositionIndex = positionIndex;
+
+    // Mostra il modal di ricerca
+    const modal = document.getElementById('modal-edit-set');
+    const container = document.getElementById('edit-available-questions');
+    // Resetta la ricerca
+    document.getElementById('edit-search-questions').value = '';
+    document.getElementById('edit-category-filter').value = '';
+}
+
+// Aggiunge una domanda al set in una posizione specifica
+function addQuestionBelowInSet(setId, questionId, positionIndex) {
+    fetch('/src/api/api.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            endpoint: 'add_question_to_set_at_position',
+            set_id: setId,
+            question_id: questionId,
+            position: positionIndex + 1
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
             loadSetQuestions(setId);
             searchAvailableQuestions();
         } else {

@@ -165,6 +165,23 @@ class QuestionSetRepo {
     }
 
     /**
+     * Set the is_saved flag for a question set
+     */
+    public function setSaved($setId, $isSaved) {
+        $isSavedValue = $isSaved ? 1 : 0;
+        $stmt = $this->conn->prepare("
+            UPDATE qsets
+            SET is_saved = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ");
+        $stmt->bind_param("ii", $isSavedValue, $setId);
+        $success = $stmt->execute();
+        $stmt->close();
+
+        return $success;
+    }
+
+    /**
      * Get questions in a set
      */
     public function getQuestions($setId) {
@@ -201,6 +218,32 @@ class QuestionSetRepo {
     }
 
     /**
+     * Add question to set at a specific position (sposta le altre avanti)
+     */
+    public function addQuestionAtPosition($setId, $questionId, $position) {
+        // Incrementa l'ordine di tutte le domande dalla posizione specificata in poi
+        $stmt = $this->conn->prepare("
+            UPDATE qset_questions
+            SET order_in_set = order_in_set + 1
+            WHERE qset_id = ? AND order_in_set >= ?
+        ");
+        $stmt->bind_param("ii", $setId, $position);
+        $stmt->execute();
+        $stmt->close();
+
+        // Aggiungi la nuova domanda alla posizione specificata
+        $stmt = $this->conn->prepare("
+            INSERT INTO qset_questions (qset_id, question_id, order_in_set)
+            VALUES (?, ?, ?)
+        ");
+        $stmt->bind_param("iii", $setId, $questionId, $position);
+        $success = $stmt->execute();
+        $stmt->close();
+
+        return $success;
+    }
+
+    /**
      * Remove question from set
      */
     public function removeQuestion($setId, $questionId) {
@@ -209,6 +252,135 @@ class QuestionSetRepo {
             WHERE qset_id = ? AND question_id = ?
         ");
         $stmt->bind_param("ii", $setId, $questionId);
+        $success = $stmt->execute();
+        $stmt->close();
+
+        return $success;
+    }
+
+    /**
+     * Update questions order (for drag & drop)
+     */
+    public function updateQuestionsOrder($setId, $questions) {
+        try {
+            foreach ($questions as $item) {
+                $questionId = $item['question_id'];
+                $order = $item['order'];
+
+                $stmt = $this->conn->prepare("
+                    UPDATE qset_questions
+                    SET order_in_set = ?
+                    WHERE qset_id = ? AND question_id = ?
+                ");
+                $stmt->bind_param("iii", $order, $setId, $questionId);
+                if (!$stmt->execute()) {
+                    $stmt->close();
+                    return false;
+                }
+                $stmt->close();
+            }
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    public function moveQuestionUp($setId, $questionId) {
+        // Recupera l'ordine attuale della domanda
+        $stmt = $this->conn->prepare("
+            SELECT order_in_set FROM qset_questions
+            WHERE qset_id = ? AND question_id = ?
+        ");
+        $stmt->bind_param("ii", $setId, $questionId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+
+        if (!$row || $row['order_in_set'] <= 1) {
+            return false; // È già la prima domanda
+        }
+
+        $currentOrder = $row['order_in_set'];
+        $newOrder = $currentOrder - 1;
+
+        // Sposta la domanda precedente giù
+        $stmt = $this->conn->prepare("
+            UPDATE qset_questions
+            SET order_in_set = ?
+            WHERE qset_id = ? AND order_in_set = ?
+        ");
+        $stmt->bind_param("iii", $currentOrder, $setId, $newOrder);
+        $stmt->execute();
+        $stmt->close();
+
+        // Sposta la domanda attuale su
+        $stmt = $this->conn->prepare("
+            UPDATE qset_questions
+            SET order_in_set = ?
+            WHERE qset_id = ? AND question_id = ?
+        ");
+        $stmt->bind_param("iii", $newOrder, $setId, $questionId);
+        $success = $stmt->execute();
+        $stmt->close();
+
+        return $success;
+    }
+
+    public function moveQuestionDown($setId, $questionId) {
+        // Recupera l'ordine attuale della domanda e il totale
+        $stmt = $this->conn->prepare("
+            SELECT order_in_set FROM qset_questions
+            WHERE qset_id = ? AND question_id = ?
+        ");
+        $stmt->bind_param("ii", $setId, $questionId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+
+        if (!$row) {
+            return false;
+        }
+
+        $currentOrder = $row['order_in_set'];
+
+        // Recupera il totale di domande nel set
+        $stmt = $this->conn->prepare("
+            SELECT MAX(order_in_set) as max_order FROM qset_questions
+            WHERE qset_id = ?
+        ");
+        $stmt->bind_param("i", $setId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+
+        $maxOrder = $row['max_order'] ?? 0;
+
+        if ($currentOrder >= $maxOrder) {
+            return false; // È già l'ultima domanda
+        }
+
+        $newOrder = $currentOrder + 1;
+
+        // Sposta la domanda successiva su
+        $stmt = $this->conn->prepare("
+            UPDATE qset_questions
+            SET order_in_set = ?
+            WHERE qset_id = ? AND order_in_set = ?
+        ");
+        $stmt->bind_param("iii", $currentOrder, $setId, $newOrder);
+        $stmt->execute();
+        $stmt->close();
+
+        // Sposta la domanda attuale giù
+        $stmt = $this->conn->prepare("
+            UPDATE qset_questions
+            SET order_in_set = ?
+            WHERE qset_id = ? AND question_id = ?
+        ");
+        $stmt->bind_param("iii", $newOrder, $setId, $questionId);
         $success = $stmt->execute();
         $stmt->close();
 

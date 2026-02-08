@@ -531,6 +531,51 @@
   margin-bottom: 20px;
 }
 
+/* Modal Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-overlay {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-content {
+  animation: slideIn 0.3s ease-in-out;
+}
+
+/* Highlight effect for actions */
+@keyframes highlight {
+  0% {
+    background-color: #fff9e6;
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+  }
+  100% {
+    background-color: #fff;
+    box-shadow: none;
+  }
+}
+
+.question-item.highlight {
+  animation: highlight 1.5s ease-out forwards;
+}
+
 @media (max-width: 768px) {
   .game-layout {
     grid-template-columns: 1fr;

@@ -94,6 +94,18 @@ class QuestionSetService {
     }
 
     /**
+     * Set the is_saved flag for a question set
+     */
+    public function setSaved($setId, $isSaved) {
+        $success = $this->repo->setSaved($setId, $isSaved);
+        if (!$success) {
+            throw new Exception("Failed to update question set saved status");
+        }
+
+        return $success;
+    }
+
+    /**
      * Get questions in set
      */
     public function getQuestions($setId) {
@@ -108,9 +120,31 @@ class QuestionSetService {
     }
 
     /**
+     * Add question to set at a specific position
+     */
+    public function addQuestionAtPosition($setId, $questionId, $position) {
+        return $this->repo->addQuestionAtPosition($setId, $questionId, $position);
+    }
+
+    /**
+     * Update questions order
+     */
+    public function updateQuestionsOrder($setId, $questions) {
+        return $this->repo->updateQuestionsOrder($setId, $questions);
+    }
+
+    /**
      * Remove question from set
      */
     public function removeQuestion($setId, $questionId) {
         return $this->repo->removeQuestion($setId, $questionId);
+    }
+
+    public function moveQuestionUp($setId, $questionId) {
+        return $this->repo->moveQuestionUp($setId, $questionId);
+    }
+
+    public function moveQuestionDown($setId, $questionId) {
+        return $this->repo->moveQuestionDown($setId, $questionId);
     }
 }

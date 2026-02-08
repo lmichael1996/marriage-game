@@ -19,8 +19,15 @@ $admin = new AdminService();
 $question = new QuestionService();
 $questionSet = new QuestionSetService();
 
-// Get endpoint from URL path
+// Get endpoint from URL path or from POST body
 $endpoint = $_GET['endpoint'] ?? '';
+
+// Se è una richiesta POST senza endpoint in GET, prova a leggerlo dal corpo JSON
+if (!$endpoint && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $endpoint = $input['endpoint'] ?? '';
+}
+
 $action = $_GET['action'] ?? '';
 
 // Router
@@ -105,6 +112,10 @@ switch ($endpoint) {
         handleUpdateQuestionSet($questionSet);
         break;
 
+    case 'update_questionset_metadata':
+        handleUpdateQuestionSetMetadata($questionSet);
+        break;
+
     case 'delete_questionset':
         handleDeleteQuestionSet($questionSet);
         break;
@@ -125,8 +136,24 @@ switch ($endpoint) {
         handleAddQuestionToSet($questionSet);
         break;
 
+    case 'add_question_to_set_at_position':
+        handleAddQuestionToSetAtPosition($questionSet);
+        break;
+
     case 'remove_question_from_set':
         handleRemoveQuestionFromSet($questionSet);
+        break;
+
+    case 'update_question_order':
+        handleUpdateQuestionOrder($questionSet);
+        break;
+
+    case 'move_question_up':
+        handleMoveQuestionUp($questionSet);
+        break;
+
+    case 'move_question_down':
+        handleMoveQuestionDown($questionSet);
         break;
 
     default:
@@ -761,12 +788,12 @@ function handleGetQuestion($question) {
 
 function handleGetQuestions($question) {
     try {
-        // Recupera tutte le domande (senza paginazione)
-        $result = $question->questionRepo->getAllQuestions(1, 1000); // Carica fino a 1000 domande
+        // Recupera tutte le domande (carica fino a 1000 domande)
+        $result = $question->getAllQuestions(1, 1000);
 
         echo json_encode([
             'success' => true,
-            'questions' => $result
+            'questions' => $result['questions']
         ]);
     } catch (Exception $e) {
         http_response_code(500);
@@ -983,8 +1010,10 @@ function handleAddQuestionSet($questionSet) {
         return;
     }
 
-    $setName = $_POST['set_name'] ?? '';
-    $setDescription = $_POST['set_description'] ?? '';
+    // Leggi da JSON body o da POST
+    $input = json_decode(file_get_contents('php://input'), true) ?? [];
+    $setName = $input['set_name'] ?? $_POST['set_name'] ?? '';
+    $setDescription = $input['set_description'] ?? $_POST['set_description'] ?? '';
 
     if (empty($setName)) {
         http_response_code(400);
@@ -1000,7 +1029,7 @@ function handleAddQuestionSet($questionSet) {
 
         echo json_encode([
             'success' => true,
-            'setId' => $setId,
+            'set_id' => $setId,
             'message' => 'Question set created successfully'
         ]);
     } catch (Exception $e) {
@@ -1041,6 +1070,52 @@ function handleUpdateQuestionSet($questionSet) {
         echo json_encode([
             'success' => true,
             'message' => 'Question set updated successfully'
+        ]);
+    } catch (Exception $e) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleUpdateQuestionSetMetadata($questionSet) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Method not allowed'
+        ]);
+        return;
+    }
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    $setId = $input['set_id'] ?? null;
+    $setName = $input['set_name'] ?? '';
+    $setDescription = $input['set_description'] ?? '';
+    $isSaved = $input['is_saved'] ?? null;
+
+    if (!$setId || empty($setName)) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Set ID and name are required'
+        ]);
+        return;
+    }
+
+    try {
+        $questionSet->update($setId, $setName, $setDescription);
+
+        // If is_saved flag is provided, update it
+        if ($isSaved !== null) {
+            $questionSet->setSaved($setId, $isSaved);
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Question set metadata updated successfully'
         ]);
     } catch (Exception $e) {
         http_response_code(400);
@@ -1201,13 +1276,29 @@ function handleAddQuestionToSet($questionSet) {
     }
 
     try {
-        // Ottieni l'ordine massimo corrente
+        // Ottieni l'ordine massimo corrente e verifica se la domanda esiste già
         $questions = $questionSet->getQuestions($setId);
         $maxOrder = 0;
+        $questionExists = false;
+
         foreach ($questions as $q) {
             if ($q['order_in_set'] > $maxOrder) {
                 $maxOrder = $q['order_in_set'];
             }
+            // Verifica se la domanda è già nel set
+            if ($q['id'] == $questionId) {
+                $questionExists = true;
+            }
+        }
+
+        // Se la domanda esiste già nel set, ritorna errore
+        if ($questionExists) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Question already in set or unable to add'
+            ]);
+            return;
         }
 
         // Aggiungi la domanda con il prossimo ordine
@@ -1225,6 +1316,168 @@ function handleAddQuestionToSet($questionSet) {
                 'message' => 'Question already in set or unable to add'
             ]);
         }
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleAddQuestionToSetAtPosition($questionSet) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'message' => 'POST required']);
+        return;
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $setId = $data['set_id'] ?? null;
+    $questionId = $data['question_id'] ?? null;
+    $position = $data['position'] ?? null;
+
+    if (!$setId || !$questionId || $position === null) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Set ID, Question ID and position are required'
+        ]);
+        return;
+    }
+
+    try {
+        // Aggiungi la domanda e sposta le altre se necessario
+        $success = $questionSet->addQuestionAtPosition($setId, $questionId, $position);
+
+        if ($success) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Question added successfully'
+            ]);
+        } else {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Question already in set or unable to add'
+            ]);
+        }
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleUpdateQuestionOrder($questionSet) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'message' => 'POST required']);
+        return;
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $setId = $data['set_id'] ?? null;
+    $questions = $data['questions'] ?? [];
+
+    if (!$setId || empty($questions)) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Set ID and questions are required'
+        ]);
+        return;
+    }
+
+    try {
+        $success = $questionSet->updateQuestionsOrder($setId, $questions);
+
+        if ($success) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Order updated successfully'
+            ]);
+        } else {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Unable to update order'
+            ]);
+        }
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleMoveQuestionUp($questionSet) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'message' => 'POST required']);
+        return;
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $setId = $data['set_id'] ?? null;
+    $questionId = $data['question_id'] ?? null;
+
+    if (!$setId || !$questionId) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Set ID and Question ID are required'
+        ]);
+        return;
+    }
+
+    try {
+        $questionSet->moveQuestionUp($setId, $questionId);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Question moved up successfully'
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleMoveQuestionDown($questionSet) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'message' => 'POST required']);
+        return;
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $setId = $data['set_id'] ?? null;
+    $questionId = $data['question_id'] ?? null;
+
+    if (!$setId || !$questionId) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Set ID and Question ID are required'
+        ]);
+        return;
+    }
+
+    try {
+        $questionSet->moveQuestionDown($setId, $questionId);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Question moved down successfully'
+        ]);
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode([

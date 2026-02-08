@@ -10,7 +10,7 @@
 
     <!-- Search Bar -->
     <div class="search-bar">
-        <form method="POST" action="admin.php" class="search-form">
+        <form method="POST" action="admin.php" class="search-form" id="search-questions-form">
             <input type="hidden" name="questions_page" id="questions_page" value="<?php echo (int)($_SESSION['questions_page'] ?? 1); ?>">
             <input type="text" name="search_query" id="search-questions" placeholder="Cerca domande..." value="<?php echo htmlspecialchars($_POST['search_query'] ?? ''); ?>">
             <select name="search_type" id="search-type" class="search-filter">
@@ -84,9 +84,9 @@
                     </td>
                     <td><span class="badge-type"><?php
                         $typeMap = [
-                            'multiple' => '📋 Multiple',
+                            'multiple' => '📋 Scelta multipla',
                             'truefalse' => '✔️ Vero/Falso',
-                            'clickfirst' => '⚡ Clicca 1°'
+                            'clickfirst' => '⚡ Clicca per primo'
                         ];
                         echo $typeMap[$q['round_type']] ?? ucfirst($q['round_type']);
                     ?></span></td>
@@ -146,10 +146,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('edit-type').dispatchEvent(new Event('change'));
 
                         // Popola le risposte se disponibili
-                        if (q.answer1) document.getElementById('edit-answer1').value = q.answer1;
-                        if (q.answer2) document.getElementById('edit-answer2').value = q.answer2;
-                        if (q.answer3) document.getElementById('edit-answer3').value = q.answer3;
-                        if (q.answer4) document.getElementById('edit-answer4').value = q.answer4;
+                        if (q.option1) document.getElementById('edit-answer1').value = q.option1;
+                        if (q.option2) document.getElementById('edit-answer2').value = q.option2;
+                        if (q.option3) document.getElementById('edit-answer3').value = q.option3;
+                        if (q.option4) document.getElementById('edit-answer4').value = q.option4;
                         if (q.correct_answer) document.getElementById('edit-correct').value = q.correct_answer;
 
                         // Mostra il modal
@@ -807,9 +807,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="form-group">
                     <label for="new-type">Tipo</label>
                     <select id="new-type" name="round_type" required>
-                        <option value="multiple">📋 Multiple Choice</option>
+                        <option value="multiple">📋 Scelta multipla</option>
                         <option value="truefalse">✔️ Vero/Falso</option>
-                        <option value="clickfirst">⚡ Clicca il Primo</option>
+                        <option value="clickfirst">⚡ Clicca per primo</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -884,9 +884,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="form-group">
                     <label for="edit-type">Tipo</label>
                     <select id="edit-type" name="round_type" required>
-                        <option value="multiple">📋 Multiple Choice</option>
+                        <option value="multiple">📋 Scelta multipla</option>
                         <option value="truefalse">✔️ Vero/Falso</option>
-                        <option value="clickfirst">⚡ Clicca il Primo</option>
+                        <option value="clickfirst">⚡ Clicca per primo</option>
                     </select>
                 </div>
                 <div class="form-group">

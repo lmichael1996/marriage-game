@@ -312,17 +312,10 @@ function getAllQuestions($questionService, $searchQuery = '', $page = 1, $search
     // Filtra per categoria
     if ($category) {
         $filtered = [];
+        $categoryId = (int)$category; // Converte a numero se è una stringa
         foreach ($allQuestions as $question) {
-            $categoryId = (int)$question['category_id'] ?? 1;
-            // Mappa categoria_id a nome
-            $categoryMap = [
-                1 => 'general',
-                2 => 'science',
-                3 => 'history',
-                4 => 'sports',
-                5 => 'entertainment'
-            ];
-            if (($categoryMap[$categoryId] ?? 'general') === $category) {
+            $qCategoryId = (int)($question['category_id'] ?? 1);
+            if ($qCategoryId === $categoryId) {
                 $filtered[] = $question;
             }
         }
