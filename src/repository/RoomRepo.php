@@ -13,7 +13,7 @@ class RoomRepo {
      */
     public function createRoom($code, $questionSetId = null) {
         $stmt = $this->conn->prepare("
-            INSERT INTO rooms (room_code, question_set_id)
+            INSERT INTO rooms (room_code, qset_id)
             VALUES (?, ?)
         ");
         $codeUpper = strtoupper($code);

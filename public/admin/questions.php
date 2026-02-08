@@ -258,6 +258,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnNewQuestion) {
         btnNewQuestion.addEventListener('click', () => {
             modalOverlay.style.display = 'flex';
+            // Trigger change event per mostrare le risposte in base al tipo selezionato
+            const typeSelect = document.getElementById('new-type');
+            if (typeSelect) {
+                typeSelect.dispatchEvent(new Event('change'));
+            }
         });
     }
 

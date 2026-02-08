@@ -153,7 +153,8 @@
                 <div id="edit-set-message" class="form-message"></div>
 
                 <div class="button-container">
-                    <button type="button" class="btn btn-secondary" id="btn-close-edit-set" onclick="closeEditSetModal()">Chiudi</button>
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-edit-set" style="display: none;" onclick="document.getElementById('modal-edit-set').style.display='none'; cleanupEditSetModal();">Annulla</button>
+                    <button type="button" class="btn btn-secondary" id="btn-close-edit-set">Chiudi</button>
                 </div>
             </form>
         </div>
@@ -272,6 +273,13 @@ function closeEditSetModal() {
             return;
         }
 
+        // Conta le domande nel set
+        const questionItems = document.querySelectorAll('#edit-set-questions .question-item');
+        if (questionItems.length === 0) {
+            messageDiv.innerHTML = '<div class="alert-error">✗ Il set deve contenere almeno una domanda</div>';
+            return;
+        }
+
         // Salva il nuovo set
         fetch('/src/api/api.php', {
             method: 'POST',
@@ -345,11 +353,27 @@ function closeEditSetModal() {
     }
 }
 
+// Pulisce i campi di ricerca del modal Modifica Set
+function cleanupEditSetModal() {
+    document.getElementById('edit-search-questions').value = '';
+    document.getElementById('edit-category-filter').value = '';
+    document.getElementById('edit-available-questions').innerHTML = '<p style="text-align: center; color: #999;">Ricerca domande...</p>';
+}
+
 // Chiude il modal "Aggiungi Set" e pulisce il localStorage
 // ============================================================================
 // GESTIONE MODALI E AZIONI SET
 // ============================================================================
 document.addEventListener('DOMContentLoaded', function() {
+    // Event listener per il bottone "Chiudi/Salva Set"
+    const btnCloseEditSet = document.getElementById('btn-close-edit-set');
+    if (btnCloseEditSet) {
+        btnCloseEditSet.addEventListener('click', function() {
+            closeEditSetModal();
+            cleanupEditSetModal();
+        });
+    }
+
     // Gestione popup Nuovo Set
     const btnNewSet = document.getElementById('btn-new-set');
     const modalAddSet = document.getElementById('modal-add-set');
@@ -383,22 +407,34 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (data.success && data.set) {
                                 const s = data.set;
                                 document.getElementById('edit-set-id').value = s.id;
-                                document.getElementById('edit-set-name').value = s.set_name;
-                                document.getElementById('edit-set-description').value = s.set_description || '';
+                                // Per i nuovi set, mostra il nome vuoto in modo che l'utente possa inserirlo
+                                document.getElementById('edit-set-name').value = '';
+                                document.getElementById('edit-set-description').value = '';
 
                                 // Salva i valori originali per confronto al chiusura
                                 editSetOriginalData = {
                                     id: s.id,
-                                    name: s.set_name,
-                                    description: s.set_description || ''
+                                    name: '',
+                                    description: ''
                                 };
 
                                 // Cambia il titolo del modal per "Aggiungi Set"
                                 document.querySelector('.modal-header h2').textContent = 'Aggiungi Set';
 
                                 // Cambia il bottone per "Salva Set"
-                                document.getElementById('btn-close-edit-set').textContent = 'Salva Set';
-                                document.getElementById('btn-close-edit-set').className = 'btn btn-primary';
+                                const btnCloseEditSet = document.getElementById('btn-close-edit-set');
+                                const btnCancelEditSet = document.getElementById('btn-cancel-edit-set');
+
+                                btnCloseEditSet.textContent = 'Salva Set';
+                                btnCloseEditSet.className = 'btn btn-primary';
+                                btnCancelEditSet.style.display = 'block'; // Mostra il bottone Annulla per i nuovi set
+
+                                // Sovrascrivi l'event listener con uno nuovo per il salvataggio
+                                const newClickHandler = function() {
+                                    closeEditSetModal();
+                                    cleanupEditSetModal();
+                                };
+                                btnCloseEditSet.addEventListener('click', newClickHandler);
 
                                 document.getElementById('edit-set-message').innerHTML = '';
                                 document.getElementById('modal-edit-set').style.display = 'flex';
@@ -461,6 +497,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Cambia il bottone a "Chiudi"
                         document.getElementById('btn-close-edit-set').textContent = 'Chiudi';
                         document.getElementById('btn-close-edit-set').className = 'btn btn-secondary';
+                        document.getElementById('btn-cancel-edit-set').style.display = 'none'; // Nascondi il bottone Annulla per i set esistenti
 
                         // Reset flag nuovo set
                         isNewSet = false;

@@ -16,6 +16,7 @@ class QuestionSetRepo {
             SELECT qs.*, COUNT(qq.id) as question_count
             FROM qsets qs
             LEFT JOIN qset_questions qq ON qq.qset_id = qs.id
+            WHERE qs.is_saved = 1
             GROUP BY qs.id
             ORDER BY qs.set_name ASC
         ";
@@ -32,7 +33,7 @@ class QuestionSetRepo {
      * Get total count of question sets
      */
     public function getTotalCount() {
-        $result = $this->conn->query("SELECT COUNT(*) as total FROM qsets");
+        $result = $this->conn->query("SELECT COUNT(*) as total FROM qsets WHERE is_saved = 1");
         $row = $result->fetch_assoc();
         return $row['total'] ?? 0;
     }
@@ -71,7 +72,7 @@ class QuestionSetRepo {
             SELECT qs.*, COUNT(qq.id) as question_count
             FROM qsets qs
             LEFT JOIN qset_questions qq ON qq.qset_id = qs.id
-            WHERE qs.set_name LIKE ?
+            WHERE qs.set_name LIKE ? AND qs.is_saved = 1
             GROUP BY qs.id
             ORDER BY qs.set_name ASC
         ";
@@ -102,7 +103,7 @@ class QuestionSetRepo {
 
         $stmt = $this->conn->prepare("
             SELECT COUNT(*) as total FROM qsets
-            WHERE set_name LIKE ?
+            WHERE set_name LIKE ? AND is_saved = 1
         ");
         $stmt->bind_param("s", $searchPattern);
         $stmt->execute();
@@ -117,9 +118,14 @@ class QuestionSetRepo {
      * Add new question set
      */
     public function add($setName, $setDescription = '') {
+        // Se il nome è vuoto o "Nuovo Set", aggiungiamo un timestamp per rendere unico
+        if (empty($setName) || $setName === 'Nuovo Set') {
+            $setName = 'Nuovo Set - ' . time();
+        }
+
         $stmt = $this->conn->prepare("
-            INSERT INTO qsets (set_name, set_description)
-            VALUES (?, ?)
+            INSERT INTO qsets (set_name, set_description, is_saved)
+            VALUES (?, ?, 0)
         ");
         $stmt->bind_param("ss", $setName, $setDescription);
 
