@@ -143,6 +143,11 @@ if ($currentTab === 'sets') {
                     e.preventDefault();
                     const tabName = this.getAttribute('data-tab');
 
+                    // Se il tab è già attivo, non fare nulla
+                    if (this.classList.contains('active')) {
+                        return;
+                    }
+
                     // Anima il tab attuale
                     document.querySelectorAll('.tab-content.active').forEach(content => {
                         content.classList.remove('active');

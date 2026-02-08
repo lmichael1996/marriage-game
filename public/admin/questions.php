@@ -16,6 +16,8 @@
             <select name="search_type" id="search-type" class="search-filter">
                 <option value="contains" <?php echo ($_POST['search_type'] ?? 'contains') === 'contains' ? 'selected' : ''; ?>>Contiene</option>
                 <option value="starts_with" <?php echo ($_POST['search_type'] ?? '') === 'starts_with' ? 'selected' : ''; ?>>Inizia con</option>
+                <option value="ends_with" <?php echo ($_POST['search_type'] ?? '') === 'ends_with' ? 'selected' : ''; ?>>Finisce con</option>
+                <option value="exact" <?php echo ($_POST['search_type'] ?? '') === 'exact' ? 'selected' : ''; ?>>Esattamente</option>
             </select>
             <select name="category" id="filter-category" class="search-filter">
                 <option value="">🌐 Tutte</option>
@@ -48,18 +50,31 @@
                 <?php foreach ($questions as $q): ?>
                 <tr data-question-id="<?php echo $q['id']; ?>">
                     <td><strong><?php
-                        $question = htmlspecialchars($q['question']);
-                        // Evidenzia il testo cercato in giallo se presente
-                        if (!empty($_GET['search'])) {
-                            $search = htmlspecialchars($_GET['search']);
+                        $questionText = htmlspecialchars($q['question']);
+                        if (!empty($_POST['search_query'])) {
+                            $search = htmlspecialchars($_POST['search_query']);
+                            $searchType = $_POST['search_type'] ?? 'contains';
+                            switch ($searchType) {
+                                case 'starts_with':
+                                    $pattern = '/^(' . preg_quote($search, '/') . ')/i';
+                                    break;
+                                case 'ends_with':
+                                    $pattern = '/(' . preg_quote($search, '/') . ')$/i';
+                                    break;
+                                case 'exact':
+                                    $pattern = '/^(' . preg_quote($search, '/') . ')$/i';
+                                    break;
+                                default: // contains
+                                    $pattern = '/(' . preg_quote($search, '/') . ')/i';
+                            }
                             $highlighted = preg_replace(
-                                '/(' . preg_quote($search, '/') . ')/i',
+                                $pattern,
                                 '<mark>$1</mark>',
-                                $question
+                                $questionText
                             );
                             echo $highlighted;
                         } else {
-                            echo $question;
+                            echo $questionText;
                         }
                     ?></strong></td>
                     <td>

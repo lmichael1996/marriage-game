@@ -14,8 +14,10 @@
             <input type="hidden" name="sets_page" id="sets_page" value="<?php echo (int)($_SESSION['sets_page'] ?? 1); ?>">
             <input type="text" name="set_search_query" id="search-sets" placeholder="Cerca set..." value="<?php echo htmlspecialchars($_POST['set_search_query'] ?? ''); ?>">
             <select name="set_search_type" id="search-type" class="search-filter">
-                <option value="contains" <?php echo ($_POST['set_search_type'] ?? 'contains') === 'contains' ? 'selected' : ''; ?>>Contiene</option>
                 <option value="starts_with" <?php echo ($_POST['set_search_type'] ?? '') === 'starts_with' ? 'selected' : ''; ?>>Inizia con</option>
+                <option value="contains" <?php echo ($_POST['set_search_type'] ?? 'contains') === 'contains' ? 'selected' : ''; ?>>Contiene</option>
+                <option value="ends_with" <?php echo ($_POST['set_search_type'] ?? '') === 'ends_with' ? 'selected' : ''; ?>>Finisce con</option>
+                <option value="exact" <?php echo ($_POST['set_search_type'] ?? '') === 'exact' ? 'selected' : ''; ?>>Esattamente</option>
             </select>
             <button type="submit" class="btn btn-primary">🔍 Cerca</button>
             <?php if (!empty($_POST['set_search_query'])): ?>
@@ -39,7 +41,34 @@
             <tbody>
                 <?php foreach ($questionSets as $set): ?>
                 <tr data-set-id="<?php echo $set['id']; ?>">
-                    <td><strong><?php echo htmlspecialchars($set['set_name']); ?></strong></td>
+                    <td><strong><?php
+                        $setName = htmlspecialchars($set['set_name']);
+                        if (!empty($_POST['set_search_query'])) {
+                            $search = htmlspecialchars($_POST['set_search_query']);
+                            $searchType = $_POST['set_search_type'] ?? 'contains';
+                            switch ($searchType) {
+                                case 'starts_with':
+                                    $pattern = '/^(' . preg_quote($search, '/') . ')/i';
+                                    break;
+                                case 'ends_with':
+                                    $pattern = '/(' . preg_quote($search, '/') . ')$/i';
+                                    break;
+                                case 'exact':
+                                    $pattern = '/^(' . preg_quote($search, '/') . ')$/i';
+                                    break;
+                                default: // contains
+                                    $pattern = '/(' . preg_quote($search, '/') . ')/i';
+                            }
+                            $highlighted = preg_replace(
+                                $pattern,
+                                '<mark>$1</mark>',
+                                $setName
+                            );
+                            echo $highlighted;
+                        } else {
+                            echo $setName;
+                        }
+                    ?></strong></td>
                     <td><?php echo htmlspecialchars($set['set_description'] ?? '-'); ?></td>
                     <td><?php echo $set['question_count'] ?? 0; ?></td>
                     <td><?php echo date('d/m/Y H:i', strtotime($set['updated_at'])); ?></td>
