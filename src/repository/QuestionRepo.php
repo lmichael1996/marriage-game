@@ -23,9 +23,9 @@ class QuestionRepo {
                    qs.set_name,
                    qs.set_description,
                    qs.updated_at,
-                   COUNT(r.id) as total_rounds
+                   COUNT(qq.id) as total_rounds
             FROM qsets qs
-            LEFT JOIN questions r ON r.question_set_id = qs.id
+            LEFT JOIN qset_questions qq ON qq.qset_id = qs.id
             GROUP BY qs.id, qs.set_name, qs.set_description, qs.updated_at
             ORDER BY qs.set_name ASC
             LIMIT $perPage OFFSET $offset

@@ -10,24 +10,24 @@
 
     <!-- Search Bar -->
     <div class="search-bar">
-        <form method="GET" action="admin.php" class="search-form">
-            <input type="hidden" name="tab" value="questions">
-            <input type="text" name="search" id="search-questions" placeholder="Cerca domande..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
+        <form method="POST" action="admin.php" class="search-form">
+            <input type="hidden" name="questions_page" id="questions_page" value="<?php echo (int)($_POST['questions_page'] ?? 1); ?>">
+            <input type="text" name="search_query" id="search-questions" placeholder="Cerca domande..." value="<?php echo htmlspecialchars($_POST['search_query'] ?? ''); ?>">
             <select name="search_type" id="search-type" class="search-filter">
-                <option value="contains" <?php echo ($_GET['search_type'] ?? 'contains') === 'contains' ? 'selected' : ''; ?>>Contiene</option>
-                <option value="starts_with" <?php echo ($_GET['search_type'] ?? '') === 'starts_with' ? 'selected' : ''; ?>>Inizia con</option>
+                <option value="contains" <?php echo ($_POST['search_type'] ?? 'contains') === 'contains' ? 'selected' : ''; ?>>Contiene</option>
+                <option value="starts_with" <?php echo ($_POST['search_type'] ?? '') === 'starts_with' ? 'selected' : ''; ?>>Inizia con</option>
             </select>
             <select name="category" id="filter-category" class="search-filter">
                 <option value="">🌐 Tutte</option>
                 <?php foreach ($categories as $cat): ?>
-                <option value="<?php echo $cat['id']; ?>" <?php echo ($_GET['category'] ?? '') === (string)$cat['id'] ? 'selected' : ''; ?>>
+                <option value="<?php echo $cat['id']; ?>" <?php echo ($_POST['category'] ?? '') === (string)$cat['id'] ? 'selected' : ''; ?>>
                     <?php echo htmlspecialchars($cat['category_name']); ?>
                 </option>
                 <?php endforeach; ?>
             </select>
             <button type="submit" class="btn btn-primary">🔍 Cerca</button>
-            <?php if (!empty($_GET['search']) || !empty($_GET['category'])): ?>
-                <a href="?tab=questions" class="btn btn-secondary">✖ Cancella</a>
+            <?php if (!empty($_POST['search_query']) || !empty($_POST['category'])): ?>
+                <button type="button" class="btn btn-secondary" id="clear-questions-search">✖ Cancella</button>
             <?php endif; ?>
         </form>
     </div>
@@ -172,53 +172,69 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Paginazione domande - Server-side con GET parameters
+    // Paginazione domande - Session-based con POST
     const ROWS_PER_PAGE = 10;
     const total = <?php echo (int)($pagination['total'] ?? 0); ?>;
     let totalPages = total > 0 ? Math.ceil(total / ROWS_PER_PAGE) : 1;
-    let currentPage = <?php echo isset($_GET['page']) ? (int)$_GET['page'] : 1; ?>;
-
-    function getQueryParams() {
-        const search = new URLSearchParams(window.location.search);
-        const params = new URLSearchParams();
-
-        // Mantieni i parametri di ricerca e filtro
-        if (search.has('search')) params.append('search', search.get('search'));
-        if (search.has('search_type')) params.append('search_type', search.get('search_type'));
-        if (search.has('category')) params.append('category', search.get('category'));
-
-        return params;
-    }
-
-    function navigateToPage(page) {
-        const params = getQueryParams();
-        params.append('page', page);
-        params.append('tab', 'questions');
-
-        window.location.href = 'admin.php?' + params.toString();
-    }
+    let currentPage = <?php echo (int)($_POST['questions_page'] ?? 1); ?>;
 
     function updatePaginationUI() {
         const pageInfo = document.getElementById('page-info');
+        const btnPrev = document.getElementById('btn-prev-page');
+        const btnNext = document.getElementById('btn-next-page');
+
+        if (!pageInfo || !btnPrev || !btnNext) return;
+
         const start = (currentPage - 1) * ROWS_PER_PAGE + 1;
         const end = Math.min(currentPage * ROWS_PER_PAGE, total);
 
         pageInfo.textContent = `Domande ${start}-${end} di ${total}`;
-
-        // Abilita/disabilita pulsanti
-        document.getElementById('btn-prev-page').disabled = currentPage === 1;
-        document.getElementById('btn-next-page').disabled = currentPage >= totalPages;
+        btnPrev.disabled = currentPage === 1;
+        btnNext.disabled = currentPage >= totalPages;
     }
 
-    document.getElementById('btn-prev-page').addEventListener('click', () => {
-        if (currentPage > 1) navigateToPage(currentPage - 1);
-    });
-    document.getElementById('btn-next-page').addEventListener('click', () => {
-        if (currentPage < totalPages) navigateToPage(currentPage + 1);
-    });
+    function submitPage(page) {
+        const form = document.querySelector('form[action="admin.php"]');
+        const pageInput = document.getElementById('questions_page');
+        if (form && pageInput) {
+            pageInput.value = page;
+            form.submit();
+        }
+    }
 
-    // Aggiorna UI paginazione al caricamento
+    const btnPrev = document.getElementById('btn-prev-page');
+    const btnNext = document.getElementById('btn-next-page');
+
+    if (btnPrev) {
+        btnPrev.addEventListener('click', () => {
+            if (currentPage > 1) submitPage(currentPage - 1);
+        });
+    }
+
+    if (btnNext) {
+        btnNext.addEventListener('click', () => {
+            if (currentPage < totalPages) submitPage(currentPage + 1);
+        });
+    }
+
     updatePaginationUI();
+
+    // Handle clear search
+    const clearBtn = document.getElementById('clear-questions-search');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            const form = document.querySelector('form[action="admin.php"]');
+            if (form) {
+                const searchInput = document.querySelector('input[name="search_query"]');
+                const categorySelect = document.querySelector('select[name="category"]');
+                const pageInput = document.getElementById('questions_page');
+                if (searchInput) searchInput.value = '';
+                if (categorySelect) categorySelect.value = '';
+                if (pageInput) pageInput.value = 1;
+                form.submit();
+            }
+        });
+    }
 
     // Gestione popup Nuova Domanda
     const btnNewQuestion = document.getElementById('btn-new-question');

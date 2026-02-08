@@ -51,11 +51,6 @@ class AdminService {
      */
     public function saveSettings($settingsData) {
         $settings = [
-            'min_players' => intval($settingsData['min_players'] ?? 2),
-            'max_players' => intval($settingsData['max_players'] ?? 50),
-            'auto_next_round' => isset($settingsData['auto_next_round']) ? 1 : 0,
-            'auto_next_delay' => intval($settingsData['auto_next_delay'] ?? 5),
-
             // Multiple Choice points
             'points_mult_1st' => intval($settingsData['points_mult_1st'] ?? 25),
             'points_mult_2nd' => intval($settingsData['points_mult_2nd'] ?? 18),
@@ -81,10 +76,7 @@ class AdminService {
             'points_tf_10th' => intval($settingsData['points_tf_10th'] ?? 1),
 
             // Click First points
-            'points_clickfirst' => intval($settingsData['points_clickfirst'] ?? 50),
-
-            'show_leaderboard' => isset($settingsData['show_leaderboard']) ? 1 : 0,
-            'show_correct_answer' => isset($settingsData['show_correct_answer']) ? 1 : 0
+            'points_clickfirst' => intval($settingsData['points_clickfirst'] ?? 50)
         ];
 
         $success = $this->settingsRepo->saveSettings($settings);

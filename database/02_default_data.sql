@@ -22,10 +22,6 @@ VALUES
 INSERT INTO
     game_settings (setting_key, setting_value)
 VALUES
-    ('min_players', 1),
-    ('max_players', 50),
-    ('auto_next_round', 0),
-    ('auto_next_delay', 5),
     ('points_mult_1st', 25),
     ('points_mult_2nd', 18),
     ('points_mult_3rd', 15),
@@ -46,6 +42,4 @@ VALUES
     ('points_tf_8th', 3),
     ('points_tf_9th', 2),
     ('points_tf_10th', 1),
-    ('points_clickfirst', 50),
-    ('show_leaderboard', 1),
-    ('show_correct_answer', 1);
+    ('points_clickfirst', 50);

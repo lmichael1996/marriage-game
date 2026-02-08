@@ -7,6 +7,7 @@ require_once __DIR__ . '/../services/GameService.php';
 require_once __DIR__ . '/../services/RoomService.php';
 require_once __DIR__ . '/../services/AdminService.php';
 require_once __DIR__ . '/../services/QuestionService.php';
+require_once __DIR__ . '/../services/QuestionSetService.php';
 
 header('Content-Type: application/json');
 
@@ -16,6 +17,7 @@ $game = new GameService();
 $room = new RoomService();
 $admin = new AdminService();
 $question = new QuestionService();
+$questionSet = new QuestionSetService();
 
 // Get endpoint from URL path
 $endpoint = $_GET['endpoint'] ?? '';
@@ -89,6 +91,26 @@ switch ($endpoint) {
 
     case 'delete_category':
         handleDeleteCategory($question);
+        break;
+
+    case 'get_questionset':
+        handleGetQuestionSet($questionSet);
+        break;
+
+    case 'add_questionset':
+        handleAddQuestionSet($questionSet);
+        break;
+
+    case 'update_questionset':
+        handleUpdateQuestionSet($questionSet);
+        break;
+
+    case 'delete_questionset':
+        handleDeleteQuestionSet($questionSet);
+        break;
+
+    case 'get_questionsets':
+        handleGetQuestionSets($questionSet);
         break;
 
     default:
@@ -870,6 +892,186 @@ function handleGetCategories($question) {
         echo json_encode([
             'success' => true,
             'categories' => $categories
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleGetQuestionSet($questionSet) {
+    $setId = $_GET['id'] ?? null;
+
+    if (!$setId) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Set ID is required'
+        ]);
+        return;
+    }
+
+    try {
+        $set = $questionSet->getById($setId);
+
+        if (!$set) {
+            http_response_code(404);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Question set not found'
+            ]);
+            return;
+        }
+
+        echo json_encode([
+            'success' => true,
+            'set' => $set
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleAddQuestionSet($questionSet) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Method not allowed'
+        ]);
+        return;
+    }
+
+    $setName = $_POST['set_name'] ?? '';
+    $setDescription = $_POST['set_description'] ?? '';
+
+    if (empty($setName)) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Set name is required'
+        ]);
+        return;
+    }
+
+    try {
+        $setId = $questionSet->add($setName, $setDescription);
+
+        echo json_encode([
+            'success' => true,
+            'setId' => $setId,
+            'message' => 'Question set created successfully'
+        ]);
+    } catch (Exception $e) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleUpdateQuestionSet($questionSet) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Method not allowed'
+        ]);
+        return;
+    }
+
+    $setId = $_POST['set_id'] ?? null;
+    $setName = $_POST['set_name'] ?? '';
+    $setDescription = $_POST['set_description'] ?? '';
+
+    if (!$setId || empty($setName)) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Set ID and name are required'
+        ]);
+        return;
+    }
+
+    try {
+        $questionSet->update($setId, $setName, $setDescription);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Question set updated successfully'
+        ]);
+    } catch (Exception $e) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleDeleteQuestionSet($questionSet) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Method not allowed'
+        ]);
+        return;
+    }
+
+    $setId = $_POST['set_id'] ?? null;
+
+    if (!$setId) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Set ID is required'
+        ]);
+        return;
+    }
+
+    try {
+        $questionSet->delete($setId);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Question set deleted successfully'
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleGetQuestionSets($questionSet) {
+    $page = $_GET['page'] ?? 1;
+    $search = $_GET['search'] ?? '';
+    $searchType = $_GET['search_type'] ?? 'contains';
+
+    try {
+        if (!empty($search)) {
+            $data = $questionSet->search($search, $searchType, $page);
+        } else {
+            $data = $questionSet->getAll($page);
+        }
+
+        echo json_encode([
+            'success' => true,
+            'sets' => $data['sets'],
+            'total' => $data['total'],
+            'page' => $data['page'],
+            'totalPages' => $data['totalPages']
         ]);
     } catch (Exception $e) {
         http_response_code(500);

@@ -47,7 +47,7 @@ function handleSaveSettings($admin) {
         exit;
     }
 
-    $tab = isset($_POST['max_players']) ? 'general' : 'settings';
+    $tab = 'settings';
     redirectWithMessage('admin.php?tab=' . $tab, 'settings_saved', null);
 }
 
@@ -242,7 +242,7 @@ function handleUpdateQuestion($question) {
     }
 }
 
-function handleAction($action, $admin, $game, $question = null) {
+function handleAction($action, $admin, $game, $question = null, $questionSet = null) {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
@@ -274,6 +274,12 @@ function handleAction($action, $admin, $game, $question = null) {
                 }
             }
             redirectWithMessage('admin.php?tab=questions', null, 'Errore nell\'eliminazione');
+        case 'add_questionset':
+            return handleAddQuestionSet($questionSet);
+        case 'update_questionset':
+            return handleEditQuestionSet($questionSet);
+        case 'delete_questionset':
+            return handleDeleteQuestionSet($questionSet);
         default:
             redirectWithMessage('admin.php', null, 'invalid_action');
     }
@@ -373,3 +379,95 @@ function getAllQuestions($questionService, $searchQuery = '', $page = 1, $search
         ]
     ];
 }
+
+function handleAddQuestionSet($questionSet) {
+    if (!$questionSet) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'Question Set service not available']);
+        exit;
+    }
+
+    try {
+        $setName = $_POST['set_name'] ?? '';
+        $setDescription = $_POST['set_description'] ?? '';
+
+        if (empty($setName)) {
+            throw new Exception('Nome del set obbligatorio');
+        }
+
+        $setId = $questionSet->add($setName, $setDescription);
+
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'setId' => $setId,
+            'message' => 'Set creato con successo'
+        ]);
+    } catch (Exception $e) {
+        header('Content-Type: application/json');
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+    exit;
+}
+
+function handleEditQuestionSet($questionSet) {
+    if (!$questionSet) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'Question Set service not available']);
+        exit;
+    }
+
+    try {
+        $setId = intval($_POST['set_id'] ?? 0);
+        $setName = $_POST['set_name'] ?? '';
+        $setDescription = $_POST['set_description'] ?? '';
+
+        if ($setId <= 0 || empty($setName)) {
+            throw new Exception('Set ID e nome obbligatori');
+        }
+
+        $questionSet->update($setId, $setName, $setDescription);
+
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'message' => 'Set aggiornato con successo'
+        ]);
+    } catch (Exception $e) {
+        header('Content-Type: application/json');
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+    exit;
+}
+
+function handleDeleteQuestionSet($questionSet) {
+    if (!$questionSet) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'Question Set service not available']);
+        exit;
+    }
+
+    try {
+        $setId = intval($_POST['set_id'] ?? 0);
+
+        if ($setId <= 0) {
+            throw new Exception('Set ID obbligatorio');
+        }
+
+        $questionSet->delete($setId);
+
+        redirectWithMessage('admin.php?tab=game', 'set_deleted');
+    } catch (Exception $e) {
+        redirectWithMessage('admin.php?tab=game', null, $e->getMessage());
+    }
+}
+
+?>

@@ -273,7 +273,7 @@ if ($selectedSetId) {
         let roomActive = false;
         let roomCode = '';
         let devicesInterval = null;
-        let minPlayers = <?php echo isset($gameSettings['min_players']) ? (int)$gameSettings['min_players'] : 1; ?>;
+        let minPlayers = 1; // Valore fisso dopo rimozione dal database
 
         // Pre-select set if passed via URL
         function initializeFromUrl() {
