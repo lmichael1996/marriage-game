@@ -68,9 +68,10 @@ class RoundRepo {
      */
     public function getRoundsByQuestionSet($questionSetId) {
         $stmt = $this->conn->prepare("
-            SELECT * FROM questions
-            WHERE question_set_id = ?
-            ORDER BY round_number ASC
+            SELECT q.*, qsq.order_in_set as round_number FROM questions q
+            JOIN qset_questions qsq ON q.id = qsq.question_id
+            WHERE qsq.qset_id = ?
+            ORDER BY qsq.order_in_set ASC
         ");
         $stmt->bind_param("i", $questionSetId);
         $stmt->execute();

@@ -25,7 +25,7 @@ if ($roomCode && !isset($_SESSION['room_code'])) {
 if ($roomCode) {
     $room = $roomRepo->getRoomByCode($roomCode);
     if ($room) {
-        $questionSetId = $room['question_set_id'];
+        $questionSetId = $room['qset_id'];
     }
 }
 
