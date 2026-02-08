@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 require_once __DIR__ . '/../src/utils/auth.php';
 require_once __DIR__ . '/../src/utils/admin_helper.php';
 require_once __DIR__ . '/../src/services/AdminService.php';
@@ -7,7 +9,6 @@ require_once __DIR__ . '/../src/services/QuestionService.php';
 require_once __DIR__ . '/../src/services/QuestionSetService.php';
 
 requireAdmin();
-session_start();
 
 $admin = new AdminService();
 $question = new QuestionService();
@@ -34,20 +35,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 handleAjaxRequest($question);
 
+// Inizializza variabili di sessione per la paginazione
+if (!isset($_SESSION['questions_page'])) $_SESSION['questions_page'] = 1;
+if (!isset($_SESSION['sets_page'])) $_SESSION['sets_page'] = 1;
+
 // Carica dati solo per il tab attivo
 if ($currentTab === 'sets') {
+    // Aggiorna pagina se ricevuto POST
+    if (!empty($_POST['questions_page'])) $_SESSION['questions_page'] = (int)$_POST['questions_page'];
+
     $searchQuery = $_POST['search_query'] ?? '';
     $searchType = $_POST['search_type'] ?? 'contains';
     $category = $_POST['category'] ?? '';
-    $currentPage = $_POST['questions_page'] ?? 1;
+    $currentPage = $_SESSION['questions_page'];
     $questionsData = getAllQuestions($question, $searchQuery, $currentPage, $searchType, $category);
     $questions = $questionsData['questions'];
     $pagination = $questionsData['pagination'];
     $categories = $question->getAllCategories();
 } elseif ($currentTab === 'settings') {
+    // Aggiorna pagina se ricevuto POST
+    if (!empty($_POST['sets_page'])) $_SESSION['sets_page'] = (int)$_POST['sets_page'];
+
     $setSearchQuery = $_POST['set_search_query'] ?? '';
     $setSearchType = $_POST['set_search_type'] ?? 'contains';
-    $setCurrentPage = $_POST['sets_page'] ?? 1;
+    $setCurrentPage = $_SESSION['sets_page'];
     if (!empty($setSearchQuery)) {
         $setsData = $questionSet->search($setSearchQuery, $setSearchType, $setCurrentPage);
     } else {
@@ -114,19 +125,33 @@ if ($currentTab === 'sets') {
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
-            // Aggiungi active al tab corrente
+            // Aggiungi active al tab corrente con transizione
             const navItem = document.querySelector('[data-tab="' + activeTab + '"]');
             if (navItem) {
                 navItem.classList.add('active');
                 const tabContent = document.getElementById('tab-' + activeTab);
-                if (tabContent) tabContent.classList.add('active');
+                if (tabContent) {
+                    // Trigger reflow per attivare la transizione
+                    tabContent.offsetHeight;
+                    tabContent.classList.add('active');
+                }
             }
 
-            // Click sui tab
+            // Click sui tab con transizione
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
                     const tabName = this.getAttribute('data-tab');
+
+                    // Anima il tab attuale
+                    document.querySelectorAll('.tab-content.active').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    document.querySelectorAll('.nav-item.active').forEach(nav => {
+                        nav.classList.remove('active');
+                    });
+
+                    // Invia POST per cambiare tab
                     fetch('admin.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

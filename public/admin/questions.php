@@ -11,7 +11,7 @@
     <!-- Search Bar -->
     <div class="search-bar">
         <form method="POST" action="admin.php" class="search-form">
-            <input type="hidden" name="questions_page" id="questions_page" value="<?php echo (int)($_POST['questions_page'] ?? 1); ?>">
+            <input type="hidden" name="questions_page" id="questions_page" value="<?php echo (int)($_SESSION['questions_page'] ?? 1); ?>">
             <input type="text" name="search_query" id="search-questions" placeholder="Cerca domande..." value="<?php echo htmlspecialchars($_POST['search_query'] ?? ''); ?>">
             <select name="search_type" id="search-type" class="search-filter">
                 <option value="contains" <?php echo ($_POST['search_type'] ?? 'contains') === 'contains' ? 'selected' : ''; ?>>Contiene</option>
@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const ROWS_PER_PAGE = 10;
     const total = <?php echo (int)($pagination['total'] ?? 0); ?>;
     let totalPages = total > 0 ? Math.ceil(total / ROWS_PER_PAGE) : 1;
-    let currentPage = <?php echo (int)($_POST['questions_page'] ?? 1); ?>;
+    let currentPage = <?php echo (int)($_SESSION['questions_page'] ?? 1); ?>;
 
     function updatePaginationUI() {
         const pageInfo = document.getElementById('page-info');

@@ -2,7 +2,7 @@
 <div class="admin-section">
     <div class="tab-header-with-button">
         <h2>🎮 Gestione Set Domande</h2>
-        <div style="display: flex; gap: 10px;">
+        <div class="button-group">
             <button class="btn btn-success" id="btn-new-set">+ Aggiungi Set</button>
             <button class="btn btn-primary" id="btn-create-game" onclick="createNewGame()">🎮 Crea Partita</button>
         </div>
@@ -11,7 +11,7 @@
     <!-- Search Bar -->
     <div class="search-bar">
         <form method="POST" action="admin.php" class="search-form">
-            <input type="hidden" name="sets_page" id="sets_page" value="<?php echo (int)($_POST['sets_page'] ?? 1); ?>">
+            <input type="hidden" name="sets_page" id="sets_page" value="<?php echo (int)($_SESSION['sets_page'] ?? 1); ?>">
             <input type="text" name="set_search_query" id="search-sets" placeholder="Cerca set..." value="<?php echo htmlspecialchars($_POST['set_search_query'] ?? ''); ?>">
             <select name="set_search_type" id="search-type" class="search-filter">
                 <option value="contains" <?php echo ($_POST['set_search_type'] ?? 'contains') === 'contains' ? 'selected' : ''; ?>>Contiene</option>
@@ -41,7 +41,7 @@
                 <tr data-set-id="<?php echo $set['id']; ?>">
                     <td><strong><?php echo htmlspecialchars($set['set_name']); ?></strong></td>
                     <td><?php echo htmlspecialchars($set['set_description'] ?? '-'); ?></td>
-                    <td><span class="badge" style="background: #007bff; color: white; padding: 4px 8px; border-radius: 4px;"><?php echo $set['question_count'] ?? 0; ?></span></td>
+                    <td><?php echo $set['question_count'] ?? 0; ?></td>
                     <td><?php echo date('d/m/Y H:i', strtotime($set['updated_at'])); ?></td>
                     <td>
                         <button class="btn-icon btn-warning btn-edit-set" data-set-id="<?php echo $set['id']; ?>" title="Modifica">✎</button>
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const ROWS_PER_PAGE = 10;
     const total = <?php echo (int)($pagination['total'] ?? 0); ?>;
     let totalPages = total > 0 ? Math.ceil(total / ROWS_PER_PAGE) : 1;
-    let currentPage = <?php echo (int)($_POST['sets_page'] ?? 1); ?>;
+    let currentPage = <?php echo (int)($_SESSION['sets_page'] ?? 1); ?>;
 
     const pageInfo = document.getElementById('page-info');
 

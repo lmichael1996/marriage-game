@@ -65,10 +65,13 @@
 /* TABS */
 .tab-content {
   display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
 }
 
 .tab-content.active {
   display: block;
+  opacity: 1;
 }
 
 /* SECTIONS */
@@ -108,6 +111,12 @@
   color: #000;
   flex: 1;
   min-width: 200px;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 /* FORMS */
