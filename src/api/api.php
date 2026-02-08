@@ -117,6 +117,14 @@ switch ($endpoint) {
         handleGetSetQuestions($questionSet);
         break;
 
+    case 'get_questions':
+        handleGetQuestions($question);
+        break;
+
+    case 'add_question_to_set':
+        handleAddQuestionToSet($questionSet);
+        break;
+
     case 'remove_question_from_set':
         handleRemoveQuestionFromSet($questionSet);
         break;
@@ -751,6 +759,24 @@ function handleGetQuestion($question) {
     }
 }
 
+function handleGetQuestions($question) {
+    try {
+        // Recupera tutte le domande (senza paginazione)
+        $result = $question->questionRepo->getAllQuestions(1, 1000); // Carica fino a 1000 domande
+
+        echo json_encode([
+            'success' => true,
+            'questions' => $result
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
 function handleAddCategory($question) {
     try {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -1145,6 +1171,60 @@ function handleRemoveQuestionFromSet($questionSet) {
             'success' => true,
             'message' => 'Question removed successfully'
         ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleAddQuestionToSet($questionSet) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'message' => 'POST required']);
+        return;
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $setId = $data['set_id'] ?? null;
+    $questionId = $data['question_id'] ?? null;
+
+    if (!$setId || !$questionId) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Set ID and Question ID are required'
+        ]);
+        return;
+    }
+
+    try {
+        // Ottieni l'ordine massimo corrente
+        $questions = $questionSet->getQuestions($setId);
+        $maxOrder = 0;
+        foreach ($questions as $q) {
+            if ($q['order_in_set'] > $maxOrder) {
+                $maxOrder = $q['order_in_set'];
+            }
+        }
+
+        // Aggiungi la domanda con il prossimo ordine
+        $success = $questionSet->addQuestion($setId, $questionId, $maxOrder + 1);
+
+        if ($success) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Question added successfully'
+            ]);
+        } else {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Question already in set or unable to add'
+            ]);
+        }
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode([

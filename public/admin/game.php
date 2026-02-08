@@ -141,12 +141,12 @@
 
 <!-- Modal: Modifica Set -->
 <div id="modal-edit-set" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="max-width: 600px;">
+    <div class="modal-content" style="max-width: 1200px; width: 98%;">
         <div class="modal-header">
             <h2>Modifica Set</h2>
             <button type="button" class="btn-close" onclick="document.getElementById('modal-edit-set').style.display='none';">&times;</button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
             <form id="edit-set-form" onsubmit="submitEditSet(event)">
                 <input type="hidden" name="action" value="update_questionset">
                 <input type="hidden" id="edit-set-id" name="set_id">
@@ -162,8 +162,21 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="edit-set-questions">Domande da aggiungere</label>
-                    <div id="edit-set-questions" class="questions-list" style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 4px;">
+                    <label for="edit-search-questions">Cerca e Aggiungi Domande</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <input type="text" id="edit-search-questions" placeholder="Cerca domande..." style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        <button type="button" class="btn btn-info" onclick="searchAvailableQuestions()">Cerca</button>
+                    </div>
+                    <div id="edit-available-questions" class="questions-list" style="max-height: 350px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px; background-color: #fff;">
+                        <p style="text-align: center; color: #999;">Inserisci un termine di ricerca e clicca Cerca</p>
+                    </div>
+                </div>
+
+                <hr style="margin: 20px 0; border: none; border-top: 2px solid #ddd;">
+
+                <div class="form-group">
+                    <label for="edit-set-questions">Domande Associate</label>
+                    <div id="edit-set-questions" class="questions-list" style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 4px; background-color: #f9f9f9;">
                         <p style="text-align: center; color: #999;">Caricamento domande...</p>
                     </div>
                 </div>
@@ -461,6 +474,99 @@ function removeQuestionFromSet(setId, questionId) {
             alert('Errore durante l\'eliminazione della domanda');
         });
     }
+}
+
+// Ricerca domande disponibili
+function searchAvailableQuestions() {
+    const searchTerm = document.getElementById('edit-search-questions').value.trim();
+    const container = document.getElementById('edit-available-questions');
+    const setId = document.getElementById('edit-set-id').value;
+
+    if (!searchTerm) {
+        container.innerHTML = '<p style="text-align: center; color: #999;">Inserisci un termine di ricerca</p>';
+        return;
+    }
+
+    container.innerHTML = '<p style="text-align: center; color: #999;">Ricerca in corso...</p>';
+
+    // Fetch tutte le domande
+    fetch(`/src/api/api.php?endpoint=get_questions`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.questions) {
+                // Filtra le domande in base al termine di ricerca
+                const filtered = data.questions.filter(q =>
+                    q.question && q.question.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+
+                if (filtered.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #999;">Nessuna domanda trovata</p>';
+                    return;
+                }
+
+                // Carica domande già nel set per escluderle
+                fetch(`/src/api/api.php?endpoint=get_set_questions&set_id=${setId}`)
+                    .then(r => r.json())
+                    .then(setData => {
+                        const setQuestionIds = setData.questions ? setData.questions.map(q => q.id) : [];
+
+                        let html = '';
+                        filtered.forEach(q => {
+                            const isInSet = setQuestionIds.includes(q.id);
+                            const buttonText = isInSet ? 'Già Aggiunta' : 'Aggiungi';
+                            const buttonClass = isInSet ? 'btn-secondary' : 'btn-success';
+                            const buttonDisabled = isInSet ? 'disabled' : '';
+
+                            html += `
+                                <div class="question-item" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="flex: 1;">
+                                        <strong>${q.id}.</strong> ${q.question}
+                                    </div>
+                                    <button type="button" class="btn ${buttonClass} btn-sm" onclick="${!isInSet ? `addQuestionToSet(${setId}, ${q.id})` : ''}" ${buttonDisabled}>
+                                        ${buttonText}
+                                    </button>
+                                </div>
+                            `;
+                        });
+                        container.innerHTML = html;
+                    });
+            } else {
+                container.innerHTML = '<p style="text-align: center; color: #d9534f;">Errore nel caricamento domande</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Errore:', error);
+            container.innerHTML = '<p style="text-align: center; color: #d9534f;">Errore durante la ricerca</p>';
+        });
+}
+
+// Aggiunge una domanda al set
+function addQuestionToSet(setId, questionId) {
+    fetch('/src/api/api.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            endpoint: 'add_question_to_set',
+            set_id: setId,
+            question_id: questionId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Ricarica sia le domande associate che la ricerca
+            loadSetQuestions(setId);
+            searchAvailableQuestions();
+        } else {
+            alert('Errore: ' + (data.error || 'Non è stato possibile aggiungere la domanda'));
+        }
+    })
+    .catch(error => {
+        console.error('Errore:', error);
+        alert('Errore durante l\'aggiunta della domanda');
+    });
 }
 
 function startGameWithSet(setId) {
