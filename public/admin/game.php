@@ -36,6 +36,7 @@
                     <th>Domande</th>
                     <th>Ultimo Aggiornamento</th>
                     <th>Azioni</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -75,7 +76,9 @@
                     <td>
                         <button class="btn-icon btn-warning btn-edit-set" data-set-id="<?php echo $set['id']; ?>" title="Modifica">✎</button>
                         <button class="btn-icon btn-danger btn-delete-set" data-set-id="<?php echo $set['id']; ?>" title="Elimina">×</button>
-                        <button class="btn-icon btn-success btn-start-game" data-set-id="<?php echo $set['id']; ?>" title="Avvia Partita">▶️</button>
+                    </td>
+                    <td>
+                        <button class="btn-icon btn-success btn-start-game" data-set-id="<?php echo $set['id']; ?>" title="Avvia Partita">Avvia partita</button>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -118,6 +121,13 @@
                     <textarea id="add-set-description" name="set_description" placeholder="Descrizione opzionale" rows="3"></textarea>
                 </div>
 
+                <div class="form-group">
+                    <label for="add-set-questions">Domande da aggiungere</label>
+                    <div id="add-set-questions" class="questions-list" style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 4px;">
+                        <p style="text-align: center; color: #999;">Caricamento domande...</p>
+                    </div>
+                </div>
+
                 <div id="add-set-message" class="form-message"></div>
 
                 <div class="button-container">
@@ -149,6 +159,13 @@
                 <div class="form-group">
                     <label for="edit-set-description">Descrizione</label>
                     <textarea id="edit-set-description" name="set_description" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit-set-questions">Domande da aggiungere</label>
+                    <div id="edit-set-questions" class="questions-list" style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 4px;">
+                        <p style="text-align: center; color: #999;">Caricamento domande...</p>
+                    </div>
                 </div>
 
                 <div id="edit-set-message" class="form-message"></div>
@@ -289,6 +306,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('edit-set-description').value = s.set_description || '';
                         document.getElementById('edit-set-message').innerHTML = '';
                         document.getElementById('modal-edit-set').style.display = 'flex';
+
+                        // Carica domande associate al set
+                        loadSetQuestions(s.id);
                     } else {
                         alert('Errore nel caricamento del set');
                     }
@@ -378,6 +398,69 @@ function submitEditSet(event) {
         console.error('Errore:', error);
         messageDiv.innerHTML = '<div class="alert-error">✗ Errore durante l\'aggiornamento del set</div>';
     });
+}
+
+// Carica domande associate a un set
+function loadSetQuestions(setId) {
+    const containerAssociated = document.getElementById('edit-set-questions');
+
+    fetch(`/src/api/api.php?endpoint=get_set_questions&set_id=${setId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.questions && data.questions.length > 0) {
+                let html = '<div class="questions-associated">';
+                data.questions.forEach(q => {
+                    html += `
+                        <div class="question-item" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${q.id}.</strong> ${q.question}
+                            </div>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="removeQuestionFromSet(${setId}, ${q.id})">
+                                Elimina
+                            </button>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                containerAssociated.innerHTML = html;
+            } else {
+                containerAssociated.innerHTML = '<p style="text-align: center; color: #999;">Nessuna domanda associata</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Errore nel caricamento domande:', error);
+            containerAssociated.innerHTML = '<p style="text-align: center; color: #d9534f;">Errore nel caricamento</p>';
+        });
+}
+
+// Rimuove una domanda da un set
+function removeQuestionFromSet(setId, questionId) {
+    if (confirm('Vuoi eliminare questa domanda dal set?')) {
+        fetch('/src/api/api.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'remove_question_from_set',
+                set_id: setId,
+                question_id: questionId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Ricarica le domande del set
+                loadSetQuestions(setId);
+            } else {
+                alert('Errore: ' + (data.error || 'Non è stato possibile eliminare la domanda'));
+            }
+        })
+        .catch(error => {
+            console.error('Errore:', error);
+            alert('Errore durante l\'eliminazione della domanda');
+        });
+    }
 }
 
 function startGameWithSet(setId) {

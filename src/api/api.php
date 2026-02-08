@@ -113,6 +113,14 @@ switch ($endpoint) {
         handleGetQuestionSets($questionSet);
         break;
 
+    case 'get_set_questions':
+        handleGetSetQuestions($questionSet);
+        break;
+
+    case 'remove_question_from_set':
+        handleRemoveQuestionFromSet($questionSet);
+        break;
+
     default:
         http_response_code(404);
         echo json_encode([
@@ -1072,6 +1080,70 @@ function handleGetQuestionSets($questionSet) {
             'total' => $data['total'],
             'page' => $data['page'],
             'totalPages' => $data['totalPages']
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleGetSetQuestions($questionSet) {
+    $setId = $_GET['set_id'] ?? null;
+
+    if (!$setId) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Set ID is required'
+        ]);
+        return;
+    }
+
+    try {
+        $questions = $questionSet->getQuestions($setId);
+
+        echo json_encode([
+            'success' => true,
+            'questions' => $questions
+        ]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleRemoveQuestionFromSet($questionSet) {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'message' => 'POST required']);
+        return;
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $setId = $data['set_id'] ?? null;
+    $questionId = $data['question_id'] ?? null;
+
+    if (!$setId || !$questionId) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Set ID and Question ID are required'
+        ]);
+        return;
+    }
+
+    try {
+        $questionSet->removeQuestion($setId, $questionId);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Question removed successfully'
         ]);
     } catch (Exception $e) {
         http_response_code(500);
