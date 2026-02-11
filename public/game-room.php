@@ -36,6 +36,7 @@ if ($selectedSetId) {
     <link rel="stylesheet" href="../assets/css/admin.css">
     <link rel="stylesheet" href="../assets/css/mobile.css">
     <link rel="stylesheet" href="../assets/css/game-room.css">
+    <link rel="stylesheet" href="../assets/css/qr-code.css">
     <script src="../assets/js/qrcode.min.js"></script>
     <script src="../assets/js/html2pdf.bundle.min.js"></script>
 </head>
@@ -194,10 +195,10 @@ if ($selectedSetId) {
                     <p style="font-size: 18px; margin: 20px 0;">Codice Stanza:</p>
                     <p style="font-size: 48px; font-weight: bold; letter-spacing: 10px; margin: 20px 0; font-family: monospace;">${roomCode}</p>
                     <p style="font-size: 16px; margin: 30px 0;">Inquadra il QR code per connetterti:</p>
-                    <div style="margin: 30px auto; display: inline-block; border: 2px solid #333; padding: 20px;">
+                    <div style="margin: 20px auto; padding: 20px; display: flex; justify-content: center; align-items: center;">
                         ${qrCanvas.parentElement.innerHTML}
                     </div>
-                    <p style="font-size: 14px; margin-top: 30px; color: #666;">I giocatori possono connettersi usando il codice stanza o il QR code.</p>
+                    <p style="font-size: 14px; margin-top: 20px; color: #666;">I giocatori possono connettersi usando il codice stanza o il QR code.</p>
                 </div>
             `;
 
@@ -206,11 +207,12 @@ if ($selectedSetId) {
             element.innerHTML = pdfContent;
 
             const opt = {
-                margin: 10,
+                margin: [15, 10, 15, 10],
                 filename: `marriage-game-stanza-${roomCode}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+                html2canvas: { scale: 2, useCORS: true, allowTaint: true },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' },
+                pagebreak: { mode: [] }
             };
 
             html2pdf().set(opt).from(element).save();
