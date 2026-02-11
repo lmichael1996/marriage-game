@@ -33,28 +33,8 @@ class AnswerRepo {
         }
     }
 
-    public function submitAnswer($round_id, $player_id, $time_taken) {
+    public function submitAnswer($round_id, $username, $time_taken) {
         try {
-            // Get player username from session
-            if (session_status() === PHP_SESSION_NONE) {
-                @session_start();
-            }
-            $username = $_SESSION['username'] ?? 'unknown';
-
-            // Get room_id and round_number from rounds table
-            $stmtRound = $this->conn->prepare("SELECT room_id, round_number FROM rounds WHERE id = ?");
-            $stmtRound->bind_param("i", $round_id);
-            $stmtRound->execute();
-            $resultRound = $stmtRound->get_result();
-            $round = $resultRound->fetch_assoc();
-            $stmtRound->close();
-
-            if (!$round) {
-                return false;
-            }
-
-            $room_id = $round['room_id'];
-            $round_number = $round['round_number'];
             // answer_time: tempo in secondi impiegato dal player per rispondere
             $answer_time = floatval($time_taken);
 

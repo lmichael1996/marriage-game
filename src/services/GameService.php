@@ -328,6 +328,46 @@ class GameService {
     }
 
     /**
+     * Submit answer using round_id directly
+     */
+    public function submitAnswerByRoundId($roundId, $answer, $timeTaken) {
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
+
+        $username = $_SESSION['username'] ?? null;
+
+        if (!$username) {
+            throw new Exception('Username non trovato nella sessione');
+        }
+
+        // Get full round data including correct_answer from questions table
+        $round = $this->roundRepo->getRoundById($roundId);
+        if (!$round) {
+            throw new Exception('Round non trovato');
+        }
+
+        if (!isset($round['correct_answer'])) {
+            throw new Exception('Risposta corretta non trovata per questo round');
+        }
+
+        // Check if answer is correct
+        $is_correct = ($answer == $round['correct_answer']) ? 1 : 0;
+
+        error_log("Answer check: user_answer=$answer, correct_answer={$round['correct_answer']}, is_correct=$is_correct");
+
+        // Save the answer
+        if ($is_correct) {
+            $this->answerRepo->submitAnswer($roundId, $username, $timeTaken);
+        }
+
+        return [
+            'success' => true,
+            'is_correct' => $is_correct
+        ];
+    }
+
+    /**
      * Store active round info to a file for cross-session access
      */
     private function storeActiveRoundToFile($roomCode, $roundId, $questionId) {

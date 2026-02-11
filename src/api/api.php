@@ -235,30 +235,35 @@ function handleAnswer($action, $game) {
     if ($action === 'submit' || $_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = json_decode(file_get_contents('php://input'), true);
 
-        $round_number = $data['round_number'] ?? 0;
+        $round_id = $data['round_id'] ?? 0;
         $answer = $data['answer'] ?? 0;
         $time_taken = $data['time_taken'] ?? 0;
 
-        $user_id = $_SESSION['player_id'] ?? $_SESSION['user_id'] ?? 0;
-
-        if (!$user_id) {
+        if (!$round_id) {
             echo json_encode([
                 'success' => false,
-                'error' => 'User ID non trovato nella sessione'
+                'error' => 'Round ID mancante'
             ]);
             exit();
         }
 
-        if (!$round_number) {
+        if (!$answer) {
             echo json_encode([
                 'success' => false,
-                'error' => 'Round number mancante'
+                'error' => 'Risposta mancante'
             ]);
             exit();
         }
 
-        $result = $game->submitAnswer($user_id, $round_number, $answer, $time_taken);
-        echo json_encode($result);
+        try {
+            $result = $game->submitAnswerByRoundId($round_id, $answer, $time_taken);
+            echo json_encode($result);
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
         exit();
     }
 

@@ -66,20 +66,11 @@ class RoomRepo {
     }
 
     /**
-     * Update room status
-     * Note: status_room column was removed from database
-     * Kept for backward compatibility but does nothing
-     */
-    public function updateStatus($roomCode, $status) {
-        // status_room column no longer exists
-        return true;
-    }
-
     /**
-     * Start room (set status to active)
+     * Start room (just returns true, no status tracking needed)
      */
     public function startRoom($roomCode) {
-        return $this->updateStatus($roomCode, 'active');
+        return true;
     }
 
     /**
@@ -117,41 +108,11 @@ class RoomRepo {
     }
 
     /**
-     * Update question set for a room
-     */
-    public function setQuestionSet($roomCode, $questionSetId) {
-        $stmt = $this->conn->prepare("UPDATE rooms SET question_set_id = ? WHERE room_code = ?");
-        $stmt->bind_param("is", $questionSetId, strtoupper($roomCode));
-        $success = $stmt->execute();
-        $stmt->close();
-
-        return $success;
-    }
-
-    /**
-     * Get all rooms by user
-     */
-    public function getRoomsByUser($userId) {
-        $stmt = $this->conn->prepare("
-            SELECT * FROM rooms
-            WHERE user_id = ?
-            ORDER BY id DESC
-        ");
-        $stmt->bind_param("i", $userId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $rooms = $result->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
-
-        return $rooms;
-    }
-
-    /**
      * Get question set ID for a room by room code
      */
     public function getQuestionSetIdByRoomCode($roomCode) {
         $stmt = $this->conn->prepare("
-            SELECT question_set_id FROM rooms
+            SELECT qset_id FROM rooms
             WHERE room_code = ?
         ");
         $roomCodeUpper = strtoupper($roomCode);
@@ -161,7 +122,7 @@ class RoomRepo {
         $room = $result->fetch_assoc();
         $stmt->close();
 
-        return $room ? $room['question_set_id'] : null;
+        return $room ? $room['qset_id'] : null;
     }
 
     public function __destruct() {

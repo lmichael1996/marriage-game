@@ -91,6 +91,7 @@ requirePlayer();
     <script>
         // ============ STATE ============
         let currentRoundCounter = 1;
+        let currentRoundId = null;
         let timerInterval = null;
         let startTime = null;
         let hasAnswered = false;
@@ -147,6 +148,7 @@ requirePlayer();
             hasAnswered = false;
             selectedAnswer = null;
             startTime = Date.now();
+            currentRoundId = round.id;  // Store the round ID
 
             // Update UI
             document.getElementById('round-number').textContent = round.round_number;
@@ -255,7 +257,7 @@ requirePlayer();
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    round_number: currentRoundCounter,
+                    round_id: currentRoundId,
                     answer: answer,
                     time_taken: timeTaken
                 })
