@@ -274,6 +274,59 @@ class GameService {
     public function getLeaderboard($roomCode = null) {
         return $this->answerRepo->getLeaderboard($roomCode);
     }
+
+    /**
+     * Submit player answer
+     */
+    public function submitAnswer($userId, $roundNumber, $answer, $timeTaken) {
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
+
+        $roomCode = $_SESSION['room_code'] ?? null;
+
+        if (!$roomCode) {
+            throw new Exception('Room code non trovato nella sessione');
+        }
+
+        // Get room info to get room_id
+        $room = $this->roomRepo->getRoomByCode($roomCode);
+        if (!$room) {
+            throw new Exception('Stanza non trovata');
+        }
+
+        // Get round by room_id and round_number to get roundId
+        $roundData = $this->roundRepo->getRoundByRoomAndNumber($room['id'], $roundNumber);
+        if (!$roundData) {
+            throw new Exception('Round non trovato');
+        }
+
+        $roundId = $roundData['id'];
+
+        // Check if user already answered this round
+        if ($this->answerRepo->hasAnswered($roundId, $userId)) {
+            throw new Exception('Hai già risposto a questo round');
+        }
+
+        // Get full round data including correct_answer from questions table
+        $round = $this->roundRepo->getRoundById($roundId);
+        if (!$round || !isset($round['correct_answer'])) {
+            throw new Exception('Risposta corretta non trovata per questo round');
+        }
+
+        // Check if answer is correct
+        $is_correct = ($answer == $round['correct_answer']) ? 1 : 0;
+
+        error_log("Answer check: user_answer=$answer, correct_answer={$round['correct_answer']}, is_correct=$is_correct");
+
+        // Save the answer ONLY if correct
+        if ($is_correct) {
+            $this->answerRepo->submitAnswer($roundId, $userId, $timeTaken);
+        }
+
+        return ['is_correct' => $is_correct];
+    }
+
     /**
      * Submit answer using round_id directly
      */

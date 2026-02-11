@@ -640,32 +640,34 @@ document.addEventListener('DOMContentLoaded', function() {
             const type = e.target.value;
 
             // Mostra/nascondi sezione risposte
-            if (type === 'truefalse') {
-                answersContainer.style.display = 'block';
-                answer3Group.style.display = 'none';
-                answer4Group.style.display = 'none';
-                // Nascondi i campi input answer1 e answer2 per vero/falso
-                document.getElementById('new-answer1').parentElement.style.display = 'none';
-                document.getElementById('new-answer2').parentElement.style.display = 'none';
-                // Limita a 2 risposte
-                correctSelect.innerHTML = '<option value="1">Vero</option><option value="2">Falso</option>';
-            } else if (type === 'multiple') {
+            if (type === 'multiple') {
                 answersContainer.style.display = 'block';
                 answer3Group.style.display = 'block';
                 answer4Group.style.display = 'block';
                 // Mostra i campi input answer
                 document.getElementById('new-answer1').parentElement.style.display = 'block';
                 document.getElementById('new-answer2').parentElement.style.display = 'block';
-                document.getElementById('new-answer1').placeholder = 'Risposta corretta';
-                document.getElementById('new-answer2').placeholder = 'Risposta sbagliata';
-                document.getElementById('new-answer3').placeholder = 'Risposta sbagliata';
-                document.getElementById('new-answer4').placeholder = 'Risposta sbagliata';
                 correctSelect.innerHTML = '<option value="1">Risposta 1</option><option value="2">Risposta 2</option><option value="3">Risposta 3</option><option value="4">Risposta 4</option>';
-            } else if (type === 'clickfirst') {
+            } else if (type === 'truefalse') {
+                answersContainer.style.display = 'block';
+                answer3Group.style.display = 'none';
+                answer4Group.style.display = 'none';
+                // Nascondi i campi input answer1 e answer2 per vero/falso
+                document.getElementById('new-answer1').parentElement.style.display = 'none';
+                document.getElementById('new-answer2').parentElement.style.display = 'none';
+                // Pulisci i valori dei campi nascosti
+                document.getElementById('new-answer1').value = '';
+                document.getElementById('new-answer2').value = '';
+                // Limita a 2 risposte
+                correctSelect.innerHTML = '<option value="1">Vero</option><option value="2">Falso</option>';
+            } else  {
                 answersContainer.style.display = 'none';
-            } else {
-                answersContainer.style.display = 'none';
-            }
+                // Pulisci tutti i campi risposte per clickfirst
+                document.getElementById('new-answer1').value = '';
+                document.getElementById('new-answer2').value = '';
+                document.getElementById('new-answer3').value = '';
+                document.getElementById('new-answer4').value = '';
+            } e
         });
     }
 
@@ -706,6 +708,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Nascondi i campi input answer1 e answer2 per vero/falso
                 document.getElementById('edit-answer1').parentElement.style.display = 'none';
                 document.getElementById('edit-answer2').parentElement.style.display = 'none';
+                // Pulisci i valori dei campi nascosti
+                document.getElementById('edit-answer1').value = '';
+                document.getElementById('edit-answer2').value = '';
                 editCorrectSelect.innerHTML = '<option value="1">Vero</option><option value="2">Falso</option>';
             } else if (type === 'multiple') {
                 editAnswersContainer.style.display = 'block';
@@ -714,15 +719,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Mostra i campi input answer
                 document.getElementById('edit-answer1').parentElement.style.display = 'block';
                 document.getElementById('edit-answer2').parentElement.style.display = 'block';
-                document.getElementById('edit-answer1').placeholder = 'Risposta corretta';
-                document.getElementById('edit-answer2').placeholder = 'Risposta sbagliata';
-                document.getElementById('edit-answer3').placeholder = 'Risposta sbagliata';
-                document.getElementById('edit-answer4').placeholder = 'Risposta sbagliata';
                 editCorrectSelect.innerHTML = '<option value="1">Risposta 1</option><option value="2">Risposta 2</option><option value="3">Risposta 3</option><option value="4">Risposta 4</option>';
             } else if (type === 'clickfirst') {
                 editAnswersContainer.style.display = 'none';
+                // Pulisci tutti i campi risposte per clickfirst
+                document.getElementById('edit-answer1').value = '';
+                document.getElementById('edit-answer2').value = '';
+                document.getElementById('edit-answer3').value = '';
+                document.getElementById('edit-answer4').value = '';
             } else {
                 editAnswersContainer.style.display = 'none';
+                // Pulisci tutti i campi risposte per altri tipi
+                document.getElementById('edit-answer1').value = '';
+                document.getElementById('edit-answer2').value = '';
+                document.getElementById('edit-answer3').value = '';
+                document.getElementById('edit-answer4').value = '';
             }
         });
     }

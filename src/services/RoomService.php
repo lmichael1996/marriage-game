@@ -3,6 +3,7 @@ require_once __DIR__ . '/../repository/RoomRepo.php';
 require_once __DIR__ . '/../repository/PlayerRepo.php';
 require_once __DIR__ . '/../repository/QuestionRepo.php';
 require_once __DIR__ . '/../repository/RoundRepo.php';
+require_once __DIR__ . '/../repository/QuestionSetRepo.php';
 
 /**
  * RoomService - Gestisce la logica di business delle stanze
@@ -12,12 +13,14 @@ class RoomService {
     private $playerRepo;
     private $questionRepo;
     private $roundRepo;
+    private $questionSetRepo;
 
     public function __construct() {
         $this->roomRepo = new RoomRepo();
         $this->playerRepo = new PlayerRepo();
         $this->questionRepo = new QuestionRepo();
         $this->roundRepo = new RoundRepo();
+        $this->questionSetRepo = new QuestionSetRepo();
     }
 
     /**
