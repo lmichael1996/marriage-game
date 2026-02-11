@@ -37,6 +37,7 @@ if ($selectedSetId) {
     <link rel="stylesheet" href="../assets/css/mobile.css">
     <link rel="stylesheet" href="../assets/css/game-room.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -98,9 +99,12 @@ if ($selectedSetId) {
                 <div id="room-info" class="info-box hidden">
                     <p><strong>🎮 Stanza Attiva</strong></p>
                     <p>Codice stanza: <strong><span id="room-code">------</span></strong></p>
-                    <div id="qr-code-container" style="text-align: center; margin: 1.5rem 0;"></div>
+                    <div id="qr-code-container"></div>
                     <p>I giocatori possono ora connettersi utilizzando questo codice o inquadrando il QR.</p>
                     <div class="button-container-close">
+                        <button class="btn btn-info" id="btn-download-pdf">
+                            📄 Scarica PDF
+                        </button>
                         <button class="btn btn-danger" id="btn-close-room">
                             Chiudi Stanza
                         </button>
@@ -161,15 +165,55 @@ if ($selectedSetId) {
             const container = document.getElementById('qr-code-container');
             container.innerHTML = ''; // Clear previous QR
 
-            // Create QR code - use simple text URL encoding
+            // Create QR code with URL pointing to player join page
+            const qrUrl = `http://0.0.0.0:3000?code=${encodeURIComponent(code)}`;
             new QRCode(container, {
-                text: code,
+                text: qrUrl,
                 width: 200,
                 height: 200,
                 colorDark: '#000000',
                 colorLight: '#ffffff',
                 correctLevel: QRCode.CorrectLevel.H
             });
+        }
+
+        // Generate PDF with QR code and room code
+        function downloadPDF() {
+            const roomCode = document.getElementById('room-code').textContent;
+            const qrCanvas = document.querySelector('#qr-code-container canvas');
+
+            if (!qrCanvas) {
+                alert('QR code non ancora generato. Attendi un momento.');
+                return;
+            }
+
+            // Create HTML content for PDF
+            const pdfContent = `
+                <div style="text-align: center; padding: 20px; font-family: Arial, sans-serif;">
+                    <h1>🎮 Marriage Game - Stanza Attiva</h1>
+                    <p style="font-size: 18px; margin: 20px 0;">Codice Stanza:</p>
+                    <p style="font-size: 48px; font-weight: bold; letter-spacing: 10px; margin: 20px 0; font-family: monospace;">${roomCode}</p>
+                    <p style="font-size: 16px; margin: 30px 0;">Inquadra il QR code per connetterti:</p>
+                    <div style="margin: 30px auto; display: inline-block; border: 2px solid #333; padding: 20px;">
+                        ${qrCanvas.parentElement.innerHTML}
+                    </div>
+                    <p style="font-size: 14px; margin-top: 30px; color: #666;">I giocatori possono connettersi usando il codice stanza o il QR code.</p>
+                </div>
+            `;
+
+            // Generate PDF
+            const element = document.createElement('div');
+            element.innerHTML = pdfContent;
+
+            const opt = {
+                margin: 10,
+                filename: `marriage-game-stanza-${roomCode}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+            };
+
+            html2pdf().set(opt).from(element).save();
         }
 
         // Pre-select set if passed via URL
@@ -286,6 +330,11 @@ if ($selectedSetId) {
             .catch(error => {
                 alert('Errore nella comunicazione con il server');
             });
+        });
+
+        // Download PDF
+        document.getElementById('btn-download-pdf').addEventListener('click', function() {
+            downloadPDF();
         });
 
         // Close room
