@@ -39,6 +39,14 @@
 
 .button-container-close {
   margin-top: 1rem;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.button-container-close .btn {
+  flex: 1;
+  max-width: 180px;
 }
 
 /* Status indicator for connected devices */
