@@ -281,13 +281,12 @@ function closeEditSetModal() {
         }
 
         // Salva il nuovo set
-        fetch('/src/api/api.php', {
+        fetch('/src/api/api.php?endpoint=update_questionset_metadata', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                endpoint: 'update_questionset_metadata',
                 set_id: setId,
                 set_name: currentName,
                 set_description: currentDescription,
@@ -318,13 +317,12 @@ function closeEditSetModal() {
 
         if (nameChanged || descriptionChanged) {
             // Salva i metadati via API
-            fetch('/src/api/api.php', {
+            fetch('/src/api/api.php?endpoint=update_questionset_metadata', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    endpoint: 'update_questionset_metadata',
                     set_id: setId,
                     set_name: currentName,
                     set_description: currentDescription
@@ -381,13 +379,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnNewSet) {
         btnNewSet.addEventListener('click', () => {
             // Crea un set vuoto nel database via API
-            fetch('/src/api/api.php', {
+            fetch('/src/api/api.php?endpoint=add_questionset', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    endpoint: 'add_questionset',
                     set_name: 'Nuovo Set',
                     set_description: ''
                 })
@@ -802,13 +799,12 @@ function updateOrderInDatabase(setId) {
         return;
     }
 
-    fetch('/src/api/api.php', {
+    fetch('/src/api/api.php?endpoint=update_question_order', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            endpoint: 'update_question_order',
             set_id: setId,
             questions: questionOrder
         })
@@ -843,13 +839,12 @@ function updateOrderInDatabase(setId) {
 // Rimuove una domanda da un set
 function removeQuestionFromSet(setId, questionId) {
     if (confirm('Vuoi eliminare questa domanda dal set?')) {
-        fetch('/src/api/api.php', {
+        fetch('/src/api/api.php?endpoint=remove_question_from_set', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                endpoint: 'remove_question_from_set',
                 set_id: setId,
                 question_id: questionId
             })
@@ -925,13 +920,12 @@ function updateOrderAfterMove(setId, questionId) {
         order: index + 1
     }));
 
-    fetch('/src/api/api.php', {
+    fetch('/src/api/api.php?endpoint=update_question_order', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            endpoint: 'update_question_order',
             set_id: setId,
             questions: questionOrder
         })
@@ -1166,13 +1160,12 @@ function highlightSearchResult(questionId) {
 
 // Aggiunge una domanda al set
 function addQuestionToSet(setId, questionId) {
-    fetch('/src/api/api.php', {
+    fetch('/src/api/api.php?endpoint=add_question_to_set', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            endpoint: 'add_question_to_set',
             set_id: setId,
             question_id: questionId
         })
@@ -1401,13 +1394,12 @@ function openAddBelowModal(setId, positionIndex) {
 
 // Aggiunge una domanda al set in una posizione specifica
 function addQuestionBelowInSet(setId, questionId, positionIndex) {
-    fetch('/src/api/api.php', {
+    fetch('/src/api/api.php?endpoint=add_question_to_set_at_position', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            endpoint: 'add_question_to_set_at_position',
             set_id: setId,
             question_id: questionId,
             position: positionIndex + 1
