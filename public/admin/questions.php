@@ -14,8 +14,8 @@
             <input type="hidden" name="questions_page" id="questions_page" value="<?php echo (int)($_SESSION['questions_page'] ?? 1); ?>">
             <input type="text" name="search_query" id="search-questions" placeholder="Cerca domande..." value="<?php echo htmlspecialchars($_POST['search_query'] ?? ''); ?>">
             <select name="search_type" id="search-type" class="search-filter">
-                <option value="contains" <?php echo ($_POST['search_type'] ?? 'contains') === 'contains' ? 'selected' : ''; ?>>Contiene</option>
                 <option value="starts_with" <?php echo ($_POST['search_type'] ?? '') === 'starts_with' ? 'selected' : ''; ?>>Inizia con</option>
+                <option value="contains" <?php echo ($_POST['search_type'] ?? 'contains') === 'contains' ? 'selected' : ''; ?>>Contiene</option>
                 <option value="ends_with" <?php echo ($_POST['search_type'] ?? '') === 'ends_with' ? 'selected' : ''; ?>>Finisce con</option>
                 <option value="exact" <?php echo ($_POST['search_type'] ?? '') === 'exact' ? 'selected' : ''; ?>>Esattamente</option>
             </select>
@@ -160,7 +160,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
                     alert('Errore nel caricamento della domanda');
                 });
             return;
@@ -333,8 +332,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 }
-            })
-            .catch(err => console.error('Errore aggiornamento categorie:', err));
+            });
     }
 
     // Funzione per ri-attaccare gli event listener alle categorie
@@ -614,7 +612,6 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.text())
             .then(data => {
-                console.log('Response:', data);
                 // Chiudi modal e ricarica la pagina
                 modalOverlay.style.display = 'none';
                 formNewQuestion.reset();
@@ -622,7 +619,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 location.reload();
             })
             .catch(error => {
-                console.error('Error:', error);
                 alert('Errore nell\'aggiunta della domanda');
             });
         });
@@ -774,13 +770,11 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.text())
             .then(data => {
-                console.log('Response:', data);
                 alert('✓ Domanda modificata con successo!');
                 modalEditQuestion.style.display = 'none';
                 location.reload();
             })
             .catch(error => {
-                console.error('Error:', error);
                 alert('Errore nella modifica della domanda');
             });
         });

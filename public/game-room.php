@@ -32,146 +32,25 @@ if ($selectedSetId) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestione Partita - Marriage Game</title>
+    <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
-    <style>
-        .game-management-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            background: #fff;
-            padding: 1.5rem;
-            border: 2px solid #1a1a1a;
-        }
-
-        .game-management-header h1 {
-            margin: 0;
-            font-size: 1.6em;
-        }
-
-        .back-link {
-            padding: 0.75rem 1.5rem;
-            background: #fff;
-            border: 2px solid #1a1a1a;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-block;
-        }
-
-        .back-link:hover:not(:disabled) {
-            background: #1a1a1a;
-            color: #fff;
-        }
-
-        .back-link:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .game-step {
-            background: #fff;
-            padding: 2rem;
-            border: 2px solid #1a1a1a;
-            margin-bottom: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .game-step.hidden {
-            display: none;
-        }
-
-        .game-step h2 {
-            margin-top: 0;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 2px solid #1a1a1a;
-        }
-
-        .set-selector {
-            margin-bottom: 1.5rem;
-        }
-
-        .set-selector label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-        }
-
-        .set-selector select {
-            width: 100%;
-            padding: 0.75rem;
-            font-size: 1rem;
-            border: 2px solid #1a1a1a;
-            background: #fff;
-            cursor: pointer;
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #4caf50;
-            margin-right: 0.5rem;
-        }
-
-        .info-box {
-            padding: 1.25rem;
-            margin: 1rem 0;
-            background: #f5f5f5;
-            border-left: 4px solid #1a1a1a;
-        }
-
-        .info-box p {
-            margin: 0.5rem 0;
-        }
-
-        #room-info {
-            background: #e8f5e9;
-            border-left-color: #4caf50;
-        }
-
-        #game-start-section {
-            padding: 1.25rem;
-            margin-top: 1.5rem;
-            background: #f5f5f5;
-            border: 2px solid #1a1a1a;
-            text-align: center;
-        }
-
-        #final-info p {
-            margin: 0.75rem 0;
-        }
-
-        .button-container {
-            text-align: center;
-            margin-top: 1rem;
-        }
-
-        .button-container-mb {
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-
-        .button-container-close {
-            text-align: center;
-            margin-top: 1rem;
-        }
-
-    </style>
+    <link rel="stylesheet" href="../assets/css/mobile.css">
+    <link rel="stylesheet" href="../assets/css/game-room.css">
 </head>
 <body>
     <div class="container">
-        <div class="game-management-header">
+        <div class="header">
             <h1>🎮 Gestione Partita</h1>
-            <button id="btn-back-admin" class="back-link" title="Chiudi la stanza prima di tornare">
-                ← Torna a Admin
-            </button>
+            <div class="user-info">
+                <button id="btn-back-admin" class="btn btn-secondary" title="Chiudi la stanza prima di tornare">
+                    ← Torna a Admin
+                </button>
+            </div>
         </div>
 
-        <!-- Step 1: Select Question Set -->
+        <!-- Game Management Sections -->
         <div class="admin-section">
-            <div class="game-step" id="step-select-set">
+            <div class="settings-group" id="step-select-set">
                 <h2>1. Seleziona Set di Domande</h2>
 
                 <div class="set-selector">
@@ -200,14 +79,14 @@ if ($selectedSetId) {
             </div>
 
             <!-- Step 2: Create Room -->
-            <div class="game-step hidden" id="step-room">
+            <div class="settings-group hidden" id="step-room">
                 <h2>2. Avvia Stanza</h2>
 
-                <p style="padding: 0.75rem; background-color: #e8f5e9; border-left: 4px solid #4caf50; margin-bottom: 1.5rem;">
-                    <strong>✓ Set selezionato:</strong> <span id="selected-set-display" style="color: #2e7d32; font-weight: bold;"></span>
+                <p class="selected-set-info">
+                    <strong>✓ Set selezionato:</strong> <span id="selected-set-display"></span>
                 </p>
 
-                <p style="margin-bottom: 1.5rem;">Clicca su "Avvia Stanza" per permettere ai giocatori di connettersi con il codice stanza.</p>
+                <p class="room-section-text">Clicca su "Avvia Stanza" per permettere ai giocatori di connettersi con il codice stanza.</p>
 
                 <div class="button-container-mb">
                     <button class="btn btn-success" id="btn-create-room">
@@ -215,7 +94,7 @@ if ($selectedSetId) {
                     </button>
                 </div>
 
-                <div id="room-info" class="info-box" style="display: none;">
+                <div id="room-info" class="info-box hidden">
                     <p><strong>🎮 Stanza Attiva</strong></p>
                     <p>Codice stanza: <strong><span id="room-code">------</span></strong></p>
                     <p>I giocatori possono ora connettersi utilizzando questo codice.</p>
@@ -228,7 +107,7 @@ if ($selectedSetId) {
             </div>
 
             <!-- Step 3: Connected Devices -->
-            <div class="game-step hidden" id="step-devices">
+            <div class="settings-group hidden" id="step-devices">
                 <h2>3. Dispositivi Connessi</h2>
                 <p>Attendi che i giocatori si connettano.</p>
 
@@ -252,7 +131,7 @@ if ($selectedSetId) {
                 </div>
 
                 <!-- Start Game Section -->
-                <div id="game-start-section" style="margin-top: 2rem;">
+                <div id="game-start-section">
                     <div id="final-info">
                         <p><strong>Set selezionato:</strong> <span id="selected-set-name-final"></span></p>
                         <p><strong>Giocatori connessi:</strong> <span id="connected-count">0</span></p>
@@ -363,7 +242,7 @@ if ($selectedSetId) {
 
                     // Show room info
                     document.getElementById('btn-create-room').style.display = 'none';
-                    document.getElementById('room-info').style.display = 'block';
+                    document.getElementById('room-info').classList.remove('hidden');
                     document.getElementById('room-code').textContent = roomCode;
 
                     // Disable back button
@@ -384,7 +263,6 @@ if ($selectedSetId) {
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
                 alert('Errore nella comunicazione con il server');
             });
         });
@@ -407,7 +285,7 @@ if ($selectedSetId) {
                         }
 
                         // Hide room info and show create room button again
-                        document.getElementById('room-info').style.display = 'none';
+                        document.getElementById('room-info').classList.add('hidden');
                         document.getElementById('btn-create-room').style.display = 'block';
 
                         // Enable back button
@@ -432,7 +310,6 @@ if ($selectedSetId) {
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
                     alert('Errore nella chiusura della stanza');
                 });
             }
@@ -473,11 +350,9 @@ if ($selectedSetId) {
                 })
                 .then(response => response.json())
                 .then(data => {
-                    console.log('start_room response:', data, 'roomCode:', roomCode);
                     if (data.success) {
                         setTimeout(() => {
                             const redirectUrl = 'room-admin.php?room_code=' + encodeURIComponent(roomCode);
-                            console.log('Redirecting to:', redirectUrl);
                             window.location.href = redirectUrl;
                         }, 1000);
                     } else {
@@ -485,7 +360,6 @@ if ($selectedSetId) {
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
                     alert('Errore nella comunicazione con il server');
                 });
             }
@@ -494,35 +368,27 @@ if ($selectedSetId) {
         // Update connected devices
         function updateConnectedDevices() {
             if (!roomCode) {
-                console.log('Room code not set yet');
                 return;
             }
 
             const url = `/src/api/api.php?endpoint=connected_devices&room_code=${encodeURIComponent(roomCode)}`;
-            console.log('Fetching:', url);
 
             fetch(url, {
-                credentials: 'include'  // Include cookies for session
+                credentials: 'include'
             })
                 .then(response => {
-                    console.log('Response status:', response.status);
                     if (!response.ok) {
                         throw new Error(`HTTP ${response.status}`);
                     }
                     return response.json();
                 })
                 .then(data => {
-                    console.log('Connected devices response:', data);
-
                     if (data.success) {
                         const tbody = document.getElementById('connected-devices-body');
                         const countSpan = document.getElementById('connected-count');
 
-                        // Ensure devices is an array
                         const devices = Array.isArray(data.devices) ? data.devices : [];
                         const count = data.count || devices.length || 0;
-
-                        console.log('Devices:', devices, 'Count:', count);
 
                         if (countSpan) {
                             countSpan.textContent = count;
@@ -539,7 +405,6 @@ if ($selectedSetId) {
                             `;
                         } else {
                             tbody.innerHTML = devices.map(device => {
-                                // Handle different date formats
                                 let timeString = 'Ora sconosciuta';
                                 try {
                                     if (device.connected_at) {
@@ -553,7 +418,7 @@ if ($selectedSetId) {
                                         }
                                     }
                                 } catch (e) {
-                                    console.error('Error parsing date:', device.connected_at);
+                                    // Date parsing error - use default time string
                                 }
 
                                 return `
@@ -568,39 +433,17 @@ if ($selectedSetId) {
                             `;
                             }).join('');
                         }
-                    } else {
-                        console.error('API error:', data.error);
                     }
                 })
                 .catch(error => {
-                    console.error('Errore caricamento dispositivi:', error);
+                    // Silent error handling for polling
                 });
         }
-
-        // Add smooth transition styles
-        const style = document.createElement('style');
-        style.textContent = `
-            .game-step {
-                transition: all 0.4s ease-in-out;
-                opacity: 1;
-                transform: translateY(0);
-                max-height: 5000px;
-                overflow: hidden;
-            }
-            .game-step.hidden {
-                opacity: 0;
-                transform: translateY(-20px);
-                max-height: 0;
-                margin: 0;
-                padding: 0;
-            }
-        `;
-        document.head.appendChild(style);
 
         // Initialize from URL if set_id is provided
         document.addEventListener('DOMContentLoaded', function() {
             initializeFromUrl();
         });
-    </script>
+</script>
 </body>
 </html>
