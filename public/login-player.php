@@ -51,7 +51,7 @@
                 roomCodeInput.disabled = true;
                 roomCodeInput.style.backgroundColor = '#f0f0f0';
                 roomCodeInput.style.cursor = 'not-allowed';
-                
+
                 // Optional: focus on username field
                 document.getElementById('username').focus();
             }

@@ -36,8 +36,8 @@ if ($selectedSetId) {
     <link rel="stylesheet" href="../assets/css/admin.css">
     <link rel="stylesheet" href="../assets/css/mobile.css">
     <link rel="stylesheet" href="../assets/css/game-room.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="../assets/js/qrcode.min.js"></script>
+    <script src="../assets/js/html2pdf.bundle.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -166,7 +166,7 @@ if ($selectedSetId) {
             container.innerHTML = ''; // Clear previous QR
 
             // Create QR code with URL pointing to player join page
-            const qrUrl = `http://151.21.203.214:9000?code=${encodeURIComponent(code)}`;
+            const qrUrl = `http://151.21.203.214:9000/public/login-player.php?code=${encodeURIComponent(code)}`;
             new QRCode(container, {
                 text: qrUrl,
                 width: 200,
