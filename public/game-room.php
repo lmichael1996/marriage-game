@@ -36,6 +36,7 @@ if ($selectedSetId) {
     <link rel="stylesheet" href="../assets/css/admin.css">
     <link rel="stylesheet" href="../assets/css/mobile.css">
     <link rel="stylesheet" href="../assets/css/game-room.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -97,7 +98,8 @@ if ($selectedSetId) {
                 <div id="room-info" class="info-box hidden">
                     <p><strong>🎮 Stanza Attiva</strong></p>
                     <p>Codice stanza: <strong><span id="room-code">------</span></strong></p>
-                    <p>I giocatori possono ora connettersi utilizzando questo codice.</p>
+                    <div id="qr-code-container" style="text-align: center; margin: 1.5rem 0;"></div>
+                    <p>I giocatori possono ora connettersi utilizzando questo codice o inquadrando il QR.</p>
                     <div class="button-container-close">
                         <button class="btn btn-danger" id="btn-close-room">
                             Chiudi Stanza
@@ -153,6 +155,22 @@ if ($selectedSetId) {
         let roomCode = '';
         let devicesInterval = null;
         let minPlayers = 1; // Valore fisso dopo rimozione dal database
+
+        // Generate QR code for room code
+        function generateQRCode(code) {
+            const container = document.getElementById('qr-code-container');
+            container.innerHTML = ''; // Clear previous QR
+
+            // Create QR code - use simple text URL encoding
+            new QRCode(container, {
+                text: code,
+                width: 200,
+                height: 200,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
 
         // Pre-select set if passed via URL
         function initializeFromUrl() {
@@ -245,6 +263,9 @@ if ($selectedSetId) {
                     document.getElementById('room-info').classList.remove('hidden');
                     document.getElementById('room-code').textContent = roomCode;
 
+                    // Generate QR code
+                    generateQRCode(roomCode);
+
                     // Disable back button
                     const backBtn = document.getElementById('btn-back-admin');
                     backBtn.disabled = true;
@@ -286,6 +307,7 @@ if ($selectedSetId) {
 
                         // Hide room info and show create room button again
                         document.getElementById('room-info').classList.add('hidden');
+                        document.getElementById('qr-code-container').innerHTML = '';
                         document.getElementById('btn-create-room').style.display = 'block';
 
                         // Enable back button
