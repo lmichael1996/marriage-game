@@ -166,7 +166,7 @@ if ($selectedSetId) {
             container.innerHTML = ''; // Clear previous QR
 
             // Create QR code with URL pointing to player join page
-            const qrUrl = `http://0.0.0.0:3000?code=${encodeURIComponent(code)}`;
+            const qrUrl = `http://151.21.203.214:9000?code=${encodeURIComponent(code)}`;
             new QRCode(container, {
                 text: qrUrl,
                 width: 200,

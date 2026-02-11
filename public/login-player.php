@@ -40,6 +40,23 @@
     </div>
 
     <script>
+        // Check if code parameter is in URL
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const codeFromUrl = urlParams.get('code');
+
+            if (codeFromUrl) {
+                const roomCodeInput = document.getElementById('room_code');
+                roomCodeInput.value = codeFromUrl.toUpperCase();
+                roomCodeInput.disabled = true;
+                roomCodeInput.style.backgroundColor = '#f0f0f0';
+                roomCodeInput.style.cursor = 'not-allowed';
+                
+                // Optional: focus on username field
+                document.getElementById('username').focus();
+            }
+        });
+
         document.getElementById('player-login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
