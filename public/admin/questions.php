@@ -635,7 +635,7 @@ document.addEventListener('DOMContentLoaded', function() {
         typeSelect.addEventListener('change', (e) => {
             const type = e.target.value;
 
-            // Mostra/nascondi sezione risposte
+            // Mostra/nascondi sezione risposte - NON pulire i campi
             if (type === 'multiple') {
                 answersContainer.style.display = 'block';
                 answer3Group.style.display = 'block';
@@ -651,19 +651,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Nascondi i campi input answer1 e answer2 per vero/falso
                 document.getElementById('new-answer1').parentElement.style.display = 'none';
                 document.getElementById('new-answer2').parentElement.style.display = 'none';
-                // Pulisci i valori dei campi nascosti
-                document.getElementById('new-answer1').value = '';
-                document.getElementById('new-answer2').value = '';
                 // Limita a 2 risposte
                 correctSelect.innerHTML = '<option value="1">Vero</option><option value="2">Falso</option>';
             } else  {
                 answersContainer.style.display = 'none';
-                // Pulisci tutti i campi risposte per clickfirst
-                document.getElementById('new-answer1').value = '';
-                document.getElementById('new-answer2').value = '';
-                document.getElementById('new-answer3').value = '';
-                document.getElementById('new-answer4').value = '';
-            } e
+            }
         });
     }
 
