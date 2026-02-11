@@ -560,7 +560,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (closeBtn) {
         closeBtn.addEventListener('click', () => {
             modalOverlay.style.display = 'none';
-            document.getElementById('form-new-question').reset();
         });
     }
 
@@ -569,7 +568,6 @@ document.addEventListener('DOMContentLoaded', function() {
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) {
                 modalOverlay.style.display = 'none';
-                document.getElementById('form-new-question').reset();
             }
         });
     }
@@ -614,7 +612,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 // Chiudi modal e ricarica la pagina
                 modalOverlay.style.display = 'none';
-                formNewQuestion.reset();
                 alert('✓ Domanda aggiunta con successo!');
                 location.reload();
             })
@@ -651,8 +648,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Nascondi i campi input answer1 e answer2 per vero/falso
                 document.getElementById('new-answer1').parentElement.style.display = 'none';
                 document.getElementById('new-answer2').parentElement.style.display = 'none';
-                // Limita a 2 risposte
-                correctSelect.innerHTML = '<option value="1">Vero</option><option value="2">Falso</option>';
             } else  {
                 answersContainer.style.display = 'none';
             }
@@ -696,10 +691,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Nascondi i campi input answer1 e answer2 per vero/falso
                 document.getElementById('edit-answer1').parentElement.style.display = 'none';
                 document.getElementById('edit-answer2').parentElement.style.display = 'none';
-                // Pulisci i valori dei campi nascosti
-                document.getElementById('edit-answer1').value = '';
-                document.getElementById('edit-answer2').value = '';
-                editCorrectSelect.innerHTML = '<option value="1">Vero</option><option value="2">Falso</option>';
             } else if (type === 'multiple') {
                 editAnswersContainer.style.display = 'block';
                 editAnswer3Group.style.display = 'block';
@@ -710,18 +701,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 editCorrectSelect.innerHTML = '<option value="1">Risposta 1</option><option value="2">Risposta 2</option><option value="3">Risposta 3</option><option value="4">Risposta 4</option>';
             } else if (type === 'clickfirst') {
                 editAnswersContainer.style.display = 'none';
-                // Pulisci tutti i campi risposte per clickfirst
-                document.getElementById('edit-answer1').value = '';
-                document.getElementById('edit-answer2').value = '';
-                document.getElementById('edit-answer3').value = '';
-                document.getElementById('edit-answer4').value = '';
             } else {
                 editAnswersContainer.style.display = 'none';
-                // Pulisci tutti i campi risposte per altri tipi
-                document.getElementById('edit-answer1').value = '';
-                document.getElementById('edit-answer2').value = '';
-                document.getElementById('edit-answer3').value = '';
-                document.getElementById('edit-answer4').value = '';
             }
         });
     }
@@ -802,7 +783,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <form id="form-new-question" class="modal-body">
             <div class="form-group">
                 <label for="new-question">Domanda</label>
-                <textarea id="new-question" name="question" required rows="3" placeholder="Inserisci il testo della domanda..."></textarea>
+                <textarea id="new-question" name="question" required rows="3"></textarea>
             </div>
 
             <div class="form-row">
@@ -835,19 +816,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h3>Risposte</h3>
                 <div class="form-group">
                     <label for="new-answer1">Risposta 1</label>
-                    <input type="text" id="new-answer1" name="answer1" placeholder="Risposta corretta">
+                    <input type="text" id="new-answer1" name="answer1">
                 </div>
                 <div class="form-group">
                     <label for="new-answer2">Risposta 2</label>
-                    <input type="text" id="new-answer2" name="answer2" placeholder="Risposta sbagliata">
+                    <input type="text" id="new-answer2" name="answer2">
                 </div>
                 <div class="form-group" id="answer3-group" style="display: none;">
                     <label for="new-answer3">Risposta 3</label>
-                    <input type="text" id="new-answer3" name="answer3" placeholder="Risposta sbagliata">
+                    <input type="text" id="new-answer3" name="answer3">
                 </div>
                 <div class="form-group" id="answer4-group" style="display: none;">
                     <label for="new-answer4">Risposta 4</label>
-                    <input type="text" id="new-answer4" name="answer4" placeholder="Risposta sbagliata">
+                    <input type="text" id="new-answer4" name="answer4">
                 </div>
                 <div class="form-group">
                     <label for="new-correct">Risposta Corretta</label>
@@ -861,7 +842,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
 
             <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-add-question').style.display='none'; document.getElementById('form-new-question').reset();">Annulla</button>
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-add-question').style.display='none';">Annulla</button>
                 <button type="submit" class="btn btn-success">✓ Aggiungi Domanda</button>
             </div>
         </form>
