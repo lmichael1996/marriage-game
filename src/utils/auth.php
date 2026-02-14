@@ -45,6 +45,7 @@ function requireLoginJson() {
 
     // Accept both admin (user_id) and player (player_id)
     if (!isset($_SESSION['user_id']) && !isset($_SESSION['player_id'])) {
+        error_log("requireLoginJson FAILED - Session data: " . json_encode($_SESSION));
         http_response_code(401);
         echo json_encode([
             'success' => false,

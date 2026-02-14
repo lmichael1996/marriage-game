@@ -282,10 +282,18 @@ if ($selectedSetId) {
                 },
                 body: JSON.stringify({
                     question_set_id: selectedGameSetId
-                })
+                }),
+                credentials: 'include'
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Create room response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Create room response data:', data);
                 if (data.success) {
                     roomCode = data.room_code;
 
@@ -311,11 +319,14 @@ if ($selectedSetId) {
                         devicesInterval = setInterval(updateConnectedDevices, 1000);
                     }
                 } else {
+                    roomActive = false;
                     alert('Errore nella creazione della stanza: ' + (data.error || 'Errore sconosciuto'));
                 }
             })
             .catch(error => {
-                alert('Errore nella comunicazione con il server');
+                roomActive = false;
+                console.error('Create room error:', error);
+                alert('Errore nella comunicazione con il server: ' + error.message);
             });
         });
 

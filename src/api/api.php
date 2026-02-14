@@ -40,6 +40,18 @@ switch ($endpoint) {
         handleAdminLogin($auth);
         break;
 
+    case 'debug_session':
+        // Debug endpoint - mostra lo stato della sessione
+        echo json_encode([
+            'session_data' => $_SESSION,
+            'has_user_id' => isset($_SESSION['user_id']),
+            'has_player_id' => isset($_SESSION['player_id']),
+            'has_logged_in_via_login' => isset($_SESSION['logged_in_via_login']),
+            'user_id' => $_SESSION['user_id'] ?? null,
+            'player_id' => $_SESSION['player_id'] ?? null
+        ]);
+        exit();
+
     case 'answer':
         handleAnswer($action, $game);
         break;
