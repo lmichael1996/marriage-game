@@ -100,19 +100,19 @@
             </tbody>
         </table>
 
-        <!-- Pagination Controls -->
-        <div class="pagination-controls">
-            <button id="btn-prev-page" class="btn btn-secondary" title="Pagina precedente">⬅ Precedente</button>
-            <span id="page-info" class="page-info">Pagina 1</span>
-            <button id="btn-next-page" class="btn btn-secondary" title="Pagina successiva">Successiva ➜</button>
-        </div>
-
         <?php if (empty($questions)): ?>
         <div class="info-box loading-text">
             <h3>Nessuna domanda</h3>
             <p>Clicca su "Nuova Domanda" per iniziare.</p>
         </div>
         <?php endif; ?>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-controls">
+            <button id="btn-prev-page" class="btn btn-secondary" title="Pagina precedente">⬅ Precedente</button>
+            <span id="page-info" class="page-info">Pagina 1</span>
+            <button id="btn-next-page" class="btn btn-secondary" title="Pagina successiva">Successiva ➜</button>
+        </div>
     </div>
 </div>
 
@@ -208,10 +208,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!pageInfo || !btnPrev || !btnNext) return;
 
-        const start = (currentPage - 1) * ROWS_PER_PAGE + 1;
-        const end = Math.min(currentPage * ROWS_PER_PAGE, total);
+        // Se non ci sono domande, mostra 'Nessuna domanda disponibile' invece di 'Domande 0-0 di 0'
+        if (total === 0) {
+            pageInfo.textContent = `Nessuna domanda disponibile`;
+        } else {
+            const start = (currentPage - 1) * ROWS_PER_PAGE + 1;
+            const end = Math.min(currentPage * ROWS_PER_PAGE, total);
+            pageInfo.textContent = `Domande ${start}-${end} di ${total}`;
+        }
 
-        pageInfo.textContent = `Domande ${start}-${end} di ${total}`;
         btnPrev.disabled = currentPage === 1;
         btnNext.disabled = currentPage >= totalPages;
     }
