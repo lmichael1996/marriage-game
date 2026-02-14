@@ -53,39 +53,11 @@ if ($selectedSetId) {
 
         <!-- Game Management Sections -->
         <div class="admin-section">
-            <div class="settings-group" id="step-select-set">
-                <h2>1. Seleziona Set di Domande</h2>
-
-                <div class="set-selector">
-                    <label for="set-select">Scegli un set:</label>
-                    <select id="set-select">
-                        <option value="">-- Seleziona un set --</option>
-                        <?php foreach ($questionSets as $set): ?>
-                            <option value="<?php echo $set['id']; ?>" data-name="<?php echo htmlspecialchars($set['set_name']); ?>">
-                                <?php echo htmlspecialchars($set['set_name']); ?> (<?php echo $set['total_rounds']; ?> domande)
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-
-                <?php if (empty($questionSets)): ?>
-                    <div class="info-box loading-text">
-                        <p>⚠️ Nessun set di domande disponibile. <a href="admin.php">Vai a creare un nuovo set</a></p>
-                    </div>
-                <?php endif; ?>
-
-                <div class="button-container">
-                    <button class="btn btn-success" id="btn-confirm-set" disabled>
-                        Continua
-                    </button>
-                </div>
-            </div>
-
             <!-- Step 2: Create Room -->
-            <div class="settings-group hidden" id="step-room">
+            <div class="settings-group" id="step-room">
                 <h2>2. Avvia Stanza</h2>
 
-                <p class="selected-set-info">
+                <p class="selected-set-info" id="selected-set-info">
                     <strong>✓ Set selezionato:</strong> <span id="selected-set-display"></span>
                 </p>
 
@@ -156,10 +128,20 @@ if ($selectedSetId) {
     <script>
         let selectedGameSetId = null;
         let selectedGameSetName = '';
+        let selectedGameSetIsSaved = true;
         let roomActive = false;
         let roomCode = '';
         let devicesInterval = null;
         let minPlayers = 1; // Valore fisso dopo rimozione dal database
+
+        // Initialize from PHP data if set_id was provided via URL
+        <?php if ($selectedSet): ?>
+        (function() {
+            selectedGameSetId = <?php echo (int)$selectedSet['id']; ?>;
+            selectedGameSetName = <?php echo json_encode($selectedSet['set_name']); ?>;
+            selectedGameSetIsSaved = <?php echo (int)($selectedSet['is_saved'] ?? 1); ?> === 1;
+        })();
+        <?php endif; ?>
 
         // Generate QR code for room code
         function generateQRCode(code) {
@@ -220,21 +202,29 @@ if ($selectedSetId) {
 
         // Pre-select set if passed via URL
         function initializeFromUrl() {
+            // If variables are already initialized from PHP, just call confirmSelection
+            if (selectedGameSetId) {
+                confirmSelection();
+                return;
+            }
+
             const urlParams = new URLSearchParams(window.location.search);
             const setIdFromUrl = urlParams.get('set_id');
 
             if (setIdFromUrl) {
                 const setId = parseInt(setIdFromUrl);
-                const selectElement = document.getElementById('set-select');
-                const option = selectElement.querySelector(`option[value="${setId}"]`);
 
-                if (option) {
-                    selectElement.value = setId;
+                // Since we removed the select element, we need to get the set info from the PHP data
+                // Find the set in the questionSets array and extract its info
+                const questionSetsJson = <?php echo json_encode($questionSets); ?>;
+                const selectedSet = questionSetsJson.find(s => s.id === setId);
+
+                if (selectedSet) {
                     selectedGameSetId = setId;
-                    selectedGameSetName = option.getAttribute('data-name');
+                    selectedGameSetName = selectedSet.set_name;
+                    selectedGameSetIsSaved = selectedSet.is_saved === 1;
 
                     // Trigger confirmation automatically
-                    document.getElementById('btn-confirm-set').disabled = false;
                     confirmSelection();
                 }
             }
@@ -247,30 +237,25 @@ if ($selectedSetId) {
             }
 
             // Show step 2
-            document.getElementById('step-select-set').classList.add('hidden');
             document.getElementById('step-room').classList.remove('hidden');
             document.getElementById('step-devices').classList.add('hidden');
 
-            document.getElementById('selected-set-display').textContent = selectedGameSetName;
-            document.getElementById('selected-set-name-final').textContent = selectedGameSetName;
+            // Only display set name if it doesn't have a timestamp (not temporary)
+            // Temporary sets have names like "set temporaneo 1771101661442" (ending with space + 13 digits)
+            const hasTimestamp = /\s\d{13}$/.test(selectedGameSetName);
+
+            if (!hasTimestamp) {
+                document.getElementById('selected-set-info').style.display = 'block';
+                document.getElementById('selected-set-display').textContent = selectedGameSetName;
+                document.getElementById('selected-set-name-final').textContent = selectedGameSetName;
+            } else {
+                document.getElementById('selected-set-info').style.display = 'none';
+                document.getElementById('selected-set-display').textContent = '';
+                document.getElementById('selected-set-name-final').textContent = '';
+            }
         }
 
-        // Set selector change
-        document.getElementById('set-select').addEventListener('change', function() {
-            const setId = parseInt(this.value);
-            if (setId) {
-                selectedGameSetId = setId;
-                selectedGameSetName = this.options[this.selectedIndex].getAttribute('data-name');
-                document.getElementById('btn-confirm-set').disabled = false;
-            } else {
-                selectedGameSetId = null;
-                selectedGameSetName = '';
-                document.getElementById('btn-confirm-set').disabled = true;
-            }
-        });
-
-        // Confirm set button
-        document.getElementById('btn-confirm-set').addEventListener('click', confirmSelection);
+        // Set selector and confirm button removed with step-select-set section
 
         // Back to admin button
         document.getElementById('btn-back-admin').addEventListener('click', function() {

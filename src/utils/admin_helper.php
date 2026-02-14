@@ -12,22 +12,22 @@ function redirectWithMessage($location, $success = null, $error = null) {
 function handleUpdateCredentials($admin) {
     $newPassword = $_POST['new_password'] ?? $_POST['admin_new_password'] ?? null;
     $confirmPassword = $_POST['confirm_password'] ?? $_POST['admin_confirm_password'] ?? null;
-    $newUsername = $_POST['new_username'] ?? '';
+    $newUsername = $_POST['new_username'] ?? $_POST['admin_username'] ?? '';
 
-    $result = $admin->updateCredentials(
-        $_SESSION['user_id'],
-        $newUsername,
-        $newPassword,
-        $confirmPassword
-    );
+    try {
+        $result = $admin->updateCredentials(
+            $_SESSION['user_id'],
+            $newUsername,
+            $newPassword,
+            $confirmPassword
+        );
 
-    if ($result['success']) {
-        $_SESSION['username'] = $result['new_username'];
+        $_SESSION['username'] = $result['username'];
         $tab = isset($_POST['admin_new_password']) ? 'general' : 'settings';
         redirectWithMessage('admin.php?tab=' . $tab, 'credentials_updated');
-    } else {
+    } catch (Exception $e) {
         $tab = isset($_POST['admin_new_password']) ? 'general' : 'settings';
-        redirectWithMessage('admin.php?tab=' . $tab, null, $result['error']);
+        redirectWithMessage('admin.php?tab=' . $tab, null, $e->getMessage());
     }
 }
 

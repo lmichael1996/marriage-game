@@ -154,7 +154,7 @@
                 <div id="edit-set-message" class="form-message"></div>
             </form>
             <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
-                <button type="button" class="btn btn-success" id="btn-save-set-changes" onclick="saveSetChanges()" style="min-width: 200px;">✓ Salva Modifiche</button>
+                <button type="button" class="btn btn-success" id="btn-save-set-changes" style="min-width: 200px;">✓ Salva Modifiche</button>
             </div>
         </div>
     </div>
@@ -649,6 +649,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Event listener per il bottone "Salva Modifiche" / "Avvia partita"
+    const btnSaveSetChanges = document.getElementById('btn-save-set-changes');
+    if (btnSaveSetChanges) {
+        btnSaveSetChanges.addEventListener('click', function() {
+            const modalTitle = document.querySelector('#modal-edit-set .modal-header h2').textContent;
+
+            if (modalTitle.includes('Crea Partita')) {
+                // Per "Crea Partita", avvia il gioco invece di salvare
+                startGameFromModal();
+            } else {
+                // Per "Modifica Set", salva le modifiche
+                saveSetChanges();
+            }
+        });
+    }
+
     // Gestione popup Nuovo Set
     const btnNewSet = document.getElementById('btn-new-set');
     const modalAddSet = document.getElementById('modal-add-set');
@@ -704,6 +720,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         };
 
                         document.querySelector('.modal-header h2').textContent = 'Modifica Set';
+
+                        // Ripristina il bottone al testo originale "Salva Modifiche"
+                        const btnSaveSetChanges = document.getElementById('btn-save-set-changes');
+                        if (btnSaveSetChanges) {
+                            btnSaveSetChanges.textContent = '✓ Salva Modifiche';
+                            btnSaveSetChanges.className = 'btn btn-success'; // Cambia colore a verde
+                        }
 
                         // Reset flag nuovo set
                         isNewSet = false;
@@ -2013,6 +2036,73 @@ function startGameWithSet(setId) {
     window.location.href = `game-room.php?set_id=${setId}`;
 }
 
+// Avvia un gioco dal modal "Crea Partita"
+function startGameFromModal() {
+    const currentName = document.getElementById('edit-set-name').value || 'set temporaneo';
+    const currentDescription = document.getElementById('edit-set-description').value || '';
+    const messageDiv = document.getElementById('edit-set-message');
+
+    // Conta le domande nel set
+    const questionItems = document.querySelectorAll('#edit-set-questions .question-item');
+    if (questionItems.length === 0) {
+        messageDiv.innerHTML = '<div class="alert-error">✗ Il set deve contenere almeno una domanda</div>';
+        return;
+    }
+
+    // Crea il set nel database
+    safeFetchJSON('/src/api/api.php?endpoint=add_questionset', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            set_name: currentName,
+            set_description: currentDescription
+        })
+    })
+    .then(data => {
+        if (data.success && data.set_id) {
+            // Ottieni le IDs delle domande dal localStorage
+            const questionIds = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
+
+            // Aggiungi tutte le domande al set
+            Promise.all(questionIds.map(questionId =>
+                fetch('/src/api/api.php?endpoint=add_question_to_set', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        set_id: data.set_id,
+                        question_id: questionId
+                    })
+                }).then(response => response.json())
+            )).then(results => {
+                const allSuccess = results.every(r => r.success);
+                if (allSuccess) {
+                    messageDiv.innerHTML = '<div class="alert-success">✓ Partita avviata!</div>';
+                    localStorage.removeItem('addSetQuestions');
+                    setTimeout(() => {
+                        // Avvia il gioco
+                        startGameWithSet(data.set_id);
+                    }, 500);
+                } else {
+                    messageDiv.innerHTML = '<div class="alert-error">✗ Errore nell\'aggiunta delle domande</div>';
+                }
+            }).catch(error => {
+                console.error('Errore:', error);
+                messageDiv.innerHTML = '<div class="alert-error">✗ Errore durante l\'avvio della partita</div>';
+            });
+        } else {
+            messageDiv.innerHTML = '<div class="alert-error">✗ Errore nella creazione del set</div>';
+        }
+    })
+    .catch(error => {
+        console.error('Errore:', error);
+        messageDiv.innerHTML = '<div class="alert-error">✗ Errore durante l\'avvio della partita</div>';
+    });
+}
+
 function createNewGame() {
     // Marca come nuovo set (non ancora salvato nel DB)
     isNewSet = true;
@@ -2038,6 +2128,13 @@ function createNewGame() {
 
     document.querySelector('#modal-edit-set .modal-header h2').textContent = '🎮 Crea Partita';
     document.getElementById('edit-set-message').innerHTML = '';
+
+    // Aggiorna il bottone per mostrare "Avvia partita"
+    const btnSaveSetChanges = document.getElementById('btn-save-set-changes');
+    if (btnSaveSetChanges) {
+        btnSaveSetChanges.textContent = '▶ Avvia partita';
+        btnSaveSetChanges.className = 'btn btn-primary'; // Cambia colore a blu
+    }
 
     // Resetta il localStorage delle domande (come Aggiungi Set)
     localStorage.removeItem('addSetQuestions');

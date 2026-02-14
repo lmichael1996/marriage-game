@@ -21,8 +21,13 @@ class AdminService {
      * @throws Exception on failure
      */
     public function updateCredentials($userId, $newUsername, $newPassword = null, $confirmPassword = null) {
+        // Se username è vuoto, mantieni quello attuale
         if (empty($newUsername)) {
-            throw new Exception('Username obbligatorio');
+            $currentUser = $this->userRepo->getUserById($userId);
+            if (!$currentUser) {
+                throw new Exception('Utente non trovato');
+            }
+            $newUsername = $currentUser['username'];
         }
 
         // Validate password if provided

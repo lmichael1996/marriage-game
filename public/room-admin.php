@@ -91,6 +91,12 @@ $gameOver = !$activeRound && !$nextQuestion;
                 <div class="info-box">
                     <p><strong>👥 Giocatori connessi:</strong> <?php echo count($players); ?></p>
                     <p><strong>🎯 Room Code:</strong> <code><?php echo htmlspecialchars($roomCode); ?></code></p>
+                    <?php
+                    // Mostra il nome del set solo se non è temporaneo (non termina con timestamp numerico)
+                    $isTemporarySe = $setInfo && preg_match('/\s\d{13}$/', $setInfo['set_name']);
+                    if ($setInfo && !$isTemporarySe): ?>
+                        <p><strong>📚 Set:</strong> <?php echo htmlspecialchars($setInfo['set_name']); ?></p>
+                    <?php endif; ?>
                 </div>
 
             <?php if ($activeRound): ?>
