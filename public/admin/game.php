@@ -108,12 +108,12 @@
             <h2>Modifica Set</h2>
             <button type="button" class="modal-close" id="btn-close-edit-set" onclick="document.getElementById('modal-edit-set').style.display='none'; cleanupEditSetModal();">✕</button>
         </div>
-        <div class="modal-body" style="max-height: 80vh;">
+        <div class="settings-group" style="max-height: 80vh;">
             <form id="edit-set-form">
                 <input type="hidden" id="edit-set-id" name="set_id">
 
                 <div class="form-group">
-                    <label for="edit-set-name">Nome Set *</label>
+                    <label for="edit-set-name">Nome Set</label>
                     <input type="text" id="edit-set-name" name="set_name" required>
                 </div>
 
@@ -152,11 +152,10 @@
                 </div>
 
                 <div id="edit-set-message" class="form-message"></div>
-
-                <div class="button-container">
-                    <button type="button" class="btn btn-secondary" id="btn-cancel-edit-set" style="display: none;" onclick="document.getElementById('modal-edit-set').style.display='none'; cleanupEditSetModal();">Annulla</button>
-                </div>
             </form>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+                <button type="button" class="btn btn-success" id="btn-save-set-changes" onclick="saveSetChanges()" style="min-width: 200px;">✓ Salva Modifiche</button>
+            </div>
         </div>
     </div>
 </div>
@@ -259,14 +258,25 @@ let editSetOriginalData = {
 // Flag per tracciare se stiamo creando un nuovo set (non ancora salvato)
 let isNewSet = false;
 
-// Chiude il modal "Modifica Set" e salva i metadati se modificati
+// Traccia le domande da eliminare dal set (solo al salvataggio finale)
+let questionsToRemove = [];
+
+// Chiude il modal "Modifica Set" senza salvare
 function closeEditSetModal() {
+    // Semplice chiusura del modal senza salvataggio
+    // Il salvataggio avverrà solo cliccando "Salva Modifiche"
+    document.getElementById('modal-edit-set').style.display = 'none';
+    questionsToRemove = []; // Resetta le domande da eliminare
+}
+
+// Salva i cambiamenti al set quando clicchi il bottone "Salva Modifiche"
+function saveSetChanges() {
     const setId = document.getElementById('edit-set-id').value;
     const currentName = document.getElementById('edit-set-name').value.trim();
     const currentDescription = document.getElementById('edit-set-description').value.trim();
     const messageDiv = document.getElementById('edit-set-message');
 
-    // Se è un nuovo set, salva sempre (anche se il nome è vuoto diventa "Nuovo Set")
+    // Se è un nuovo set, salva sempre
     if (isNewSet) {
         if (!currentName) {
             messageDiv.innerHTML = '<div class="alert-error">✗ Il nome del set è obbligatorio</div>';
@@ -311,44 +321,72 @@ function closeEditSetModal() {
             messageDiv.innerHTML = '<div class="alert-error">✗ Errore durante il salvataggio</div>';
         });
     } else {
-        // Set esistente: salva solo se ci sono modifiche
-        const nameChanged = currentName !== editSetOriginalData.name;
-        const descriptionChanged = currentDescription !== editSetOriginalData.description;
-
-        if (nameChanged || descriptionChanged) {
-            // Salva i metadati via API
-            fetch('/src/api/api.php?endpoint=update_questionset_metadata', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    set_id: setId,
-                    set_name: currentName,
-                    set_description: currentDescription
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    messageDiv.innerHTML = '<div class="alert-success">✓ Modifiche salvate!</div>';
-                    setTimeout(() => {
-                        document.getElementById('modal-edit-set').style.display = 'none';
-                        window.location.reload();
-                    }, 1000);
+        // Set esistente: salva sempre
+        // Prima elimina le domande marcate per l'eliminazione
+        if (questionsToRemove.length > 0) {
+            // Elimina tutte le domande nel tracking array
+            Promise.all(questionsToRemove.map(questionId =>
+                fetch('/src/api/api.php?endpoint=remove_question_from_set', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        set_id: setId,
+                        question_id: questionId
+                    })
+                }).then(response => response.json())
+            )).then(results => {
+                // Verifica che tutte le eliminazioni siano riuscite
+                const allSuccess = results.every(r => r.success);
+                if (allSuccess) {
+                    // Ora salva i metadati via API
+                    saveSetMetadata(setId, currentName, currentDescription, messageDiv);
                 } else {
-                    messageDiv.innerHTML = '<div class="alert-error">✗ Errore nel salvataggio</div>';
+                    messageDiv.innerHTML = '<div class="alert-error">✗ Errore nell\'eliminazione delle domande</div>';
                 }
-            })
-            .catch(error => {
+            }).catch(error => {
                 console.error('Errore:', error);
-                messageDiv.innerHTML = '<div class="alert-error">✗ Errore durante il salvataggio</div>';
+                messageDiv.innerHTML = '<div class="alert-error">✗ Errore durante l\'eliminazione delle domande</div>';
             });
         } else {
-            // Nessuna modifica, chiudi direttamente
-            document.getElementById('modal-edit-set').style.display = 'none';
+            // Nessuna domanda da eliminare, salva solo i metadati
+            saveSetMetadata(setId, currentName, currentDescription, messageDiv);
         }
     }
+}
+
+// Funzione helper per salvare i metadati del set
+function saveSetMetadata(setId, currentName, currentDescription, messageDiv) {
+        // Salva i metadati via API
+        fetch('/src/api/api.php?endpoint=update_questionset_metadata', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                set_id: setId,
+                set_name: currentName,
+                set_description: currentDescription
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                messageDiv.innerHTML = '<div class="alert-success">✓ Modifiche salvate!</div>';
+                questionsToRemove = []; // Resetta l'array
+                setTimeout(() => {
+                    document.getElementById('modal-edit-set').style.display = 'none';
+                    window.location.reload();
+                }, 1000);
+            } else {
+                messageDiv.innerHTML = '<div class="alert-error">✗ Errore nel salvataggio</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Errore:', error);
+            messageDiv.innerHTML = '<div class="alert-error">✗ Errore durante il salvataggio</div>';
+        });
 }
 
 // Pulisce i campi di ricerca del modal Modifica Set
@@ -418,25 +456,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 // Cambia il titolo del modal per "Aggiungi Set"
                                 document.querySelector('.modal-header h2').textContent = 'Aggiungi Set';
 
-                                // Cambia il bottone per "Salva Set"
-                                const btnCloseEditSet = document.getElementById('btn-close-edit-set');
-                                const btnCancelEditSet = document.getElementById('btn-cancel-edit-set');
-
-                                btnCloseEditSet.textContent = 'Salva Set ×';
-                                btnCloseEditSet.className = 'btn btn-primary';
-                                btnCancelEditSet.style.display = 'block'; // Mostra il bottone Annulla per i nuovi set
-
-                                // Sovrascrivi l'event listener con uno nuovo per il salvataggio
-                                const newClickHandler = function() {
-                                    closeEditSetModal();
-                                    cleanupEditSetModal();
-                                };
-                                btnCloseEditSet.addEventListener('click', newClickHandler);
-
                                 document.getElementById('edit-set-message').innerHTML = '';
-                                document.getElementById('modal-edit-set').style.display = 'flex';
-
-                                // Carica categorie nel filtro
+                                document.getElementById('modal-edit-set').style.display = 'flex';                                // Carica categorie nel filtro
                                 loadCategoriesForFilter();
 
                                 // Carica domande associate al set
@@ -490,11 +511,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         // Cambia il titolo del modal a "Modifica Set"
                         document.querySelector('.modal-header h2').textContent = 'Modifica Set';
-
-                        // Cambia il bottone a "Chiudi"
-                        document.getElementById('btn-close-edit-set').textContent = 'Chiudi';
-                        document.getElementById('btn-close-edit-set').className = 'btn btn-secondary';
-                        document.getElementById('btn-cancel-edit-set').style.display = 'none'; // Nascondi il bottone Annulla per i set esistenti
 
                         // Reset flag nuovo set
                         isNewSet = false;
@@ -836,34 +852,21 @@ function updateOrderInDatabase(setId) {
 }
 
 // Sposta una domanda su nel set
-// Rimuove una domanda da un set
+// Rimuove una domanda da un set (traccia solo, salva al click di "Salva Modifiche")
 function removeQuestionFromSet(setId, questionId) {
     if (confirm('Vuoi eliminare questa domanda dal set?')) {
-        fetch('/src/api/api.php?endpoint=remove_question_from_set', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                set_id: setId,
-                question_id: questionId
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('✓ Domanda eliminata con successo!');
-                // Ricarica sia le domande del set che la ricerca
-                loadSetQuestions(setId);
-                searchAvailableQuestions();
-            } else {
-                alert('Errore: ' + (data.error || 'Non è stato possibile eliminare la domanda'));
-            }
-        })
-        .catch(error => {
-            console.error('Errore:', error);
-            alert('Errore durante l\'eliminazione della domanda');
-        });
+        // Aggiungi alla lista di domande da eliminare
+        if (!questionsToRemove.includes(questionId)) {
+            questionsToRemove.push(questionId);
+        }
+
+        // Nasconde l'elemento dall'UI (viene eliminato quando salvi)
+        const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
+        if (questionElement) {
+            questionElement.style.opacity = '0.5';
+            questionElement.style.textDecoration = 'line-through';
+            questionElement.style.cursor = 'not-allowed';
+        }
     }
 }
 
@@ -934,12 +937,12 @@ function updateOrderAfterMove(setId, questionId) {
     .then(data => {
         if (!data.success) {
             console.error('Errore nell\'aggiornamento ordine:', data.error);
+            alert('✗ Errore nell\'aggiornamento dell\'ordine');
             setTimeout(() => {
                 loadSetQuestions(setId);
             }, 300);
         } else {
             // Ricarica gli elementi per rigenerare i bottoni freccia
-            alert('✓ Ordine aggiornato con successo!');
             loadSetQuestions(setId);
             if (questionId) {
                 setTimeout(() => {
@@ -950,6 +953,7 @@ function updateOrderAfterMove(setId, questionId) {
     })
     .catch(error => {
         console.error('Errore:', error);
+        alert('✗ Errore durante l\'aggiornamento dell\'ordine');
         setTimeout(() => {
             loadSetQuestions(setId);
         }, 300);

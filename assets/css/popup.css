@@ -51,13 +51,14 @@
 
 /* Color input style like button */
 .cat-color-edit {
-  width: 40px !important;
-  height: 40px !important;
+  width: 44px !important;
+  height: 44px !important;
   border: none !important;
   border-radius: 4px !important;
   cursor: pointer !important;
   padding: 0 !important;
   flex-shrink: 0;
+  margin-right: 6px;
 }
 
 /* Edit Mode */
