@@ -632,13 +632,19 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.text())
             .then(data => {
-                // Chiudi modal e ricarica la pagina
-                modalOverlay.style.display = 'none';
-                alert('✓ Domanda aggiunta con successo!');
-                location.reload();
+                // Mostra il messaggio di successo nella banda verde
+                const messageDiv = document.getElementById('add-question-message');
+                messageDiv.innerHTML = '<div class="alert-success">✓ Domanda aggiunta con successo!</div>';
+
+                // Chiudi il modal dopo 1 secondo e ricarica
+                setTimeout(() => {
+                    modalOverlay.style.display = 'none';
+                    location.reload();
+                }, 1000);
             })
             .catch(error => {
-                alert('Errore nell\'aggiunta della domanda');
+                const messageDiv = document.getElementById('add-question-message');
+                messageDiv.innerHTML = '<div class="alert-error">✗ Errore nell\'aggiunta della domanda</div>';
             });
         });
     }
@@ -767,12 +773,19 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.text())
             .then(data => {
-                alert('✓ Domanda modificata con successo!');
-                modalEditQuestion.style.display = 'none';
-                location.reload();
+                // Mostra il messaggio di successo nella banda verde
+                const messageDiv = document.getElementById('edit-question-message');
+                messageDiv.innerHTML = '<div class="alert-success">✓ Domanda modificata con successo!</div>';
+
+                // Chiudi il modal dopo 1 secondo e ricarica
+                setTimeout(() => {
+                    modalEditQuestion.style.display = 'none';
+                    location.reload();
+                }, 1000);
             })
             .catch(error => {
-                alert('Errore nella modifica della domanda');
+                const messageDiv = document.getElementById('edit-question-message');
+                messageDiv.innerHTML = '<div class="alert-error">✗ Errore nella modifica della domanda</div>';
             });
         });
     }
@@ -865,6 +878,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
 
+            <div id="add-question-message" class="form-message"></div>
+
             <div class="modal-actions">
                 <button type="submit" class="btn btn-success">✓ Aggiungi Domanda</button>
             </div>
@@ -940,6 +955,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     </select>
                 </div>
             </div>
+
+            <div id="edit-question-message" class="form-message"></div>
 
             <div class="modal-actions">
                 <button type="submit" class="btn btn-success">✓ Salva Modifiche</button>
@@ -1170,6 +1187,8 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
 
             <!-- SALVA -->
+            <div id="categories-message" class="form-message"></div>
+
             <div class="modal-actions">
                 <button class="btn btn-success" onclick="saveCategoriesAPI()">✓ Salva Modifiche</button>
             </div>
@@ -1326,15 +1345,21 @@ async function saveCategoriesAPI() {
         });
 
         const result = await res.json();
-        alert(result.message);
+        const messageDiv = document.getElementById('categories-message');
 
         if (result.success) {
+            messageDiv.innerHTML = '<div class="alert-success">✓ ' + result.message + '</div>';
             categoryChanges = { deleted: [], updated: [], added: [] };
-            document.getElementById('modal-categories').style.display = 'none';
-            location.reload();
+            setTimeout(() => {
+                document.getElementById('modal-categories').style.display = 'none';
+                location.reload();
+            }, 1000);
+        } else {
+            messageDiv.innerHTML = '<div class="alert-error">✗ Errore: ' + result.message + '</div>';
         }
     } catch (e) {
-        alert('Errore: ' + e.message);
+        const messageDiv = document.getElementById('categories-message');
+        messageDiv.innerHTML = '<div class="alert-error">✗ Errore: ' + e.message + '</div>';
     } finally {
         btn.disabled = false;
         btn.textContent = '✓ Salva Modifiche';

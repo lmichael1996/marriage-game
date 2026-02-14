@@ -655,20 +655,15 @@ function loadSetQuestions(setId) {
                 data.questions.forEach((q, index) => {
                     const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 15px; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
 
-                    const moveUpBtn = index > 0 ? `<button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveQuestionUp(${setId}, ${index})" title="Sposta su">⬆</button>` : '';
-                    const moveDownBtn = index < total - 1 ? `<button type="button" class="btn btn-sm btn-outline-secondary" onclick="moveQuestionDown(${setId}, ${index})" title="Sposta giù">⬇</button>` : '';
-
                     html += `
-                        <div class="question-item" data-question-id="${q.id}" data-set-id="${setId}" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 10px; background-color: #fff;">
+                        <div class="question-item" data-question-id="${q.id}" data-set-id="${setId}" draggable="true" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 10px; background-color: #fff; cursor: move;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="width: 30px; text-align: center; font-weight: 600; color: #666; background-color: #f5f5f5; padding: 5px; border-radius: 4px;">${index + 1}</span>
+                                <span style="width: 30px; text-align: center; font-weight: 600; color: #666; background-color: #f5f5f5; padding: 5px; border-radius: 4px; cursor: grab;">${index + 1}</span>
                                 <div style="flex: 1;">
                                     ${q.question}${categoryBadge}
                                 </div>
                             </div>
                             <div style="display: flex; gap: 5px; flex-shrink: 0;">
-                                ${moveUpBtn}
-                                ${moveDownBtn}
                                 <button type="button" class="btn btn-danger btn-sm" onclick="removeQuestionFromSet(${setId}, ${q.id})">
                                     Elimina
                                 </button>
@@ -679,6 +674,9 @@ function loadSetQuestions(setId) {
 
                 html += '</div>';
                 containerAssociated.innerHTML = html;
+
+                // Setup drag and drop per riordinamento
+                setupDragAndDrop(setId);
             } else {
                 containerAssociated.innerHTML = '<p style="text-align: center; color: #999;">Nessuna domanda associata</p>';
             }

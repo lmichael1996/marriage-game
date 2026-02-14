@@ -38,10 +38,7 @@ CREATE TABLE IF NOT EXISTS questions (
         AND 4
     ),
     timer INT DEFAULT 10,
-    round_type ENUM('multiple', 'truefalse', 'clickfirst') DEFAULT 'multiple',
-    FOREIGN KEY (category_id) REFERENCES question_categories(id) ON DELETE
-    SET
-        DEFAULT
+    round_type ENUM('multiple', 'truefalse', 'clickfirst') DEFAULT 'multiple'
 );
 
 -- Question Sets table

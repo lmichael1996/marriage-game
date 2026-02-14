@@ -405,6 +405,16 @@ class QuestionRepo {
      * Delete a category
      */
     public function deleteCategory($id) {
+        // Riaassegna tutte le domande di questa categoria alla categoria di default (id=1)
+        $updateStmt = $this->conn->prepare("
+            UPDATE questions
+            SET category_id = 1
+            WHERE category_id = ?
+        ");
+        $updateStmt->bind_param("i", $id);
+        $updateStmt->execute();
+
+        // Poi elimina la categoria
         $stmt = $this->conn->prepare("
             DELETE FROM question_categories
             WHERE id = ?
