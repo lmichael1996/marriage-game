@@ -23,8 +23,8 @@
   align-items: center !important;
   padding: 14px 16px !important;
   background: #f9f9f9 !important;
-  border-left: 5px solid !important;
   border-radius: 4px !important;
+  border: none !important;
 }
 
 .cat-display strong {
@@ -47,6 +47,17 @@
   border-radius: 3px;
   margin-right: 6px;
   vertical-align: middle;
+}
+
+/* Color input style like button */
+.cat-color-edit {
+  width: 40px !important;
+  height: 40px !important;
+  border: none !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  flex-shrink: 0;
 }
 
 /* Edit Mode */
@@ -154,16 +165,20 @@
   width: 100%;
   padding: 11px 16px !important;
   font-size: 0.95em !important;
-  font-weight: 500;
-  border-left: 5px solid #3498db !important;
+  font-weight: 600;
   border-radius: 4px;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(39, 174, 96, 0.15);
+  background: #27ae60 !important;
+  color: #fff !important;
+  border: none !important;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(39, 174, 96, 0.25);
 }
 
 .btn-add-category:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.25);
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.35);
+  background: #229954 !important;
 }
 
 /* Modify Categories Section */

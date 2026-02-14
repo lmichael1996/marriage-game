@@ -988,7 +988,6 @@ document.addEventListener('DOMContentLoaded', function() {
     align-items: center !important;
     padding: 14px 16px !important;
     background: #f9f9f9 !important;
-    border-left: 5px solid !important;
     border-radius: 4px !important;
 }
 
@@ -1117,7 +1116,6 @@ document.addEventListener('DOMContentLoaded', function() {
     padding: 11px 16px !important;
     font-size: 0.95em !important;
     font-weight: 500;
-    border-left: 5px solid #3498db !important;
     border-radius: 4px;
     transition: all 0.2s ease;
     box-shadow: 0 2px 6px rgba(39, 174, 96, 0.15);
@@ -1162,7 +1160,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <input type="text" id="newCatName" placeholder="Nome categoria">
                     <input type="color" id="newCatColor" value="#3498db">
                 </div>
-                <button id="btn-add-cat" class="btn btn-add-category" style="border-left-color: #3498db;" onclick="addCategoryUI()">Aggiungi</button>
+                <button id="btn-add-cat" class="btn btn-success btn-add-category" onclick="addCategoryUI()">✓ Aggiungi</button>
             </div>
 
             <!-- LISTA CATEGORIE -->
@@ -1186,15 +1184,6 @@ let categoryChanges = { deleted: [], updated: [], added: [] };
 document.getElementById('btn-new-category').addEventListener('click', function() {
     loadCategoriesUI();
     document.getElementById('modal-categories').style.display = 'flex';
-});
-
-// Update button border color when color picker changes
-document.getElementById('newCatColor').addEventListener('change', function() {
-    document.getElementById('btn-add-cat').style.borderLeftColor = this.value;
-});
-
-document.getElementById('newCatColor').addEventListener('input', function() {
-    document.getElementById('btn-add-cat').style.borderLeftColor = this.value;
 });
 
 // Chiudi modale
@@ -1221,104 +1210,62 @@ function createCategoryCard(id, name, color, existing = false) {
     const card = document.createElement('div');
     card.className = 'cat-card';
     card.setAttribute('data-id', id);
+    card.style.borderLeft = `5px solid ${color}`;
 
     const displayDiv = document.createElement('div');
     displayDiv.className = 'cat-display';
-    displayDiv.style.borderLeftColor = color;
 
-    const infoDiv = document.createElement('div');
-    infoDiv.innerHTML = `
-        <strong>${name}</strong>
-        <div style="font-size: 0.85em; color: #666; margin-top: 4px;">
-            Colore: <span class="cat-color-sample" style="background-color: ${color};"></span>
-        </div>
-    `;
-
-    const buttonsDiv = document.createElement('div');
-    buttonsDiv.style.display = 'flex';
-    buttonsDiv.style.gap = '6px';
-
-    const editBtn = document.createElement('button');
-    editBtn.className = 'btn-icon btn-warning';
-    editBtn.textContent = '✎';
-    editBtn.onclick = function() { editCategoryUI(this); };
-    buttonsDiv.appendChild(editBtn);
-
-    if (existing && id !== '1') {
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'btn-icon btn-danger';
-        deleteBtn.textContent = '×';
-        deleteBtn.onclick = function() { deleteCategoryUI(this); };
-        buttonsDiv.appendChild(deleteBtn);
-    }
-
-    displayDiv.appendChild(infoDiv);
-    displayDiv.appendChild(buttonsDiv);
-
-    const editDiv = document.createElement('div');
-    editDiv.className = 'cat-edit';
-
-    const inputGroup = document.createElement('div');
-    inputGroup.className = 'cat-input-group';
+    // Contenitore inputs
+    const inputsContainer = document.createElement('div');
+    inputsContainer.style.display = 'flex';
+    inputsContainer.style.gap = '10px';
+    inputsContainer.style.alignItems = 'center';
+    inputsContainer.style.flex = '1';
 
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
     nameInput.className = 'cat-name-edit';
     nameInput.value = name;
     nameInput.placeholder = 'Nome categoria';
+    nameInput.style.flex = '1';
+    nameInput.style.padding = '8px';
+    nameInput.style.border = '1px solid #ddd';
+    nameInput.style.borderRadius = '4px';
 
     const colorInput = document.createElement('input');
     colorInput.type = 'color';
     colorInput.className = 'cat-color-edit';
     colorInput.value = color;
 
-    inputGroup.appendChild(nameInput);
-    inputGroup.appendChild(colorInput);
+    // Pulsante elimina
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn-icon btn-danger';
+    deleteBtn.textContent = '×';
+    deleteBtn.type = 'button';
+    deleteBtn.style.visibility = id === '1' ? 'hidden' : 'visible';
+    deleteBtn.onclick = function() { deleteCategoryUI(this); };
 
-    const buttonGroup = document.createElement('div');
-    buttonGroup.className = 'cat-button-group';
+    inputsContainer.appendChild(nameInput);
+    inputsContainer.appendChild(colorInput);
 
-    const saveBtn = document.createElement('button');
-    saveBtn.className = 'btn btn-success';
-    saveBtn.textContent = '✓ Salva';
-    saveBtn.type = 'button';
-    saveBtn.onclick = function() { saveCategoryUI(this); };
+    displayDiv.appendChild(inputsContainer);
+    displayDiv.appendChild(deleteBtn);
 
-    const cancelBtn = document.createElement('button');
-    cancelBtn.className = 'btn btn-secondary';
-    cancelBtn.textContent = 'Annulla';
-    cancelBtn.type = 'button';
-    cancelBtn.onclick = function() { cancelEditUI(this); };
+    // Aggiungi event listener per update su change
+    nameInput.addEventListener('change', function() {
+        updateCategoryChange(card, id, nameInput.value.trim(), colorInput.value);
+    });
 
-    buttonGroup.appendChild(saveBtn);
-    buttonGroup.appendChild(cancelBtn);
-
-    editDiv.appendChild(inputGroup);
-    editDiv.appendChild(buttonGroup);
+    colorInput.addEventListener('change', function() {
+        updateCategoryChange(card, id, nameInput.value.trim(), colorInput.value);
+        card.style.borderLeft = `5px solid ${colorInput.value}`;
+    });
 
     card.appendChild(displayDiv);
-    card.appendChild(editDiv);
     list.appendChild(card);
 }
 
-function editCategoryUI(btn) {
-    const card = btn.closest('.cat-card');
-    card.querySelector('.cat-display').style.display = 'none';
-    card.querySelector('.cat-edit').style.display = 'block';
-}
-
-function cancelEditUI(btn) {
-    const card = btn.closest('.cat-card');
-    card.querySelector('.cat-display').style.display = 'flex';
-    card.querySelector('.cat-edit').style.display = 'none';
-}
-
-function saveCategoryUI(btn) {
-    const card = btn.closest('.cat-card');
-    const id = card.getAttribute('data-id');
-    const name = card.querySelector('.cat-name-edit').value.trim();
-    const color = card.querySelector('.cat-color-edit').value;
-
+function updateCategoryChange(card, id, name, color) {
     if (!name) {
         alert('Nome obbligatorio');
         return;
@@ -1329,26 +1276,9 @@ function saveCategoryUI(btn) {
         categoryChanges.updated = categoryChanges.updated.filter(c => c.id != id);
         categoryChanges.updated.push({ id: parseInt(id), name, color });
     } else {
-        const oldName = card.querySelector('.cat-display strong').textContent;
-        categoryChanges.added = categoryChanges.added.filter(c => c.name !== oldName);
+        categoryChanges.added = categoryChanges.added.filter(c => c.name !== card.querySelector('.cat-name-edit').dataset.oldName);
         categoryChanges.added.push({ name, color });
     }
-
-    // Update display
-    const display = card.querySelector('.cat-display');
-    display.style.borderLeftColor = color;
-
-    const infoDiv = display.querySelector('div:first-child');
-    infoDiv.innerHTML = `
-        <strong>${name}</strong>
-        <div style="font-size: 0.85em; color: #666; margin-top: 4px;">
-            Colore: <span class="cat-color-sample" style="background-color: ${color};"></span>
-        </div>
-    `;
-
-    // Toggle display/edit mode
-    display.style.display = 'flex';
-    card.querySelector('.cat-edit').style.display = 'none';
 }
 
 function deleteCategoryUI(btn) {
