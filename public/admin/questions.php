@@ -118,6 +118,13 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // ========== TRACCIAMENTO MODIFICHE CATEGORIE ==========
+    let categoryChanges = {
+        deleted: [],    // ID delle categorie eliminate
+        updated: [],    // Categorie modificate {id, name, color}
+        added: []       // Categorie nuove {name, color}
+    };
+
     // Auto-submit form quando cambia la categoria
     document.getElementById('filter-category').addEventListener('change', function() {
         const form = this.closest('form');
@@ -363,11 +370,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Salva categoria
+        // Salva categoria (tracciamento locale)
         document.querySelectorAll('.btn-save-category').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const categoryCard = btn.closest('.category-card');
-                const categoryId = categoryCard.dataset.categoryId;
+                const categoryId = parseInt(categoryCard.dataset.categoryId);
                 const newName = categoryCard.querySelector('.edit-category-name').value.trim();
                 const newColor = categoryCard.querySelector('.edit-category-color').value;
 
@@ -376,67 +383,55 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                // Chiamata API per aggiornare la categoria
-                fetch('/src/api/api.php?endpoint=update_category', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
+                // Traccia il cambio
+                if (categoryId > 0) {
+                    // Categoria esistente: aggiungi a updated
+                    categoryChanges.updated.push({
                         id: categoryId,
                         name: newName,
                         color: newColor
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('✓ Categoria "' + newName + '" aggiornata con successo!');
-                        location.reload();
-                    } else {
-                        alert('❌ Errore: ' + (data.message || 'Errore sconosciuto'));
+                    });
+                } else {
+                    // Categoria nuova: aggiorna l'elemento in added
+                    const addedIndex = categoryChanges.added.findIndex(c => c.name === categoryCard.querySelector('.category-view-mode .category-name').textContent.trim());
+                    if (addedIndex >= 0) {
+                        categoryChanges.added[addedIndex].name = newName;
+                        categoryChanges.added[addedIndex].color = newColor;
                     }
-                })
-                .catch(err => {
-                    alert('❌ Errore di rete: ' + err.message);
-                });
+                }
+
+                // Aggiorna il DOM in view mode
+                const viewMode = categoryCard.querySelector('.category-view-mode');
+                const editMode = categoryCard.querySelector('.category-edit-mode');
+                viewMode.querySelector('.category-name').textContent = newName;
+                viewMode.querySelector('.category-color-preview').style.background = newColor;
+                viewMode.style.display = 'flex';
+                editMode.style.display = 'none';
+
+                alert('✓ Categoria "' + newName + '" aggiornata localmente. Salva per confermare.');
             });
         });
 
-        // Elimina categoria
+        // Elimina categoria (tracciamento locale)
         document.querySelectorAll('.btn-delete-category').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 if (confirm('Sei sicuro di voler eliminare questa categoria?')) {
                     const categoryCard = btn.closest('.category-card');
-                    const categoryId = categoryCard.dataset.categoryId;
+                    const categoryId = parseInt(categoryCard.dataset.categoryId);
                     const categoryName = categoryCard.querySelector('.category-name').textContent;
 
-                    categoryCard.style.opacity = '0.5';
+                    // Traccia l'eliminazione
+                    if (categoryId > 0) {
+                        // Categoria esistente: aggiungi a deleted
+                        categoryChanges.deleted.push(categoryId);
+                    } else {
+                        // Categoria nuova non salvata: rimuovi da added
+                        categoryChanges.added = categoryChanges.added.filter(c => c.name !== categoryName);
+                    }
 
-                    // Chiamata API per eliminare la categoria
-                    fetch('/src/api/api.php?endpoint=delete_category', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            id: categoryId
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('✓ Categoria "' + categoryName + '" eliminata con successo!');
-                            location.reload();
-                        } else {
-                            alert('❌ Errore: ' + (data.message || 'Errore sconosciuto'));
-                            categoryCard.style.opacity = '1';
-                        }
-                    })
-                    .catch(err => {
-                        alert('❌ Errore di rete: ' + err.message);
-                        categoryCard.style.opacity = '1';
-                    });
+                    // Rimuovi dal DOM
+                    categoryCard.remove();
+                    alert('✓ Categoria "' + categoryName + '" eliminata localmente. Salva per confermare.');
                 }
             });
         });
@@ -471,79 +466,104 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Chiamata API per aggiungere la categoria
-            fetch('/src/api/api.php?endpoint=add_category', {
+            // Traccia la categoria aggiunta localmente (senza ID, sarà assegnato dal server)
+            categoryChanges.added.push({
+                name: categoryName,
+                color: categoryColor
+            });
+
+            // Crea l'HTML per la nuova categoria (con ID temporaneo negativo)
+            const tempId = -Math.floor(Math.random() * 10000);
+            const categoriesList = document.getElementById('categories-list');
+            const newCategoryHTML = `
+                <div class="category-card" data-category-id="${tempId}" style="background: #f9f9f9; padding: 15px; border-radius: 6px; border-left: 5px solid ${categoryColor};">
+                    <!-- View Mode -->
+                    <div class="category-view-mode" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong class="category-name">${categoryName}</strong>
+                            <div style="font-size: 0.85em; color: #666; margin-top: 5px;">
+                                Colore: <span class="category-color-preview" style="display: inline-block; width: 20px; height: 20px; background: ${categoryColor}; border: 1px solid #ccc; border-radius: 3px; vertical-align: middle;"></span>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <button type="button" class="btn-icon btn-warning btn-edit-category" data-category-id="${tempId}" title="Modifica">✎</button>
+                            <button type="button" class="btn-icon btn-danger btn-delete-category" data-category-id="${tempId}" title="Elimina">×</button>
+                        </div>
+                    </div>
+
+                    <!-- Edit Mode -->
+                    <div class="category-edit-mode" style="display: none;">
+                        <div style="display: flex; gap: 10px; align-items: flex-end;">
+                            <div class="form-group" style="flex: 1;">
+                                <label>Nome Categoria</label>
+                                <input type="text" class="edit-category-name" value="${categoryName}" placeholder="Nome categoria">
+                            </div>
+                            <div class="form-group" style="flex: 0 0 auto;">
+                                <label>Colore</label>
+                                <input type="color" class="edit-category-color" value="${categoryColor}">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <button type="button" class="btn btn-secondary btn-cancel-edit" style="flex: 1;">Annulla</button>
+                            <button type="button" class="btn btn-success btn-save-category" style="flex: 1;">✓ Salva</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Aggiungi la nuova categoria alla lista
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = newCategoryHTML;
+            const newCard = tempDiv.firstElementChild;
+            categoriesList.appendChild(newCard);
+
+            // Rimuovi il messaggio "Nessuna categoria" se esiste
+            const emptyMsg = categoriesList.querySelector('p');
+            if (emptyMsg) {
+                emptyMsg.remove();
+            }
+
+            // Reset form
+            document.getElementById('new-category-name').value = '';
+            document.getElementById('new-category-color').value = '#3498db';
+
+            // Re-attach event listeners per i nuovi button
+            attachCategoryEventListeners();
+
+            alert('✓ Categoria "' + categoryName + '" aggiunta localmente. Salva per confermare.');
+        });
+    }
+
+    // ========== SALVA TUTTE LE MODIFICHE CATEGORIE ==========
+    const btnSaveAllCategories = document.getElementById('btn-save-categories');
+    if (btnSaveAllCategories) {
+        btnSaveAllCategories.addEventListener('click', () => {
+            // Se non ci sono cambiamenti
+            if (categoryChanges.deleted.length === 0 && categoryChanges.updated.length === 0 && categoryChanges.added.length === 0) {
+                document.getElementById('modal-categories').style.display = 'none';
+                return;
+            }
+
+            // Invia i cambiamenti al server
+            fetch('/src/api/api.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    name: categoryName,
-                    color: categoryColor
+                    endpoint: 'save_categories',
+                    deleted: categoryChanges.deleted,
+                    updated: categoryChanges.updated,
+                    added: categoryChanges.added
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('✓ Categoria "' + categoryName + '" aggiunta con successo!');
-
-                    // Crea l'HTML per la nuova categoria
-                    const categoriesList = document.getElementById('categories-list');
-                    const newCategoryHTML = `
-                        <div class="category-card" data-category-id="${data.categoryId}" style="background: #f9f9f9; padding: 15px; border-radius: 6px; border-left: 5px solid ${categoryColor};">
-                            <!-- View Mode -->
-                            <div class="category-view-mode" style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <strong class="category-name">${categoryName}</strong>
-                                    <div style="font-size: 0.85em; color: #666; margin-top: 5px;">
-                                        Colore: <span class="category-color-preview" style="display: inline-block; width: 20px; height: 20px; background: ${categoryColor}; border: 1px solid #ccc; border-radius: 3px; vertical-align: middle;"></span>
-                                    </div>
-                                </div>
-                                <div style="display: flex; gap: 5px;">
-                                    <button type="button" class="btn-icon btn-warning btn-edit-category" data-category-id="${data.categoryId}" title="Modifica">✎</button>
-                                    <button type="button" class="btn-icon btn-danger btn-delete-category" data-category-id="${data.categoryId}" title="Elimina">×</button>
-                                </div>
-                            </div>
-
-                            <!-- Edit Mode -->
-                            <div class="category-edit-mode" style="display: none;">
-                                <div style="display: flex; gap: 10px; align-items: flex-end;">
-                                    <div class="form-group" style="flex: 1;">
-                                        <label>Nome Categoria</label>
-                                        <input type="text" class="edit-category-name" value="${categoryName}" placeholder="Nome categoria">
-                                    </div>
-                                    <div class="form-group" style="flex: 0 0 auto;">
-                                        <label>Colore</label>
-                                        <input type="color" class="edit-category-color" value="${categoryColor}">
-                                    </div>
-                                </div>
-                                <div style="display: flex; gap: 5px;">
-                                    <button type="button" class="btn btn-secondary btn-cancel-edit" style="flex: 1;">Annulla</button>
-                                    <button type="button" class="btn btn-success btn-save-category" style="flex: 1;">✓ Salva</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-
-                    // Aggiungi la nuova categoria alla lista
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = newCategoryHTML;
-                    const newCard = tempDiv.firstElementChild;
-                    categoriesList.appendChild(newCard);
-
-                    // Rimuovi il messaggio "Nessuna categoria" se esiste
-                    const emptyMsg = categoriesList.querySelector('p');
-                    if (emptyMsg) {
-                        emptyMsg.remove();
-                    }
-
-                    // Reset form
-                    document.getElementById('new-category-name').value = '';
-                    document.getElementById('new-category-color').value = '#3498db';
-                    updateCategorySelect(); // Aggiorna la listbox
-
-                    // Re-attach event listeners per i nuovi button
-                    attachCategoryEventListeners();
+                    alert('✓ ' + data.message);
+                    // Chiudi il modal e ricarica
+                    document.getElementById('modal-categories').style.display = 'none';
+                    location.reload();
                 } else {
                     alert('❌ Errore: ' + (data.message || 'Errore sconosciuto'));
                 }
@@ -946,7 +966,188 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 
-<!-- Modal per gestire categorie -->
+<!-- MODALE GESTISCI CATEGORIE -->
+<style>
+/* Category Management Modal Styles */
+.cat-card {
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.cat-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.cat-display {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 14px 16px !important;
+    background: #f9f9f9 !important;
+    border-left: 5px solid !important;
+    border-radius: 4px !important;
+}
+
+.cat-display strong {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #222;
+    font-size: 0.98em;
+}
+
+.cat-display div:first-child {
+    flex: 1;
+}
+
+.cat-color-sample {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.cat-edit {
+    display: none !important;
+    padding: 14px 16px !important;
+    background: #f5f5f5 !important;
+    border-top: 1px solid #eee !important;
+}
+
+.cat-edit input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95em;
+    transition: all 0.2s ease;
+    background: #fff;
+    color: #222;
+}
+
+.cat-edit input[type="text"]:focus {
+    outline: none;
+    border-color: #27ae60;
+    box-shadow: 0 0 0 2px rgba(39, 174, 96, 0.1);
+}
+
+.cat-edit input[type="color"] {
+    width: 60px;
+    height: 40px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.cat-input-group {
+    display: flex !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+}
+
+.cat-input-group input {
+    flex: 1;
+}
+
+.cat-button-group {
+    display: flex !important;
+    gap: 8px !important;
+}
+
+.cat-button-group .btn {
+    flex: 1 !important;
+    padding: 9px 12px !important;
+    font-size: 0.9em !important;
+}
+
+/* Add Category Section */
+.cat-add-section {
+    margin-bottom: 28px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.cat-add-section h3 {
+    font-size: 1.05em;
+    font-weight: 600;
+    margin-bottom: 14px;
+    color: #222;
+}
+
+.cat-add-inputs {
+    display: flex !important;
+    gap: 10px !important;
+    align-items: center !important;
+    margin-bottom: 12px !important;
+}
+
+.cat-add-inputs input[type="text"] {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95em;
+    background: #fff;
+    color: #222;
+    transition: all 0.2s ease;
+}
+
+.cat-add-inputs input[type="text"]:focus {
+    outline: none;
+    border-color: #27ae60;
+    box-shadow: 0 0 0 2px rgba(39, 174, 96, 0.1);
+}
+
+.cat-add-inputs input[type="color"] {
+    width: 70px;
+    height: 40px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-add-category {
+    width: 100%;
+    padding: 11px 16px !important;
+    font-size: 0.95em !important;
+    font-weight: 500;
+    border-left: 5px solid #3498db !important;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(39, 174, 96, 0.15);
+}
+
+.btn-add-category:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.25);
+}
+
+/* Modify Categories Section */
+.cat-modify-section h3 {
+    font-size: 1.05em;
+    font-weight: 600;
+    margin-bottom: 14px;
+    color: #222;
+}
+
+.cat-list {
+    display: grid !important;
+    gap: 10px !important;
+    margin-bottom: 20px !important;
+}
+
+/* Modal Actions */
+#modal-categories .modal-actions {
+    margin-top: 25px !important;
+}
+</style>
+
 <div id="modal-categories" class="modal-overlay" style="display: none;">
     <div class="modal-content modal-content-large">
         <div class="modal-header">
@@ -954,73 +1155,260 @@ document.addEventListener('DOMContentLoaded', function() {
             <button type="button" class="modal-close">✕</button>
         </div>
         <div class="settings-group">
-            <h3 style="margin-bottom: 15px;">Aggiungi Nuova Categoria</h3>
-            <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 15px;">
-                <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                    <label for="new-category-name">Nome Categoria</label>
-                    <input type="text" id="new-category-name" name="category_name" placeholder="Es: Scienze, Storia, Sport..." required>
+            <!-- AGGIUNGI CATEGORIA -->
+            <div class="cat-add-section">
+                <h3>➕ Aggiungi Categoria</h3>
+                <div class="cat-add-inputs">
+                    <input type="text" id="newCatName" placeholder="Nome categoria">
+                    <input type="color" id="newCatColor" value="#3498db">
                 </div>
-
-                <div class="form-group" style="flex: 0 0 auto; margin-bottom: 0;">
-                    <label for="new-category-color">Colore</label>
-                    <input type="color" id="new-category-color" name="category_color" value="#3498db" required>
-                </div>
-            </div>
-            <small style="display: block; margin-bottom: 20px;">Scegli il colore di sfondo per la categoria</small>
-
-            <div style="margin-bottom: 20px; text-align: center;">
-                <button type="button" id="btn-add-category" class="btn btn-success">✓ Aggiungi Categoria</button>
+                <button id="btn-add-cat" class="btn btn-add-category" style="border-left-color: #3498db;" onclick="addCategoryUI()">Aggiungi</button>
             </div>
 
-            <hr style="margin: 30px 0;">
-
-            <h3 style="margin-bottom: 15px;">Categorie Esistenti</h3>
-            <div id="categories-list" style="display: grid; gap: 10px;">
-                <?php foreach ($categories as $cat): ?>
-                <div class="category-card" data-category-id="<?php echo $cat['id']; ?>" style="background: #f9f9f9; padding: 15px; border-radius: 6px; border-left: 5px solid <?php echo htmlspecialchars($cat['color']); ?>;">
-                    <!-- View Mode -->
-                    <div class="category-view-mode" style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <strong class="category-name"><?php echo htmlspecialchars($cat['category_name']); ?></strong>
-                            <div style="font-size: 0.85em; color: #666; margin-top: 5px;">
-                                Colore: <span class="category-color-preview" style="display: inline-block; width: 20px; height: 20px; background: <?php echo htmlspecialchars($cat['color']); ?>; border: 1px solid #ccc; border-radius: 3px; vertical-align: middle;"></span>
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 5px;">
-                            <button type="button" class="btn-icon btn-warning btn-edit-category" data-category-id="<?php echo $cat['id']; ?>" title="Modifica">✎</button>
-                            <?php if ((int)$cat['id'] !== 1): ?>
-                            <button type="button" class="btn-icon btn-danger btn-delete-category" data-category-id="<?php echo $cat['id']; ?>" title="Elimina">×</button>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-
-                    <!-- Edit Mode -->
-                    <div class="category-edit-mode" style="display: none;">
-                        <div style="display: flex; gap: 10px; align-items: flex-end;">
-                            <div class="form-group" style="flex: 1;">
-                                <label>Nome Categoria</label>
-                                <input type="text" class="edit-category-name" value="<?php echo htmlspecialchars($cat['category_name']); ?>" placeholder="Nome categoria">
-                            </div>
-                            <div class="form-group" style="flex: 0 0 auto;">
-                                <label>Colore</label>
-                                <input type="color" class="edit-category-color" value="<?php echo $cat['color']; ?>">
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 5px;">
-                            <button type="button" class="btn btn-secondary btn-cancel-edit" style="flex: 1;">Annulla</button>
-                            <button type="button" class="btn btn-success btn-save-category" style="flex: 1;">✓ Salva</button>
-                        </div>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-                <?php if (empty($categories)): ?>
-                <p style="color: #999; text-align: center; padding: 20px;">Nessuna categoria creata. Aggiungi la prima!</p>
-                <?php endif; ?>
+            <!-- LISTA CATEGORIE -->
+            <div class="cat-modify-section">
+                <h3>✎ Modifica Categorie</h3>
+                <div id="categoriesList" class="cat-list"></div>
             </div>
 
+            <!-- SALVA -->
             <div class="modal-actions">
-                <button type="button" class="btn btn-success" onclick="document.getElementById('modal-categories').style.display='none'; location.reload();">✓ Salva Modifiche</button>
+                <button class="btn btn-success" onclick="saveCategoriesAPI()">✓ Salva Modifiche</button>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+let categoryChanges = { deleted: [], updated: [], added: [] };
+
+// Apri modale
+document.getElementById('btn-new-category').addEventListener('click', function() {
+    loadCategoriesUI();
+    document.getElementById('modal-categories').style.display = 'flex';
+});
+
+// Update button border color when color picker changes
+document.getElementById('newCatColor').addEventListener('change', function() {
+    document.getElementById('btn-add-cat').style.borderLeftColor = this.value;
+});
+
+document.getElementById('newCatColor').addEventListener('input', function() {
+    document.getElementById('btn-add-cat').style.borderLeftColor = this.value;
+});
+
+// Chiudi modale
+document.querySelectorAll('#modal-categories .modal-close').forEach(b => {
+    b.addEventListener('click', () => document.getElementById('modal-categories').style.display = 'none');
+});
+
+document.getElementById('modal-categories').addEventListener('click', (e) => {
+    if (e.target.id === 'modal-categories') document.getElementById('modal-categories').style.display = 'none';
+});
+
+// Carica categorie nel modale
+function loadCategoriesUI() {
+    const list = document.getElementById('categoriesList');
+    list.innerHTML = '';
+
+    <?php foreach ($categories as $cat): ?>
+    createCategoryCard('<?php echo $cat['id']; ?>', '<?php echo htmlspecialchars($cat['category_name']); ?>', '<?php echo $cat['color']; ?>', true);
+    <?php endforeach; ?>
+}
+
+function createCategoryCard(id, name, color, existing = false) {
+    const list = document.getElementById('categoriesList');
+    const card = document.createElement('div');
+    card.className = 'cat-card';
+    card.setAttribute('data-id', id);
+
+    const displayDiv = document.createElement('div');
+    displayDiv.className = 'cat-display';
+    displayDiv.style.borderLeftColor = color;
+
+    const infoDiv = document.createElement('div');
+    infoDiv.innerHTML = `
+        <strong>${name}</strong>
+        <div style="font-size: 0.85em; color: #666; margin-top: 4px;">
+            Colore: <span class="cat-color-sample" style="background-color: ${color};"></span>
+        </div>
+    `;
+
+    const buttonsDiv = document.createElement('div');
+    buttonsDiv.style.display = 'flex';
+    buttonsDiv.style.gap = '6px';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn-icon btn-warning';
+    editBtn.textContent = '✎';
+    editBtn.onclick = function() { editCategoryUI(this); };
+    buttonsDiv.appendChild(editBtn);
+
+    if (existing && id !== '1') {
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn-icon btn-danger';
+        deleteBtn.textContent = '×';
+        deleteBtn.onclick = function() { deleteCategoryUI(this); };
+        buttonsDiv.appendChild(deleteBtn);
+    }
+
+    displayDiv.appendChild(infoDiv);
+    displayDiv.appendChild(buttonsDiv);
+
+    const editDiv = document.createElement('div');
+    editDiv.className = 'cat-edit';
+
+    const inputGroup = document.createElement('div');
+    inputGroup.className = 'cat-input-group';
+
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'cat-name-edit';
+    nameInput.value = name;
+    nameInput.placeholder = 'Nome categoria';
+
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.className = 'cat-color-edit';
+    colorInput.value = color;
+
+    inputGroup.appendChild(nameInput);
+    inputGroup.appendChild(colorInput);
+
+    const buttonGroup = document.createElement('div');
+    buttonGroup.className = 'cat-button-group';
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'btn btn-success';
+    saveBtn.textContent = '✓ Salva';
+    saveBtn.type = 'button';
+    saveBtn.onclick = function() { saveCategoryUI(this); };
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn btn-secondary';
+    cancelBtn.textContent = 'Annulla';
+    cancelBtn.type = 'button';
+    cancelBtn.onclick = function() { cancelEditUI(this); };
+
+    buttonGroup.appendChild(saveBtn);
+    buttonGroup.appendChild(cancelBtn);
+
+    editDiv.appendChild(inputGroup);
+    editDiv.appendChild(buttonGroup);
+
+    card.appendChild(displayDiv);
+    card.appendChild(editDiv);
+    list.appendChild(card);
+}
+
+function editCategoryUI(btn) {
+    const card = btn.closest('.cat-card');
+    card.querySelector('.cat-display').style.display = 'none';
+    card.querySelector('.cat-edit').style.display = 'block';
+}
+
+function cancelEditUI(btn) {
+    const card = btn.closest('.cat-card');
+    card.querySelector('.cat-display').style.display = 'flex';
+    card.querySelector('.cat-edit').style.display = 'none';
+}
+
+function saveCategoryUI(btn) {
+    const card = btn.closest('.cat-card');
+    const id = card.getAttribute('data-id');
+    const name = card.querySelector('.cat-name-edit').value.trim();
+    const color = card.querySelector('.cat-color-edit').value;
+
+    if (!name) {
+        alert('Nome obbligatorio');
+        return;
+    }
+
+    // Track changes
+    if (id && !id.startsWith('temp_')) {
+        categoryChanges.updated = categoryChanges.updated.filter(c => c.id != id);
+        categoryChanges.updated.push({ id: parseInt(id), name, color });
+    } else {
+        const oldName = card.querySelector('.cat-display strong').textContent;
+        categoryChanges.added = categoryChanges.added.filter(c => c.name !== oldName);
+        categoryChanges.added.push({ name, color });
+    }
+
+    // Update display
+    const display = card.querySelector('.cat-display');
+    display.style.borderLeftColor = color;
+
+    const infoDiv = display.querySelector('div:first-child');
+    infoDiv.innerHTML = `
+        <strong>${name}</strong>
+        <div style="font-size: 0.85em; color: #666; margin-top: 4px;">
+            Colore: <span class="cat-color-sample" style="background-color: ${color};"></span>
+        </div>
+    `;
+
+    // Toggle display/edit mode
+    display.style.display = 'flex';
+    card.querySelector('.cat-edit').style.display = 'none';
+}
+
+function deleteCategoryUI(btn) {
+    const card = btn.closest('.cat-card');
+    const id = card.getAttribute('data-id');
+
+    if (confirm('Elimina categoria?')) {
+        if (id && id !== 'temp') {
+            categoryChanges.deleted.push(parseInt(id));
+        } else {
+            categoryChanges.added = categoryChanges.added.filter(c => c.name !== card.querySelector('.cat-display strong').textContent);
+        }
+        card.remove();
+    }
+}
+
+function addCategoryUI() {
+    const name = document.getElementById('newCatName').value.trim();
+    const color = document.getElementById('newCatColor').value;
+
+    if (!name) { alert('Nome obbligatorio'); return; }
+
+    categoryChanges.added.push({ name, color });
+    createCategoryCard('temp_' + Date.now(), name, color, false);
+
+    document.getElementById('newCatName').value = '';
+    document.getElementById('newCatColor').value = '#3498db';
+}
+
+async function saveCategoriesAPI() {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = 'Salvataggio...';
+
+    try {
+        const res = await fetch('/src/api/api.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                endpoint: 'save_categories',
+                deleted: categoryChanges.deleted,
+                updated: categoryChanges.updated,
+                added: categoryChanges.added
+            })
+        });
+
+        const result = await res.json();
+        alert(result.message);
+
+        if (result.success) {
+            categoryChanges = { deleted: [], updated: [], added: [] };
+            document.getElementById('modal-categories').style.display = 'none';
+            location.reload();
+        }
+    } catch (e) {
+        alert('Errore: ' + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '✓ Salva Modifiche';
+    }
+}
+</script>
+

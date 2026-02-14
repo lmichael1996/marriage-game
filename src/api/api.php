@@ -92,12 +92,16 @@ switch ($endpoint) {
         handleUpdateCategory($question);
         break;
 
+    case 'delete_category':
+        handleDeleteCategory($question);
+        break;
+
     case 'get_categories':
         handleGetCategories($question);
         break;
 
-    case 'delete_category':
-        handleDeleteCategory($question);
+    case 'save_categories':
+        handleSaveCategories($question);
         break;
 
     case 'get_questionset':
@@ -942,6 +946,54 @@ function handleDeleteCategory($question) {
                 'message' => 'Non puoi eliminare la categoria Generale. Le domande orfane verranno spostate in questa categoria.'
             ]);
         }
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleSaveCategories($question) {
+    try {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Metodo non consentito'
+            ]);
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $deleted = $data['deleted'] ?? [];
+        $updated = $data['updated'] ?? [];
+        $added = $data['added'] ?? [];
+
+        // Elimina categorie
+        foreach ($deleted as $id) {
+            $question->deleteCategory($id);
+        }
+
+        // Aggiorna categorie
+        foreach ($updated as $cat) {
+            if (isset($cat['id'], $cat['name'], $cat['color'])) {
+                $question->updateCategory($cat['id'], $cat['name'], $cat['color']);
+            }
+        }
+
+        // Aggiunge categorie nuove
+        foreach ($added as $cat) {
+            if (isset($cat['name'], $cat['color'])) {
+                $question->addCategory($cat['name'], $cat['color']);
+            }
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Tutte le modifiche sono state salvate con successo'
+        ]);
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode([

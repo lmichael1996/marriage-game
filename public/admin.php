@@ -80,6 +80,7 @@ if ($currentTab === 'sets') {
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
     <link rel="stylesheet" href="../assets/css/mobile.css">
+    <link rel="stylesheet" href="../assets/css/popup.css">
 </head>
 <body>
     <div class="container">

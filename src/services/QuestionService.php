@@ -270,6 +270,10 @@ class QuestionService {
      * Add a new category
      * @return bool
      */
+    /**
+     * Add a category
+     * @return bool
+     */
     public function addCategory($name, $color) {
         if (empty($name) || empty($color)) {
             throw new Exception('Nome e colore obbligatori');
