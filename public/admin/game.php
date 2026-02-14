@@ -2033,7 +2033,7 @@ function addQuestionBelowInSet(setId, questionId, positionIndex) {
 }
 
 function startGameWithSet(setId) {
-    window.location.href = `game-room.php?set_id=${setId}`;
+    window.location.href = `../game-room.php?set_id=${setId}`;
 }
 
 // Avvia un gioco dal modal "Crea Partita"
