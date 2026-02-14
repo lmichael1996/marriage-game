@@ -145,12 +145,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Trigger change per mostrare i campi risposte
                         document.getElementById('edit-type').dispatchEvent(new Event('change'));
 
-                        // Popola le risposte se disponibili
-                        if (q.option1) document.getElementById('edit-answer1').value = q.option1;
-                        if (q.option2) document.getElementById('edit-answer2').value = q.option2;
-                        if (q.option3) document.getElementById('edit-answer3').value = q.option3;
-                        if (q.option4) document.getElementById('edit-answer4').value = q.option4;
-                        if (q.correct_answer) document.getElementById('edit-correct').value = q.correct_answer;
+                        // Popola le risposte solo se il tipo è multipla
+                        if (q.round_type === 'multiple') {
+                            if (q.option1) document.getElementById('edit-answer1').value = q.option1;
+                            if (q.option2) document.getElementById('edit-answer2').value = q.option2;
+                            if (q.option3) document.getElementById('edit-answer3').value = q.option3;
+                            if (q.option4) document.getElementById('edit-answer4').value = q.option4;
+                            if (q.correct_answer) document.getElementById('edit-correct').value = q.correct_answer;
+                        }
 
                         // Mostra il modal
                         const modal = document.getElementById('modal-edit-question');
@@ -632,7 +634,7 @@ document.addEventListener('DOMContentLoaded', function() {
         typeSelect.addEventListener('change', (e) => {
             const type = e.target.value;
 
-            // Mostra/nascondi sezione risposte - NON pulire i campi
+            // Mostra/nascondi sezione risposte basato sul tipo
             if (type === 'multiple') {
                 answersContainer.style.display = 'block';
                 answer3Group.style.display = 'block';
@@ -648,7 +650,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Nascondi i campi input answer1 e answer2 per vero/falso
                 document.getElementById('new-answer1').parentElement.style.display = 'none';
                 document.getElementById('new-answer2').parentElement.style.display = 'none';
-            } else  {
+                correctSelect.innerHTML = '<option value="1">Vero</option><option value="2">Falso</option>';
+            } else {
                 answersContainer.style.display = 'none';
             }
         });
@@ -691,6 +694,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Nascondi i campi input answer1 e answer2 per vero/falso
                 document.getElementById('edit-answer1').parentElement.style.display = 'none';
                 document.getElementById('edit-answer2').parentElement.style.display = 'none';
+                editCorrectSelect.innerHTML = '<option value="1">Vero</option><option value="2">Falso</option>';
             } else if (type === 'multiple') {
                 editAnswersContainer.style.display = 'block';
                 editAnswer3Group.style.display = 'block';
@@ -780,7 +784,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <h2>➕ Nuova Domanda</h2>
             <button type="button" class="modal-close">✕</button>
         </div>
-        <form id="form-new-question" class="modal-body">
+        <form id="form-new-question" class="settings-group">
             <div class="form-group">
                 <label for="new-question">Domanda</label>
                 <textarea id="new-question" name="question" required rows="3"></textarea>
@@ -842,7 +846,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
 
             <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-add-question').style.display='none';">Annulla</button>
                 <button type="submit" class="btn btn-success">✓ Aggiungi Domanda</button>
             </div>
         </form>
@@ -856,7 +859,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <h2>✎ Modifica Domanda</h2>
             <button type="button" class="modal-close">✕</button>
         </div>
-        <form id="form-edit-question" class="modal-body">
+        <form id="form-edit-question" class="settings-group">
             <input type="hidden" id="edit-question-id" name="question_id">
             <div class="form-group">
                 <label for="edit-question">Domanda</label>
@@ -919,7 +922,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
 
             <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-edit-question').style.display='none';">Annulla</button>
                 <button type="submit" class="btn btn-success">✓ Salva Modifiche</button>
             </div>
         </form>
@@ -951,7 +953,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <h2>📁 Gestisci Categorie</h2>
             <button type="button" class="modal-close">✕</button>
         </div>
-        <div class="modal-body">
+        <div class="settings-group">
             <h3 style="margin-bottom: 15px;">Aggiungi Nuova Categoria</h3>
             <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 15px;">
                 <div class="form-group" style="flex: 1; margin-bottom: 0;">
@@ -966,7 +968,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <small style="display: block; margin-bottom: 20px;">Scegli il colore di sfondo per la categoria</small>
 
-            <div style="margin-bottom: 20px;">
+            <div style="margin-bottom: 20px; text-align: center;">
                 <button type="button" id="btn-add-category" class="btn btn-success">✓ Aggiungi Categoria</button>
             </div>
 
@@ -1017,7 +1019,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
 
             <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-categories').style.display='none'; location.reload();">Chiudi</button>
+                <button type="button" class="btn btn-success" onclick="document.getElementById('modal-categories').style.display='none'; location.reload();">✓ Salva Modifiche</button>
             </div>
         </div>
     </div>

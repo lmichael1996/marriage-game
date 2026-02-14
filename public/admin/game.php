@@ -106,6 +106,7 @@
     <div class="modal-content" style="max-width: 1400px; width: 99%;">
         <div class="modal-header">
             <h2>Modifica Set</h2>
+            <button type="button" class="modal-close" id="btn-close-edit-set" onclick="document.getElementById('modal-edit-set').style.display='none'; cleanupEditSetModal();">✕</button>
         </div>
         <div class="modal-body" style="max-height: 80vh;">
             <form id="edit-set-form">
@@ -154,7 +155,6 @@
 
                 <div class="button-container">
                     <button type="button" class="btn btn-secondary" id="btn-cancel-edit-set" style="display: none;" onclick="document.getElementById('modal-edit-set').style.display='none'; cleanupEditSetModal();">Annulla</button>
-                    <button type="button" class="btn btn-secondary" id="btn-close-edit-set">Chiudi</button>
                 </div>
             </form>
         </div>
@@ -422,7 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 const btnCloseEditSet = document.getElementById('btn-close-edit-set');
                                 const btnCancelEditSet = document.getElementById('btn-cancel-edit-set');
 
-                                btnCloseEditSet.textContent = 'Salva Set';
+                                btnCloseEditSet.textContent = 'Salva Set ×';
                                 btnCloseEditSet.className = 'btn btn-primary';
                                 btnCancelEditSet.style.display = 'block'; // Mostra il bottone Annulla per i nuovi set
 
