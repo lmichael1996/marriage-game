@@ -393,6 +393,48 @@ class QuestionSetRepo {
         return $success;
     }
 
+    /**
+     * Get question IDs for a set ordered by position
+     */
+    public function getQuestionIds($setId) {
+        $stmt = $this->conn->prepare("
+            SELECT qq.question_id
+            FROM qset_questions qq
+            WHERE qq.qset_id = ?
+            ORDER BY qq.order_in_set ASC
+        ");
+        $stmt->bind_param("i", $setId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $ids = [];
+        while ($row = $result->fetch_assoc()) {
+            $ids[] = (int)$row['question_id'];
+        }
+        $stmt->close();
+
+        return $ids;
+    }
+
+    /**
+     * Get all questions for a set with their qset_question_id (for checking if round exists)
+     */
+    public function getQuestionsWithQsetId($setId) {
+        $stmt = $this->conn->prepare("
+            SELECT qq.id as qset_question_id, q.*
+            FROM qset_questions qq
+            JOIN questions q ON qq.question_id = q.id
+            WHERE qq.qset_id = ?
+            ORDER BY qq.order_in_set ASC
+        ");
+        $stmt->bind_param("i", $setId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $questions = $result->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+
+        return $questions;
+    }
+
     public function __destruct() {
         if ($this->conn) {
             $this->conn->close();

@@ -83,10 +83,10 @@ CREATE TABLE IF NOT EXISTS players (
 CREATE TABLE IF NOT EXISTS rounds (
     id INT AUTO_INCREMENT PRIMARY KEY,
     room_id INT NOT NULL,
-    qset_question_id INT NOT NULL,
+    question_id INT NOT NULL,
     FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
-    FOREIGN KEY (qset_question_id) REFERENCES qset_questions(id) ON DELETE CASCADE,
-    UNIQUE(room_id, qset_question_id)
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+    UNIQUE(room_id, question_id)
 );
 
 -- Player Answers table (stores players' answers for each round)
