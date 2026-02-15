@@ -64,6 +64,338 @@ $roomInfo = $_SESSION[$roomInfoKey];
     <link rel="stylesheet" href="../assets/css/admin.css">
     <link rel="stylesheet" href="../assets/css/game_admin.css">
     <link rel="stylesheet" href="../assets/css/mobile.css">
+    <style>
+        .game-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .game-main {
+            background: #fff;
+            border: 2px solid #333;
+            border-radius: 0;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .game-sidebar {
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+            background: #fff;
+            border: 2px solid #333;
+            border-radius: 0;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .info-box {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 0;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-box p {
+            margin: 8px 0;
+            font-size: 0.95em;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-box span {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .info-box code {
+            background: #e8e8e8;
+            padding: 4px 10px;
+            border-radius: 0;
+            font-weight: bold;
+            font-size: 1.05em;
+        }
+
+        .game-step {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 0;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .game-step h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            color: #333;
+            font-size: 1.2em;
+            font-weight: 600;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .game-step p {
+            color: #555;
+            line-height: 1.5;
+            margin: 10px 0;
+        }
+
+        .game-step.active {
+            border: 2px solid #333;
+            background: #fff;
+        }
+
+        .game-step.game-over {
+            border: 2px solid #333;
+            background: #fff;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 0;
+        }
+
+        .option-btn {
+            padding: 12px;
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #999;
+            border-radius: 0;
+            font-weight: 600;
+            font-size: 0.95em;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .option-btn:hover {
+            background: #e0e0e0;
+            border-color: #555;
+        }
+
+        .option-btn.correct {
+            background: #90EE90;
+            border-color: #333;
+            font-weight: bold;
+        }
+
+        .timer-box {
+            background: #f5f5f5;
+            color: #333;
+            border: 2px solid #333;
+            border-radius: 0;
+            padding: 20px;
+            text-align: center;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .timer-box h4 {
+            margin: 0 0 12px 0;
+            font-size: 1em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        #timer {
+            font-size: 3em;
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.1em;
+            color: #333;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn-main {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 20px;
+            font-size: 1em;
+            font-weight: 600;
+            border: 2px solid #333;
+            border-radius: 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: #fff;
+            color: #333;
+        }
+
+        .btn-main:hover:not(:disabled) {
+            background: #333;
+            color: #fff;
+        }
+
+        .btn-success-custom {
+            background: #fff;
+            color: #333;
+            border: 2px solid #333;
+        }
+
+        .btn-success-custom:hover:not(:disabled) {
+            background: #333;
+            color: #fff;
+        }
+
+        .btn-primary-custom {
+            background: #fff;
+            color: #333;
+            border: 2px solid #333;
+        }
+
+        .btn-primary-custom:hover:not(:disabled) {
+            background: #333;
+            color: #fff;
+        }
+
+        .btn-main:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f0f0f0;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 0;
+            margin-bottom: 8px;
+            border-left: 3px solid #333;
+            transition: all 0.2s ease;
+        }
+
+        .leaderboard-item:hover {
+            background: #f0f0f0;
+        }
+
+        .medal {
+            font-size: 1.6em;
+            min-width: 30px;
+        }
+
+        .leaderboard-info {
+            flex: 1;
+        }
+
+        .leaderboard-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        .leaderboard-time {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .sidebar-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 20px 15px;
+            color: #999;
+            font-size: 0.95em;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #333;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.5em;
+            color: #333;
+            font-weight: 600;
+        }
+
+        @media (max-width: 1024px) {
+            .game-container {
+                grid-template-columns: 1fr;
+            }
+
+            .game-sidebar {
+                position: static;
+            }
+
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .game-main {
+                padding: 15px;
+            }
+
+            .game-sidebar {
+                padding: 15px;
+            }
+
+            .info-box {
+                padding: 12px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn-main {
+                width: 100%;
+            }
+
+            #timer {
+                font-size: 2em;
+            }
+
+            .game-container {
+                margin: 15px auto;
+                padding: 0 10px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -72,96 +404,90 @@ $roomInfo = $_SESSION[$roomInfoKey];
             <button class="btn btn-secondary" onclick="goBack()">← Torna a Admin</button>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; background: white; padding: 30px; border-radius: 8px;">
-            <div>
+        <div class="game-container">
+            <div class="game-main">
                 <div class="info-box">
-                    <p><strong>👥 Giocatori:</strong> <?php echo $roomInfo['num_players']; ?></p>
-                    <p><strong>🎯 Room Code:</strong> <code><?php echo htmlspecialchars($roomCode); ?></code></p>
-                    <p><strong>📊 Domande:</strong> <?php echo $roomInfo['total_questions']; ?></p>
-                    <p><strong>Domanda Attuale:</strong> <?php echo $counter; ?></p>
+                    <p><span>👥 Giocatori:</span> <strong><?php echo $roomInfo['num_players']; ?></strong></p>
+                    <p><span>🎯 Room Code:</span> <code><?php echo htmlspecialchars($roomCode); ?></code></p>
+                    <p><span>📊 Domande:</span> <strong><?php echo $roomInfo['total_questions']; ?></strong></p>
+                    <p><span>📍 Domanda Attuale:</span> <strong><?php echo $counter; ?></strong></p>
                 </div>
 
                 <?php if ($gameOver): ?>
-                    <div class="game-step" style="background: #e8f5e9; border-color: #28a745;">
-                        <h3 style="color: #28a745;">🎉 Partita Terminata!</h3>
+                    <div class="game-step game-over">
+                        <h3>🎉 Partita Terminata!</h3>
                         <div id="final-leaderboard" style="margin-top: 20px;">
-                            <p>Caricamento classifica...</p>
+                            <p class="empty-state">Caricamento classifica...</p>
                         </div>
-                        <div style="text-align: center; margin-top: 20px;">
-                            <button class="btn btn-secondary" onclick="goBack()">← Torna</button>
+                        <div class="button-group">
+                            <button class="btn-main btn-success-custom" onclick="goBack()">← Torna a Admin</button>
                         </div>
                     </div>
                 <?php elseif ($activeRound): ?>
-                    <!-- Active round: show timer, options, and "Prossima Domanda" button -->
-                    <div class="game-step">
+                    <div class="game-step active">
                         <h3>📋 Round Attivo: #<?php echo $activeRound['round_number']; ?></h3>
-                        <p><strong><?php echo htmlspecialchars($activeRound['question']); ?></strong></p>
+                        <p><?php echo htmlspecialchars($activeRound['question']); ?></p>
 
                         <?php if ($activeRound['round_type'] !== 'clickfirst'): ?>
-                            <div style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px;">
-                                <strong style="display: block; margin-bottom: 15px;">📋 Risposte:</strong>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                    <div id="option-1" style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center; cursor: pointer;">
-                                        <?php echo htmlspecialchars($activeRound['option1']); ?>
-                                    </div>
-                                    <div id="option-2" style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center; cursor: pointer;">
-                                        <?php echo htmlspecialchars($activeRound['option2']); ?>
-                                    </div>
-                                    <?php if ($activeRound['round_type'] === 'multiple'): ?>
-                                        <div id="option-3" style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center; cursor: pointer;">
-                                            <?php echo htmlspecialchars($activeRound['option3']); ?>
-                                        </div>
-                                        <div id="option-4" style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center; cursor: pointer;">
-                                            <?php echo htmlspecialchars($activeRound['option4']); ?>
-                                        </div>
-                                    <?php endif; ?>
+                            <div class="options-grid">
+                                <div id="option-1" class="option-btn">
+                                    <?php echo htmlspecialchars($activeRound['option1']); ?>
                                 </div>
+                                <div id="option-2" class="option-btn">
+                                    <?php echo htmlspecialchars($activeRound['option2']); ?>
+                                </div>
+                                <?php if ($activeRound['round_type'] === 'multiple'): ?>
+                                    <div id="option-3" class="option-btn">
+                                        <?php echo htmlspecialchars($activeRound['option3']); ?>
+                                    </div>
+                                    <div id="option-4" class="option-btn">
+                                        <?php echo htmlspecialchars($activeRound['option4']); ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         <?php else: ?>
-                            <p style="color: #ffc107; font-weight: bold;">⚡ Chi clicca primo vince!</p>
+                            <p style="color: #ffc107; font-weight: bold; text-align: center; font-size: 1.1em; padding: 20px; background: #fffbf0; border-radius: 8px;">⚡ Chi clicca primo vince!</p>
                         <?php endif; ?>
 
-                        <div class="info-box" style="text-align: center; margin: 20px 0;">
-                            <h4>⏱️ Timer: <span id="timer" style="font-size: 2.5em; color: #28a745;"><?php echo $activeRound['timer'] ?? 30; ?></span>s</h4>
+                        <div class="timer-box">
+                            <h4>⏱️ Timer Rimanente</h4>
+                            <span id="timer"><?php echo $activeRound['timer'] ?? 30; ?></span>
                         </div>
-                        <div style="text-align: center;">
-                            <button class="btn btn-success" id="next-btn" onclick="nextQuestion()" disabled style="padding: 15px 30px;">
+
+                        <div class="button-group">
+                            <button class="btn-main btn-success-custom" id="next-btn" onclick="nextQuestion()" disabled>
                                 ➡️ Prossima Domanda
                             </button>
                         </div>
                     </div>
                 <?php else: ?>
-                    <!-- No active round: show "AVVIA ROUND" button with options preview -->
                     <div class="game-step">
                         <h3>📋 Domanda #<?php echo $counter; ?></h3>
-                        <p><strong><?php echo htmlspecialchars($question['question']); ?></strong></p>
+                        <p><?php echo htmlspecialchars($question['question']); ?></p>
 
                         <?php if ($question['round_type'] !== 'clickfirst'): ?>
-                            <div style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px;">
-                                <strong style="display: block; margin-bottom: 15px;">📋 Risposte:</strong>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                    <div style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center;">
-                                        <?php echo htmlspecialchars($question['option1']); ?>
-                                    </div>
-                                    <div style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center;">
-                                        <?php echo htmlspecialchars($question['option2']); ?>
-                                    </div>
-                                    <?php if ($question['round_type'] === 'multiple'): ?>
-                                        <div style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center;">
-                                            <?php echo htmlspecialchars($question['option3']); ?>
-                                        </div>
-                                        <div style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center;">
-                                            <?php echo htmlspecialchars($question['option4']); ?>
-                                        </div>
-                                    <?php endif; ?>
+                            <div class="options-grid">
+                                <div class="option-btn">
+                                    <?php echo htmlspecialchars($question['option1']); ?>
                                 </div>
+                                <div class="option-btn">
+                                    <?php echo htmlspecialchars($question['option2']); ?>
+                                </div>
+                                <?php if ($question['round_type'] === 'multiple'): ?>
+                                    <div class="option-btn">
+                                        <?php echo htmlspecialchars($question['option3']); ?>
+                                    </div>
+                                    <div class="option-btn">
+                                        <?php echo htmlspecialchars($question['option4']); ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         <?php else: ?>
-                            <p style="color: #ffc107; font-weight: bold; margin: 20px 0;">⚡ Chi clicca primo vince!</p>
+                            <p style="color: #ffc107; font-weight: bold; text-align: center; font-size: 1.1em; padding: 20px; background: #fffbf0; border-radius: 8px;">⚡ Chi clicca primo vince!</p>
                         <?php endif; ?>
 
-                        <div style="text-align: center; margin-top: 20px;">
-                            <button class="btn btn-primary" onclick="startRound(<?php echo $question['id']; ?>)" style="padding: 15px 40px;">
+                        <div class="button-group">
+                            <button class="btn-main btn-primary-custom" onclick="startRound(<?php echo $question['id']; ?>)">
                                 ▶ AVVIA ROUND
                             </button>
                         </div>
@@ -169,10 +495,10 @@ $roomInfo = $_SESSION[$roomInfoKey];
                 <?php endif; ?>
             </div>
 
-            <div style="position: sticky; top: 20px;">
-                <h3>🏆 Classifica</h3>
-                <div id="leaderboard" style="display: grid; gap: 10px;">
-                    <p>Nessun dato</p>
+            <div class="game-sidebar">
+                <div class="sidebar-title">🏆 Classifica</div>
+                <div id="leaderboard">
+                    <div class="empty-state">Nessun dato</div>
                 </div>
             </div>
         </div>
@@ -190,7 +516,25 @@ $roomInfo = $_SESSION[$roomInfoKey];
             <?php if ($gameOver): ?>
             loadFinalLeaderboard();
             <?php endif; ?>
+
+            // Aggiorna info ogni 2 secondi
+            setInterval(updateRoomInfo, 2000);
+            updateRoomInfo(); // Carica subito
         });
+
+        function updateRoomInfo() {
+            fetch('../src/api/api.php?endpoint=check_room_status')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.players_count !== undefined) {
+                        const playerEl = document.querySelector('.info-box p:first-child strong');
+                        if (playerEl) {
+                            playerEl.textContent = data.players_count;
+                        }
+                    }
+                })
+                .catch(e => console.error('Error updating room info:', e));
+        }
 
         function startCountdown(seconds) {
             let timeLeft = seconds;
@@ -275,13 +619,17 @@ $roomInfo = $_SESSION[$roomInfoKey];
                     if (data.success && data.leaderboard?.length > 0) {
                         let html = '';
                         data.leaderboard.forEach((p) => {
-                            html += `<div style="padding: 15px; background: #f5f5f5; border-radius: 6px; text-align: center; margin-bottom: 10px;">
-                                <div style="font-size: 2em;">${p.medal}</div>
-                                <div style="font-size: 1.2em; font-weight: bold;">${p.username}</div>
-                                <div style="color: #28a745; font-weight: bold;">${p.score} punti</div>
+                            html += `<div class="leaderboard-item">
+                                <div class="medal">${p.medal}</div>
+                                <div class="leaderboard-info">
+                                    <div class="leaderboard-name">${p.username}</div>
+                                    <div class="leaderboard-time" style="color: #333; font-weight: 600;">${p.score} punti</div>
+                                </div>
                             </div>`;
                         });
+                        // Popola sia la sidebar che il main content
                         document.getElementById('final-leaderboard').innerHTML = html;
+                        document.getElementById('leaderboard').innerHTML = html;
                     }
                 });
         }
@@ -293,12 +641,15 @@ $roomInfo = $_SESSION[$roomInfoKey];
                     if (data.success && data.top_answers?.length > 0) {
                         let html = '';
                         data.top_answers.forEach((answer, i) => {
-                            const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : (i + 1) + '.'));
+                            const medals = ['🥇', '🥈', '�'];
+                            const medal = medals[i] || (i + 1) + '.';
                             const time = parseFloat(answer.answer_time).toFixed(2) + 's';
-                            html += `<div style="padding: 15px; background: #f5f5f5; border-radius: 6px; text-align: center; margin-bottom: 10px;">
-                                <div style="font-size: 1.5em; font-weight: bold;">${medal}</div>
-                                <div style="font-size: 1em;">${answer.username}</div>
-                                <div style="font-size: 0.9em; color: #666; margin-top: 4px;">${time}</div>
+                            html += `<div class="leaderboard-item">
+                                <div class="medal">${medal}</div>
+                                <div class="leaderboard-info">
+                                    <div class="leaderboard-name">${answer.username}</div>
+                                    <div class="leaderboard-time">${time}</div>
+                                </div>
                             </div>`;
                         });
                         document.getElementById('leaderboard').innerHTML = html;
