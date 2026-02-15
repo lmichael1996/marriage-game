@@ -209,4 +209,15 @@ class RoomService {
         // Insert winner record
         return $this->roomRepo->insertWinner($roomId, $winnerId);
     }
+
+    /**
+     * Check if a player is the winner
+     */
+    public function isWinner($roomId, $playerId) {
+        $winner = $this->roomRepo->getWinner($roomId);
+        if ($winner && $winner['user_id'] == $playerId) {
+            return true;
+        }
+        return false;
+    }
 }

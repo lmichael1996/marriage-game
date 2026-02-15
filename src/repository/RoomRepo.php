@@ -169,6 +169,24 @@ class RoomRepo {
         return $success;
     }
 
+    /**
+     * Get winner for a room
+     */
+    public function getWinner($roomId) {
+        $stmt = $this->conn->prepare("
+            SELECT id, room_id, user_id
+            FROM winners
+            WHERE room_id = ?
+        ");
+        $stmt->bind_param("i", $roomId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $winner = $result->fetch_assoc();
+        $stmt->close();
+
+        return $winner;
+    }
+
     public function __destruct() {
         if ($this->conn) {
             $this->conn->close();

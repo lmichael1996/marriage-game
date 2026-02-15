@@ -152,7 +152,7 @@ class RoundRepo {
                    q.question, q.option1, q.option2, q.option3, q.option4,
                    q.correct_answer, q.timer
             FROM rounds r
-            JOIN questions q ON r.question_id = q.id
+            LEFT JOIN questions q ON r.question_id = q.id
             WHERE r.room_id = ?
             ORDER BY r.id ASC
             LIMIT 1 OFFSET ?

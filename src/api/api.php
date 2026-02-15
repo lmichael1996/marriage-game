@@ -564,6 +564,49 @@ function handleConnectedDevices($room) {
         exit();
     }
 
+    if ($action === 'check_winner') {
+        requireLoginJson();
+
+        try {
+            $roomCode = $_SESSION['room_code'] ?? null;
+            if (!$roomCode) {
+                echo json_encode(['success' => false, 'is_winner' => false]);
+                exit();
+            }
+
+            // Get room details
+            $roomData = $room->getRoomDetails($roomCode);
+            if (!$roomData) {
+                echo json_encode(['success' => false, 'is_winner' => false]);
+                exit();
+            }
+
+            // Get current player
+            $username = $_SESSION['username'] ?? null;
+            if (!$username) {
+                echo json_encode(['success' => false, 'is_winner' => false]);
+                exit();
+            }
+
+            // Get player info
+            $playerRepo = new PlayerRepo();
+            $player = $playerRepo->getPlayerByRoomAndUsername($roomData['id'], $username);
+            if (!$player) {
+                echo json_encode(['success' => false, 'is_winner' => false]);
+                exit();
+            }
+
+            // Check if winner
+            $isWinner = $room->isWinner($roomData['id'], $player['id']);
+            echo json_encode(['success' => true, 'is_winner' => $isWinner]);
+        } catch (Exception $e) {
+            error_log('check_winner error: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'is_winner' => false, 'error' => $e->getMessage()]);
+        }
+        exit();
+    }
+
     if ($action === 'close_round') {
         // Get round_id from either GET or POST body
         $roundId = $_GET['round_id'] ?? 0;

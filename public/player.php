@@ -237,6 +237,45 @@ requirePlayer();
             color: #666;
         }
 
+        .final-result-screen {
+            text-align: center;
+            padding: 60px 20px;
+            display: none;
+        }
+
+        .final-result-screen.winner {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        }
+
+        .final-result-screen.loser {
+            background: linear-gradient(135deg, #E0E0E0 0%, #BDBDBD 100%);
+        }
+
+        .final-result-emoji {
+            font-size: 6em;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .final-result-screen h1 {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .final-result-screen p {
+            font-size: 1.2em;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
         .leaderboard-item {
             display: flex;
             align-items: center;
@@ -378,6 +417,14 @@ requirePlayer();
                         <p style="margin-top: 15px;">In attesa del prossimo round...</p>
                     </div>
                 </div>
+
+                <div id="final-result-screen" class="final-result-screen">
+                    <div id="final-result-content">
+                        <div class="final-result-emoji" id="final-emoji">🏆</div>
+                        <h1 id="final-title">Ho Vinto!</h1>
+                        <p id="final-message">Complimenti! Sei il vincitore di questa partita!</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -414,6 +461,12 @@ requirePlayer();
                 .then(data => {
                     if (data.success === false || !data.round_number) {
                         showWaitingScreen();
+                        return;
+                    }
+
+                    // Check if this is the end-game round (question_id = null)
+                    if (data.question_id === null) {
+                        checkWinnerStatus();
                         return;
                     }
 
@@ -579,6 +632,68 @@ requirePlayer();
             document.getElementById('waiting-screen').style.display = 'block';
             document.getElementById('game-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('final-result-screen').style.display = 'none';
+        }
+
+        function checkWinnerStatus() {
+            // Poll for winner check, retrying until we get a result
+            const maxAttempts = 20;
+            let attempts = 0;
+
+            function tryCheckWinner() {
+                fetch('../src/api/api.php?endpoint=game&action=check_winner')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showFinalResult(data.is_winner);
+                        } else {
+                            attempts++;
+                            if (attempts < maxAttempts) {
+                                setTimeout(tryCheckWinner, 500);
+                            } else {
+                                // Fallback: show waiting screen if we can't determine winner
+                                showWaitingScreen();
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        attempts++;
+                        if (attempts < maxAttempts) {
+                            setTimeout(tryCheckWinner, 500);
+                        } else {
+                            showWaitingScreen();
+                        }
+                    });
+            }
+
+            tryCheckWinner();
+        }
+
+        function showFinalResult(isWinner) {
+            // Hide all other screens
+            document.getElementById('waiting-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('final-result-screen').style.display = 'block';
+
+            const finalScreen = document.getElementById('final-result-screen');
+            const emoji = document.getElementById('final-emoji');
+            const title = document.getElementById('final-title');
+            const message = document.getElementById('final-message');
+
+            if (isWinner) {
+                finalScreen.classList.remove('loser');
+                finalScreen.classList.add('winner');
+                emoji.textContent = '🏆';
+                title.textContent = 'Ho Vinto!';
+                message.textContent = 'Complimenti! Sei il vincitore di questa partita! 🎉';
+            } else {
+                finalScreen.classList.remove('winner');
+                finalScreen.classList.add('loser');
+                emoji.textContent = '😢';
+                title.textContent = 'Ho Perso!';
+                message.textContent = 'Buona fortuna nella prossima partita!';
+            }
         }
     </script>
 </body>
