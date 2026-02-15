@@ -119,7 +119,8 @@ requirePlayer();
         }
 
         function checkGameState() {
-            fetch('../src/api/api.php?endpoint=game&action=get_game_state')
+            // Ask API for the round at currentRoundCounter position
+            fetch('../src/api/api.php?endpoint=game&action=get_game_state&counter=' + currentRoundCounter)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success === false || !data.round_number) {
@@ -128,10 +129,7 @@ requirePlayer();
                     }
 
                     const roundNumber = data.round_number;
-                    if (roundNumber > currentRoundCounter && !hasAnswered && !roundInProgress) {
-                        currentRoundCounter = roundNumber;
-                        startRound(data);
-                    } else if (roundNumber === currentRoundCounter && !hasAnswered && !roundInProgress) {
+                    if (roundNumber === currentRoundCounter && !hasAnswered && !roundInProgress) {
                         startRound(data);
                     } else if (hasAnswered) {
                         showWaitingScreen();

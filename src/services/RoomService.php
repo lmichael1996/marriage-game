@@ -144,6 +144,13 @@ class RoomService {
     }
 
     /**
+     * Get round by position for player polling
+     */
+    public function getRoundByPosition($roomId, $position) {
+        return $this->roundRepo->getRoundByPosition($roomId, $position);
+    }
+
+    /**
      * Delete all rounds for a room (used when advancing to next question)
      */
     public function deleteRoundByRoom($roomId) {

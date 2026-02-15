@@ -136,9 +136,36 @@ class RoundRepo {
         if ($round) {
             // Convert to int
             $round['round_number'] = (int)$round['round_number'];
-            error_log('RoundRepo::getActiveRound() found round: ' . json_encode($round));
-        } else {
-            error_log('RoundRepo::getActiveRound() NO ROUND FOUND for room_id: ' . $room_id);
+        }
+        return $round;
+    }
+
+    /**
+     * Get round by position for a room (for player polling)
+     * Position 1 = first round, 2 = second round, etc.
+     */
+    public function getRoundByPosition($room_id, $position) {
+        $offset = max(0, $position - 1);
+        $stmt = $this->conn->prepare("
+            SELECT r.id, r.room_id, r.question_id,
+                   q.id as q_id, q.round_type,
+                   q.question, q.option1, q.option2, q.option3, q.option4,
+                   q.correct_answer, q.timer
+            FROM rounds r
+            JOIN questions q ON r.question_id = q.id
+            WHERE r.room_id = ?
+            ORDER BY r.id ASC
+            LIMIT 1 OFFSET ?
+        ");
+        $stmt->bind_param("ii", $room_id, $offset);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $round = $result->fetch_assoc();
+        $stmt->close();
+
+        if ($round) {
+            // Add round_number (position)
+            $round['round_number'] = $position;
         }
 
         return $round;

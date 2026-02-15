@@ -341,8 +341,6 @@ class GameService {
         // Check if answer is correct
         $is_correct = ($answer == $round['correct_answer']) ? 1 : 0;
 
-        error_log("Answer check: user_answer=$answer, correct_answer={$round['correct_answer']}, is_correct=$is_correct");
-
         // Save the answer
         if ($is_correct) {
             $this->answerRepo->submitAnswer($roundId, $username, $timeTaken);

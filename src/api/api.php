@@ -444,10 +444,8 @@ function handleConnectedDevices($room) {
         try {
             // Get room_code from session (player context)
             $roomCode = $_SESSION['room_code'] ?? null;
-            error_log('get_game_state: roomCode=' . $roomCode);
 
             if (!$roomCode) {
-                error_log('get_game_state: NO ROOM CODE IN SESSION');
                 echo json_encode(['success' => false]);
                 exit();
             }
@@ -456,24 +454,24 @@ function handleConnectedDevices($room) {
             require_once __DIR__ . '/../repository/RoomRepo.php';
             $roomRepo = new RoomRepo();
             $roomData = $roomRepo->getRoomByCode($roomCode);
-            error_log('get_game_state: roomData=' . json_encode($roomData));
 
             if (!$roomData) {
-                error_log('get_game_state: ROOM NOT FOUND');
                 echo json_encode(['success' => false]);
                 exit();
             }
 
-            // ✅ Get active round from DB (not session)
-            $result = $room->getActiveRound($roomData['id']);
-            error_log('get_game_state: result=' . json_encode($result));
+            // Get round counter from GET param (sent by player)
+            $roundCounter = $_GET['counter'] ?? 1;
+            $roundCounter = max(1, intval($roundCounter));
+
+            // Get round at position counter
+            $result = $room->getRoundByPosition($roomData['id'], $roundCounter);
 
             if ($result) {
-                // Active round found - return all data
+                // Round found - return all data
                 echo json_encode($result);
             } else {
-                // No active round
-                error_log('get_game_state: NO ACTIVE ROUND');
+                // No round at this position
                 echo json_encode(['success' => false]);
             }
         } catch (Exception $e) {
@@ -524,8 +522,6 @@ function handleConnectedDevices($room) {
                 $questionId = $postData['question_id'] ?? 0;
             }
 
-            error_log('start_round: questionId=' . $questionId);
-
             if (!$questionId) {
                 echo json_encode([
                     'success' => false,
@@ -536,7 +532,6 @@ function handleConnectedDevices($room) {
 
             // Get room_code from session (admin context)
             $roomCode = $_SESSION['room_code'] ?? null;
-            error_log('start_round: roomCode=' . $roomCode);
 
             if (!$roomCode) {
                 echo json_encode([
@@ -552,7 +547,6 @@ function handleConnectedDevices($room) {
             $roomRepo = new RoomRepo();
             $roundRepo = new RoundRepo();
             $roomData = $roomRepo->getRoomByCode($roomCode);
-            error_log('start_round: roomData=' . json_encode($roomData));
 
             if (!$roomData) {
                 echo json_encode([
@@ -564,7 +558,6 @@ function handleConnectedDevices($room) {
 
             // Create round in DB
             $roundId = $roundRepo->createRound($roomData['id'], $questionId);
-            error_log('start_round: created roundId=' . $roundId);
 
             if (!$roundId) {
                 echo json_encode([

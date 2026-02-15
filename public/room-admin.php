@@ -21,10 +21,7 @@ if (!$room) {
 // Handler per incrementare il counter via POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'increment_counter') {
     if ($room['id']) {
-        // ✅ Delete previous round from DB
-        $roomService->deleteRoundByRoom($room['id']);
-
-        // ✅ Increment counter in session (local to admin)
+        // Increment counter in session (local to admin)
         $counterKey = 'round_counter_' . $roomCode;
         $_SESSION[$counterKey] = ($_SESSION[$counterKey] ?? 1) + 1;
     }
