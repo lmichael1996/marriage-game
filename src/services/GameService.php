@@ -386,4 +386,82 @@ class GameService {
             unlink($filePath);
         }
     }
+
+    /**
+     * Get top fastest answers for a round
+     */
+    public function getTopAnswers($roundId, $limit = 10) {
+        return $this->answerRepo->getTopFastestAnswers($roundId, $limit);
+    }
+
+    /**
+     * Get final leaderboard for a room
+     */
+    public function getFinalLeaderboard($roomCode = null) {
+        if (!$roomCode && isset($_SESSION['room_code'])) {
+            $roomCode = $_SESSION['room_code'];
+        }
+
+        if (!$roomCode) {
+            return ['success' => false, 'leaderboard' => []];
+        }
+
+        try {
+            $room = $this->getRoomByCode($roomCode);
+            if (!$room) {
+                return ['success' => false, 'leaderboard' => []];
+            }
+
+            $allRounds = $this->roundRepo->getRoundsByRoom($room['id']);
+
+            // Default scoring
+            $scoreMap = [
+                'clickfirst' => [1 => 50],
+                'multiple' => [1 => 25, 2 => 18, 3 => 15, 4 => 12, 5 => 10, 6 => 8, 7 => 6, 8 => 4, 9 => 2, 10 => 1],
+                'truefalse' => [1 => 20, 2 => 15, 3 => 12, 4 => 10, 5 => 8, 6 => 6, 7 => 5, 8 => 3, 9 => 2, 10 => 1]
+            ];
+
+            $playerScores = [];
+
+            foreach ($allRounds as $round) {
+                $topAnswers = $this->answerRepo->getTopFastestAnswers($round['id'], 10);
+
+                foreach ($topAnswers as $index => $answer) {
+                    $username = $answer['username'];
+                    $position = $index + 1;
+                    $points = $scoreMap['multiple'][$position] ?? 0;
+
+                    if (!isset($playerScores[$username])) {
+                        $playerScores[$username] = 0;
+                    }
+                    $playerScores[$username] += $points;
+                }
+            }
+
+            arsort($playerScores);
+
+            $medals = ['🥇', '🥈', '🥉'];
+            $leaderboard = [];
+            foreach ($playerScores as $username => $score) {
+                $index = count($leaderboard);
+                $medal = $medals[$index] ?? '';
+                $leaderboard[] = [
+                    'username' => $username,
+                    'score' => $score,
+                    'medal' => $medal
+                ];
+            }
+
+            return ['success' => true, 'leaderboard' => $leaderboard];
+        } catch (Exception $e) {
+            return ['success' => false, 'leaderboard' => [], 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Reset all rounds for a question set
+     */
+    public function resetGameByQuestionSet($questionSetId) {
+        return $this->roundRepo->resetRoundsBySetId($questionSetId);
+    }
 }

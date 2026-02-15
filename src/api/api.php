@@ -442,37 +442,29 @@ function handleConnectedDevices($room) {
 
     if ($action === 'get_game_state') {
         try {
-            // Get room_code from session (player context)
             $roomCode = $_SESSION['room_code'] ?? null;
-
             if (!$roomCode) {
                 echo json_encode(['success' => false]);
                 exit();
             }
 
-            // Get room ID from room code
-            require_once __DIR__ . '/../repository/RoomRepo.php';
-            $roomRepo = new RoomRepo();
-            $roomData = $roomRepo->getRoomByCode($roomCode);
+            $roundCounter = $_GET['counter'] ?? 1;
+            $roundCounter = max(1, intval($roundCounter));
 
+            // Get room details via service
+            $roomData = $room->getRoomDetails($roomCode);
             if (!$roomData) {
                 echo json_encode(['success' => false]);
                 exit();
             }
 
-            // Get round counter from GET param (sent by player)
-            $roundCounter = $_GET['counter'] ?? 1;
-            $roundCounter = max(1, intval($roundCounter));
-
-            // Get round at position counter
+            // Get round at position counter via service
             $result = $room->getRoundByPosition($roomData['id'], $roundCounter);
 
             if ($result) {
-                // Round found - return all data with success flag
                 $result['success'] = true;
                 echo json_encode($result);
             } else {
-                // No round at this position
                 echo json_encode(['success' => false]);
             }
         } catch (Exception $e) {
@@ -515,7 +507,6 @@ function handleConnectedDevices($room) {
         requireLoginJson();
 
         try {
-            // Get question_id from either GET or POST body
             $questionId = $_GET['question_id'] ?? 0;
 
             if (!$questionId && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -524,62 +515,23 @@ function handleConnectedDevices($room) {
             }
 
             if (!$questionId) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Question ID mancante'
-                ]);
+                echo json_encode(['success' => false, 'message' => 'Question ID required']);
                 exit();
             }
 
-            // Get room_code from session (admin context)
             $roomCode = $_SESSION['room_code'] ?? null;
-
             if (!$roomCode) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Room code non trovato in session'
-                ]);
+                echo json_encode(['success' => false, 'message' => 'Room code not found']);
                 exit();
             }
 
-            // Get room ID from room code
-            require_once __DIR__ . '/../repository/RoomRepo.php';
-            require_once __DIR__ . '/../repository/RoundRepo.php';
-            $roomRepo = new RoomRepo();
-            $roundRepo = new RoundRepo();
-            $roomData = $roomRepo->getRoomByCode($roomCode);
-
-            if (!$roomData) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Room non trovata'
-                ]);
-                exit();
-            }
-
-            // Create round in DB
-            $roundId = $roundRepo->createRound($roomData['id'], $questionId);
-
-            if (!$roundId) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Errore nella creazione del round'
-                ]);
-                exit();
-            }
-
-            echo json_encode([
-                'success' => true,
-                'message' => 'Round creato',
-                'round_id' => $roundId
-            ]);
+            // Use GameService to create round
+            $result = $game->startRound($questionId, $roomCode);
+            echo json_encode($result);
         } catch (Exception $e) {
             error_log('start_round error: ' . $e->getMessage());
             http_response_code(500);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Errore server: ' . $e->getMessage()
-            ]);
+            echo json_encode(['success' => false, 'message' => 'Server error: ' . $e->getMessage()]);
         }
         exit();
     }
@@ -618,31 +570,17 @@ function handleConnectedDevices($room) {
 
         $postData = json_decode(file_get_contents('php://input'), true);
         $questionSetId = $postData['question_set_id'] ?? 0;
-        $roomCode = $postData['room_code'] ?? '';
 
         if (!$questionSetId) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Question Set ID mancante'
-            ]);
+            echo json_encode(['success' => false, 'message' => 'Question Set ID required']);
             exit();
         }
 
         try {
-            // Reset all rounds to pending and delete all player answers
-            require_once __DIR__ . '/../repository/RoundRepo.php';
-            $roundRepo = new RoundRepo();
-            $resetResult = $roundRepo->resetRoundsBySetId($questionSetId);
-
-            echo json_encode([
-                'success' => true,
-                'message' => 'Partita resettata con successo'
-            ]);
+            $resetResult = $game->resetGameByQuestionSet($questionSetId);
+            echo json_encode(['success' => true, 'message' => 'Game reset']);
         } catch (Exception $e) {
-            echo json_encode([
-                'success' => false,
-                'error' => $e->getMessage()
-            ]);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
         exit();
     }
@@ -668,23 +606,13 @@ function handleRoundAnswers($game) {
     $roundId = $_GET['round_id'] ?? 0;
 
     if (!$roundId) {
-        echo json_encode([
-            'success' => false,
-            'top_answers' => [],
-            'message' => 'Round ID mancante'
-        ]);
+        echo json_encode(['success' => false, 'top_answers' => [], 'message' => 'Round ID required']);
         return;
     }
 
-    // Get answers from AnswerRepo
-    require_once __DIR__ . '/../repository/AnswerRepo.php';
-    $answerRepo = new AnswerRepo();
-    $answers = $answerRepo->getTopFastestAnswers($roundId, 10);
+    $answers = $game->getTopAnswers($roundId, 10);
 
-    echo json_encode([
-        'success' => true,
-        'top_answers' => $answers
-    ]);
+    echo json_encode(['success' => true, 'top_answers' => $answers]);
 }
 
 function handleFinalLeaderboard($game) {
@@ -697,143 +625,12 @@ function handleFinalLeaderboard($game) {
     $roomCode = $_SESSION['room_code'] ?? null;
 
     if (!$roomCode) {
-        echo json_encode([
-            'success' => false,
-            'leaderboard' => [],
-            'message' => 'Room code mancante'
-        ]);
+        echo json_encode(['success' => false, 'leaderboard' => []]);
         return;
     }
 
-    // Get room and all rounds
-    require_once __DIR__ . '/../repository/RoomRepo.php';
-    require_once __DIR__ . '/../repository/RoundRepo.php';
-    require_once __DIR__ . '/../repository/AnswerRepo.php';
-
-    $roomRepo = new RoomRepo();
-    $roundRepo = new RoundRepo();
-    $answerRepo = new AnswerRepo();
-
-    $room = $roomRepo->getRoomByCode($roomCode);
-    if (!$room) {
-        echo json_encode([
-            'success' => false,
-            'leaderboard' => [],
-            'message' => 'Room non trovata'
-        ]);
-        return;
-    }
-
-    // Get all rounds for this room
-    $allRounds = $roundRepo->getRoundsByRoom($room['id']);
-
-    // Get scoring system from game_settings database
-    require_once __DIR__ . '/../config/database.php';
-    $settingsConn = getDBConnection();
-
-    // Default scoring system
-    $defaultScores = [
-        'clickfirst' => [1 => 50],
-        'multiple' => [1 => 25, 2 => 18, 3 => 15, 4 => 12, 5 => 10, 6 => 8, 7 => 6, 8 => 4, 9 => 2, 10 => 1],
-        'truefalse' => [1 => 20, 2 => 15, 3 => 12, 4 => 10, 5 => 8, 6 => 6, 7 => 5, 8 => 3, 9 => 2, 10 => 1]
-    ];
-
-    // Load points from game_settings table if available
-    $scoreMap = $defaultScores;
-
-    try {
-        $settingKeys = [
-            'points_clickfirst',
-            'points_mult_1st', 'points_mult_2nd', 'points_mult_3rd', 'points_mult_4th', 'points_mult_5th',
-            'points_mult_6th', 'points_mult_7th', 'points_mult_8th', 'points_mult_9th', 'points_mult_10th',
-            'points_tf_1st', 'points_tf_2nd', 'points_tf_3rd', 'points_tf_4th', 'points_tf_5th',
-            'points_tf_6th', 'points_tf_7th', 'points_tf_8th', 'points_tf_9th', 'points_tf_10th'
-        ];
-
-        $placeholders = implode(',', array_fill(0, count($settingKeys), '?'));
-        $stmt = $settingsConn->prepare("SELECT setting_key, setting_value FROM game_settings WHERE setting_key IN ($placeholders)");
-
-        // Bind parameters dynamically
-        $types = str_repeat('s', count($settingKeys));
-        $stmt->bind_param($types, ...$settingKeys);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        $settings = [];
-        while ($row = $result->fetch_assoc()) {
-            $settings[$row['setting_key']] = (int)$row['setting_value'];
-        }
-        $stmt->close();
-
-        // Override default scores with database values if available
-        if (isset($settings['points_clickfirst'])) {
-            $scoreMap['clickfirst'][1] = $settings['points_clickfirst'];
-        }
-
-        for ($i = 1; $i <= 10; $i++) {
-            $posStr = $i === 1 ? '1st' : ($i === 2 ? '2nd' : ($i === 3 ? '3rd' : ($i === 4 ? '4th' : ($i === 5 ? '5th' : ($i === 6 ? '6th' : ($i === 7 ? '7th' : ($i === 8 ? '8th' : ($i === 9 ? '9th' : '10th'))))))));
-            $multKey = 'points_mult_' . $posStr;
-            $tfKey = 'points_tf_' . $posStr;
-
-            if (isset($settings[$multKey])) {
-                $scoreMap['multiple'][$i] = $settings[$multKey];
-            }
-            if (isset($settings[$tfKey])) {
-                $scoreMap['truefalse'][$i] = $settings[$tfKey];
-            }
-        }
-    } catch (Exception $e) {
-        // Failed to load settings, use defaults
-    }
-
-    // Calculate total scores per player
-    $playerScores = [];
-
-    foreach ($allRounds as $round) {
-        $roundId = $round['id'];
-        // Get game type from the associated question through qset_questions
-        // For now, default to 'multiple' as all rounds track answers the same way
-        $gameType = 'multiple';
-
-        // Get top 10 answers for this round
-        $topAnswers = $answerRepo->getTopFastestAnswers($roundId, 10);
-
-        foreach ($topAnswers as $index => $answer) {
-            $username = $answer['username'];
-            $position = $index + 1;
-
-            // Get points for this position and game type
-            $points = $scoreMap[$gameType][$position] ?? 0;
-
-            if (!isset($playerScores[$username])) {
-                $playerScores[$username] = 0;
-            }
-
-            $playerScores[$username] += $points;
-        }
-    }
-
-    // Sort by score descending
-    arsort($playerScores);
-
-    // Format for output
-    $leaderboard = [];
-    $position = 1;
-    foreach ($playerScores as $username => $score) {
-        $medal = $position === 1 ? '🥇' : ($position === 2 ? '🥈' : ($position === 3 ? '🥉' : $position . '.'));
-        $leaderboard[] = [
-            'position' => $position,
-            'username' => $username,
-            'score' => $score,
-            'medal' => $medal
-        ];
-        $position++;
-    }
-
-    echo json_encode([
-        'success' => true,
-        'leaderboard' => $leaderboard
-    ]);
+    $result = $game->getFinalLeaderboard($roomCode);
+    echo json_encode($result);
 }
 
 function handleGetQuestion($question) {
