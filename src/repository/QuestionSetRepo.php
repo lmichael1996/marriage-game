@@ -454,6 +454,24 @@ class QuestionSetRepo {
         return $question;
     }
 
+    /**
+     * Get total count of questions in a specific question set
+     */
+    public function getQuestionCountByQset($qsetId) {
+        $stmt = $this->conn->prepare("
+            SELECT COUNT(*) as total
+            FROM qset_questions
+            WHERE qset_id = ?
+        ");
+        $stmt->bind_param("i", $qsetId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+
+        return $row['total'] ?? 0;
+    }
+
     public function __destruct() {
         if ($this->conn) {
             $this->conn->close();

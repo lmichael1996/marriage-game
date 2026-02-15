@@ -1,69 +1,54 @@
 <?php
 require_once __DIR__ . '/../src/utils/auth.php';
-require_once __DIR__ . '/../src/services/AdminService.php';
 require_once __DIR__ . '/../src/services/QuestionService.php';
 require_once __DIR__ . '/../src/services/RoomService.php';
 
 requireAdmin();
 
-$admin = new AdminService();
 $questionService = new QuestionService();
 $roomService = new RoomService();
 
 $roomCode = $_SESSION['room_code'] ?? null;
-$room = null;
-$questionSetId = null;
 
-// Handler per incrementare il counter via POST (no GET parameters)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'increment_counter') {
-    if ($roomCode) {
-        $counterKey = 'round_counter_' . $roomCode;
-        $newCounter = ($_SESSION[$counterKey] ?? 1) + 1;
-        $_SESSION[$counterKey] = $newCounter;
-
-        // IMPORTANTE: Cancella il round attivo dalla session per far caricare la prossima domanda
-        unset($_SESSION['active_round_data_' . $roomCode]);
-    }
-    // Ritorna solo un 200 OK, il JavaScript ricaricherà la pagina
-    exit;
-}
-if ($roomCode) {
-    $room = $roomService->getRoomDetails($roomCode);
-    if ($room) {
-        $questionSetId = $room['qset_id'];
-    }
-}
-
+// Carica stanza e set di domande
+$room = $roomService->getRoomDetails($roomCode);
 if (!$room) {
     header('Location: admin.php');
     exit;
 }
 
-// LOGICA SEMPLICE:
-// 1. Usa counter che parte da 1
-// 2. Query: SELECT question_id FROM qset_questions WHERE qset_id = $questionSetId AND order_in_set = $counter
-// 3. Ottieni il question_id
-// 4. Crea/carica il round con quel question_id
-// 5. Incrementa counter
-
-$currentCounter = $_SESSION['round_counter_' . $roomCode] ?? 1;  // Parte da 1
-$activeRound = null;
-$nextQuestion = null;
-
-if ($questionSetId) {
-    // Trova la domanda per il counter corrente usando il servizio
-    $nextQuestion = $questionService->getQuestionByCounter($questionSetId, $currentCounter);
-
-    // Carica il round attivo direttamente dalla sessione
-    $activeRound = $_SESSION['active_round_data_' . $roomCode] ?? null;
+// Handler per incrementare il counter via POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'increment_counter') {
+    if ($roomCode) {
+        $counterKey = 'round_counter_' . $roomCode;
+        $_SESSION[$counterKey] = ($_SESSION[$counterKey] ?? 1) + 1;
+        unset($_SESSION['active_round_data_' . $roomCode]);
+    }
+    exit;
 }
 
-$players = $roomService->getRoomPlayers($roomCode) ?? [];
-$gameOver = !$activeRound && !$nextQuestion;
+$questionSetId = $room['qset_id'];
+$currentCounter = $_SESSION['round_counter_' . $roomCode] ?? 1;
 
-// Variabili per JavaScript
-$currentQuestionId = $activeRound['id'] ?? ($nextQuestion['id'] ?? null);
-$currentRoundNumber = $activeRound['round_number'] ?? ($nextQuestion['order_in_set'] ?? 0);
+// Carica informazioni room solo la prima volta
+$roomInfoKey = 'room_info_' . $roomCode;
+if (!isset($_SESSION[$roomInfoKey])) {
+    $players = $roomService->getRoomPlayers($roomCode) ?? [];
+    $totalQuestions = $questionService->getQuestionCountByQset($questionSetId);
+
+    $_SESSION[$roomInfoKey] = [
+        'num_players' => count($players),
+        'total_questions' => $totalQuestions,
+        'started_at' => time()
+    ];
+}
+
+$roomInfo = $_SESSION[$roomInfoKey];
+
+// Carica domanda corrente e round attivo
+$nextQuestion = $questionService->getQuestionByCounter($questionSetId, $currentCounter);
+$activeRound = $_SESSION['active_round_data_' . $roomCode] ?? null;
+$gameOver = !$activeRound && !$nextQuestion;
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -86,14 +71,9 @@ $currentRoundNumber = $activeRound['round_number'] ?? ($nextQuestion['order_in_s
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; width: 100%; background: white; padding: 30px; border: 2px solid #1a1a1a; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
             <div>
                 <div class="info-box">
-                    <p><strong>👥 Giocatori connessi:</strong> <?php echo count($players); ?></p>
+                    <p><strong>👥 Giocatori connessi:</strong> <?php echo $roomInfo['num_players']; ?></p>
                     <p><strong>🎯 Room Code:</strong> <code><?php echo htmlspecialchars($roomCode); ?></code></p>
-                    <?php
-                    // Mostra il nome del set solo se non è temporaneo (non termina con timestamp numerico)
-                    $isTemporarySe = $setInfo && preg_match('/\s\d{13}$/', $setInfo['set_name']);
-                    if ($setInfo && !$isTemporarySe): ?>
-                        <p><strong>📚 Set:</strong> <?php echo htmlspecialchars($setInfo['set_name']); ?></p>
-                    <?php endif; ?>
+                    <p><strong>📊 Domande totali:</strong> <?php echo $roomInfo['total_questions']; ?></p>
                 </div>
 
             <?php if ($activeRound): ?>

@@ -34,6 +34,13 @@ class QuestionService {
     }
 
     /**
+     * Get total count of questions in a specific question set
+     */
+    public function getQuestionCountByQset($qsetId) {
+        return $this->questionSetRepo->getQuestionCountByQset($qsetId);
+    }
+
+    /**
      * Crea un nuovo set di domande con le sue domande
      * @return int Set ID
      * @throws Exception on failure
