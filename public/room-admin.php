@@ -309,6 +309,13 @@ $roomInfo = $_SESSION[$roomInfoKey];
             background: #f0f0f0;
         }
 
+        .clickfirst-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #333;
+        }
+
         .medal {
             font-size: 1.6em;
             min-width: 30px;
@@ -518,9 +525,11 @@ $roomInfo = $_SESSION[$roomInfoKey];
     <script>
         const roomCode = '<?php echo $roomCode; ?>';
         let timerInterval = null;
+        let currentRoundType = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             <?php if ($activeRound): ?>
+            currentRoundType = '<?php echo $activeRound['round_type'] ?? ''; ?>';
             startCountdown(<?php echo $activeRound['timer'] ?? 30; ?>);
             <?php endif; ?>
 
@@ -534,7 +543,7 @@ $roomInfo = $_SESSION[$roomInfoKey];
             const timerEl = document.getElementById('timer');
             const nextBtn = document.getElementById('next-btn');
             let correctAnswer = null;
-            let isClickFirst = false;
+            let isClickFirst = currentRoundType === 'clickfirst';
 
             timerInterval = setInterval(() => {
                 timeLeft--;
@@ -590,6 +599,44 @@ $roomInfo = $_SESSION[$roomInfoKey];
         }
 
         function nextQuestion() {
+            const isClickFirst = currentRoundType === 'clickfirst';
+            const roundId = <?php echo isset($activeRound['id']) ? $activeRound['id'] : 'null'; ?>;
+
+            // If clickfirst, mark selected players as checked
+            if (isClickFirst && roundId) {
+                const checkedPlayers = [];
+                document.querySelectorAll('.clickfirst-checkbox:checked').forEach(checkbox => {
+                    checkedPlayers.push(checkbox.getAttribute('data-player-name'));
+                });
+
+                if (checkedPlayers.length > 0) {
+                    // Send checked players to backend
+                    fetch('../src/api/api.php?endpoint=game&action=mark_clickfirst_checked', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            round_id: roundId,
+                            checked_players: checkedPlayers
+                        })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        // Proceed to next question
+                        proceedToNextQuestion();
+                    })
+                    .catch(err => {
+                        console.error('Error marking checked players:', err);
+                        proceedToNextQuestion();
+                    });
+                } else {
+                    proceedToNextQuestion();
+                }
+            } else {
+                proceedToNextQuestion();
+            }
+        }
+
+        function proceedToNextQuestion() {
             const form = new FormData();
             form.append('action', 'increment_counter');
 
@@ -611,14 +658,29 @@ $roomInfo = $_SESSION[$roomInfoKey];
                 .then(data => {
                     if (data.success && data.leaderboard?.length > 0) {
                         let html = '';
+                        const isClickFirst = currentRoundType === 'clickfirst';
+
                         data.leaderboard.forEach((p) => {
-                            html += `<div class="leaderboard-item">
-                                <div class="medal">${p.medal}</div>
-                                <div class="leaderboard-info">
-                                    <div class="leaderboard-name">${p.username}</div>
-                                    <div class="leaderboard-time" style="color: #333; font-weight: 600;">${p.score} punti</div>
-                                </div>
-                            </div>`;
+                            if (isClickFirst) {
+                                // For clickfirst: show checkbox
+                                html += `<div class="leaderboard-item">
+                                    <input type="checkbox" class="clickfirst-checkbox" value="${p.username}" data-player-name="${p.username}">
+                                    <div class="medal">${p.medal}</div>
+                                    <div class="leaderboard-info">
+                                        <div class="leaderboard-name">${p.username}</div>
+                                        <div class="leaderboard-time" style="color: #333; font-weight: 600;">${p.score} punti</div>
+                                    </div>
+                                </div>`;
+                            } else {
+                                // For other types: no checkbox
+                                html += `<div class="leaderboard-item">
+                                    <div class="medal">${p.medal}</div>
+                                    <div class="leaderboard-info">
+                                        <div class="leaderboard-name">${p.username}</div>
+                                        <div class="leaderboard-time" style="color: #333; font-weight: 600;">${p.score} punti</div>
+                                    </div>
+                                </div>`;
+                            }
                         });
                         // Popola sia la sidebar che il main content
                         document.getElementById('final-leaderboard').innerHTML = html;
