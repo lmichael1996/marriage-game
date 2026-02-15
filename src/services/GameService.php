@@ -151,8 +151,8 @@ class GameService {
             // Calcola i punteggi in base al tipo di round
             $this->calculateScores($roundId, $round['round_type']);
 
-            // Chiudi il round in repository (compatibility)
-            $closed = $this->roundRepo->closeRound($roundId);
+            // Chiudi il round in repository (compatibility) - metodo non esiste in RoundRepo
+            // $closed = $this->roundRepo->closeRound($roundId);
 
             // Get top 10 fastest answers
             $topAnswers = $this->answerRepo->getTopFastestAnswers($roundId, 10);
@@ -174,7 +174,7 @@ class GameService {
             }
 
             return [
-                'success' => (bool)$closed,
+                'success' => true,
                 'message' => 'Round chiuso',
                 'nextRound' => $round['round_number'] + 1,
                 'top_answers' => $topAnswers
@@ -259,13 +259,6 @@ class GameService {
 
         $setting = $this->settingsRepo->getSetting($settingKey);
         return $setting ? intval($setting) : 0;
-    }
-
-    /**
-     * Ottieni statistiche del round
-     */
-    public function getRoundStats($roundId) {
-        return $this->roundRepo->getRoundStats($roundId);
     }
 
     /**

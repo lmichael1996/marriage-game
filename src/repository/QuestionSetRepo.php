@@ -392,4 +392,10 @@ class QuestionSetRepo {
 
         return $success;
     }
+
+    public function __destruct() {
+        if ($this->conn) {
+            $this->conn->close();
+        }
+    }
 }

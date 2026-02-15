@@ -6,14 +6,13 @@ require_once __DIR__ . '/../src/utils/admin_helper.php';
 require_once __DIR__ . '/../src/services/AdminService.php';
 require_once __DIR__ . '/../src/services/GameService.php';
 require_once __DIR__ . '/../src/services/QuestionService.php';
-require_once __DIR__ . '/../src/services/QuestionSetService.php';
 
 requireAdmin();
 
 $admin = new AdminService();
 $question = new QuestionService();
 $game = new GameService();
-$questionSet = new QuestionSetService();
+$questionSet = $question; // Alias for backward compatibility
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_tab'])) {
     $_SESSION['admin_tab'] = $_POST['change_tab'];

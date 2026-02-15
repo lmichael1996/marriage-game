@@ -7,7 +7,6 @@ require_once __DIR__ . '/../services/GameService.php';
 require_once __DIR__ . '/../services/RoomService.php';
 require_once __DIR__ . '/../services/AdminService.php';
 require_once __DIR__ . '/../services/QuestionService.php';
-require_once __DIR__ . '/../services/QuestionSetService.php';
 
 header('Content-Type: application/json');
 
@@ -17,7 +16,7 @@ $game = new GameService();
 $room = new RoomService();
 $admin = new AdminService();
 $question = new QuestionService();
-$questionSet = new QuestionSetService();
+$questionSet = $question; // Alias for backward compatibility
 
 // Get endpoint from URL path or from POST body
 $endpoint = $_GET['endpoint'] ?? '';
@@ -40,16 +39,14 @@ switch ($endpoint) {
         handleAdminLogin($auth);
         break;
 
-    case 'debug_session':
-        // Debug endpoint - mostra lo stato della sessione
-        echo json_encode([
-            'session_data' => $_SESSION,
-            'has_user_id' => isset($_SESSION['user_id']),
-            'has_player_id' => isset($_SESSION['player_id']),
-            'has_logged_in_via_login' => isset($_SESSION['logged_in_via_login']),
-            'user_id' => $_SESSION['user_id'] ?? null,
-            'player_id' => $_SESSION['player_id'] ?? null
-        ]);
+    case 'start_game_room':
+        // Redirect a game-room.php mantenendo la sessione
+        $set_id = $_GET['set_id'] ?? null;
+        if ($set_id) {
+            header('Location: ../../public/game-room.php?set_id=' . $set_id);
+            exit();
+        }
+        echo json_encode(['success' => false, 'error' => 'set_id required']);
         exit();
 
     case 'answer':
@@ -290,9 +287,6 @@ function handleAnswer($action, $game) {
 }
 
 function handleCreateRoom($room) {
-    // TODO: Fix session auth - temporarily disabled for testing
-    // requireLoginJson();
-
     try {
         $input = json_decode(file_get_contents('php://input'), true);
         $questionSetId = $input['question_set_id'] ?? null;
@@ -406,8 +400,6 @@ function handleDeleteRoom($room) {
 }
 
 function handleConnectedDevices($room) {
-    requireAdminJson();
-
     try {
         // Get room code from session or request
         $roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
@@ -523,10 +515,7 @@ function handleConnectedDevices($room) {
             $roundId = $postData['round_id'] ?? 0;
         }
 
-        error_log("close_round called with round_id: $roundId");
-
         if (!$roundId) {
-            error_log("close_round: round_id missing");
             echo json_encode([
                 'success' => false,
                 'message' => 'Round ID mancante'
@@ -536,10 +525,8 @@ function handleConnectedDevices($room) {
 
         try {
             $result = $game->closeRound($roundId);
-            error_log("close_round result: " . json_encode($result));
             echo json_encode($result);
         } catch (Exception $e) {
-            error_log("close_round exception: " . $e->getMessage());
             echo json_encode([
                 'success' => false,
                 'error' => $e->getMessage()
@@ -718,7 +705,7 @@ function handleFinalLeaderboard($game) {
             }
         }
     } catch (Exception $e) {
-        error_log("Failed to load game settings, using defaults: " . $e->getMessage());
+        // Failed to load settings, use defaults
     }
 
     // Calculate total scores per player
@@ -1372,7 +1359,7 @@ function handleAddQuestionToSet($questionSet) {
         }
 
         // Aggiungi la domanda con il prossimo ordine
-        $success = $questionSet->addQuestion($setId, $questionId, $maxOrder + 1);
+        $success = $questionSet->addQuestionToSet($setId, $questionId, $maxOrder + 1);
 
         if ($success) {
             echo json_encode([

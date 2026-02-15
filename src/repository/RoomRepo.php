@@ -66,7 +66,6 @@ class RoomRepo {
     }
 
     /**
-    /**
      * Start room (just returns true, no status tracking needed)
      */
     public function startRoom($roomCode) {
@@ -123,6 +122,15 @@ class RoomRepo {
         $stmt->close();
 
         return $room ? $room['qset_id'] : null;
+    }
+
+    /**
+     * Get players/devices connected to a room
+     */
+    public function getRoomPlayers($roomCode) {
+        require_once __DIR__ . '/PlayerRepo.php';
+        $playerRepo = new PlayerRepo();
+        return $playerRepo->getPlayersByRoom($roomCode);
     }
 
     public function __destruct() {

@@ -130,13 +130,6 @@ class RoomService {
     }
 
     /**
-     * Verifica se una stanza è valida e attiva
-     */
-    public function isRoomActive($roomCode) {
-        return $this->roomRepo->verifyRoomCode($roomCode);
-    }
-
-    /**
      * Get question set ID for a room
      */
     public function getQuestionSetIdByRoomCode($roomCode) {

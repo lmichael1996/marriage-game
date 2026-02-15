@@ -79,20 +79,6 @@ class PlayerRepo {
     }
 
     /**
-     * Get a player by ID
-     */
-    public function getPlayerById($playerId) {
-        $stmt = $this->conn->prepare("SELECT * FROM players WHERE id = ?");
-        $stmt->bind_param("i", $playerId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $player = $result->fetch_assoc();
-        $stmt->close();
-
-        return $player;
-    }
-
-    /**
      * Delete all players for a specific room
      */
     public function deletePlayersByRoom($roomCode) {

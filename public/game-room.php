@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once __DIR__ . '/../src/utils/auth.php';
 require_once __DIR__ . '/../src/services/AdminService.php';
 require_once __DIR__ . '/../src/services/QuestionService.php';

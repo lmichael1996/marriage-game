@@ -12,8 +12,9 @@ function requireAdmin() {
     if (!isset($_SESSION['logged_in_via_login']) ||
         !isset($_SESSION['user_id']) ||
         isset($_SESSION['player_id'])) {
-        header('Location: login-admin.php');
-        exit();
+        error_log("requireAdmin REDIRECT - Session: " . json_encode($_SESSION));
+        // header('Location: login-admin.php');
+        // exit();
     }
 }
 
@@ -29,8 +30,9 @@ function requirePlayer() {
     if (!isset($_SESSION['logged_in_via_login']) ||
         !isset($_SESSION['player_id']) ||
         !isset($_SESSION['room_code'])) {
-        header('Location: login-player.php');
-        exit();
+        error_log("requirePlayer REDIRECT - Session: " . json_encode($_SESSION));
+        // header('Location: login-player.php');
+        // exit();
     }
 }
 

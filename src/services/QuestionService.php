@@ -1,17 +1,21 @@
 <?php
 require_once __DIR__ . '/../repository/QuestionRepo.php';
+require_once __DIR__ . '/../repository/QuestionSetRepo.php';
 require_once __DIR__ . '/../repository/RoundRepo.php';
 
 /**
- * QuestionService - Gestisce la logica di business dei set di domande
+ * QuestionService - Gestisce la logica di business delle domande e set di domande
+ * Unifica QuestionService e QuestionSetService
  * Restituisce dati o lancia eccezioni, il controller gestisce gli errori
  */
 class QuestionService {
     private $questionRepo;
+    private $questionSetRepo;
     private $roundRepo;
 
     public function __construct() {
         $this->questionRepo = new QuestionRepo();
+        $this->questionSetRepo = new QuestionSetRepo();
         $this->roundRepo = new RoundRepo();
     }
 
@@ -114,44 +118,6 @@ class QuestionService {
      * Valida le domande prima di salvarle
      * @throws Exception with validation errors
      */
-    public function validateQuestions($questions) {
-        $errors = [];
-
-        foreach ($questions as $index => $question) {
-            $num = $index + 1;
-
-            if (empty($question['question'])) {
-                $errors[] = "Domanda $num: testo mancante";
-            }
-
-            if (empty($question['type'])) {
-                $errors[] = "Domanda $num: tipo mancante";
-            }
-
-            if ($question['type'] === 'multiple') {
-                if (empty($question['option1']) || empty($question['option2'])) {
-                    $errors[] = "Domanda $num: servono almeno 2 opzioni";
-                }
-
-                if (empty($question['correct']) || $question['correct'] < 1 || $question['correct'] > 4) {
-                    $errors[] = "Domanda $num: risposta corretta non valida";
-                }
-            }
-
-            if ($question['type'] === 'truefalse') {
-                if (empty($question['correct']) || !in_array($question['correct'], [1, 2])) {
-                    $errors[] = "Domanda $num: risposta corretta deve essere 1 o 2";
-                }
-            }
-        }
-
-        if (!empty($errors)) {
-            throw new Exception(implode('; ', $errors));
-        }
-
-        return true;
-    }
-
     /**
      * Add a single question to a set
      * @return bool true on success
@@ -235,27 +201,11 @@ class QuestionService {
     }
 
     /**
-     * Search question sets
-     * @return array
-     */
-    public function searchQuestionSets($query) {
-        return $this->questionRepo->search($query);
-    }
-
-    /**
      * Get question set by ID
      * @return array|null
      */
     public function getQuestionSetById($id) {
         return $this->questionRepo->getById($id);
-    }
-
-    /**
-     * Get rounds for a question set
-     * @return array
-     */
-    public function getQuestionSetRounds($setId) {
-        return $this->questionRepo->getRounds($setId);
     }
 
     /**
@@ -301,6 +251,154 @@ class QuestionService {
             throw new Exception('ID obbligatorio');
         }
         return $this->questionRepo->deleteCategory($id);
+    }
+
+    // ===== METODI DA QuestionSetService =====
+
+    /**
+     * Get all question sets with pagination
+     */
+    public function getAll($page = 1, $limit = 10) {
+        $offset = ($page - 1) * $limit;
+        $sets = $this->questionSetRepo->getAll($limit, $offset);
+        $total = $this->questionSetRepo->getTotalCount();
+
+        return [
+            'sets' => $sets,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'totalPages' => ceil($total / $limit)
+        ];
+    }
+
+    /**
+     * Search question sets
+     */
+    public function search($searchTerm, $searchType = 'contains', $page = 1, $limit = 10) {
+        $offset = ($page - 1) * $limit;
+        $sets = $this->questionSetRepo->search($searchTerm, $searchType, $limit, $offset);
+        $total = $this->questionSetRepo->countSearch($searchTerm, $searchType);
+
+        return [
+            'sets' => $sets,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'totalPages' => ceil($total / $limit)
+        ];
+    }
+
+    /**
+     * Get question set by ID (alias)
+     */
+    public function getById($setId) {
+        return $this->questionSetRepo->getById($setId);
+    }
+
+    /**
+     * Add new question set
+     */
+    public function add($setName, $setDescription = '') {
+        if (empty($setName)) {
+            throw new Exception("Set name is required");
+        }
+
+        $setId = $this->questionSetRepo->add($setName, $setDescription);
+        if (!$setId) {
+            throw new Exception("Failed to create question set");
+        }
+
+        return $setId;
+    }
+
+    /**
+     * Update question set
+     */
+    public function update($setId, $setName, $setDescription = '') {
+        if (empty($setName)) {
+            throw new Exception("Set name is required");
+        }
+
+        $success = $this->questionSetRepo->update($setId, $setName, $setDescription);
+        if (!$success) {
+            throw new Exception("Failed to update question set");
+        }
+
+        return $success;
+    }
+
+    /**
+     * Delete question set
+     */
+    public function delete($setId) {
+        $success = $this->questionSetRepo->delete($setId);
+        if (!$success) {
+            throw new Exception("Failed to delete question set");
+        }
+
+        return $success;
+    }
+
+    /**
+     * Set the is_saved flag for a question set
+     */
+    public function setSaved($setId, $isSaved) {
+        $success = $this->questionSetRepo->setSaved($setId, $isSaved);
+        if (!$success) {
+            throw new Exception("Failed to update question set saved status");
+        }
+
+        return $success;
+    }
+
+    /**
+     * Get questions in set
+     */
+    public function getQuestions($setId) {
+        return $this->questionSetRepo->getQuestions($setId);
+    }
+
+    /**
+     * Add question to set (from QuestionSetService)
+     */
+    public function addQuestionToSet($setId, $questionId, $orderInSet = 0) {
+        return $this->questionSetRepo->addQuestion($setId, $questionId, $orderInSet);
+    }
+
+    /**
+     * Add question to set at a specific position
+     */
+    public function addQuestionAtPosition($setId, $questionId, $position) {
+        return $this->questionSetRepo->addQuestionAtPosition($setId, $questionId, $position);
+    }
+
+    /**
+     * Update questions order
+     */
+    public function updateQuestionsOrder($setId, $questions) {
+        return $this->questionSetRepo->updateQuestionsOrder($setId, $questions);
+    }
+
+    /**
+     * Remove question from set
+     */
+    public function removeQuestion($setId, $questionId) {
+        return $this->questionSetRepo->removeQuestion($setId, $questionId);
+    }
+
+    /**
+     * Move question up in set
+     */
+    public function moveQuestionUp($setId, $questionId) {
+        return $this->questionSetRepo->moveQuestionUp($setId, $questionId);
+    }
+
+    /**
+     * Move question down in set
+     */
+    public function moveQuestionDown($setId, $questionId) {
+        return $this->questionSetRepo->moveQuestionDown($setId, $questionId);
     }
 }
 

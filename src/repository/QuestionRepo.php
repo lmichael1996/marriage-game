@@ -422,5 +422,11 @@ class QuestionRepo {
         $stmt->bind_param("i", $id);
         return $stmt->execute();
     }
+
+    public function __destruct() {
+        if ($this->conn) {
+            $this->conn->close();
+        }
+    }
 }
 

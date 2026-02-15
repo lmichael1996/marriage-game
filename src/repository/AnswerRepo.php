@@ -38,8 +38,6 @@ class AnswerRepo {
             // answer_time: tempo in secondi impiegato dal player per rispondere
             $answer_time = floatval($time_taken);
 
-            error_log("submitAnswer DEBUG: time_taken type=" . gettype($time_taken) . ", value=$time_taken, answer_time=$answer_time");
-
             // Insert into player_answers table
             // Schema: (id, round_id, username, answer_time)
             // answer_time: DECIMAL(10,4) tempo in secondi
@@ -50,16 +48,9 @@ class AnswerRepo {
             $stmt->bind_param("isd", $round_id, $username, $answer_time);
             $success = $stmt->execute();
 
-            if (!$success) {
-                error_log("AnswerRepo submitAnswer ERROR: " . $stmt->error);
-            } else {
-                error_log("AnswerRepo submitAnswer SUCCESS: Saved answer for user=$username, round_id=$round_id");
-            }
-
             $stmt->close();
             return $success;
         } catch (Exception $e) {
-            error_log("AnswerRepo submitAnswer EXCEPTION: " . $e->getMessage());
             return false;
         }
     }
@@ -98,8 +89,6 @@ class AnswerRepo {
      */
     public function getTopFastestAnswers($round_id, $limit = 10) {
         try {
-            error_log("getTopFastestAnswers: Fetching top $limit answers for round_id=$round_id");
-
             $stmt = $this->conn->prepare("
                 SELECT
                     username,
@@ -119,12 +108,9 @@ class AnswerRepo {
                 $answers[] = $row;
             }
 
-            error_log("getTopFastestAnswers: Found " . count($answers) . " answers");
-
             $stmt->close();
             return $answers;
         } catch (Exception $e) {
-            error_log("getTopFastestAnswers ERROR: " . $e->getMessage());
             // Table doesn't exist or query error - return empty array
             return [];
         }
@@ -196,7 +182,6 @@ class AnswerRepo {
             // Recursive call with room code
             return $this->getLeaderboard($roomCode);
         } catch (Exception $e) {
-            error_log("Leaderboard error: " . $e->getMessage());
             return [
                 'success' => true,
                 'leaderboard' => []

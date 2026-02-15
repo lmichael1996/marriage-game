@@ -326,6 +326,11 @@ let questionsToRemove = [];
 // Funzione helper per parsare JSON da API con error handling
 async function safeFetchJSON(url, options = {}) {
     try {
+        // Assicura che i cookie di sessione vengano inviati
+        if (!options.credentials) {
+            options.credentials = 'include';
+        }
+
         const response = await fetch(url, options);
 
         if (!response.ok) {
@@ -1288,8 +1293,6 @@ function updateOrderInDatabase(setId) {
             setTimeout(() => {
                 loadSetQuestions(setId);
             }, 300);
-        } else {
-            console.log('Ordine aggiornato con successo');
         }
     })
     .catch(error => {
@@ -1847,18 +1850,12 @@ function loadNewSetQuestions(highlightId = null) {
     fetch(`/src/api/api.php?endpoint=get_questions`)
         .then(response => response.json())
         .then(data => {
-            console.log('Domande dal fetch:', data.questions);
-            console.log('IDs nel localStorage:', addedQuestionIds);
-
             if (data.success && data.questions) {
                 const associatedQuestions = data.questions.filter(q => {
                     const qId = parseInt(q.id);
                     const isAdded = addedQuestionIds.includes(qId) || addedQuestionIds.includes(q.id);
-                    console.log(`Checking q.id=${q.id} (parsed=${qId}):`, isAdded);
                     return isAdded;
                 });
-
-                console.log('Domande filtrate:', associatedQuestions);
 
                 let html = '<div class="questions-associated" id="new-set-questions-list">';
                 const total = associatedQuestions.length;
@@ -2033,13 +2030,14 @@ function addQuestionBelowInSet(setId, questionId, positionIndex) {
 }
 
 function startGameWithSet(setId) {
-    // Reindirizza a game-room.php con il set_id
-    setTimeout(() => {
-        window.location.href = `../game-room.php?set_id=${setId}`;
-    }, 100);
-}
+    // Usa l'API endpoint per reindirizzare a game-room.php mantenendo la sessione
+    console.log('startGameWithSet called with setId:', setId);
+    const gameRoomUrl = `/public/game-room.php?set_id=${setId}`;
+    console.log('Redirecting to:', gameRoomUrl);
 
-// Avvia un gioco dal modal "Crea Partita"
+    // Reindirizza direttamente - il cookie è stato preservato dalle fetch precedenti
+    window.location.href = gameRoomUrl;
+}// Avvia un gioco dal modal "Crea Partita"
 function startGameFromModal() {
     const currentName = document.getElementById('edit-set-name').value || 'set temporaneo';
     const currentDescription = document.getElementById('edit-set-description').value || '';
@@ -2075,6 +2073,7 @@ function startGameFromModal() {
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify({
                         set_id: data.set_id,
                         question_id: questionId

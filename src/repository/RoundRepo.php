@@ -53,51 +53,6 @@ class RoundRepo {
     }
 
     /**
-     * Get winning players for a round (top 10 fastest)
-     */
-    public function getWinningPlayers($round_id) {
-        $stmt = $this->conn->prepare("
-            SELECT pa.username, pa.answer_time
-            FROM player_answers pa
-            WHERE pa.round_id = ?
-            ORDER BY pa.answer_time ASC
-            LIMIT 10
-        ");
-
-        $stmt->bind_param("i", $round_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $winners = $result->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
-
-        return $winners;
-    }
-
-    /**
-     * Delete round by ID
-     */
-    public function deleteRound($round_id) {
-        $stmt = $this->conn->prepare("DELETE FROM rounds WHERE id = ?");
-        $stmt->bind_param("i", $round_id);
-        $success = $stmt->execute();
-        $stmt->close();
-
-        return $success;
-    }
-
-    /**
-     * Delete all rounds for a room
-     */
-    public function deleteRoundsByRoom($room_id) {
-        $stmt = $this->conn->prepare("DELETE FROM rounds WHERE room_id = ?");
-        $stmt->bind_param("i", $room_id);
-        $success = $stmt->execute();
-        $stmt->close();
-
-        return $success;
-    }
-
-    /**
      * Reset all rounds for a question set (removes associated rounds from rooms)
      */
     public function resetRoundsBySetId($question_set_id) {
