@@ -74,8 +74,10 @@ class RoomService {
         }
 
         // Reset all rounds to pending status before starting
-        if ($room['question_set_id']) {
-            $this->roundRepo->resetRoundsBySetId($room['question_set_id']);
+        // Support both 'qset_id' (DB column) and legacy 'question_set_id' key
+        $qsetId = $room['qset_id'] ?? $room['question_set_id'] ?? null;
+        if ($qsetId) {
+            $this->roundRepo->resetRoundsBySetId($qsetId);
         }
 
         $success = $this->roomRepo->startRoom($roomCode);
@@ -122,8 +124,8 @@ class RoomService {
         $room['players'] = $this->getRoomPlayers($roomCode);
         $room['player_count'] = count($room['players']);
 
-        if ($room['question_set_id']) {
-            $room['question_set'] = $this->questionSetRepo->getById($room['question_set_id']);
+        if ($room['qset_id'] ?? null) {
+            $room['question_set'] = $this->questionSetRepo->getById($room['qset_id']);
         }
 
         return $room;
@@ -155,5 +157,12 @@ class RoomService {
      */
     public function deleteRoundByRoom($roomId) {
         return $this->roundRepo->deleteRoundByRoom($roomId);
+    }
+
+    /**
+     * Inserisci un round nella stanza
+     */
+    public function insertRound($roomId, $questionId = null) {
+        return $this->roundRepo->insertRound($roomId, $questionId);
     }
 }

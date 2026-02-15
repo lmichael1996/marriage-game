@@ -122,7 +122,7 @@ class RoundRepo {
                    q.correct_answer, q.timer,
                    (SELECT COUNT(*) FROM rounds r2 WHERE r2.room_id = r.room_id AND r2.id <= r.id) as round_number
             FROM rounds r
-            JOIN questions q ON r.question_id = q.id
+            LEFT JOIN questions q ON r.question_id = q.id
             WHERE r.room_id = ?
             ORDER BY r.id DESC
             LIMIT 1
@@ -191,8 +191,8 @@ class RoundRepo {
     public function deleteActiveRound($room_id) {
         // Find the ID of the most recent round and delete it
         $stmt = $this->conn->prepare("
-            DELETE FROM rounds 
-            WHERE room_id = ? 
+            DELETE FROM rounds
+            WHERE room_id = ?
             AND id = (
                 SELECT MAX(id) FROM rounds WHERE room_id = ?
             )
@@ -201,6 +201,28 @@ class RoundRepo {
         $success = $stmt->execute();
         $stmt->close();
         return $success;
+    }
+
+    /**
+     * Insert a round with optional question_id (can be NULL for end-game marker)
+     */
+    public function insertRound($room_id, $question_id = null) {
+        $stmt = $this->conn->prepare("
+            INSERT INTO rounds (room_id, question_id)
+            VALUES (?, ?)
+        ");
+
+        // Always use "ii" for two integers; NULL is handled automatically by MySQLi
+        $stmt->bind_param("ii", $room_id, $question_id);
+
+        if ($stmt->execute()) {
+            $roundId = $this->conn->insert_id;
+            $stmt->close();
+            return $roundId;
+        }
+
+        $stmt->close();
+        return false;
     }
 
     public function __destruct() {

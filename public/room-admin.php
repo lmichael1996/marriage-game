@@ -44,6 +44,15 @@ if ($question) {
 // Game over: No question at current counter = we've finished all questions
 $gameOver = !$question;
 
+// If game over, insert end-game round with question_id = NULL
+if ($gameOver) {
+    $endGameRound = $roomService->getActiveRound($room['id']);
+    if (!$endGameRound || $endGameRound['question_id'] !== null) {
+        // Insert end-game round with question_id = NULL
+        $roomService->insertRound($room['id'], null);
+    }
+}
+
 // Room info
 $roomInfoKey = 'room_info_' . $roomCode;
 if (!isset($_SESSION[$roomInfoKey])) {
@@ -625,7 +634,7 @@ $roomInfo = $_SESSION[$roomInfoKey];
                     if (data.success && data.top_answers?.length > 0) {
                         let html = '';
                         data.top_answers.forEach((answer, i) => {
-                            const medals = ['🥇', '🥈', '�'];
+                            const medals = ['🥇', '🥈', '🥉'];
                             const medal = medals[i] || (i + 1) + '.';
                             const time = parseFloat(answer.answer_time).toFixed(2) + 's';
                             html += `<div class="leaderboard-item">

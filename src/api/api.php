@@ -536,6 +536,49 @@ function handleConnectedDevices($room) {
         exit();
     }
 
+    if ($action === 'check_game_over') {
+        requireLoginJson();
+
+        try {
+            $roomCode = $_SESSION['room_code'] ?? null;
+            if (!$roomCode) {
+                echo json_encode(['success' => false, 'message' => 'Room code not found']);
+                exit();
+            }
+
+            // Get room and current counter from session
+            $roomData = $room->getRoomDetails($roomCode);
+            if (!$roomData) {
+                echo json_encode(['success' => false, 'message' => 'Room not found']);
+                exit();
+            }
+
+            // Get counter from session
+            $counterKey = 'round_counter_' . $roomCode;
+            $counter = $_SESSION[$counterKey] ?? 1;
+
+            // Check if there's a question at current counter
+            $questionAtCounter = $question->getQuestionByCounter($roomData['qset_id'], $counter);
+
+            // If no question at counter, game is over - create end-game round with question_id = NULL
+            if (!$questionAtCounter) {
+                $activeRound = $room->getActiveRound($roomData['id']);
+                // Only create end-game round if it doesn't exist or if the last round has a question_id
+                if (!$activeRound || $activeRound['question_id'] !== null) {
+                    $room->insertRound($roomData['id'], null);
+                }
+                echo json_encode(['success' => true, 'game_over' => true, 'message' => 'End-game round created']);
+            } else {
+                echo json_encode(['success' => true, 'game_over' => false]);
+            }
+        } catch (Exception $e) {
+            error_log('check_game_over error: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Server error: ' . $e->getMessage()]);
+        }
+        exit();
+    }
+
     if ($action === 'close_round') {
         // Get round_id from either GET or POST body
         $roundId = $_GET['round_id'] ?? 0;
