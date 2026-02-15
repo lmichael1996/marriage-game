@@ -1,13 +1,11 @@
 <?php
 require_once __DIR__ . '/../src/utils/auth.php';
-require_once __DIR__ . '/../src/services/GameService.php';
 require_once __DIR__ . '/../src/services/AdminService.php';
 require_once __DIR__ . '/../src/services/QuestionService.php';
 require_once __DIR__ . '/../src/services/RoomService.php';
 
 requireAdmin();
 
-$game = new GameService();
 $admin = new AdminService();
 $questionService = new QuestionService();
 $roomService = new RoomService();
@@ -56,8 +54,8 @@ if ($questionSetId) {
     // Trova la domanda per il counter corrente usando il servizio
     $nextQuestion = $questionService->getQuestionByCounter($questionSetId, $currentCounter);
 
-    // Se c'è un round attivo nel DB, caricalo
-    $activeRound = $game->getActiveRound($questionSetId);
+    // Carica il round attivo direttamente dalla sessione
+    $activeRound = $_SESSION['active_round_data_' . $roomCode] ?? null;
 }
 
 $players = $roomService->getRoomPlayers($roomCode) ?? [];
