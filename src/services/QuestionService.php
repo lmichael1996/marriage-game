@@ -27,6 +27,13 @@ class QuestionService {
     }
 
     /**
+     * Get question by counter (order_in_set) for a specific question set
+     */
+    public function getQuestionByCounter($qsetId, $counter) {
+        return $this->questionSetRepo->getQuestionByCounter($qsetId, $counter);
+    }
+
+    /**
      * Crea un nuovo set di domande con le sue domande
      * @return int Set ID
      * @throws Exception on failure

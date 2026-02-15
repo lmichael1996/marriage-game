@@ -3,19 +3,14 @@ require_once __DIR__ . '/../src/utils/auth.php';
 require_once __DIR__ . '/../src/services/GameService.php';
 require_once __DIR__ . '/../src/services/AdminService.php';
 require_once __DIR__ . '/../src/services/QuestionService.php';
-require_once __DIR__ . '/../src/repository/RoomRepo.php';
-require_once __DIR__ . '/../src/repository/PlayerRepo.php';
-require_once __DIR__ . '/../src/repository/QuestionSetRepo.php';
-require_once __DIR__ . '/../src/repository/RoundRepo.php';
+require_once __DIR__ . '/../src/services/RoomService.php';
 
 requireAdmin();
 
 $game = new GameService();
 $admin = new AdminService();
 $questionService = new QuestionService();
-$roomRepo = new RoomRepo();
-$playerRepo = new PlayerRepo();
-$questionSetRepo = new QuestionSetRepo();
+$roomService = new RoomService();
 
 $roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
 $room = null;
@@ -39,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 if ($roomCode) {
-    $room = $roomRepo->getRoomByCode($roomCode);
+    $room = $roomService->getRoomDetails($roomCode);
     if ($room) {
         $questionSetId = $room['qset_id'];
     }
@@ -62,25 +57,14 @@ $activeRound = null;
 $nextQuestion = null;
 
 if ($questionSetId) {
-    // Trova la domanda per il counter corrente direttamente da qset_questions
-    $conn = getDBConnection();
-    $stmt = $conn->prepare("
-        SELECT qq.id as qset_question_id, qq.question_id, q.*
-        FROM qset_questions qq
-        JOIN questions q ON qq.question_id = q.id
-        WHERE qq.qset_id = ? AND qq.order_in_set = ?
-    ");
-    $stmt->bind_param("ii", $questionSetId, $currentCounter);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $nextQuestion = $result->fetch_assoc();
-    $stmt->close();
+    // Trova la domanda per il counter corrente usando il servizio
+    $nextQuestion = $questionService->getQuestionByCounter($questionSetId, $currentCounter);
 
     // Se c'è un round attivo nel DB, caricalo
     $activeRound = $game->getActiveRound($questionSetId);
 }
 
-$players = $playerRepo->getPlayersByRoom($roomCode) ?? [];
+$players = $roomService->getRoomPlayers($roomCode) ?? [];
 $gameOver = !$activeRound && !$nextQuestion;
 
 // Variabili per JavaScript

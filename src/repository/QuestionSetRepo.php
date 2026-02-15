@@ -435,6 +435,25 @@ class QuestionSetRepo {
         return $questions;
     }
 
+    /**
+     * Get question by counter (order_in_set) for a specific question set
+     */
+    public function getQuestionByCounter($qsetId, $counter) {
+        $stmt = $this->conn->prepare("
+            SELECT qq.id as qset_question_id, qq.question_id, q.*
+            FROM qset_questions qq
+            JOIN questions q ON qq.question_id = q.id
+            WHERE qq.qset_id = ? AND qq.order_in_set = ?
+        ");
+        $stmt->bind_param("ii", $qsetId, $counter);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $question = $result->fetch_assoc();
+        $stmt->close();
+
+        return $question;
+    }
+
     public function __destruct() {
         if ($this->conn) {
             $this->conn->close();
