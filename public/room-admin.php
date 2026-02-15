@@ -221,11 +221,6 @@ $currentRoundNumber = $activeRound['round_number'] ?? ($nextQuestion['order_in_s
         let timerInterval = null;
         let currentRoundResults = null;
 
-
-        // Debug: mostra il counter corrente e i dettagli della domanda
-        alert('Counter: <?php echo $currentCounter; ?>\nRoom: <?php echo htmlspecialchars($roomCode); ?>\nNextQuestion ID: <?php echo $nextQuestion ? $nextQuestion['id'] : 'null'; ?>\nQuestion: <?php echo $nextQuestion ? htmlspecialchars(substr($nextQuestion['question'], 0, 50)) . '...' : 'nessuna'; ?>\nQuestion ID: <?php echo $nextQuestion ? $nextQuestion['question_id'] : 'null'; ?>');
-
-
         document.addEventListener('DOMContentLoaded', () => {
             // Load round results from session storage if available
             const storedResults = sessionStorage.getItem('roundResults');
@@ -377,12 +372,11 @@ $currentRoundNumber = $activeRound['round_number'] ?? ($nextQuestion['order_in_s
                 if (data.success) {
                     location.reload();
                 } else {
-                    alert('Errore: ' + (data.error || 'Impossibile avviare il round'));
+                    console.error('Errore avvio round: ' + (data.error || 'Impossibile avviare il round'));
                 }
             })
             .catch(e => {
                 console.error('start_round error:', e);
-                alert('Errore: ' + e.message);
             });
         }
 
