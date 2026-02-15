@@ -117,9 +117,10 @@ class RoundRepo {
     public function getActiveRound($room_id) {
         $stmt = $this->conn->prepare("
             SELECT r.id, r.room_id, r.question_id,
-                   q.id as question_id, q.round_type,
+                   q.id as q_id, q.round_type,
                    q.question, q.option1, q.option2, q.option3, q.option4,
-                   q.correct_answer, q.timer
+                   q.correct_answer, q.timer,
+                   (SELECT COUNT(*) FROM rounds r2 WHERE r2.room_id = r.room_id AND r2.id <= r.id) as round_number
             FROM rounds r
             JOIN questions q ON r.question_id = q.id
             WHERE r.room_id = ?
@@ -131,6 +132,15 @@ class RoundRepo {
         $result = $stmt->get_result();
         $round = $result->fetch_assoc();
         $stmt->close();
+
+        if ($round) {
+            // Convert to int
+            $round['round_number'] = (int)$round['round_number'];
+            error_log('RoundRepo::getActiveRound() found round: ' . json_encode($round));
+        } else {
+            error_log('RoundRepo::getActiveRound() NO ROUND FOUND for room_id: ' . $room_id);
+        }
+
         return $round;
     }
 
