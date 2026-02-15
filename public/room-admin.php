@@ -37,27 +37,32 @@ if (!$room) {
 }
 
 // LOGICA SEMPLICE:
-// 1. Estrai il question_id usando un counter basato su order_in_set
-// 2. Counter parte da 1 e corrisponde a order_in_set
-// 3. Quando clicchi "Avvia Round", crea record in rounds con quel question_id
+// 1. Usa counter che parte da 1
+// 2. Query: SELECT question_id FROM qset_questions WHERE qset_id = $questionSetId AND order_in_set = $counter
+// 3. Ottieni il question_id
+// 4. Crea/carica il round con quel question_id
+// 5. Incrementa counter
 
 $currentCounter = $_SESSION['round_counter_' . $roomCode] ?? 1;  // Parte da 1
 $activeRound = null;
 $nextQuestion = null;
 
 if ($questionSetId) {
-    // Carica tutte le domande del set
-    $questionsWithOrder = $questionSetRepo->getQuestionsWithQsetId($questionSetId);
-
-    // Trova la domanda corrispondente al counter corrente (order_in_set = counter)
-    foreach ($questionsWithOrder as $q) {
-        if ($q['order_in_set'] == $currentCounter) {
-            $nextQuestion = $q;
-            break;
-        }
-    }
-
-    // Se c'è un round attivo, caricalo dal DB
+    // Trova la domanda per il counter corrente direttamente da qset_questions
+    $conn = getDBConnection();
+    $stmt = $conn->prepare("
+        SELECT qq.id as qset_question_id, qq.question_id, q.*
+        FROM qset_questions qq
+        JOIN questions q ON qq.question_id = q.id
+        WHERE qq.qset_id = ? AND qq.order_in_set = ?
+    ");
+    $stmt->bind_param("ii", $questionSetId, $currentCounter);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $nextQuestion = $result->fetch_assoc();
+    $stmt->close();
+    
+    // Se c'è un round attivo nel DB, caricalo
     $activeRound = $game->getActiveRound($questionSetId);
 }
 
@@ -363,31 +368,22 @@ $currentRoundNumber = $activeRound['round_number'] ?? ($nextQuestion['order_in_s
         }
 
         function nextQuestion(roundId) {
-            console.log('nextQuestion called with roundId:', roundId);
-            fetch('../src/api/api.php?endpoint=game&action=close_round&round_id=' + roundId, {
+            console.log('nextQuestion called - incrementando counter');
+            // Semplicemente incrementa il counter e ricarica la pagina
+            fetch('../src/api/api.php?endpoint=increment_counter', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ round_id: roundId })
+                body: JSON.stringify({})
             })
-            .then(r => {
-                console.log('close_round response status:', r.status);
-                return r.json();
-            })
+            .then(r => r.json())
             .then(data => {
-                console.log('close_round response data:', data);
-                if (data.success) {
-                    // Save top answers to session storage before reloading
-                    if (data.top_answers && data.top_answers.length > 0) {
-                        sessionStorage.setItem('roundResults', JSON.stringify(data.top_answers));
-                    }
-                    location.reload();
-                } else {
-                    alert('Errore: ' + (data.error || 'Impossibile passare al prossimo round'));
-                }
+                console.log('counter incremented:', data);
+                location.reload();
             })
             .catch(e => {
-                console.error('close_round error:', e);
-                alert('Errore: ' + e.message);
+                console.error('Error incrementing counter:', e);
+                // Se fallisce, ricarica comunque
+                location.reload();
             });
         }
 

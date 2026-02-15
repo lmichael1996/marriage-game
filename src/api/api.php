@@ -77,6 +77,10 @@ switch ($endpoint) {
         handleGame($action, $game, $room, $question);
         break;
 
+    case 'increment_counter':
+        handleIncrementCounter();
+        break;
+
     case 'leaderboard':
         handleLeaderboard($game);
         break;
@@ -1542,5 +1546,31 @@ function handleMoveQuestionDown($questionSet) {
             'message' => $e->getMessage()
         ]);
     }
+}
+
+function handleIncrementCounter() {
+    requireLoginJson();
+    
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    
+    $roomCode = $_SESSION['room_code'] ?? null;
+    if (!$roomCode) {
+        echo json_encode([
+            'success' => false,
+            'error' => 'Nessuna stanza attiva'
+        ]);
+        exit;
+    }
+    
+    $counterKey = 'round_counter_' . $roomCode;
+    $currentCounter = $_SESSION[$counterKey] ?? 1;
+    $_SESSION[$counterKey] = $currentCounter + 1;
+    
+    echo json_encode([
+        'success' => true,
+        'newCounter' => $currentCounter + 1
+    ]);
 }
 ?>
