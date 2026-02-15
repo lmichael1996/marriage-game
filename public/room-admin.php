@@ -92,10 +92,35 @@ $roomInfo = $_SESSION[$roomInfoKey];
                         </div>
                     </div>
                 <?php elseif ($activeRound): ?>
-                    <!-- Active round: show timer and "Prossima Domanda" button -->
+                    <!-- Active round: show timer, options, and "Prossima Domanda" button -->
                     <div class="game-step">
                         <h3>📋 Round Attivo: #<?php echo $activeRound['round_number']; ?></h3>
                         <p><strong><?php echo htmlspecialchars($activeRound['question']); ?></strong></p>
+
+                        <?php if ($activeRound['round_type'] !== 'clickfirst'): ?>
+                            <div style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px;">
+                                <strong style="display: block; margin-bottom: 15px;">📋 Risposte:</strong>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div id="option-1" style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center; cursor: pointer;">
+                                        <?php echo htmlspecialchars($activeRound['option1']); ?>
+                                    </div>
+                                    <div id="option-2" style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center; cursor: pointer;">
+                                        <?php echo htmlspecialchars($activeRound['option2']); ?>
+                                    </div>
+                                    <?php if ($activeRound['round_type'] === 'multiple'): ?>
+                                        <div id="option-3" style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center; cursor: pointer;">
+                                            <?php echo htmlspecialchars($activeRound['option3']); ?>
+                                        </div>
+                                        <div id="option-4" style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center; cursor: pointer;">
+                                            <?php echo htmlspecialchars($activeRound['option4']); ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <p style="color: #ffc107; font-weight: bold;">⚡ Chi clicca primo vince!</p>
+                        <?php endif; ?>
+
                         <div class="info-box" style="text-align: center; margin: 20px 0;">
                             <h4>⏱️ Timer: <span id="timer" style="font-size: 2.5em; color: #28a745;"><?php echo $activeRound['timer'] ?? 30; ?></span>s</h4>
                         </div>
@@ -106,10 +131,35 @@ $roomInfo = $_SESSION[$roomInfoKey];
                         </div>
                     </div>
                 <?php else: ?>
-                    <!-- No active round: show "AVVIA ROUND" button -->
+                    <!-- No active round: show "AVVIA ROUND" button with options preview -->
                     <div class="game-step">
                         <h3>📋 Domanda #<?php echo $counter; ?></h3>
                         <p><strong><?php echo htmlspecialchars($question['question']); ?></strong></p>
+
+                        <?php if ($question['round_type'] !== 'clickfirst'): ?>
+                            <div style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px;">
+                                <strong style="display: block; margin-bottom: 15px;">📋 Risposte:</strong>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center;">
+                                        <?php echo htmlspecialchars($question['option1']); ?>
+                                    </div>
+                                    <div style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center;">
+                                        <?php echo htmlspecialchars($question['option2']); ?>
+                                    </div>
+                                    <?php if ($question['round_type'] === 'multiple'): ?>
+                                        <div style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center;">
+                                            <?php echo htmlspecialchars($question['option3']); ?>
+                                        </div>
+                                        <div style="padding: 12px; background: #5B7FFF; border-radius: 6px; color: white; font-weight: 500; text-align: center;">
+                                            <?php echo htmlspecialchars($question['option4']); ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <p style="color: #ffc107; font-weight: bold; margin: 20px 0;">⚡ Chi clicca primo vince!</p>
+                        <?php endif; ?>
+
                         <div style="text-align: center; margin-top: 20px;">
                             <button class="btn btn-primary" onclick="startRound(<?php echo $question['id']; ?>)" style="padding: 15px 40px;">
                                 ▶ AVVIA ROUND
@@ -146,6 +196,8 @@ $roomInfo = $_SESSION[$roomInfoKey];
             let timeLeft = seconds;
             const timerEl = document.getElementById('timer');
             const nextBtn = document.getElementById('next-btn');
+            let correctAnswer = null;
+            let isClickFirst = false;
 
             timerInterval = setInterval(() => {
                 timeLeft--;
@@ -156,10 +208,32 @@ $roomInfo = $_SESSION[$roomInfoKey];
 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    if (nextBtn) {
-                        nextBtn.disabled = false;
-                        nextBtn.style.animation = 'pulse 1s infinite';
-                    }
+
+                    // After 2 seconds, show correct answer
+                    setTimeout(() => {
+                        const correctAnswer = <?php echo isset($activeRound['correct_answer']) ? $activeRound['correct_answer'] : 'null'; ?>;
+                        const isClickFirst = '<?php echo isset($activeRound['round_type']) ? $activeRound['round_type'] : ''; ?>' === 'clickfirst';
+
+                        // Show correct answer for non-clickfirst rounds
+                        if (!isClickFirst && correctAnswer) {
+                            const correctOption = document.querySelector('#option-' + correctAnswer);
+                            if (correctOption) {
+                                correctOption.style.background = '#4caf50';
+                            }
+                        }
+
+                        // Load top answers when timer expires
+                        const roundId = <?php echo isset($activeRound['id']) ? $activeRound['id'] : 'null'; ?>;
+                        if (roundId) {
+                            loadRoundAnswers(roundId);
+                        }
+
+                        // Enable next button
+                        if (nextBtn) {
+                            nextBtn.disabled = false;
+                            nextBtn.style.animation = 'pulse 1s infinite';
+                        }
+                    }, 2000);
                 }
             }, 1000);
         }
@@ -208,6 +282,26 @@ $roomInfo = $_SESSION[$roomInfoKey];
                             </div>`;
                         });
                         document.getElementById('final-leaderboard').innerHTML = html;
+                    }
+                });
+        }
+
+        function loadRoundAnswers(roundId) {
+            fetch('../src/api/api.php?endpoint=round_answers&round_id=' + roundId)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.top_answers?.length > 0) {
+                        let html = '';
+                        data.top_answers.forEach((answer, i) => {
+                            const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : (i + 1) + '.'));
+                            const time = parseFloat(answer.answer_time).toFixed(2) + 's';
+                            html += `<div style="padding: 15px; background: #f5f5f5; border-radius: 6px; text-align: center; margin-bottom: 10px;">
+                                <div style="font-size: 1.5em; font-weight: bold;">${medal}</div>
+                                <div style="font-size: 1em;">${answer.username}</div>
+                                <div style="font-size: 0.9em; color: #666; margin-top: 4px;">${time}</div>
+                            </div>`;
+                        });
+                        document.getElementById('leaderboard').innerHTML = html;
                     }
                 });
         }
