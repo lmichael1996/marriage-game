@@ -10,16 +10,16 @@ class RoundRepo {
 
     /**
      * Create a new round for a room (insert into rounds table)
-     * Stores only: room_id, qset_question_id
+     * Stores: room_id, question_id
      * Rankings are computed on-demand from player_answers table
      */
-    public function createRound($room_id, $qset_question_id) {
+    public function createRound($room_id, $question_id) {
         $stmt = $this->conn->prepare("
-            INSERT INTO rounds (room_id, qset_question_id)
+            INSERT INTO rounds (room_id, question_id)
             VALUES (?, ?)
         ");
 
-        $stmt->bind_param("ii", $room_id, $qset_question_id);
+        $stmt->bind_param("ii", $room_id, $question_id);
 
         if ($stmt->execute()) {
             $roundId = $this->conn->insert_id;

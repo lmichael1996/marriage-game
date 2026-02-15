@@ -5,6 +5,7 @@ require_once __DIR__ . '/../src/services/AdminService.php';
 require_once __DIR__ . '/../src/services/QuestionService.php';
 require_once __DIR__ . '/../src/repository/RoomRepo.php';
 require_once __DIR__ . '/../src/repository/PlayerRepo.php';
+require_once __DIR__ . '/../src/repository/QuestionSetRepo.php';
 
 requireAdmin();
 
@@ -13,6 +14,7 @@ $admin = new AdminService();
 $questionService = new QuestionService();
 $roomRepo = new RoomRepo();
 $playerRepo = new PlayerRepo();
+$questionSetRepo = new QuestionSetRepo();
 
 $roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
 $room = null;
@@ -34,39 +36,37 @@ if (!$room) {
     exit;
 }
 
-$questions = [];
-$setInfo = null;
-if ($questionSetId) {
-    $setInfo = $questionService->getQuestionSetWithQuestions($questionSetId);
-    if ($setInfo) {
-        $questions = $setInfo['questions'] ?? [];
-    }
-}
+// LOGICA SEMPLICE:
+// 1. Estrai il question_id usando un counter basato su order_in_set
+// 2. Counter parte da 1 e corrisponde a order_in_set
+// 3. Quando clicchi "Avvia Round", crea record in rounds con quel question_id
 
-$activeRound = $game->getActiveRound($questionSetId);
-$players = $playerRepo->getPlayersByRoom($roomCode) ?? [];
-
-// Determine which question should be next
+$currentCounter = $_SESSION['round_counter_' . $roomCode] ?? 1;  // Parte da 1
+$activeRound = null;
 $nextQuestion = null;
-$lastCompletedRound = $_SESSION['last_completed_round_' . $roomCode] ?? 0;
 
-// If there's an active round, find next after that
-if ($activeRound) {
-    $activeRoundNumber = $activeRound['round_number'];
-} else {
-    // Otherwise use the last completed round number
-    $activeRoundNumber = $lastCompletedRound;
-}
+if ($questionSetId) {
+    // Carica tutte le domande del set
+    $questionsWithOrder = $questionSetRepo->getQuestionsWithQsetId($questionSetId);
 
-// Find next question to display
-foreach ($questions as $q) {
-    if ($q['round_number'] > $activeRoundNumber) {
-        $nextQuestion = $q;
-        break;
+    // Trova la domanda corrispondente al counter corrente (order_in_set = counter)
+    foreach ($questionsWithOrder as $q) {
+        if ($q['order_in_set'] == $currentCounter) {
+            $nextQuestion = $q;
+            break;
+        }
     }
+
+    // Se c'è un round attivo, caricalo dal DB
+    $activeRound = $game->getActiveRound($questionSetId);
 }
 
+$players = $playerRepo->getPlayersByRoom($roomCode) ?? [];
 $gameOver = !$activeRound && !$nextQuestion;
+
+// Variabili per JavaScript
+$currentQuestionId = $activeRound['id'] ?? ($nextQuestion['id'] ?? null);
+$currentRoundNumber = $activeRound['round_number'] ?? ($nextQuestion['order_in_set'] ?? 0);
 ?>
 <!DOCTYPE html>
 <html lang="it">
