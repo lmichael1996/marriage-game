@@ -68,10 +68,12 @@ $roomInfo = $_SESSION[$roomInfoKey];
         .game-container {
             display: grid;
             grid-template-columns: 1fr 350px;
+            grid-auto-rows: max-content;
             gap: 20px;
             max-width: 1200px;
             margin: 20px auto;
             padding: 0 20px;
+            align-items: start;
         }
 
         .game-main {
@@ -83,14 +85,14 @@ $roomInfo = $_SESSION[$roomInfoKey];
         }
 
         .game-sidebar {
-            position: sticky;
-            top: 20px;
-            height: fit-content;
             background: #fff;
             border: 2px solid #333;
             border-radius: 0;
             padding: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            height: fit-content;
+            max-height: none;
+            overflow-y: visible;
         }
 
         .info-box {
@@ -516,25 +518,7 @@ $roomInfo = $_SESSION[$roomInfoKey];
             <?php if ($gameOver): ?>
             loadFinalLeaderboard();
             <?php endif; ?>
-
-            // Aggiorna info ogni 2 secondi
-            setInterval(updateRoomInfo, 2000);
-            updateRoomInfo(); // Carica subito
         });
-
-        function updateRoomInfo() {
-            fetch('../src/api/api.php?endpoint=check_room_status')
-                .then(r => r.json())
-                .then(data => {
-                    if (data.players_count !== undefined) {
-                        const playerEl = document.querySelector('.info-box p:first-child strong');
-                        if (playerEl) {
-                            playerEl.textContent = data.players_count;
-                        }
-                    }
-                })
-                .catch(e => console.error('Error updating room info:', e));
-        }
 
         function startCountdown(seconds) {
             let timeLeft = seconds;
