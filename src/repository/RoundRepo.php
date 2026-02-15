@@ -110,7 +110,42 @@ class RoundRepo {
         return $rounds;
     }
 
+    /**
+     * Get active round for a room (the most recent one created)
+     * This is the round currently being played
+     */
+    public function getActiveRound($room_id) {
+        $stmt = $this->conn->prepare("
+            SELECT r.id, r.room_id, r.question_id,
+                   q.id as question_id, q.round_type,
+                   q.question, q.option1, q.option2, q.option3, q.option4,
+                   q.correct_answer, q.timer
+            FROM rounds r
+            JOIN questions q ON r.question_id = q.id
+            WHERE r.room_id = ?
+            ORDER BY r.id DESC
+            LIMIT 1
+        ");
+        $stmt->bind_param("i", $room_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $round = $result->fetch_assoc();
+        $stmt->close();
+        return $round;
+    }
 
+    /**
+     * Delete all rounds for a room (used when advancing to next question)
+     */
+    public function deleteRoundByRoom($room_id) {
+        $stmt = $this->conn->prepare("
+            DELETE FROM rounds WHERE room_id = ?
+        ");
+        $stmt->bind_param("i", $room_id);
+        $success = $stmt->execute();
+        $stmt->close();
+        return $success;
+    }
 
     public function __destruct() {
         if ($this->conn) {

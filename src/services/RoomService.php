@@ -135,4 +135,18 @@ class RoomService {
     public function getQuestionSetIdByRoomCode($roomCode) {
         return $this->roomRepo->getQuestionSetIdByRoomCode($roomCode);
     }
+
+    /**
+     * Get active round for a room (reads from DB, not session)
+     */
+    public function getActiveRound($roomId) {
+        return $this->roundRepo->getActiveRound($roomId);
+    }
+
+    /**
+     * Delete all rounds for a room (used when advancing to next question)
+     */
+    public function deleteRoundByRoom($roomId) {
+        return $this->roundRepo->deleteRoundByRoom($roomId);
+    }
 }

@@ -8,7 +8,8 @@ requireAdmin();
 $questionService = new QuestionService();
 $roomService = new RoomService();
 
-$roomCode = $_SESSION['room_code'] ?? null;
+// ✅ Room code da GET param (more reliable than session)
+$roomCode = $_GET['room_code'] ?? $_SESSION['room_code'] ?? null;
 
 // Carica stanza e set di domande
 $room = $roomService->getRoomDetails($roomCode);
@@ -19,10 +20,13 @@ if (!$room) {
 
 // Handler per incrementare il counter via POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'increment_counter') {
-    if ($roomCode) {
+    if ($room['id']) {
+        // ✅ Delete previous round from DB
+        $roomService->deleteRoundByRoom($room['id']);
+
+        // ✅ Increment counter in session (local to admin)
         $counterKey = 'round_counter_' . $roomCode;
         $_SESSION[$counterKey] = ($_SESSION[$counterKey] ?? 1) + 1;
-        unset($_SESSION['active_round_data_' . $roomCode]);
     }
     exit;
 }
@@ -45,9 +49,11 @@ if (!isset($_SESSION[$roomInfoKey])) {
 
 $roomInfo = $_SESSION[$roomInfoKey];
 
-// Carica domanda corrente e round attivo
+// Carica domanda corrente
 $nextQuestion = $questionService->getQuestionByCounter($questionSetId, $currentCounter);
-$activeRound = $_SESSION['active_round_data_' . $roomCode] ?? null;
+
+// ✅ Get active round from DB (not session)
+$activeRound = $roomService->getActiveRound($room['id']);
 $gameOver = !$activeRound && !$nextQuestion;
 ?>
 <!DOCTYPE html>
@@ -314,12 +320,12 @@ $gameOver = !$activeRound && !$nextQuestion;
             }, 1000);
         }
 
-        function startRound(roundId) {
-            console.log('startRound called with roundId:', roundId);
+        function startRound(questionId) {
+            console.log('startRound called with questionId:', questionId);
             fetch('../src/api/api.php?endpoint=game&action=start_round', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ round_id: roundId })
+                body: JSON.stringify({ question_id: questionId })
             })
             .then(r => {
                 console.log('start_round response status:', r.status);
@@ -328,9 +334,11 @@ $gameOver = !$activeRound && !$nextQuestion;
             .then(data => {
                 console.log('start_round response data:', data);
                 if (data.success) {
-                    location.reload();
+                    // Reload page with room_code in GET param
+                    const roomCode = '<?php echo htmlspecialchars($roomCode); ?>';
+                    location.href = 'room-admin.php?room_code=' + encodeURIComponent(roomCode);
                 } else {
-                    console.error('Errore avvio round: ' + (data.error || 'Impossibile avviare il round'));
+                    console.error('Errore avvio round: ' + (data.error || data.message || 'Impossibile avviare il round'));
                 }
             })
             .catch(e => {
@@ -347,8 +355,9 @@ $gameOver = !$activeRound && !$nextQuestion;
                 method: 'POST',
                 body: formData
             }).then(() => {
-                // Ricarica la pagina dopo che il counter è stato incrementato
-                location.reload();
+                // Ricarica la pagina con room_code nel GET param
+                const roomCode = '<?php echo htmlspecialchars($roomCode); ?>';
+                location.href = 'room-admin.php?room_code=' + encodeURIComponent(roomCode);
             }).catch(err => console.error('Errore:', err));
         }
 

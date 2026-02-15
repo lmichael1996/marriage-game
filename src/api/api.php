@@ -441,21 +441,39 @@ function handleConnectedDevices($room) {
     requireLoginJson();
 
     if ($action === 'get_game_state') {
-        $questionSetId = null;
+        try {
+            // Get room_code from session (player context)
+            $roomCode = $_SESSION['room_code'] ?? null;
 
-        // If player is logged in, get their room's question set
-        if (isset($_SESSION['room_code'])) {
-            $questionSetId = $room->getQuestionSetIdByRoomCode($_SESSION['room_code']);
-        }
+            if (!$roomCode) {
+                echo json_encode(['success' => false]);
+                exit();
+            }
 
-        $result = $game->getActiveRound($questionSetId);
+            // Get room ID from room code
+            require_once __DIR__ . '/../repository/RoomRepo.php';
+            $roomRepo = new RoomRepo();
+            $roomData = $roomRepo->getRoomByCode($roomCode);
 
-        if ($result) {
-            // Active round found
-            echo json_encode($result);
-        } else {
-            // No active round
-            echo json_encode(['success' => false]);
+            if (!$roomData) {
+                echo json_encode(['success' => false]);
+                exit();
+            }
+
+            // ✅ Get active round from DB (not session)
+            $result = $room->getActiveRound($roomData['id']);
+
+            if ($result) {
+                // Active round found - return all data
+                echo json_encode($result);
+            } else {
+                // No active round
+                echo json_encode(['success' => false]);
+            }
+        } catch (Exception $e) {
+            error_log('get_game_state error: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
         exit();
     }
@@ -489,24 +507,73 @@ function handleConnectedDevices($room) {
     }
 
     if ($action === 'start_round') {
-        // Get round_id from either GET or POST body
-        $roundId = $_GET['round_id'] ?? 0;
+        requireLoginJson();
 
-        if (!$roundId && $_SERVER['REQUEST_METHOD'] === 'POST') {
-            $postData = json_decode(file_get_contents('php://input'), true);
-            $roundId = $postData['round_id'] ?? 0;
-        }
+        try {
+            // Get question_id from either GET or POST body
+            $questionId = $_GET['question_id'] ?? 0;
 
-        if (!$roundId) {
+            if (!$questionId && $_SERVER['REQUEST_METHOD'] === 'POST') {
+                $postData = json_decode(file_get_contents('php://input'), true);
+                $questionId = $postData['question_id'] ?? 0;
+            }
+
+            if (!$questionId) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Question ID mancante'
+                ]);
+                exit();
+            }
+
+            // Get room_code from session (admin context)
+            $roomCode = $_SESSION['room_code'] ?? null;
+            if (!$roomCode) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Room code non trovato in session'
+                ]);
+                exit();
+            }
+
+            // Get room ID from room code
+            require_once __DIR__ . '/../repository/RoomRepo.php';
+            require_once __DIR__ . '/../repository/RoundRepo.php';
+            $roomRepo = new RoomRepo();
+            $roundRepo = new RoundRepo();
+            $roomData = $roomRepo->getRoomByCode($roomCode);
+
+            if (!$roomData) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Room non trovata'
+                ]);
+                exit();
+            }
+
+            // Create round in DB
+            $roundId = $roundRepo->createRound($roomData['id'], $questionId);
+
+            if (!$roundId) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Errore nella creazione del round'
+                ]);
+                exit();
+            }
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Round creato',
+                'round_id' => $roundId
+            ]);
+        } catch (Exception $e) {
+            http_response_code(500);
             echo json_encode([
                 'success' => false,
-                'message' => 'Round ID mancante'
+                'message' => 'Errore server: ' . $e->getMessage()
             ]);
-            exit();
         }
-
-        $result = $game->startRound($roundId);
-        echo json_encode($result);
         exit();
     }
 
