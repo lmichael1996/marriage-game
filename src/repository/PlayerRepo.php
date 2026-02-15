@@ -79,6 +79,26 @@ class PlayerRepo {
     }
 
     /**
+     * Get all players for a specific room by room ID
+     */
+    public function getPlayersByRoomId($roomId) {
+        $stmt = $this->conn->prepare("
+            SELECT id, username, connected_at
+            FROM players
+            WHERE room_id = ?
+            ORDER BY id ASC
+        ");
+
+        $stmt->bind_param("i", $roomId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $players = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+        $stmt->close();
+
+        return $players;
+    }
+
+    /**
      * Delete all players for a specific room
      */
     public function deletePlayersByRoom($roomCode) {
@@ -102,6 +122,23 @@ class PlayerRepo {
         $stmt->close();
 
         return $success;
+    }
+
+    /**
+     * Get player by room ID and username
+     */
+    public function getPlayerByRoomAndUsername($roomId, $username) {
+        $stmt = $this->conn->prepare("
+            SELECT id FROM players
+            WHERE room_id = ? AND username = ?
+        ");
+        $stmt->bind_param("is", $roomId, $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $player = $result->fetch_assoc();
+        $stmt->close();
+
+        return $player;
     }
 
     public function __destruct() {

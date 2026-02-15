@@ -442,6 +442,8 @@ class GameService {
 
             $medals = ['🥇', '🥈', '🥉'];
             $leaderboard = [];
+            $isFirstWinner = true;
+
             foreach ($playerScores as $username => $score) {
                 $index = count($leaderboard);
                 $medal = $medals[$index] ?? '';
@@ -450,6 +452,15 @@ class GameService {
                     'score' => $score,
                     'medal' => $medal
                 ];
+
+                // Insert the first player (winner) into the winners table
+                if ($isFirstWinner) {
+                    $player = $this->playerRepo->getPlayerByRoomAndUsername($room['id'], $username);
+                    if ($player) {
+                        $this->roomRepo->insertWinner($room['id'], $player['id']);
+                    }
+                    $isFirstWinner = false;
+                }
             }
 
             return ['success' => true, 'leaderboard' => $leaderboard];

@@ -623,6 +623,12 @@ $roomInfo = $_SESSION[$roomInfoKey];
                         // Popola sia la sidebar che il main content
                         document.getElementById('final-leaderboard').innerHTML = html;
                         document.getElementById('leaderboard').innerHTML = html;
+
+                        // Mark the winner after displaying the leaderboard
+                        fetch('../src/api/api.php?endpoint=game&action=mark_winner', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' }
+                        });
                     }
                 });
         }

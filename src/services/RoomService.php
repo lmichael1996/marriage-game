@@ -165,4 +165,48 @@ class RoomService {
     public function insertRound($roomId, $questionId = null) {
         return $this->roundRepo->insertRound($roomId, $questionId);
     }
+
+    /**
+     * Mark the winner of a room (highest score)
+     */
+    public function markWinner($roomId) {
+        // Get the room details
+        $room = $this->roomRepo->getRoomById($roomId);
+        if (!$room) {
+            return false;
+        }
+
+        // Get all players and their scores
+        $players = $this->playerRepo->getPlayersByRoomId($roomId);
+        if (!$players || count($players) === 0) {
+            return false;
+        }
+
+        // Calculate scores for each player
+        $scores = [];
+        foreach ($players as $player) {
+            $correctAnswers = $this->roomRepo->countCorrectAnswersByPlayer($roomId, $player['username']);
+            $scores[$player['id']] = [
+                'username' => $player['username'],
+                'score' => $correctAnswers
+            ];
+        }
+
+        // Find winner (highest score)
+        $winnerId = null;
+        $maxScore = -1;
+        foreach ($scores as $playerId => $data) {
+            if ($data['score'] > $maxScore) {
+                $maxScore = $data['score'];
+                $winnerId = $playerId;
+            }
+        }
+
+        if (!$winnerId) {
+            return false;
+        }
+
+        // Insert winner record
+        return $this->roomRepo->insertWinner($roomId, $winnerId);
+    }
 }

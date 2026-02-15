@@ -133,6 +133,42 @@ class RoomRepo {
         return $playerRepo->getPlayersByRoom($roomCode);
     }
 
+    /**
+     * Count correct answers for a player in a room
+     */
+    public function countCorrectAnswersByPlayer($roomId, $username) {
+        $stmt = $this->conn->prepare("
+            SELECT COUNT(*) as correct_count
+            FROM player_answers pa
+            JOIN rounds r ON pa.round_id = r.id
+            JOIN questions q ON r.question_id = q.id
+            WHERE r.room_id = ? AND pa.username = ? AND pa.answer = q.correct_answer
+        ");
+        $stmt->bind_param("is", $roomId, $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+
+        return $row ? (int)$row['correct_count'] : 0;
+    }
+
+    /**
+     * Insert winner record
+     */
+    public function insertWinner($roomId, $playerId) {
+        $stmt = $this->conn->prepare("
+            INSERT INTO winners (room_id, user_id)
+            VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE user_id = VALUES(user_id)
+        ");
+        $stmt->bind_param("ii", $roomId, $playerId);
+        $success = $stmt->execute();
+        $stmt->close();
+
+        return $success;
+    }
+
     public function __destruct() {
         if ($this->conn) {
             $this->conn->close();

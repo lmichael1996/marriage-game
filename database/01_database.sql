@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS players (
     username VARCHAR(50) NOT NULL,
     room_id INT NOT NULL,
     connected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_winner BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
     UNIQUE (username, room_id)
 );
@@ -94,7 +95,16 @@ CREATE TABLE IF NOT EXISTS player_answers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     round_id INT NOT NULL,
     username VARCHAR(50) NOT NULL,
+    answer INT NOT NULL,
     answer_time DECIMAL(10, 4) NOT NULL,
     FOREIGN KEY (round_id) REFERENCES rounds(id) ON DELETE CASCADE,
     UNIQUE (round_id, username)
+);
+
+CREATE TABLE IF NOT EXISTS winners (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    room_id INT UNIQUE NOT NULL,
+    user_id INT NOT NULL,
+    FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES players(id) ON DELETE CASCADE
 );
