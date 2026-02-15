@@ -12,13 +12,9 @@ $admin = new AdminService();
 $questionService = new QuestionService();
 $roomService = new RoomService();
 
-$roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
+$roomCode = $_SESSION['room_code'] ?? null;
 $room = null;
 $questionSetId = null;
-
-if ($roomCode && !isset($_SESSION['room_code'])) {
-    $_SESSION['room_code'] = $roomCode;
-}
 
 // Handler per incrementare il counter via POST (no GET parameters)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'increment_counter') {
