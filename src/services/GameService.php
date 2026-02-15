@@ -73,9 +73,6 @@ class GameService {
             }
 
             // Create a new round record in the database
-            // Store: room_id, qset_question_id
-            // Rankings will be computed on-demand from player_answers
-            // Note: questionId refers to a question in qset_questions table
             $roundId = $this->roundRepo->createRound($room['id'], $questionId);
 
             if (!$roundId) {
@@ -85,14 +82,17 @@ class GameService {
                 ];
             }
 
-            // Store active round in session with global key (shared across users in same room)
-            // Use a file or database to store active round per room
-            // For now, use a session key that's not per-user
-            $_SESSION['active_round_' . $roomCode] = $roundId;
-            $_SESSION['active_question_' . $roomCode] = $questionId;
-
-            // Also store in a file for cross-session access
-            $this->storeActiveRoundToFile($roomCode, $roundId, $questionId);
+            // Salva il round attivo completo in session con tutti i dati della domanda
+            $activeRoundData = array_merge(
+                [
+                    'id' => $roundId,
+                    'room_id' => $room['id'],
+                    'question_id' => $questionId,
+                    'round_number' => $_SESSION['round_counter_' . $roomCode] ?? 1
+                ],
+                $question  // Aggiunge tutti i campi della domanda (question, option1, option2, etc)
+            );
+            $_SESSION['active_round_data_' . $roomCode] = $activeRoundData;
 
             return [
                 'success' => true,
@@ -109,7 +109,7 @@ class GameService {
     }
 
     /**
-     * Get active round - from file storage for cross-session access
+     * Get active round from session (non serve il DB)
      */
     public function getActiveRound($questionSetId = null) {
         if (session_status() === PHP_SESSION_NONE) {
@@ -122,16 +122,10 @@ class GameService {
             return null;
         }
 
-        // Try to get active round from file (cross-session)
-        $activeRoundId = $this->getActiveRoundFromFile($roomCode);
+        // Leggi il round attivo dalla session
+        $activeRoundData = $_SESSION['active_round_data_' . $roomCode] ?? null;
 
-        // If we have an active round ID, fetch and return it
-        if ($activeRoundId) {
-            return $this->roundRepo->getRoundById($activeRoundId);
-        }
-
-        // No active round
-        return null;
+        return $activeRoundData;
     }
 
     /**

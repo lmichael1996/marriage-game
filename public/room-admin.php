@@ -6,6 +6,7 @@ require_once __DIR__ . '/../src/services/QuestionService.php';
 require_once __DIR__ . '/../src/repository/RoomRepo.php';
 require_once __DIR__ . '/../src/repository/PlayerRepo.php';
 require_once __DIR__ . '/../src/repository/QuestionSetRepo.php';
+require_once __DIR__ . '/../src/repository/RoundRepo.php';
 
 requireAdmin();
 
@@ -24,6 +25,19 @@ if ($roomCode && !isset($_SESSION['room_code'])) {
     $_SESSION['room_code'] = $roomCode;
 }
 
+// Handler per incrementare il counter via POST (no GET parameters)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'increment_counter') {
+    if ($roomCode) {
+        $counterKey = 'round_counter_' . $roomCode;
+        $newCounter = ($_SESSION[$counterKey] ?? 1) + 1;
+        $_SESSION[$counterKey] = $newCounter;
+
+        // IMPORTANTE: Cancella il round attivo dalla session per far caricare la prossima domanda
+        unset($_SESSION['active_round_data_' . $roomCode]);
+    }
+    // Ritorna solo un 200 OK, il JavaScript ricaricherà la pagina
+    exit;
+}
 if ($roomCode) {
     $room = $roomRepo->getRoomByCode($roomCode);
     if ($room) {
@@ -61,7 +75,7 @@ if ($questionSetId) {
     $result = $stmt->get_result();
     $nextQuestion = $result->fetch_assoc();
     $stmt->close();
-    
+
     // Se c'è un round attivo nel DB, caricalo
     $activeRound = $game->getActiveRound($questionSetId);
 }
@@ -206,6 +220,11 @@ $currentRoundNumber = $activeRound['round_number'] ?? ($nextQuestion['order_in_s
         const roomCode = '<?php echo $roomCode; ?>';
         let timerInterval = null;
         let currentRoundResults = null;
+
+
+        // Debug: mostra il counter corrente e i dettagli della domanda
+        alert('Counter: <?php echo $currentCounter; ?>\nRoom: <?php echo htmlspecialchars($roomCode); ?>\nNextQuestion ID: <?php echo $nextQuestion ? $nextQuestion['id'] : 'null'; ?>\nQuestion: <?php echo $nextQuestion ? htmlspecialchars(substr($nextQuestion['question'], 0, 50)) . '...' : 'nessuna'; ?>\nQuestion ID: <?php echo $nextQuestion ? $nextQuestion['question_id'] : 'null'; ?>');
+
 
         document.addEventListener('DOMContentLoaded', () => {
             // Load round results from session storage if available
@@ -368,23 +387,17 @@ $currentRoundNumber = $activeRound['round_number'] ?? ($nextQuestion['order_in_s
         }
 
         function nextQuestion(roundId) {
-            console.log('nextQuestion called - incrementando counter');
-            // Semplicemente incrementa il counter e ricarica la pagina
-            fetch('../src/api/api.php?endpoint=increment_counter', {
+            // Invia POST per incrementare il counter nella session (no GET parameters)
+            const formData = new FormData();
+            formData.append('action', 'increment_counter');
+
+            fetch('room-admin.php', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({})
-            })
-            .then(r => r.json())
-            .then(data => {
-                console.log('counter incremented:', data);
+                body: formData
+            }).then(() => {
+                // Ricarica la pagina dopo che il counter è stato incrementato
                 location.reload();
-            })
-            .catch(e => {
-                console.error('Error incrementing counter:', e);
-                // Se fallisce, ricarica comunque
-                location.reload();
-            });
+            }).catch(err => console.error('Errore:', err));
         }
 
         function loadLeaderboard() {

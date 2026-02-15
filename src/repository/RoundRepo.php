@@ -74,13 +74,12 @@ class RoundRepo {
      */
     public function getRoundById($round_id) {
         $stmt = $this->conn->prepare("
-            SELECT r.id, r.room_id, qsq.order_in_set as round_number,
+            SELECT r.id, r.room_id,
                    q.id as question_id, q.round_type,
                    q.question, q.option1, q.option2, q.option3, q.option4,
                    q.correct_answer, q.timer
             FROM rounds r
-            JOIN qset_questions qsq ON r.qset_question_id = qsq.id
-            JOIN questions q ON qsq.question_id = q.id
+            JOIN questions q ON r.question_id = q.id
             WHERE r.id = ?
         ");
         $stmt->bind_param("i", $round_id);
@@ -96,15 +95,14 @@ class RoundRepo {
      */
     public function getRoundsByRoom($room_id) {
         $stmt = $this->conn->prepare("
-            SELECT r.id, r.room_id, qsq.order_in_set as round_number,
+            SELECT r.id, r.room_id, r.question_id,
                    q.id as question_id, q.round_type,
                    q.question, q.option1, q.option2, q.option3, q.option4,
                    q.correct_answer, q.timer
             FROM rounds r
-            JOIN qset_questions qsq ON r.qset_question_id = qsq.id
-            JOIN questions q ON qsq.question_id = q.id
+            JOIN questions q ON r.question_id = q.id
             WHERE r.room_id = ?
-            ORDER BY qsq.order_in_set ASC
+            ORDER BY r.id ASC
         ");
         $stmt->bind_param("i", $room_id);
         $stmt->execute();

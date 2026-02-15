@@ -1550,11 +1550,11 @@ function handleMoveQuestionDown($questionSet) {
 
 function handleIncrementCounter() {
     requireLoginJson();
-    
+
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
-    
+
     $roomCode = $_SESSION['room_code'] ?? null;
     if (!$roomCode) {
         echo json_encode([
@@ -1563,11 +1563,14 @@ function handleIncrementCounter() {
         ]);
         exit;
     }
-    
+
     $counterKey = 'round_counter_' . $roomCode;
     $currentCounter = $_SESSION[$counterKey] ?? 1;
     $_SESSION[$counterKey] = $currentCounter + 1;
-    
+
+    // Assicura che i dati vengono scritti nella session
+    session_write_close();
+
     echo json_encode([
         'success' => true,
         'newCounter' => $currentCounter + 1
