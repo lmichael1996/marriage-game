@@ -184,6 +184,25 @@ class RoundRepo {
         return $success;
     }
 
+    /**
+     * Delete the most recent (active) round for a room
+     * Used when admin clicks "Prossima Domanda" to clear the current round before advancing
+     */
+    public function deleteActiveRound($room_id) {
+        // Find the ID of the most recent round and delete it
+        $stmt = $this->conn->prepare("
+            DELETE FROM rounds 
+            WHERE room_id = ? 
+            AND id = (
+                SELECT MAX(id) FROM rounds WHERE room_id = ?
+            )
+        ");
+        $stmt->bind_param("ii", $room_id, $room_id);
+        $success = $stmt->execute();
+        $stmt->close();
+        return $success;
+    }
+
     public function __destruct() {
         if ($this->conn) {
             $this->conn->close();

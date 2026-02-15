@@ -20,10 +20,15 @@ if (!$room) {
 
 // Handler per incrementare il counter via POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'increment_counter') {
-    if ($room['id']) {
+    if ($roomCode) {
         // Increment counter in session (local to admin)
         $counterKey = 'round_counter_' . $roomCode;
         $_SESSION[$counterKey] = ($_SESSION[$counterKey] ?? 1) + 1;
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'counter' => $_SESSION[$counterKey]]);
+    } else {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'Room code not found']);
     }
     exit;
 }
@@ -51,6 +56,13 @@ $nextQuestion = $questionService->getQuestionByCounter($questionSetId, $currentC
 
 // ✅ Get active round from DB (not session)
 $activeRound = $roomService->getActiveRound($room['id']);
+
+// Check if activeRound is for the CURRENT question
+// If the active round is for a different question, it means we've moved past it
+if ($activeRound && $nextQuestion && $activeRound['question_id'] !== $nextQuestion['id']) {
+    $activeRound = null;  // Not active for current question
+}
+
 $gameOver = !$activeRound && !$nextQuestion;
 ?>
 <!DOCTYPE html>
@@ -190,10 +202,7 @@ $gameOver = !$activeRound && !$nextQuestion;
                 sessionStorage.removeItem('roundResults');  // Clear after reading
             }
             <?php if ($activeRound): ?>
-            console.log('Active round timer value:', <?php echo isset($activeRound['timer']) ? $activeRound['timer'] : 'null'; ?>);
-            console.log('Active round data:', <?php echo json_encode($activeRound); ?>);
             const timerValue = <?php echo isset($activeRound['timer']) && $activeRound['timer'] !== null ? (int)$activeRound['timer'] : 'null'; ?>;
-            console.log('Parsed timer value:', timerValue);
             startCountdown(timerValue || 10);
             <?php endif; ?>
             loadLeaderboard();
@@ -214,13 +223,10 @@ $gameOver = !$activeRound && !$nextQuestion;
             let correctAnswerNum = null;
             let isClickFirst = false;
 
-            console.log('startCountdown called with:', seconds, 'parsed to:', timeLeft);
-
             // Get active round data to find correct answer
             <?php if ($activeRound): ?>
             correctAnswerNum = <?php echo $activeRound['correct_answer'] ?? 1; ?>;
             isClickFirst = '<?php echo $activeRound['round_type']; ?>' === 'clickfirst';
-            console.log('isClickFirst:', isClickFirst, 'correctAnswerNum:', correctAnswerNum);
             <?php endif; ?>
 
             timerInterval = setInterval(() => {
@@ -235,7 +241,6 @@ $gameOver = !$activeRound && !$nextQuestion;
 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    console.log('Timer finished');
 
                     // Only show correct answer for non-clickfirst rounds
                     if (!isClickFirst) {
@@ -250,27 +255,19 @@ $gameOver = !$activeRound && !$nextQuestion;
 
                             // Fetch top 10 answers when timer expires
                             const roundId = <?php echo isset($activeRound['id']) ? $activeRound['id'] : 'null'; ?>;
-                            console.log('Fetching top answers for roundId:', roundId);
                             if (roundId) {
                                 fetch('../src/api/api.php?endpoint=round_answers&round_id=' + roundId)
                                     .then(r => r.json())
                                     .then(data => {
-                                        console.log('Full response:', data);
-                                        console.log('top_answers:', data.top_answers);
-                                        console.log('top_answers length:', data.top_answers ? data.top_answers.length : 0);
                                         if (data.success && data.top_answers && data.top_answers.length > 0) {
-                                            console.log('Setting currentRoundResults:', data.top_answers);
                                             currentRoundResults = data.top_answers;
                                             loadLeaderboard();  // Update the leaderboard display
                                         } else {
-                                            console.log('No top_answers in response or empty array');
                                             currentRoundResults = [];
                                             loadLeaderboard();
                                         }
                                     })
                                     .catch(e => console.error('Error fetching top answers:', e));
-                            } else {
-                                console.log('roundId is null!');
                             }
 
                             // Enable next button after showing correct answer
@@ -284,27 +281,19 @@ $gameOver = !$activeRound && !$nextQuestion;
                         setTimeout(() => {
                             // Fetch top 10 answers for clickfirst too
                             const roundId = <?php echo isset($activeRound['id']) ? $activeRound['id'] : 'null'; ?>;
-                            console.log('Fetching top answers for clickfirst roundId:', roundId);
                             if (roundId) {
                                 fetch('../src/api/api.php?endpoint=round_answers&round_id=' + roundId)
                                     .then(r => r.json())
                                     .then(data => {
-                                        console.log('Full response (clickfirst):', data);
-                                        console.log('top_answers:', data.top_answers);
-                                        console.log('top_answers length:', data.top_answers ? data.top_answers.length : 0);
                                         if (data.success && data.top_answers && data.top_answers.length > 0) {
-                                            console.log('Setting currentRoundResults:', data.top_answers);
                                             currentRoundResults = data.top_answers;
                                             loadLeaderboard();  // Update the leaderboard display
                                         } else {
-                                            console.log('No top_answers in response or empty array');
                                             currentRoundResults = [];
                                             loadLeaderboard();
                                         }
                                     })
                                     .catch(e => console.error('Error fetching top answers:', e));
-                            } else {
-                                console.log('roundId is null!');
                             }
 
                             if (nextBtn) {
@@ -318,44 +307,39 @@ $gameOver = !$activeRound && !$nextQuestion;
         }
 
         function startRound(questionId) {
-            console.log('startRound called with questionId:', questionId);
             fetch('../src/api/api.php?endpoint=game&action=start_round', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ question_id: questionId })
             })
-            .then(r => {
-                console.log('start_round response status:', r.status);
-                return r.json();
-            })
+            .then(r => r.json())
             .then(data => {
-                console.log('start_round response data:', data);
                 if (data.success) {
-                    // Reload page with room_code in GET param
                     const roomCode = '<?php echo htmlspecialchars($roomCode); ?>';
                     location.href = 'room-admin.php?room_code=' + encodeURIComponent(roomCode);
-                } else {
-                    console.error('Errore avvio round: ' + (data.error || data.message || 'Impossibile avviare il round'));
                 }
             })
-            .catch(e => {
-                console.error('start_round error:', e);
-            });
+            .catch(e => console.error('Error:', e));
         }
 
         function nextQuestion(roundId) {
-            // Invia POST per incrementare il counter nella session (no GET parameters)
+            const roomCode = '<?php echo htmlspecialchars($roomCode); ?>';
             const formData = new FormData();
             formData.append('action', 'increment_counter');
 
-            fetch('room-admin.php', {
+            fetch('room-admin.php?room_code=' + encodeURIComponent(roomCode), {
                 method: 'POST',
                 body: formData
-            }).then(() => {
-                // Ricarica la pagina con room_code nel GET param
-                const roomCode = '<?php echo htmlspecialchars($roomCode); ?>';
-                location.href = 'room-admin.php?room_code=' + encodeURIComponent(roomCode);
-            }).catch(err => console.error('Errore:', err));
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    location.href = 'room-admin.php?room_code=' + encodeURIComponent(roomCode);
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+            });
         }
 
         function loadLeaderboard() {
@@ -384,7 +368,6 @@ $gameOver = !$activeRound && !$nextQuestion;
             fetch('../src/api/api.php?endpoint=final_leaderboard')
                 .then(r => r.json())
                 .then(data => {
-                    console.log('Final leaderboard response:', data);
                     if (data.success && data.leaderboard && data.leaderboard.length > 0) {
                         const el = document.getElementById('final-leaderboard');
                         let html = '';
@@ -397,13 +380,8 @@ $gameOver = !$activeRound && !$nextQuestion;
                         });
                         el.innerHTML = html;
                     } else {
-                        console.log('No leaderboard data');
-                        document.getElementById('final-leaderboard').innerHTML = '<p class="loading-text">Nessun dato disponibile</p>';
+                        document.getElementById('final-leaderboard').innerHTML = '<p class="loading-text">No data</p>';
                     }
-                })
-                .catch(e => {
-                    console.error('Error loading final leaderboard:', e);
-                    document.getElementById('final-leaderboard').innerHTML = '<p class="loading-text">Errore nel caricamento</p>';
                 });
         }
 

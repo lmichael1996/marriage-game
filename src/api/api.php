@@ -468,7 +468,8 @@ function handleConnectedDevices($room) {
             $result = $room->getRoundByPosition($roomData['id'], $roundCounter);
 
             if ($result) {
-                // Round found - return all data
+                // Round found - return all data with success flag
+                $result['success'] = true;
                 echo json_encode($result);
             } else {
                 // No round at this position
