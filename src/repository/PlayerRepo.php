@@ -22,10 +22,23 @@ class PlayerRepo {
         $stmtRoom->close();
 
         if (!$room) {
-            return false; // Room doesn't exist
+            throw new Exception('Codice stanza non valido');
         }
 
         $roomId = $room['id'];
+
+        // Check if player with this username already exists in this room
+        $stmtCheck = $this->conn->prepare("SELECT id FROM players WHERE username = ? AND room_id = ?");
+        $stmtCheck->bind_param("si", $username, $roomId);
+        $stmtCheck->execute();
+        $existingResult = $stmtCheck->get_result();
+        $existingPlayer = $existingResult->fetch_assoc();
+        $stmtCheck->close();
+
+        if ($existingPlayer) {
+            throw new Exception('Un giocatore con questo nome è già nella stanza. Usa un nome diverso.');
+        }
+
         $stmt = $this->conn->prepare("INSERT INTO players (username, room_id) VALUES (?, ?)");
         $stmt->bind_param("si", $username, $roomId);
 
@@ -33,10 +46,12 @@ class PlayerRepo {
             $playerId = $this->conn->insert_id;
             $stmt->close();
             return $playerId;
+        } else {
+            // Catch other database errors
+            $errorMsg = $stmt->error;
+            $stmt->close();
+            throw new Exception('Errore durante la creazione del giocatore: ' . $errorMsg);
         }
-
-        $stmt->close();
-        return false;
     }
 
     /**
