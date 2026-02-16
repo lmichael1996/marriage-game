@@ -887,13 +887,16 @@ function loadSetQuestions(setId) {
                     const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 15px; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
 
                     html += `
-                        <div class="question-item" data-question-id="${q.id}" data-set-id="${setId}" draggable="true" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 10px; background-color: #fff; cursor: move;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="flex: 1;">
-                                    ${q.question}${categoryBadge}
+                        <div class="question-item" data-question-id="${q.id}" data-set-id="${setId}" draggable="true" style="padding: 12px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; background-color: #fff; cursor: move;">
+                            <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0;">
+                                <div style="word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;">
+                                    ${q.question}
+                                </div>
+                                <div>
+                                    ${categoryBadge}
                                 </div>
                             </div>
-                            <div style="display: flex; gap: 5px; flex-shrink: 0;">
+                            <div style="display: flex; gap: 5px; flex-shrink: 0; margin-top: 2px;">
                                 <button type="button" class="btn btn-danger btn-sm" onclick="removeQuestionFromSet(${setId}, ${q.id})">
                                     Elimina
                                 </button>
@@ -946,13 +949,16 @@ function loadGameQuestions() {
                     const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 15px; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
 
                     html += `
-                        <div class="question-item" data-question-id="${q.id}" draggable="true" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 10px; background-color: #fff; cursor: move;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="flex: 1;">
-                                    ${q.question}${categoryBadge}
+                        <div class="question-item" data-question-id="${q.id}" draggable="true" style="padding: 12px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; background-color: #fff; cursor: move;">
+                            <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0;">
+                                <div style="word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;">
+                                    ${q.question}
+                                </div>
+                                <div>
+                                    ${categoryBadge}
                                 </div>
                             </div>
-                            <div style="display: flex; gap: 5px; flex-shrink: 0;">
+                            <div style="display: flex; gap: 5px; flex-shrink: 0; margin-top: 2px;">
                                 <button type="button" class="btn btn-danger btn-sm" onclick="removeGameQuestion(${q.id})">
                                     Elimina
                                 </button>
@@ -1577,11 +1583,16 @@ function searchAvailableQuestions() {
                         const functionCall = isNewSet && document.querySelector('#modal-edit-set .modal-header h2').textContent.includes('Crea Partita') ? `addQuestionToGameSet(${q.id})` : `addQuestionToSet(${setId}, ${q.id})`;
 
                         html += `
-                            <div class="question-item" data-question-id="${q.id}" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 10px; background-color: #fff;">
-                                <div style="flex: 1;">
-                                    ${questionText}${categoryBadge}
+                            <div class="question-item" data-question-id="${q.id}" style="padding: 12px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; background-color: #fff;">
+                                <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0;">
+                                    <div style="word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;">
+                                        ${questionText}
+                                    </div>
+                                    <div>
+                                        ${categoryBadge}
+                                    </div>
                                 </div>
-                                <button type="button" class="btn btn-success btn-sm" onclick="${functionCall}" title="Aggiungi al set">+ Aggiungi</button>
+                                <button type="button" class="btn btn-success btn-sm" onclick="${functionCall}" title="Aggiungi al set" style="flex-shrink: 0; margin-top: 2px;">+ Aggiungi</button>
                             </div>
                         `;
                     });
@@ -1614,11 +1625,16 @@ function searchAvailableQuestions() {
                             }
 
                             html += `
-                                <div class="question-item" data-question-id="${q.id}" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 10px; background-color: #fff;">
-                                    <div style="flex: 1;">
-                                        ${questionText}${categoryBadge}
+                                <div class="question-item" data-question-id="${q.id}" style="padding: 12px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; background-color: #fff;">
+                                    <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0;">
+                                        <div style="word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;">
+                                            ${questionText}
+                                        </div>
+                                        <div>
+                                            ${categoryBadge}
+                                        </div>
                                     </div>
-                                    <button type="button" class="btn btn-success btn-sm" onclick="addQuestionToSet(${setId}, ${q.id})" title="Aggiungi al set">+ Aggiungi</button>
+                                    <button type="button" class="btn btn-success btn-sm" onclick="addQuestionToSet(${setId}, ${q.id})" title="Aggiungi al set" style="flex-shrink: 0; margin-top: 2px;">+ Aggiungi</button>
                                 </div>
                             `;
                         });
@@ -1699,11 +1715,16 @@ function searchAvailableQuestionsForNewSet() {
                     }
 
                     html += `
-                        <div class="question-item" data-question-id="${q.id}" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 10px; background-color: #fff;">
-                            <div style="flex: 1;">
-                                ${questionText}${categoryBadge}
+                        <div class="question-item" data-question-id="${q.id}" style="padding: 12px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; background-color: #fff;">
+                            <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0;">
+                                <div style="word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;">
+                                    ${questionText}
+                                </div>
+                                <div>
+                                    ${categoryBadge}
+                                </div>
                             </div>
-                            <button type="button" class="btn btn-success btn-sm" onclick="addQuestionToNewSet(${q.id})" title="Aggiungi al set">+ Aggiungi</button>
+                            <button type="button" class="btn btn-success btn-sm" onclick="addQuestionToNewSet(${q.id})" title="Aggiungi al set" style="flex-shrink: 0; margin-top: 2px;">+ Aggiungi</button>
                         </div>
                     `;
                 });
