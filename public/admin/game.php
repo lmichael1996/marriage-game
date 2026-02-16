@@ -146,7 +146,7 @@
 
                 <div class="form-group">
                     <label for="edit-set-questions">Domande Associate</label>
-                    <div id="edit-set-questions" class="questions-list" style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 4px; background-color: #f9f9f9;">
+                    <div id="edit-set-questions" class="form-settings">
                         <p style="text-align: center; color: #999;">Caricamento domande...</p>
                     </div>
                 </div>
@@ -203,7 +203,7 @@
 
                 <div class="form-group">
                     <label for="add-set-associated-questions">Domande Associate</label>
-                    <div id="add-set-associated-questions" class="questions-list" style="max-height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 4px; background-color: #f9f9f9;">
+                    <div id="add-set-associated-questions" class="form-settings">
                         <p style="text-align: center; color: #999;">Nessuna domanda associata</p>
                     </div>
                 </div>
@@ -883,20 +883,36 @@ function loadSetQuestions(setId) {
                 let html = '<div class="questions-associated" id="questions-list-' + setId + '">';
                 const total = data.questions.length;
 
-                data.questions.forEach((q, index) => {
-                    const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 15px; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
+                // Filtra le domande escludendo quelle contrassegnate per l'eliminazione
+                const filteredQuestions = data.questions.filter(q => !questionsToRemove.includes(q.id));
+
+                if (filteredQuestions.length === 0) {
+                    containerAssociated.innerHTML = '<p style="text-align: center; color: #999;">Nessuna domanda associata</p>';
+                    return;
+                }
+
+                filteredQuestions.forEach((q, index) => {
+                    const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
+
+                    const typeMap = {
+                        'multiple': '📋 Scelta multipla',
+                        'truefalse': '✔️ Vero/Falso',
+                        'clickfirst': '⚡ Clicca per primo'
+                    };
+                    const typeBadge = q.round_type ? `<span style="display: inline-block; background-color: #e9ecef; color: #333; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; font-weight: 600; border: 1px solid #dee2e6;">${typeMap[q.round_type] || q.round_type}</span>` : '';
 
                     html += `
-                        <div class="question-item" data-question-id="${q.id}" data-set-id="${setId}" draggable="true" style="padding: 12px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; background-color: #fff; cursor: move;">
-                            <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0;">
-                                <div style="word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;">
-                                    ${q.question}
-                                </div>
-                                <div>
-                                    ${categoryBadge}
-                                </div>
+                        <div class="question-item" data-question-id="${q.id}" data-set-id="${setId}" draggable="true" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 15px; background-color: #fff; cursor: move;">
+                            <div style="flex: 2; min-width: 0; word-wrap: break-word; overflow-wrap: break-word;">
+                                ${q.question}
                             </div>
-                            <div style="display: flex; gap: 5px; flex-shrink: 0; margin-top: 2px;">
+                            <div style="flex: 1; text-align: center; flex-shrink: 0;">
+                                ${categoryBadge}
+                            </div>
+                            <div style="flex: 1; text-align: center; flex-shrink: 0;">
+                                ${typeBadge}
+                            </div>
+                            <div style="display: flex; gap: 5px; flex-shrink: 0;">
                                 <button type="button" class="btn btn-danger btn-sm" onclick="removeQuestionFromSet(${setId}, ${q.id})">
                                     Elimina
                                 </button>
@@ -946,19 +962,27 @@ function loadGameQuestions() {
                 let html = '<div class="questions-associated" id="game-questions-list">';
 
                 associatedQuestions.forEach((q, index) => {
-                    const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 15px; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
+                    const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
+
+                    const typeMap = {
+                        'multiple': '📋 Scelta multipla',
+                        'truefalse': '✔️ Vero/Falso',
+                        'clickfirst': '⚡ Clicca per primo'
+                    };
+                    const typeBadge = q.round_type ? `<span style="display: inline-block; background-color: #e9ecef; color: #333; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; font-weight: 600; border: 1px solid #dee2e6;">${typeMap[q.round_type] || q.round_type}</span>` : '';
 
                     html += `
-                        <div class="question-item" data-question-id="${q.id}" draggable="true" style="padding: 12px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; background-color: #fff; cursor: move;">
-                            <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0;">
-                                <div style="word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;">
-                                    ${q.question}
-                                </div>
-                                <div>
-                                    ${categoryBadge}
-                                </div>
+                        <div class="question-item" data-question-id="${q.id}" draggable="true" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 15px; background-color: #fff; cursor: move;">
+                            <div style="flex: 2; min-width: 0; word-wrap: break-word; overflow-wrap: break-word;">
+                                ${q.question}
                             </div>
-                            <div style="display: flex; gap: 5px; flex-shrink: 0; margin-top: 2px;">
+                            <div style="flex: 1; text-align: center; flex-shrink: 0;">
+                                ${categoryBadge}
+                            </div>
+                            <div style="flex: 1; text-align: center; flex-shrink: 0;">
+                                ${typeBadge}
+                            </div>
+                            <div style="display: flex; gap: 5px; flex-shrink: 0;">
                                 <button type="button" class="btn btn-danger btn-sm" onclick="removeGameQuestion(${q.id})">
                                     Elimina
                                 </button>
@@ -1568,10 +1592,25 @@ function searchAvailableQuestions() {
 
                 // Se è un nuovo set (setId vuoto), non fare fetch delle domande associate
                 if (!setId) {
-                    // Per nuovi set, mostra tutte le domande filtrate
+                    // Per "Crea Partita", ottieni le domande già aggiunte dal localStorage
+                    const addedQuestionIds = JSON.parse(localStorage.getItem('addSetQuestions') || '[]').map(id => parseInt(id));
+
+                    // Per nuovi set, mostra tutte le domande filtrate escludendo quelle già aggiunte
                     let html = '';
                     filtered.forEach(q => {
-                        const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 15px; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
+                        // Salta le domande già aggiunte
+                        if (addedQuestionIds.includes(parseInt(q.id))) {
+                            return;
+                        }
+
+                        const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 10px; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
+
+                        const typeMap = {
+                            'multiple': '📋 Scelta multipla',
+                            'truefalse': '✔️ Vero/Falso',
+                            'clickfirst': '⚡ Clicca per primo'
+                        };
+                        const typeBadge = q.round_type ? `<span style="display: inline-block; background-color: #e9ecef; color: #333; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 10px; font-weight: 600; border: 1px solid #dee2e6;">${typeMap[q.round_type] || q.round_type}</span>` : '';
 
                         let questionText = q.question;
                         if (searchTerm && pattern) {
@@ -1583,16 +1622,17 @@ function searchAvailableQuestions() {
                         const functionCall = isNewSet && document.querySelector('#modal-edit-set .modal-header h2').textContent.includes('Crea Partita') ? `addQuestionToGameSet(${q.id})` : `addQuestionToSet(${setId}, ${q.id})`;
 
                         html += `
-                            <div class="question-item" data-question-id="${q.id}" style="padding: 12px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; background-color: #fff;">
-                                <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0;">
-                                    <div style="word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;">
-                                        ${questionText}
-                                    </div>
-                                    <div>
-                                        ${categoryBadge}
-                                    </div>
+                            <div class="question-item" data-question-id="${q.id}" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 15px; background-color: #fff;">
+                                <div style="flex: 2; min-width: 0; word-wrap: break-word; overflow-wrap: break-word;">
+                                    ${questionText}
                                 </div>
-                                <button type="button" class="btn btn-success btn-sm" onclick="${functionCall}" title="Aggiungi al set" style="flex-shrink: 0; margin-top: 2px;">+ Aggiungi</button>
+                                <div style="flex: 1; text-align: center; flex-shrink: 0;">
+                                    ${categoryBadge}
+                                </div>
+                                <div style="flex: 1; text-align: center; flex-shrink: 0;">
+                                    ${typeBadge}
+                                </div>
+                                <button type="button" class="btn btn-success btn-sm" onclick="${functionCall}" title="Aggiungi al set">+ Aggiungi</button>
                             </div>
                         `;
                     });
@@ -1606,8 +1646,11 @@ function searchAvailableQuestions() {
                     .then(setData => {
                         const setQuestionIds = setData.questions ? setData.questions.map(q => q.id) : [];
 
-                        // Escludi le domande già associate dal risultato della ricerca
-                        const availableQuestions = filtered.filter(q => !setQuestionIds.includes(q.id));
+                        // Combina con le domande contrassegnate per l'eliminazione
+                        const allExcludedIds = setQuestionIds.concat(questionsToRemove);
+
+                        // Escludi le domande già associate e quelle contrassegnate per l'eliminazione dal risultato della ricerca
+                        const availableQuestions = filtered.filter(q => !allExcludedIds.includes(q.id));
 
                         if (availableQuestions.length === 0) {
                             container.innerHTML = '<p style="text-align: center; color: #999;">Tutte le domande trovate sono già associate</p>';
@@ -1616,7 +1659,14 @@ function searchAvailableQuestions() {
 
                         let html = '';
                         availableQuestions.forEach(q => {
-                            const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 15px; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
+                            const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 10px; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
+
+                            const typeMap = {
+                                'multiple': '📋 Scelta multipla',
+                                'truefalse': '✔️ Vero/Falso',
+                                'clickfirst': '⚡ Clicca per primo'
+                            };
+                            const typeBadge = q.round_type ? `<span style="display: inline-block; background-color: #e9ecef; color: #333; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 10px; font-weight: 600; border: 1px solid #dee2e6;">${typeMap[q.round_type] || q.round_type}</span>` : '';
 
                             // Evidenzia il testo della ricerca nella domanda
                             let questionText = q.question;
@@ -1625,16 +1675,17 @@ function searchAvailableQuestions() {
                             }
 
                             html += `
-                                <div class="question-item" data-question-id="${q.id}" style="padding: 12px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; background-color: #fff;">
-                                    <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0;">
-                                        <div style="word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;">
-                                            ${questionText}
-                                        </div>
-                                        <div>
-                                            ${categoryBadge}
-                                        </div>
+                                <div class="question-item" data-question-id="${q.id}" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 15px; background-color: #fff;">
+                                    <div style="flex: 2; min-width: 0; word-wrap: break-word; overflow-wrap: break-word;">
+                                        ${questionText}
                                     </div>
-                                    <button type="button" class="btn btn-success btn-sm" onclick="addQuestionToSet(${setId}, ${q.id})" title="Aggiungi al set" style="flex-shrink: 0; margin-top: 2px;">+ Aggiungi</button>
+                                    <div style="flex: 1; text-align: center; flex-shrink: 0;">
+                                        ${categoryBadge}
+                                    </div>
+                                    <div style="flex: 1; text-align: center; flex-shrink: 0;">
+                                        ${typeBadge}
+                                    </div>
+                                    <button type="button" class="btn btn-success btn-sm" onclick="addQuestionToSet(${setId}, ${q.id})" title="Aggiungi al set">+ Aggiungi</button>
                                 </div>
                             `;
                         });
@@ -1694,10 +1745,10 @@ function searchAvailableQuestionsForNewSet() {
                 }
 
                 // Ottieni le domande già associate al nuovo set (da localStorage)
-                const addedQuestionIds = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
+                const addedQuestionIds = JSON.parse(localStorage.getItem('addSetQuestions') || '[]').map(id => parseInt(id));
 
                 // Escludi le domande già associate dal risultato della ricerca
-                const availableQuestions = filtered.filter(q => !addedQuestionIds.includes(q.id));
+                const availableQuestions = filtered.filter(q => !addedQuestionIds.includes(parseInt(q.id)));
 
                 if (availableQuestions.length === 0) {
                     container.innerHTML = '<p style="text-align: center; color: #999;">Tutte le domande trovate sono già associate</p>';
@@ -1706,7 +1757,14 @@ function searchAvailableQuestionsForNewSet() {
 
                 let html = '';
                 availableQuestions.forEach(q => {
-                    const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 15px; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
+                    const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 10px; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
+
+                    const typeMap = {
+                        'multiple': '📋 Scelta multipla',
+                        'truefalse': '✔️ Vero/Falso',
+                        'clickfirst': '⚡ Clicca per primo'
+                    };
+                    const typeBadge = q.round_type ? `<span style="display: inline-block; background-color: #e9ecef; color: #333; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 10px; font-weight: 600; border: 1px solid #dee2e6;">${typeMap[q.round_type] || q.round_type}</span>` : '';
 
                     // Evidenzia il testo della ricerca nella domanda
                     let questionText = q.question;
@@ -1715,16 +1773,17 @@ function searchAvailableQuestionsForNewSet() {
                     }
 
                     html += `
-                        <div class="question-item" data-question-id="${q.id}" style="padding: 12px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; background-color: #fff;">
-                            <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0;">
-                                <div style="word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;">
-                                    ${questionText}
-                                </div>
-                                <div>
-                                    ${categoryBadge}
-                                </div>
+                        <div class="question-item" data-question-id="${q.id}" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 15px; background-color: #fff;">
+                            <div style="flex: 2; min-width: 0; word-wrap: break-word; overflow-wrap: break-word;">
+                                ${questionText}
                             </div>
-                            <button type="button" class="btn btn-success btn-sm" onclick="addQuestionToNewSet(${q.id})" title="Aggiungi al set" style="flex-shrink: 0; margin-top: 2px;">+ Aggiungi</button>
+                            <div style="flex: 1; text-align: center; flex-shrink: 0;">
+                                ${categoryBadge}
+                            </div>
+                            <div style="flex: 1; text-align: center; flex-shrink: 0;">
+                                ${typeBadge}
+                            </div>
+                            <button type="button" class="btn btn-success btn-sm" onclick="addQuestionToNewSet(${q.id})" title="Aggiungi al set">+ Aggiungi</button>
                         </div>
                     `;
                 });

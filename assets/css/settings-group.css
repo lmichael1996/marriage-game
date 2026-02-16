@@ -1,0 +1,250 @@
+/* ============================================================================
+   SETTINGS GROUP STYLES - VERSIONE SEMPLIFICATA
+   Stili minimalisti per tutte le sezioni settings-group e form-settings
+   ============================================================================ */
+
+/* Settings Group - Stile principale per sezioni di contenuto */
+.settings-group {
+  background: #f9f9f9;
+  padding: 20px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  border: 1px solid #333;
+}
+
+.settings-group h3 {
+  margin: 0 0 15px 0;
+  font-size: 1em;
+  font-weight: 600;
+  border: none;
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
+  color: #333;
+}
+
+.settings-group h2 {
+  margin: 0 0 15px 0;
+  font-size: 1.1em;
+  font-weight: 600;
+  border: none;
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
+  color: #333;
+}
+
+/* Form Settings - Contenitore domande associate */
+.form-settings {
+  background: #f9f9f9;
+  padding: 0;
+  margin: 15px 0;
+  border-radius: 4px;
+  border: 1px solid #333;
+  overflow: hidden;
+}
+
+.form-settings h3 {
+  margin: 0 0 0 0;
+  font-size: 0.95em;
+  font-weight: 600;
+  border: none;
+  border-bottom: 1px solid #333;
+  padding: 12px 15px 10px 15px;
+  background: #f9f9f9;
+  color: #333;
+}
+
+.form-settings h2 {
+  margin: 0 0 0 0;
+  font-size: 1em;
+  font-weight: 600;
+  border: none;
+  border-bottom: 1px solid #333;
+  padding: 12px 15px 10px 15px;
+  background: #f9f9f9;
+  color: #333;
+}
+
+/* Contenitore lista domande */
+.questions-associated {
+  background: #fff;
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+/* Question Item - Elemento singolo domanda */
+.form-settings .question-item {
+  padding: 10px 15px;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  background-color: #fff;
+  cursor: pointer;
+  border-radius: 0;
+  margin: 0;
+  transition: background-color 0.15s ease;
+}
+
+.form-settings .question-item:last-child {
+  border-bottom: none;
+}
+
+.form-settings .question-item:hover {
+  background-color: #f5f5f5;
+}
+
+/* Contenuto testo domanda */
+.form-settings .question-item > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.form-settings .question-item > div:first-child > div:first-child {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  line-height: 1.3;
+  color: #333;
+  font-size: 0.9em;
+}
+
+/* Pulsanti azioni */
+.form-settings .question-item > div:last-child {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.form-settings .btn-sm,
+.form-settings .btn-danger,
+.form-settings .btn-warning {
+  padding: 4px 8px;
+  font-size: 0.75em;
+  white-space: nowrap;
+  border-radius: 0;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.form-settings .btn-danger {
+  background: #dc3545;
+  color: #fff;
+  border-color: #dc3545;
+}
+
+.form-settings .btn-danger:hover {
+  background: #c82333;
+  border-color: #c82333;
+}
+
+/* Badge categoria - semplificato */
+.form-settings .badge-category,
+.badge-category {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.7em;
+  font-weight: 500;
+  border: none;
+  box-shadow: none;
+  margin-top: 0;
+}
+
+/* Messaggio vuoto */
+.form-settings p {
+  padding: 15px;
+  text-align: center;
+  color: #666;
+  font-size: 0.9em;
+  background: #fff;
+  margin: 0;
+  border: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .settings-group {
+    padding: 15px;
+    margin-bottom: 12px;
+  }
+
+  .settings-group h3 {
+    font-size: 0.95em;
+    margin: 0 0 12px 0;
+    padding-bottom: 8px;
+  }
+
+  .form-settings h3 {
+    font-size: 0.9em;
+    padding: 0 0 6px 0;
+    margin: 0 0 6px 0;
+  }
+
+  .form-settings .question-item {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .form-settings .question-item > div:first-child > div:first-child {
+    font-size: 0.85em;
+  }
+
+  .form-settings .btn-sm,
+  .form-settings .btn-danger {
+    padding: 3px 6px;
+    font-size: 0.7em;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-group {
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+
+  .settings-group h3 {
+    font-size: 0.9em;
+    margin: 0 0 10px 0;
+    padding-bottom: 6px;
+  }
+
+  .form-settings h3 {
+    font-size: 0.85em;
+    padding: 0 0 5px 0;
+    margin: 0 0 5px 0;
+  }
+
+  .form-settings .question-item {
+    padding: 8px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .form-settings .question-item > div:first-child {
+    width: 100%;
+  }
+
+  .form-settings .question-item > div:first-child > div:first-child {
+    font-size: 0.8em;
+  }
+
+  .form-settings .question-item > div:last-child {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .form-settings .btn-sm,
+  .form-settings .btn-danger {
+    padding: 3px 6px;
+    font-size: 0.65em;
+  }
+}
