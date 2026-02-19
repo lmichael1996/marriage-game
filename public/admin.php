@@ -79,6 +79,7 @@ if ($currentTab === 'sets') {
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
     <link rel="stylesheet" href="../assets/css/tab.css">
+    <link rel="stylesheet" href="../assets/css/views.css">
     <link rel="stylesheet" href="../assets/css/settings-group.css">
     <link rel="stylesheet" href="../assets/css/popup.css">
 </head>
