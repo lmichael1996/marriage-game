@@ -6,7 +6,6 @@
     <title>Login Giocatore - Marriage Game</title>
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/login.css">
-    <link rel="stylesheet" href="../assets/css/mobile.css">
 </head>
 <body>
     <div class="container">

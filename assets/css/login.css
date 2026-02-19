@@ -258,30 +258,62 @@ form button[type="submit"]:active {
   }
 }
 
+/* RESPONSIVE - Large Desktop (1024px+) */
+@media (min-width: 1024px) {
+  .login-box {
+    max-width: 500px;
+  }
+
+  .login-box.landing-box {
+    max-width: 700px;
+  }
+
+  .landing-buttons {
+    gap: 30px;
+  }
+
+  .landing-btn {
+    padding: 50px 40px;
+  }
+
+  .landing-btn .icon {
+    font-size: 4.5em;
+  }
+
+  .landing-btn h3 {
+    font-size: 1.8em;
+  }
+
+  .landing-btn p {
+    font-size: 1.05em;
+  }
+}
+
 /* RESPONSIVE - Mobile */
 @media (max-width: 767px) {
   .login-box {
     max-width: 100%;
-    padding: 25px 20px;
-    margin: 10px;
+    padding: 20px 15px;
+    margin: 8px;
+    border-radius: 6px;
   }
 
   .login-box h1 {
-    font-size: 1.5em;
+    font-size: 1.4em;
     margin-bottom: 8px;
   }
 
   .login-box h2 {
-    font-size: 0.95em;
-    margin-bottom: 25px;
+    font-size: 0.9em;
+    margin-bottom: 20px;
   }
 
   .form-group {
-    margin-bottom: 18px;
+    margin-bottom: 16px;
   }
 
   .form-group label {
-    font-size: 0.9em;
+    font-size: 0.88em;
     margin-bottom: 6px;
   }
 
@@ -309,5 +341,121 @@ form button[type="submit"]:active {
 
   .login-nav-link {
     font-size: 0.85em;
+  }
+
+  /* Landing page mobile */
+  .login-box.landing-box {
+    max-width: 100%;
+    padding: 20px 15px;
+  }
+
+  .landing-buttons {
+    gap: 15px;
+    margin-top: 20px;
+  }
+
+  .landing-btn {
+    padding: 30px 20px;
+    border-radius: 6px;
+  }
+
+  .landing-btn .icon {
+    font-size: 3em;
+    margin-bottom: 15px;
+  }
+
+  .landing-btn h3 {
+    font-size: 1.3em;
+    margin-bottom: 8px;
+  }
+
+  .landing-btn p {
+    font-size: 0.85em;
+  }
+}
+
+/* RESPONSIVE - Very Small Mobile (< 480px) */
+@media (max-width: 479px) {
+  body {
+    padding: 10px;
+  }
+
+  .container {
+    padding: 10px;
+  }
+
+  .login-box {
+    padding: 15px 12px;
+    margin: 5px;
+    border-radius: 6px;
+  }
+
+  .login-box h1 {
+    font-size: 1.2em;
+    margin-bottom: 6px;
+  }
+
+  .login-box h2 {
+    font-size: 0.8em;
+    margin-bottom: 15px;
+  }
+
+  .form-group {
+    margin-bottom: 12px;
+  }
+
+  .form-group label {
+    font-size: 0.8em;
+    margin-bottom: 5px;
+  }
+
+  .form-group input {
+    padding: 10px 10px;
+    font-size: 16px;
+  }
+
+  form button[type="submit"] {
+    padding: 11px 15px;
+    font-size: 0.9em;
+    margin-top: 10px;
+    min-height: 42px;
+  }
+
+  /* Landing page very small mobile */
+  .login-box.landing-box {
+    padding: 15px 12px;
+  }
+
+  .landing-buttons {
+    gap: 12px;
+    margin-top: 15px;
+  }
+
+  .landing-btn {
+    padding: 20px 15px;
+    border-radius: 6px;
+  }
+
+  .landing-btn .icon {
+    font-size: 2.5em;
+    margin-bottom: 12px;
+  }
+
+  .landing-btn h3 {
+    font-size: 1.1em;
+    margin-bottom: 6px;
+  }
+
+  .landing-btn p {
+    font-size: 0.75em;
+  }
+
+  .login-nav {
+    margin-top: 12px;
+    padding-top: 10px;
+  }
+
+  .login-nav-link {
+    font-size: 0.8em;
   }
 }
