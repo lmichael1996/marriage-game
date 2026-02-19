@@ -78,8 +78,8 @@ if ($currentTab === 'sets') {
     <title>Admin - Marriage Game</title>
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
+    <link rel="stylesheet" href="../assets/css/tab.css">
     <link rel="stylesheet" href="../assets/css/settings-group.css">
-    <link rel="stylesheet" href="../assets/css/mobile.css">
     <link rel="stylesheet" href="../assets/css/popup.css">
 </head>
 <body>
@@ -106,15 +106,15 @@ if ($currentTab === 'sets') {
 
         <!-- Tab Content -->
         <div id="tab-sets" class="tab-content">
-            <?php if ($currentTab === 'sets') include 'admin/questions.php'; ?>
+            <?php if ($currentTab === 'sets') include 'views/questions.php'; ?>
         </div>
 
         <div id="tab-settings" class="tab-content">
-            <?php if ($currentTab === 'settings') include 'admin/game.php'; ?>
+            <?php if ($currentTab === 'settings') include 'views/game.php'; ?>
         </div>
 
         <div id="tab-general" class="tab-content">
-            <?php if ($currentTab === 'general') include 'admin/settings.php'; ?>
+            <?php if ($currentTab === 'general') include 'views/settings.php'; ?>
         </div>
     </div>
 

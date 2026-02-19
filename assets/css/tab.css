@@ -1,0 +1,116 @@
+/* TAB STYLES */
+
+/* Tab Navigation */
+.admin-nav {
+  display: flex;
+  background: #fff;
+  border-bottom: 2px solid #333;
+  margin-bottom: 20px;
+}
+
+.nav-item {
+  flex: 1;
+  padding: 12px 20px;
+  text-decoration: none;
+  color: #666;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  font-weight: 500;
+}
+
+.nav-item:hover {
+  color: #000;
+}
+
+.nav-item.active {
+  color: #000;
+  border-bottom-color: #333;
+}
+
+/* Tab Content */
+.tab-content {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.6s ease,
+    visibility 0.6s ease;
+  pointer-events: none;
+}
+
+.tab-content.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Tab Headers */
+.tab-header,
+.tab-header-with-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #333;
+}
+
+.tab-header h2,
+.tab-header-with-button h2 {
+  margin: 0;
+  font-size: 1.3em;
+  font-weight: 600;
+  color: #000;
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .admin-nav {
+    flex-direction: column;
+  }
+
+  .nav-item {
+    border-bottom: 3px solid #e0e0e0;
+    padding: 10px 15px;
+    font-size: 0.9em;
+  }
+
+  .nav-item.active {
+    border-bottom-color: #333;
+  }
+
+  .tab-header,
+  .tab-header-with-button {
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 12px;
+    margin-bottom: 15px;
+  }
+
+  .tab-header h2,
+  .tab-header-with-button h2 {
+    font-size: 1.1em;
+    min-width: auto;
+  }
+
+  .tab-header-with-button .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 479px) {
+  .nav-item {
+    padding: 8px 10px;
+    font-size: 0.85em;
+  }
+
+  .tab-header h2,
+  .tab-header-with-button h2 {
+    font-size: 0.95em;
+  }
+}
