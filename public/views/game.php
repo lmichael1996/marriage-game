@@ -102,13 +102,13 @@
 </div>
 
 <!-- Modal: Modifica Set -->
-<div id="modal-edit-set" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="max-width: 1400px; width: 99%;">
+<div id="modal-edit-set" class="modal-overlay">
+    <div class="modal-content modal-content-large">
         <div class="modal-header">
             <h2>Modifica Set</h2>
-            <button type="button" class="modal-close" id="btn-close-edit-set" onclick="document.getElementById('modal-edit-set').style.display='none'; cleanupEditSetModal();">✕</button>
+            <button type="button" class="modal-close" id="btn-close-edit-set" onclick="document.getElementById('modal-edit-set').classList.remove('show'); cleanupEditSetModal();">✕</button>
         </div>
-        <div class="settings-group" style="max-height: 80vh;">
+        <div class="settings-group modal-scroll-content">
             <form id="edit-set-form">
                 <input type="hidden" id="edit-set-id" name="set_id">
 
