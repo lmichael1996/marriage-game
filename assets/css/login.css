@@ -2,25 +2,6 @@
    MARRIAGE GAME - LOGIN CSS (MINIMAL STYLE)
    ============================================ */
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* CONTAINER */
-.container {
-  width: 100%;
-  max-width: 1200px;
-  padding: 30px;
-}
-
 /* LOGIN BOX */
 .login-box {
   max-width: 400px;
@@ -90,74 +71,24 @@ body {
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
 }
 
-/* BUTTONS */
-.btn {
-  padding: 12px 28px;
-  border: 2px solid #333;
-  font-size: 1em;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.3s ease;
-  display: inline-block;
-  background: #fff;
-  color: #000;
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  user-select: none;
-  letter-spacing: 0.5px;
-  text-align: center;
-}
-
-.btn:hover {
-  background: #f0f0f0;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
-  border-color: #222;
-}
-
-.btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.btn-primary {
-  background: #000;
-  color: #fff;
-  border-color: #000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.btn-primary:hover {
-  background: #222;
-  border-color: #222;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-  transform: translateY(-2px);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-}
-
-/* FORM BUTTONS - Full Width */
+/* FORM SUBMIT BUTTONS */
 form button[type="submit"] {
   width: 100%;
   display: block;
-  margin-top: 10px;
   padding: 12px 28px;
+  margin-top: 15px;
   border: 2px solid #333;
   font-size: 1em;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.3s ease;
   background: #000;
   color: #fff;
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   user-select: none;
   text-align: center;
+  transition: all 0.3s ease;
 }
 
 form button[type="submit"]:hover {
@@ -170,11 +101,6 @@ form button[type="submit"]:hover {
 form button[type="submit"]:active {
   transform: translateY(0);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-}
-
-.btn-block {
-  width: 100%;
-  display: block;
 }
 
 /* ERROR MESSAGE */
@@ -231,91 +157,113 @@ form button[type="submit"]:active {
   display: none;
 }
 
-/* LANDING PAGE STYLES */
-.landing-content {
-  text-align: center;
-  max-width: 600px;
-  margin: 0 auto;
-  background: #fff;
-  padding: 50px 40px;
-  border: 1px solid #333;
-  border-radius: 4px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+/* LANDING BOX - Wider on desktop */
+.login-box.landing-box {
+  max-width: 400px;
 }
 
-.landing-content h1 {
-  font-size: 2.2em;
-  color: #000;
-  margin-bottom: 15px;
-  font-weight: 600;
-}
-
-.landing-content p {
-  font-size: 1em;
-  color: #666;
-  line-height: 1.6;
-  margin: 15px 0;
-}
-
-.button-group {
+/* LANDING BUTTONS - Vertical layout */
+.landing-buttons {
   display: flex;
-  gap: 15px;
+  flex-direction: column;
+  gap: 20px;
   justify-content: center;
   margin-top: 30px;
-  flex-wrap: wrap;
 }
 
-.button-group a,
-.button-group button {
-  padding: 12px 30px;
+/* LANDING BUTTON - Card style */
+.landing-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 45px 35px;
+  background: linear-gradient(135deg, #fff 0%, #f9f9f9 100%);
   border: 1px solid #333;
-  font-size: 0.95em;
-  font-weight: 500;
+  border-radius: 8px;
   text-decoration: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-}
-
-.button-group a {
-  background: #fff;
   color: #000;
-  display: inline-block;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  font-family: inherit;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
 }
 
-.button-group a:hover {
-  background: #f5f5f5;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+.landing-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.05);
+  transition: left 0.3s ease;
+  z-index: 1;
+  pointer-events: none;
 }
 
-.button-group button {
-  background: #000;
-  color: #fff;
-  border-color: #333;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+.landing-btn:hover {
+  background: linear-gradient(135deg, #f5f5f5 0%, #efefef 100%);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-6px);
+  border-color: #222;
 }
 
-.button-group button:hover {
-  background: #333;
-  border-color: #333;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+.landing-btn:hover::before {
+  left: 100%;
 }
 
-/* RESPONSIVE */
-@media (max-width: 768px) {
-  body {
-    padding: 10px;
+.landing-btn:active {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.landing-btn .icon {
+  font-size: 4em;
+  margin-bottom: 20px;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.landing-btn:hover .icon {
+  transform: scale(1.1);
+}
+
+.landing-btn h3 {
+  font-size: 1.6em;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #000;
+  letter-spacing: 0.5px;
+}
+
+.landing-btn p {
+  font-size: 0.95em;
+  color: #666;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* RESPONSIVE - Desktop */
+@media (min-width: 768px) {
+  .login-box.landing-box {
+    max-width: 600px;
   }
 
-  .container {
-    padding: 15px;
+  .landing-buttons {
+    flex-direction: row;
   }
+}
 
+/* RESPONSIVE - Mobile */
+@media (max-width: 767px) {
   .login-box {
-    padding: 30px 20px;
-    margin: 10px;
     max-width: 100%;
+    padding: 25px 20px;
+    margin: 10px;
   }
 
   .login-box h1 {
@@ -339,158 +287,27 @@ form button[type="submit"]:active {
 
   .form-group input {
     padding: 11px 12px;
-    font-size: 0.95em;
-  }
-
-  .btn {
-    padding: 11px 20px;
-    font-size: 0.9em;
-  }
-
-  .error {
-    padding: 10px 12px;
-    margin-bottom: 18px;
-    font-size: 0.9em;
-  }
-
-  .landing-content {
-    padding: 40px 30px;
-  }
-
-  .landing-content h1 {
-    font-size: 1.8em;
-  }
-
-  .landing-content p {
-    font-size: 0.95em;
-  }
-
-  .button-group {
-    gap: 12px;
-    margin-top: 25px;
-  }
-
-  .button-group a,
-  .button-group button {
-    padding: 11px 20px;
-    font-size: 0.9em;
-  }
-}
-
-@media (max-width: 480px) {
-  .login-box {
-    padding: 25px 15px;
-  }
-
-  .login-box h1 {
-    font-size: 1.3em;
-  }
-
-  .login-box h2 {
-    font-size: 0.9em;
-  }
-
-  .form-group input {
-    padding: 10px 12px;
     font-size: 16px;
   }
 
-  .btn {
-    padding: 10px 18px;
+  form button[type="submit"] {
+    padding: 12px 20px;
+    font-size: 0.95em;
+    margin-top: 12px;
+    min-height: 44px;
+  }
+
+  .error {
     font-size: 0.9em;
+    padding: 10px 12px;
   }
 
-  .btn-block {
-    width: 100%;
+  .login-nav {
+    margin-top: 15px;
+    padding-top: 12px;
   }
 
-  .landing-content {
-    padding: 30px 20px;
-  }
-
-  .landing-content h1 {
-    font-size: 1.4em;
-  }
-
-  .landing-content p {
-    font-size: 0.9em;
-  }
-
-  .button-group {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .button-group a,
-  .button-group button {
-    width: 100%;
-    padding: 12px;
-  }
-}
-
-@media (max-width: 360px) {
-  body {
-    padding: 10px;
-  }
-
-  .container {
-    max-width: 100%;
-  }
-
-  .login-box {
-    padding: 20px 12px;
-  }
-
-  .login-box h1 {
-    font-size: 1.2em;
-    margin-bottom: 10px;
-  }
-
-  .login-box h2 {
-    font-size: 0.85em;
-    margin-bottom: 15px;
-  }
-
-  .form-group {
-    margin-bottom: 12px;
-  }
-
-  .form-group label {
-    font-size: 0.85em;
-    margin-bottom: 5px;
-  }
-
-  .form-group input {
-    padding: 10px;
-    font-size: 0.9em;
-  }
-
-  .btn {
-    padding: 10px 15px;
-    font-size: 0.9em;
-  }
-
-  .landing-content {
-    padding: 20px 15px;
-  }
-
-  .landing-content h1 {
-    font-size: 1.2em;
-  }
-
-  .landing-content p {
-    font-size: 0.85em;
-  }
-
-  .button-group {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .button-group a,
-  .button-group button {
-    width: 100%;
-    padding: 10px;
+  .login-nav-link {
     font-size: 0.85em;
   }
 }

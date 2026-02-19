@@ -544,7 +544,39 @@ $roomInfo = $_SESSION[$roomInfoKey];
             const nextBtn = document.getElementById('next-btn');
             let correctAnswer = null;
             let isClickFirst = currentRoundType === 'clickfirst';
+            let clickfirstPollingInterval = null;
+            const roundId = <?php echo isset($activeRound['id']) ? $activeRound['id'] : 'null'; ?>;
 
+            // Per clickfirst, non usa timer - solo polling
+            if (isClickFirst && roundId) {
+                // Nascondi il timer per clickfirst
+                if (timerEl) {
+                    timerEl.parentElement.style.display = 'none';
+                }
+
+                // Inizia il polling ogni 5 secondi
+                clickfirstPollingInterval = setInterval(() => {
+                    fetch('../src/api/api.php?endpoint=round_answers&round_id=' + roundId)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success && data.top_answers?.length > 0) {
+                                // Qualcuno ha risposto! Blocca il polling
+                                clearInterval(clickfirstPollingInterval);
+                                // Mostra il primo
+                                loadRoundAnswers(roundId);
+                                // Abilita il pulsante
+                                if (nextBtn) {
+                                    nextBtn.disabled = false;
+                                    nextBtn.style.animation = 'pulse 1s infinite';
+                                }
+                            }
+                        })
+                        .catch(err => console.error('Polling error:', err));
+                }, 5000);
+                return; // Esce senza avviare il timer
+            }
+
+            // Per non-clickfirst, usa il timer normale
             timerInterval = setInterval(() => {
                 timeLeft--;
                 timerEl.textContent = timeLeft;
@@ -582,9 +614,7 @@ $roomInfo = $_SESSION[$roomInfoKey];
                     }, 2000);
                 }
             }, 1000);
-        }
-
-        function startRound(questionId) {
+        }        function startRound(questionId) {
             fetch('../src/api/api.php?endpoint=game&action=start_round', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -701,19 +731,43 @@ $roomInfo = $_SESSION[$roomInfoKey];
                 .then(data => {
                     if (data.success && data.top_answers?.length > 0) {
                         let html = '';
+                        const isClickFirst = currentRoundType === 'clickfirst';
+
                         data.top_answers.forEach((answer, i) => {
                             const medals = ['🥇', '🥈', '🥉'];
                             const medal = medals[i] || (i + 1) + '.';
                             const time = parseFloat(answer.answer_time).toFixed(2) + 's';
-                            html += `<div class="leaderboard-item">
-                                <div class="medal">${medal}</div>
-                                <div class="leaderboard-info">
-                                    <div class="leaderboard-name">${answer.username}</div>
-                                    <div class="leaderboard-time">${time}</div>
-                                </div>
-                            </div>`;
+
+                            if (isClickFirst) {
+                                // Per clickfirst, aggiungi checkbox
+                                html += `<div class="leaderboard-item">
+                                    <input type="checkbox" class="clickfirst-checkbox" data-player-name="${answer.username}" data-answer-time="${answer.answer_time}">
+                                    <div class="medal">${medal}</div>
+                                    <div class="leaderboard-info">
+                                        <div class="leaderboard-name">${answer.username}</div>
+                                        <div class="leaderboard-time">${time}</div>
+                                    </div>
+                                </div>`;
+                            } else {
+                                html += `<div class="leaderboard-item">
+                                    <div class="medal">${medal}</div>
+                                    <div class="leaderboard-info">
+                                        <div class="leaderboard-name">${answer.username}</div>
+                                        <div class="leaderboard-time">${time}</div>
+                                    </div>
+                                </div>`;
+                            }
                         });
                         document.getElementById('leaderboard').innerHTML = html;
+
+                        // Se clickfirst, mostra messaggio per selezionare i corretti
+                        if (isClickFirst) {
+                            const leaderboardDiv = document.getElementById('leaderboard');
+                            const messageDiv = document.createElement('div');
+                            messageDiv.style.cssText = 'background: #fff9e6; border: 2px solid #ffc107; border-radius: 4px; padding: 12px; margin-top: 15px; color: #333; text-align: center; font-weight: 600;';
+                            messageDiv.innerHTML = '✓ Seleziona gli utenti che hanno risposto correttamente';
+                            leaderboardDiv.appendChild(messageDiv);
+                        }
                     }
                 });
         }

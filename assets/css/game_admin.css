@@ -1,11 +1,5 @@
 /* Game Admin Styles - Minimal Light Theme */
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 @keyframes pulse {
   0%,
   100% {

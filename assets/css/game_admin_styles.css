@@ -1,11 +1,5 @@
 /* Game Admin Page Styles - Minimal Light Theme */
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 /* Layout Classes */
 .game-layout {
   display: flex;
