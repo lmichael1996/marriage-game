@@ -23,7 +23,7 @@
 
                 <div class="form-group">
                     <label for="room_code">🔑 Codice Stanza:</label>
-                    <input type="text" id="room_code" name="room_code" class="uppercase" required placeholder="es: ABC123" maxlength="10">
+                    <input type="text" id="room_code" name="room_code" class="uppercase" required maxlength="10">
                     <small class="form-helper-text">Chiedi il codice all'amministratore</small>
                 </div>
 
@@ -48,8 +48,6 @@
                 const roomCodeInput = document.getElementById('room_code');
                 roomCodeInput.value = codeFromUrl.toUpperCase();
                 roomCodeInput.disabled = true;
-                roomCodeInput.style.backgroundColor = '#f0f0f0';
-                roomCodeInput.style.cursor = 'not-allowed';
 
                 // Optional: focus on username field
                 document.getElementById('username').focus();

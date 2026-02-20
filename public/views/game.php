@@ -4,7 +4,7 @@
         <h2>🎮 Gestione Set Domande</h2>
         <div class="button-group">
             <button class="btn btn-success" id="btn-new-set">+ Aggiungi Set</button>
-            <button class="btn btn-primary" id="btn-create-game" onclick="createNewGame()">🎮 Crea Partita</button>
+            <button class="btn btn-primary" id="btn-create-game">🎮 Crea Partita</button>
         </div>
     </div>
 
@@ -124,37 +124,37 @@
 
                 <div class="form-group">
                     <label for="edit-search-questions">Cerca e Aggiungi Domande</label>
-                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                        <input type="text" id="edit-search-questions" placeholder="Cerca domande..." style="flex: 2; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                        <select id="edit-search-type" style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff;">
+                    <div class="search-row">
+                        <input type="text" id="edit-search-questions" placeholder="Cerca domande..." class="search-row-input">
+                        <select id="edit-search-type" class="search-row-select">
                             <option value="starts_with">Inizia con</option>
                             <option value="contains">Contiene</option>
                             <option value="ends_with">Finisce con</option>
                             <option value="exact">Esattamente</option>
                         </select>
-                        <select id="edit-category-filter" style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff;">
+                        <select id="edit-category-filter" class="search-row-select">
                             <option value="">🌐 Tutte Categorie</option>
                         </select>
-                        <button type="button" class="btn btn-info" style="flex-shrink: 0;" onclick="searchAvailableQuestions()">Cerca</button>
+                        <button type="button" class="btn btn-info search-row-btn" onclick="searchAvailableQuestions()">Cerca</button>
                     </div>
-                    <div id="edit-available-questions" class="questions-list" style="max-height: 350px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px; background-color: #fff;">
-                        <p style="text-align: center; color: #999;">Inserisci un termine di ricerca e clicca Cerca</p>
+                    <div id="edit-available-questions" class="questions-list">
+                        <p class="placeholder-text">Inserisci un termine di ricerca e clicca Cerca</p>
                     </div>
                 </div>
 
-                <hr style="margin: 20px 0; border: none; border-top: 2px solid #ddd;">
+                <hr class="modal-divider">
 
                 <div class="form-group">
                     <label for="edit-set-questions">Domande Associate</label>
                     <div id="edit-set-questions" class="form-settings">
-                        <p style="text-align: center; color: #999;">Caricamento domande...</p>
+                        <p class="placeholder-text">Caricamento domande...</p>
                     </div>
                 </div>
 
                 <div id="edit-set-message" class="form-message"></div>
             </form>
-            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
-                <button type="button" class="btn btn-success" id="btn-save-set-changes" style="min-width: 200px;">✓ Salva Modifiche</button>
+            <div class="modal-actions-footer">
+                <button type="button" class="btn btn-success" id="btn-save-set-changes">✓ Salva Modifiche</button>
             </div>
         </div>
     </div>
@@ -162,12 +162,12 @@
 
 <!-- Modal: Aggiungi Set -->
 <div id="modal-add-set" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="max-width: 1400px; width: 99%;">
+    <div class="modal-content modal-content-large">
         <div class="modal-header">
             <h2>Aggiungi Set</h2>
             <button type="button" class="modal-close" id="btn-close-add-set" onclick="document.getElementById('modal-add-set').style.display='none'; cleanupAddSetModal();">✕</button>
         </div>
-        <div class="settings-group" style="max-height: 80vh;">
+        <div class="settings-group modal-scroll-content">
             <form id="add-set-form">
                 <div class="form-group">
                     <label for="add-set-name">Nome Set</label>
@@ -181,37 +181,37 @@
 
                 <div class="form-group">
                     <label for="add-search-questions">Cerca e Aggiungi Domande</label>
-                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                        <input type="text" id="add-search-questions" placeholder="Cerca domande..." style="flex: 2; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                        <select id="add-search-type" style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff;">
+                    <div class="search-row">
+                        <input type="text" id="add-search-questions" placeholder="Cerca domande..." class="search-row-input">
+                        <select id="add-search-type" class="search-row-select">
                             <option value="starts_with">Inizia con</option>
                             <option value="contains">Contiene</option>
                             <option value="ends_with">Finisce con</option>
                             <option value="exact">Esattamente</option>
                         </select>
-                        <select id="add-category-filter" style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff;">
+                        <select id="add-category-filter" class="search-row-select">
                             <option value="">🌐 Tutte Categorie</option>
                         </select>
-                        <button type="button" class="btn btn-info" style="flex-shrink: 0;" onclick="searchAvailableQuestionsForNewSet()">Cerca</button>
+                        <button type="button" class="btn btn-info search-row-btn" onclick="searchAvailableQuestionsForNewSet()">Cerca</button>
                     </div>
-                    <div id="add-available-questions" class="questions-list" style="max-height: 350px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px; background-color: #fff;">
-                        <p style="text-align: center; color: #999;">Inserisci un termine di ricerca e clicca Cerca</p>
+                    <div id="add-available-questions" class="questions-list">
+                        <p class="placeholder-text">Inserisci un termine di ricerca e clicca Cerca</p>
                     </div>
                 </div>
 
-                <hr style="margin: 20px 0; border: none; border-top: 2px solid #ddd;">
+                <hr class="modal-divider">
 
                 <div class="form-group">
                     <label for="add-set-associated-questions">Domande Associate</label>
                     <div id="add-set-associated-questions" class="form-settings">
-                        <p style="text-align: center; color: #999;">Nessuna domanda associata</p>
+                        <p class="placeholder-text">Nessuna domanda associata</p>
                     </div>
                 </div>
 
                 <div id="add-set-message" class="form-message"></div>
             </form>
-            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
-                <button type="button" class="btn btn-success" id="btn-save-add-set" onclick="saveAddSetChanges()" style="min-width: 200px;">✓ Salva Set</button>
+            <div class="modal-actions-footer">
+                <button type="button" class="btn btn-success" id="btn-save-add-set" onclick="saveAddSetChanges()">✓ Salva Set</button>
             </div>
         </div>
     </div>
@@ -219,7 +219,7 @@
 
 <!-- Modal: Eliminazione Set -->
 <div id="modal-delete-set" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="max-width: 500px;">
+    <div class="modal-content modal-content-medium">
         <div class="modal-header">
             <h2>Elimina Set</h2>
         </div>
@@ -541,8 +541,8 @@ function addQuestionsToNewSet(setId, messageDiv) {
 // Pulisce i campi di ricerca del modal Modifica Set
 function cleanupEditSetModal() {
     document.getElementById('edit-search-questions').value = '';
-    document.getElementById('edit-category-filter').value = '';
-    document.getElementById('edit-available-questions').innerHTML = '<p style="text-align: center; color: #999;">Ricerca domande...</p>';
+    document.getElementById('add-category-filter').value = '';
+    document.getElementById('edit-available-questions').innerHTML = '<p class="placeholder-text">Ricerca domande...</p>';
 
     // Se è "Crea Partita", resetta anche il localStorage
     const modalTitle = document.querySelector('#modal-edit-set .modal-header h2').textContent;
@@ -555,7 +555,7 @@ function cleanupEditSetModal() {
 function cleanupAddSetModal() {
     document.getElementById('add-search-questions').value = '';
     document.getElementById('add-category-filter').value = '';
-    document.getElementById('add-available-questions').innerHTML = '<p style="text-align: center; color: #999;">Inserisci un termine di ricerca e clicca Cerca</p>';
+    document.getElementById('add-available-questions').innerHTML = '<p class="placeholder-text">Inserisci un termine di ricerca e clicca Cerca</p>';
     localStorage.removeItem('addSetQuestions');
 }
 
@@ -680,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('add-set-name').value = '';
             document.getElementById('add-set-description').value = '';
             document.getElementById('add-set-message').innerHTML = '';
-            document.getElementById('add-set-associated-questions').innerHTML = '<p style="text-align: center; color: #999;">Nessuna domanda associata</p>';
+            document.getElementById('add-set-associated-questions').innerHTML = '<p class="placeholder-text">Nessuna domanda associata</p>';
 
             // Resetta il localStorage delle domande
             localStorage.removeItem('addSetQuestions');
@@ -691,6 +691,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // Carica categorie nel filtro
             loadCategoriesForAddSetFilter();
         });
+    }
+
+    // Gestione popup Crea Partita
+    const btnCreateGame = document.getElementById('btn-create-game');
+    if (btnCreateGame) {
+        btnCreateGame.addEventListener('click', createNewGame);
     }
 
     // Gestione click edit, delete, start-game
