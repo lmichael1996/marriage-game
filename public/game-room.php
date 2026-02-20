@@ -36,9 +36,11 @@ if ($selectedSetId) {
     <title>Gestione Partita - Marriage Game</title>
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
-    <link rel="stylesheet" href="../assets/css/mobile.css">
+    <link rel="stylesheet" href="../assets/css/tab.css">
+    <link rel="stylesheet" href="../assets/css/views.css">
+    <link rel="stylesheet" href="../assets/css/settings-group.css">
+    <link rel="stylesheet" href="../assets/css/popup.css">
     <link rel="stylesheet" href="../assets/css/game-room.css">
-    <link rel="stylesheet" href="../assets/css/qr-code.css">
     <script src="../assets/js/qrcode.min.js"></script>
     <script src="../assets/js/html2pdf.bundle.min.js"></script>
 </head>
@@ -174,15 +176,15 @@ if ($selectedSetId) {
 
             // Create HTML content for PDF
             const pdfContent = `
-                <div style="text-align: center; padding: 20px; font-family: Arial, sans-serif;">
+                <div class="pdf-content">
                     <h1>🎮 Marriage Game - Stanza Attiva</h1>
-                    <p style="font-size: 18px; margin: 20px 0;">Codice Stanza:</p>
-                    <p style="font-size: 48px; font-weight: bold; letter-spacing: 10px; margin: 20px 0; font-family: monospace;">${roomCode}</p>
-                    <p style="font-size: 16px; margin: 30px 0;">Inquadra il QR code per connetterti:</p>
-                    <div style="margin: 20px auto; padding: 20px; display: flex; justify-content: center; align-items: center;">
+                    <p class="room-code-title">Codice Stanza:</p>
+                    <p class="room-code-display">${roomCode}</p>
+                    <p class="qr-instruction">Inquadra il QR code per connetterti:</p>
+                    <div class="qr-container">
                         ${qrCanvas.parentElement.innerHTML}
                     </div>
-                    <p style="font-size: 14px; margin-top: 20px; color: #666;">I giocatori possono connettersi usando il codice stanza o il QR code.</p>
+                    <p class="room-connection-info">I giocatori possono connettersi usando il codice stanza o il QR code.</p>
                 </div>
             `;
 
