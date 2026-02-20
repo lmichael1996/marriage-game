@@ -736,27 +736,33 @@ mark {
     text-align: right;
   }
 
-  /* Improve button icons for mobile */
+  /* Improve button icons for mobile - compact horizontal layout */
   .questions-table .btn-icon {
-    padding: 10px 14px;
-    font-size: 1.1em;
+    padding: 6px 10px;
+    font-size: 0.95em;
     font-weight: 600;
-    border-radius: 4px;
+    border-radius: 3px;
     transition: all 0.2s ease;
-    margin: 2px;
+    margin: 0;
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .questions-table .btn-icon:active {
     transform: scale(0.95);
   }
 
-  /* Wrap buttons horizontally */
+  /* Wrap buttons horizontally in compact style */
   .questions-table td:last-child {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: flex-end;
-    gap: 6px;
+    gap: 4px;
     align-items: center;
+    padding: 8px 8px;
   }
 
   .pagination-controls {
