@@ -38,15 +38,15 @@
 
     <hr class="settings-divider" style="margin-top: 2rem;">
 
-    <div class="settings-group" style="margin-top: 2rem;">
+    <div class="settings-group">
         <h3>🎮 Impostazioni Punteggi</h3>
 
         <!-- Popup Risultato -->
-        <div id="settings-result-popup" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 10000;">
-            <div class="modal-content" style="max-width: 500px; width: 90%; margin: auto; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-                <div class="modal-body" style="text-align: center;">
-                    <p id="settings-result-message" style="font-size: 18px; margin: 20px 0;"></p>
-                    <div style="text-align: center; margin-top: 30px;">
+        <div id="settings-result-popup">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <p id="settings-result-message"></p>
+                    <div class="modal-actions-center">
                         <button type="button" class="btn btn-primary" onclick="closeSettingsPopup()">OK</button>
                     </div>
                 </div>
@@ -171,15 +171,15 @@
         </form>
     </div>
 
-    <hr class="settings-divider" style="margin-top: 2rem;">
+    <hr class="settings-divider">
 
-    <div class="settings-group" style="margin-top: 2rem;">
+    <div class="settings-group settings-group-spaced">
         <h3>🗄️ Database</h3>
 
-        <p style="margin-bottom: 15px; color: #666;">Visualizza il contenuto di tutte le tabelle del database.</p>
+        <p class="description-text">Visualizza il contenuto di tutte le tabelle del database.</p>
 
         <div class="button-container">
-            <a href="/public/utils/tables.php" target="_blank" class="btn btn-secondary">📊 Visualizza Database</a>
+            <a href="/public/utils/database.php" target="_blank" class="btn btn-secondary">📊 Visualizza Database</a>
         </div>
     </div>
 </div>

@@ -8,6 +8,68 @@
   gap: 10px;
 }
 
+/* ============================================================================
+   RESULT/SETTINGS MODAL STYLES
+   ============================================================================ */
+
+/* Result Popup Modal */
+#settings-result-popup {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 10000;
+}
+
+#settings-result-popup .modal-content {
+  max-width: 500px;
+  width: 90%;
+  margin: auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+#settings-result-popup .modal-body {
+  text-align: center;
+}
+
+#settings-result-message {
+  font-size: 18px;
+  margin: 20px 0;
+}
+
+.modal-actions-center {
+  text-align: center;
+  margin-top: 30px;
+}
+
+/* Settings Divider */
+.settings-divider {
+  margin-top: 2rem;
+}
+
+.settings-group-spaced {
+  margin-top: 2rem;
+}
+
+.description-text {
+  margin-bottom: 15px;
+  color: #666;
+}
+
+/* ============================================================================
+   CATEGORY MANAGEMENT MODAL STYLES
+   ============================================================================ */
+
 /* Category Card */
 .cat-card {
   background: #fff;
