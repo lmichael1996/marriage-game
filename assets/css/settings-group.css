@@ -169,3 +169,135 @@
   margin: 0;
   border: none;
 }
+
+/* ============================================================================
+   RESPONSIVE MOBILE STYLES - Tablet (480px - 767px)
+   ============================================================================ */
+@media (max-width: 767px) {
+  .settings-group {
+    padding: 15px;
+    margin-bottom: 12px;
+  }
+
+  .settings-group h3,
+  .settings-group h2 {
+    margin: 0 0 12px 0;
+    font-size: 0.95em;
+    padding-bottom: 8px;
+  }
+
+  .form-settings {
+    margin: 12px 0;
+  }
+
+  .form-settings h3,
+  .form-settings h2 {
+    padding: 10px 12px 8px 12px;
+    font-size: 0.9em;
+  }
+
+  .form-settings .question-item {
+    padding: 8px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .form-settings .question-item > div:first-child > div:first-child {
+    font-size: 0.85em;
+  }
+
+  .form-settings .question-item > div:last-child {
+    gap: 4px;
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .form-settings .btn-sm,
+  .form-settings .btn-danger,
+  .form-settings .btn-warning {
+    padding: 3px 6px;
+    font-size: 0.7em;
+  }
+
+  .form-settings .badge-category,
+  .badge-category {
+    padding: 2px 5px;
+    font-size: 0.65em;
+  }
+
+  .form-settings p {
+    padding: 12px;
+    font-size: 0.85em;
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE MOBILE STYLES - Smartphone (< 480px)
+   ============================================================================ */
+@media (max-width: 479px) {
+  .settings-group {
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 2px;
+  }
+
+  .settings-group h3,
+  .settings-group h2 {
+    margin: 0 0 10px 0;
+    font-size: 0.9em;
+    padding-bottom: 6px;
+  }
+
+  .form-settings {
+    margin: 10px 0;
+    border-radius: 2px;
+  }
+
+  .form-settings h3,
+  .form-settings h2 {
+    padding: 8px 10px 6px 10px;
+    font-size: 0.85em;
+  }
+
+  .form-settings .question-item {
+    padding: 6px 10px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .form-settings .question-item > div:first-child {
+    width: 100%;
+  }
+
+  .form-settings .question-item > div:first-child > div:first-child {
+    font-size: 0.8em;
+  }
+
+  .form-settings .question-item > div:last-child {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 3px;
+  }
+
+  .form-settings .btn-sm,
+  .form-settings .btn-danger,
+  .form-settings .btn-warning {
+    padding: 2px 4px;
+    font-size: 0.65em;
+    flex: 1;
+    min-width: 45px;
+  }
+
+  .form-settings .badge-category,
+  .badge-category {
+    padding: 1px 4px;
+    font-size: 0.6em;
+  }
+
+  .form-settings p {
+    padding: 10px;
+    font-size: 0.8em;
+  }
+}

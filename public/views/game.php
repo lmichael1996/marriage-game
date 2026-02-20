@@ -460,35 +460,62 @@ function saveSetChanges() {
 
 // Funzione helper per salvare i metadati del set
 function saveSetMetadata(setId, currentName, currentDescription, messageDiv) {
-        // Salva i metadati via API
-        fetch('/src/api/api.php?endpoint=update_questionset_metadata', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                set_id: setId,
-                set_name: currentName,
-                set_description: currentDescription
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                messageDiv.innerHTML = '<div class="alert-success">✓ Modifiche salvate!</div>';
-                questionsToRemove = []; // Resetta l'array
-                setTimeout(() => {
-                    document.getElementById('modal-edit-set').style.display = 'none';
-                    window.location.reload();
-                }, 1000);
-            } else {
-                messageDiv.innerHTML = '<div class="alert-error">✗ Errore nel salvataggio</div>';
-            }
-        })
-        .catch(error => {
-            console.error('Errore:', error);
-            messageDiv.innerHTML = '<div class="alert-error">✗ Errore durante il salvataggio</div>';
+    // Prima salva l'ordine delle domande
+    const setContainer = document.getElementById('questions-list-' + setId) || document.getElementById('edit-set-questions');
+    if (setContainer) {
+        const questionItems = setContainer.querySelectorAll('.question-item');
+        const questionOrder = Array.from(questionItems).map((item, index) => {
+            const questionId = parseInt(item.getAttribute('data-question-id'));
+            return {
+                question_id: questionId,
+                order: index + 1
+            };
         });
+
+        // Se c'è un ordine da salvare, salvalo prima
+        if (questionOrder.length > 0) {
+            fetch('/src/api/api.php?endpoint=update_question_order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    set_id: setId,
+                    questions: questionOrder
+                })
+            }).then(response => response.json()).catch(error => console.error('Errore aggiornamento ordine:', error));
+        }
+    }
+
+    // Poi salva i metadati via API
+    fetch('/src/api/api.php?endpoint=update_questionset_metadata', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            set_id: setId,
+            set_name: currentName,
+            set_description: currentDescription
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            messageDiv.innerHTML = '<div class="alert-success">✓ Modifiche salvate!</div>';
+            questionsToRemove = []; // Resetta l'array
+            setTimeout(() => {
+                document.getElementById('modal-edit-set').style.display = 'none';
+                window.location.reload();
+            }, 1000);
+        } else {
+            messageDiv.innerHTML = '<div class="alert-error">✗ Errore nel salvataggio</div>';
+        }
+    })
+    .catch(error => {
+        console.error('Errore:', error);
+        messageDiv.innerHTML = '<div class="alert-error">✗ Errore durante il salvataggio</div>';
+    });
 }
 
 // Funzione helper per aggiungere domande al nuovo set appena creato
