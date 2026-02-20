@@ -677,6 +677,21 @@ mark {
   .questions-table td:last-child {
     width: 30%;
   }
+
+  /* Improve button icons for tablet */
+  .questions-table .btn-icon {
+    padding: 8px 12px;
+    font-size: 1em;
+    border-radius: 3px;
+  }
+
+  .questions-table td:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 5px;
+    align-items: center;
+  }
 }
 
 @media (max-width: 479px) {
@@ -719,6 +734,29 @@ mark {
   .questions-table td:last-child {
     width: 30%;
     text-align: right;
+  }
+
+  /* Improve button icons for mobile */
+  .questions-table .btn-icon {
+    padding: 10px 14px;
+    font-size: 1.1em;
+    font-weight: 600;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    margin: 2px;
+  }
+
+  .questions-table .btn-icon:active {
+    transform: scale(0.95);
+  }
+
+  /* Wrap buttons horizontally */
+  .questions-table td:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+    align-items: center;
   }
 
   .pagination-controls {
