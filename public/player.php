@@ -400,12 +400,6 @@ requirePlayer();
                         <div class="option-btn" data-answer="4" onclick="selectAnswer(4)" id="btn-4"></div>
                     </div>
 
-                    <div id="submit-container" style="display: none;">
-                        <div class="button-group">
-                            <button class="btn-main" onclick="submitSelectedAnswer()" id="submit-btn">✓ INVIA RISPOSTA</button>
-                        </div>
-                    </div>
-
                     <div id="click-first-screen" style="display: none; text-align: center;">
                         <button class="click-first-btn" onclick="submitClickFirst()" id="click-first-btn">⚡ CLICCA!</button>
                     </div>
@@ -494,7 +488,6 @@ requirePlayer();
             document.getElementById('waiting-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'block';
-            document.getElementById('submit-container').style.display = 'none';
 
             const answerGrid = document.getElementById('answer-grid');
             const clickFirstScreen = document.getElementById('click-first-screen');
@@ -539,10 +532,17 @@ requirePlayer();
             });
 
             document.querySelector(`[data-answer="${answer}"]`).classList.add('selected');
-            document.getElementById('submit-container').style.display = 'block';
+
+            // Invia direttamente la risposta senza aspettare il pulsante
+            hasAnswered = true;
+            const timeTaken = (Date.now() - startTime) / 1000;
+            clearInterval(timerInterval);
+
+            submitAnswer(selectedAnswer, timeTaken);
         }
 
         function submitSelectedAnswer() {
+            // Questa funzione non è più usata ma la lascio per compatibilità
             if (hasAnswered || !selectedAnswer) return;
 
             hasAnswered = true;
@@ -612,7 +612,6 @@ requirePlayer();
             hasAnswered = true;
             currentRoundCounter++;
 
-            document.getElementById('submit-container').style.display = 'none';
             document.getElementById('game-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
             document.getElementById('result-content').innerHTML = '<h2>⏱ Tempo scaduto!</h2><p>Non hai risposto in tempo</p>';
