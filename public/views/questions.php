@@ -2,7 +2,7 @@
 <div class="admin-section">
     <div class="tab-header-with-button">
         <h2>❓ Domande Disponibili</h2>
-        <div style="display: flex; gap: 10px;">
+        <div class="button-group">
             <button class="btn btn-success" id="btn-new-question">+ Nuova Domanda</button>
             <button class="btn btn-warning" id="btn-new-category">Categorie</button>
         </div>
@@ -481,36 +481,36 @@ document.addEventListener('DOMContentLoaded', function() {
             const tempId = -Math.floor(Math.random() * 10000);
             const categoriesList = document.getElementById('categories-list');
             const newCategoryHTML = `
-                <div class="category-card" data-category-id="${tempId}" style="background: #f9f9f9; padding: 15px; border-radius: 6px; border-left: 5px solid ${categoryColor};">
+                <div class="category-card" data-category-id="${tempId}" style="border-left-color: ${categoryColor};">
                     <!-- View Mode -->
-                    <div class="category-view-mode" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="category-view-mode">
                         <div>
                             <strong class="category-name">${categoryName}</strong>
-                            <div style="font-size: 0.85em; color: #666; margin-top: 5px;">
-                                Colore: <span class="category-color-preview" style="display: inline-block; width: 20px; height: 20px; background: ${categoryColor}; border: 1px solid #ccc; border-radius: 3px; vertical-align: middle;"></span>
+                            <div class="category-info">
+                                Colore: <span class="category-color-preview" style="background: ${categoryColor};"></span>
                             </div>
                         </div>
-                        <div style="display: flex; gap: 5px;">
+                        <div class="category-actions">
                             <button type="button" class="btn-icon btn-warning btn-edit-category" data-category-id="${tempId}" title="Modifica">✎</button>
                             <button type="button" class="btn-icon btn-danger btn-delete-category" data-category-id="${tempId}" title="Elimina">×</button>
                         </div>
                     </div>
 
                     <!-- Edit Mode -->
-                    <div class="category-edit-mode" style="display: none;">
-                        <div style="display: flex; gap: 10px; align-items: flex-end;">
-                            <div class="form-group" style="flex: 1;">
+                    <div class="category-edit-mode">
+                        <div class="category-edit-inputs">
+                            <div class="form-group">
                                 <label>Nome Categoria</label>
                                 <input type="text" class="edit-category-name" value="${categoryName}" placeholder="Nome categoria">
                             </div>
-                            <div class="form-group" style="flex: 0 0 auto;">
+                            <div class="form-group">
                                 <label>Colore</label>
                                 <input type="color" class="edit-category-color" value="${categoryColor}">
                             </div>
                         </div>
-                        <div style="display: flex; gap: 5px;">
-                            <button type="button" class="btn btn-secondary btn-cancel-edit" style="flex: 1;">Annulla</button>
-                            <button type="button" class="btn btn-success btn-save-category" style="flex: 1;">✓ Salva</button>
+                        <div class="category-edit-actions">
+                            <button type="button" class="btn btn-secondary btn-cancel-edit">Annulla</button>
+                            <button type="button" class="btn btn-success btn-save-category">✓ Salva</button>
                         </div>
                     </div>
                 </div>
@@ -990,182 +990,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- MODALE GESTISCI CATEGORIE -->
 <style>
-/* Category Management Modal Styles */
-.cat-card {
-    background: #fff;
-    border-radius: 6px;
-    overflow: hidden;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
 
-.cat-card:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    transform: translateY(-2px);
-}
-
-.cat-display {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    padding: 14px 16px !important;
-    background: #f9f9f9 !important;
-    border-radius: 4px !important;
-}
-
-.cat-display strong {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 6px;
-    color: #222;
-    font-size: 0.98em;
-}
-
-.cat-display div:first-child {
-    flex: 1;
-}
-
-.cat-color-sample {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    margin-right: 6px;
-    vertical-align: middle;
-}
-
-.cat-edit {
-    display: none !important;
-    padding: 14px 16px !important;
-    background: #f5f5f5 !important;
-    border-top: 1px solid #eee !important;
-}
-
-.cat-edit input[type="text"] {
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 0.95em;
-    transition: all 0.2s ease;
-    background: #fff;
-    color: #222;
-}
-
-.cat-edit input[type="text"]:focus {
-    outline: none;
-    border-color: #27ae60;
-    box-shadow: 0 0 0 2px rgba(39, 174, 96, 0.1);
-}
-
-.cat-edit input[type="color"] {
-    width: 60px;
-    height: 40px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.cat-input-group {
-    display: flex !important;
-    gap: 10px !important;
-    margin-bottom: 12px !important;
-}
-
-.cat-input-group input {
-    flex: 1;
-}
-
-.cat-button-group {
-    display: flex !important;
-    gap: 8px !important;
-}
-
-.cat-button-group .btn {
-    flex: 1 !important;
-    padding: 9px 12px !important;
-    font-size: 0.9em !important;
-}
-
-/* Add Category Section */
-.cat-add-section {
-    margin-bottom: 28px;
-    padding-bottom: 28px;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-.cat-add-section h3 {
-    font-size: 1.05em;
-    font-weight: 600;
-    margin-bottom: 14px;
-    color: #222;
-}
-
-.cat-add-inputs {
-    display: flex !important;
-    gap: 10px !important;
-    align-items: center !important;
-    margin-bottom: 12px !important;
-}
-
-.cat-add-inputs input[type="text"] {
-    flex: 1;
-    padding: 10px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 0.95em;
-    background: #fff;
-    color: #222;
-    transition: all 0.2s ease;
-}
-
-.cat-add-inputs input[type="text"]:focus {
-    outline: none;
-    border-color: #27ae60;
-    box-shadow: 0 0 0 2px rgba(39, 174, 96, 0.1);
-}
-
-.cat-add-inputs input[type="color"] {
-    width: 70px;
-    height: 40px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.btn-add-category {
-    width: 100%;
-    padding: 11px 16px !important;
-    font-size: 0.95em !important;
-    font-weight: 500;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 6px rgba(39, 174, 96, 0.15);
-}
-
-.btn-add-category:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.25);
-}
-
-/* Modify Categories Section */
-.cat-modify-section h3 {
-    font-size: 1.05em;
-    font-weight: 600;
-    margin-bottom: 14px;
-    color: #222;
-}
-
-.cat-list {
-    display: grid !important;
-    gap: 10px !important;
-    margin-bottom: 20px !important;
-}
-
-/* Modal Actions */
-#modal-categories .modal-actions {
-    margin-top: 25px !important;
-}
 </style>
 
 <div id="modal-categories" class="modal-overlay" style="display: none;">

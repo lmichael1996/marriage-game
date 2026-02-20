@@ -106,7 +106,7 @@
     <div class="modal-content modal-content-large">
         <div class="modal-header">
             <h2>Modifica Set</h2>
-            <button type="button" class="modal-close" id="btn-close-edit-set" onclick="document.getElementById('modal-edit-set').classList.remove('show'); cleanupEditSetModal();">✕</button>
+            <button type="button" class="modal-close" id="btn-close-edit-set">✕</button>
         </div>
         <div class="settings-group modal-scroll-content">
             <form id="edit-set-form">
