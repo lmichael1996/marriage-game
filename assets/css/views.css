@@ -653,6 +653,30 @@ mark {
     padding: 6px 10px;
     font-size: 0.85em;
   }
+
+  /* Hide some columns on questions table for tablet */
+  .questions-table th:nth-child(3),
+  .questions-table td:nth-child(3),
+  .questions-table th:nth-child(4),
+  .questions-table td:nth-child(4) {
+    display: none;
+  }
+
+  /* Adjust column widths for tablet */
+  .questions-table th:first-child,
+  .questions-table td:first-child {
+    width: 50%;
+  }
+
+  .questions-table th:nth-child(2),
+  .questions-table td:nth-child(2) {
+    width: 20%;
+  }
+
+  .questions-table th:last-child,
+  .questions-table td:last-child {
+    width: 30%;
+  }
 }
 
 @media (max-width: 479px) {
@@ -672,6 +696,29 @@ mark {
   .sets-table td,
   .points-table td {
     padding: 10px;
+  }
+
+  /* Hide columns on questions table for mobile */
+  .questions-table th:nth-child(2),
+  .questions-table td:nth-child(2),
+  .questions-table th:nth-child(3),
+  .questions-table td:nth-child(3),
+  .questions-table th:nth-child(4),
+  .questions-table td:nth-child(4) {
+    display: none;
+  }
+
+  /* Resize question column to take full width */
+  .questions-table th:first-child,
+  .questions-table td:first-child {
+    width: 70%;
+  }
+
+  /* Keep actions column visible */
+  .questions-table th:last-child,
+  .questions-table td:last-child {
+    width: 30%;
+    text-align: right;
   }
 
   .pagination-controls {
