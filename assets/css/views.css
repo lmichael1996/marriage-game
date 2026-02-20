@@ -732,20 +732,21 @@ mark {
   /* Keep actions column visible */
   .questions-table th:last-child,
   .questions-table td:last-child {
-    width: 30%;
+    width: 28%;
+    padding: 0;
     text-align: right;
   }
 
   /* Improve button icons for mobile - compact horizontal layout */
   .questions-table .btn-icon {
-    padding: 6px 10px;
-    font-size: 0.95em;
+    padding: 4px 6px;
+    font-size: 0.85em;
     font-weight: 600;
-    border-radius: 3px;
+    border-radius: 2px;
     transition: all 0.2s ease;
     margin: 0;
-    min-width: 40px;
-    height: 40px;
+    min-width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -755,14 +756,14 @@ mark {
     transform: scale(0.95);
   }
 
-  /* Wrap buttons horizontally in compact style */
+  /* Wrap buttons horizontally in compact style - right aligned */
   .questions-table td:last-child {
     display: flex;
     flex-wrap: nowrap;
     justify-content: flex-end;
-    gap: 4px;
+    gap: 2px;
     align-items: center;
-    padding: 8px 8px;
+    padding: 0;
   }
 
   .pagination-controls {
