@@ -124,8 +124,8 @@ class QuestionSetRepo {
         }
 
         $stmt = $this->conn->prepare("
-            INSERT INTO qsets (set_name, set_description, is_saved)
-            VALUES (?, ?, 0)
+            INSERT INTO qsets (set_name, set_description)
+            VALUES (?, ?)
         ");
         $stmt->bind_param("ss", $setName, $setDescription);
 

@@ -8,9 +8,9 @@ class QuestionRepo {
         $this->conn = getDBConnection();
     }
 
-    public function create($name, $description = '', $is_saved = true) {
-        $stmt = $this->conn->prepare("INSERT INTO qsets (set_name, set_description, is_saved) VALUES (?, ?, ?)");
-        $stmt->bind_param("ssi", $name, $description, $is_saved);
+    public function create($name, $description = '') {
+        $stmt = $this->conn->prepare("INSERT INTO qsets (set_name, set_description) VALUES (?, ?)");
+        $stmt->bind_param("ss", $name, $description);
         $stmt->execute();
         return $this->conn->insert_id;
     }
@@ -88,23 +88,12 @@ class QuestionRepo {
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    public function getRounds($setId) {
-        $stmt = $this->conn->prepare("
-            SELECT * FROM questions
-            WHERE question_set_id = ?
-            ORDER BY round_number ASC
-        ");
-        $stmt->bind_param("i", $setId);
-        $stmt->execute();
-        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    }
-
     /**
      * Create a question set with multiple questions
      */
-    public function createWithQuestions($setName, $setDescription, $questions, $is_saved = true) {
+    public function createWithQuestions($setName, $setDescription, $questions) {
         // Create the question set
-        $setId = $this->create($setName, $setDescription, $is_saved);
+        $setId = $this->create($setName, $setDescription);
 
         if (!$setId) {
             return false;

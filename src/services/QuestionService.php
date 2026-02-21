@@ -42,11 +42,10 @@ class QuestionService {
 
     /**
      * Crea un nuovo set di domande con le sue domande
-     * @param bool $is_saved - Se il set deve essere salvato (true) o temporaneo per partita (false)
      * @return int Set ID
      * @throws Exception on failure
      */
-    public function createQuestionSet($setName, $setDescription, $questions, $is_saved = true) {
+    public function createQuestionSet($setName, $setDescription, $questions) {
         if (empty($setName)) {
             throw new Exception('Nome set obbligatorio');
         }
@@ -55,7 +54,7 @@ class QuestionService {
             throw new Exception('Almeno una domanda è obbligatoria');
         }
 
-        $setId = $this->questionRepo->createWithQuestions($setName, $setDescription, $questions, $is_saved);
+        $setId = $this->questionRepo->createWithQuestions($setName, $setDescription, $questions);
 
         if (!$setId) {
             throw new Exception('Errore nella creazione del set');
