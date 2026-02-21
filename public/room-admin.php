@@ -319,13 +319,6 @@ $roomInfo = $_SESSION[$roomInfoKey];
             background: #f0f0f0;
         }
 
-        .clickfirst-checkbox {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            accent-color: #333;
-        }
-
         .medal {
             font-size: 1.6em;
             min-width: 30px;
@@ -557,14 +550,9 @@ $roomInfo = $_SESSION[$roomInfoKey];
             let clickfirstPollingInterval = null;
             const roundId = <?php echo isset($activeRound['id']) ? $activeRound['id'] : 'null'; ?>;
 
-            // Per clickfirst, non usa timer - solo polling
+            // Per clickfirst, usa il polling oltre al timer
             if (isClickFirst && roundId) {
-                // Nascondi il timer per clickfirst
-                if (timerEl) {
-                    timerEl.parentElement.style.display = 'none';
-                }
-
-                // Inizia il polling ogni 5 secondi
+                // Inizia il polling ogni 5 secondi per controllare se qualcuno ha risposto
                 clickfirstPollingInterval = setInterval(() => {
                     fetch('../src/api/api.php?endpoint=round_answers&round_id=' + roundId)
                         .then(r => r.json())
@@ -583,7 +571,7 @@ $roomInfo = $_SESSION[$roomInfoKey];
                         })
                         .catch(err => console.error('Polling error:', err));
                 }, 5000);
-                return; // Esce senza avviare il timer
+                // Continua con il timer normale per il countdown
             }
 
             // Per non-clickfirst, usa il timer normale
@@ -639,41 +627,9 @@ $roomInfo = $_SESSION[$roomInfoKey];
         }
 
         function nextQuestion() {
-            const isClickFirst = currentRoundType === 'clickfirst';
-            const roundId = <?php echo isset($activeRound['id']) ? $activeRound['id'] : 'null'; ?>;
-
-            // If clickfirst, mark selected players as checked
-            if (isClickFirst && roundId) {
-                const checkedPlayers = [];
-                document.querySelectorAll('.clickfirst-checkbox:checked').forEach(checkbox => {
-                    checkedPlayers.push(checkbox.getAttribute('data-player-name'));
-                });
-
-                if (checkedPlayers.length > 0) {
-                    // Send checked players to backend
-                    fetch('../src/api/api.php?endpoint=game&action=mark_clickfirst_checked', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            round_id: roundId,
-                            checked_players: checkedPlayers
-                        })
-                    })
-                    .then(r => r.json())
-                    .then(data => {
-                        // Proceed to next question
-                        proceedToNextQuestion();
-                    })
-                    .catch(err => {
-                        console.error('Error marking checked players:', err);
-                        proceedToNextQuestion();
-                    });
-                } else {
-                    proceedToNextQuestion();
-                }
-            } else {
-                proceedToNextQuestion();
-            }
+            // Per clickfirst, il primo giocatore è automaticamente il vincitore
+            // Non è più necessario selezionare manualmente i checkbox
+            proceedToNextQuestion();
         }
 
         function proceedToNextQuestion() {
@@ -698,29 +654,16 @@ $roomInfo = $_SESSION[$roomInfoKey];
                 .then(data => {
                     if (data.success && data.leaderboard?.length > 0) {
                         let html = '';
-                        const isClickFirst = currentRoundType === 'clickfirst';
 
                         data.leaderboard.forEach((p) => {
-                            if (isClickFirst) {
-                                // For clickfirst: show checkbox
-                                html += `<div class="leaderboard-item">
-                                    <input type="checkbox" class="clickfirst-checkbox" value="${p.username}" data-player-name="${p.username}">
-                                    <div class="medal">${p.medal}</div>
-                                    <div class="leaderboard-info">
-                                        <div class="leaderboard-name">${p.username}</div>
-                                        <div class="leaderboard-time" style="color: #333; font-weight: 600;">${p.score} punti</div>
-                                    </div>
-                                </div>`;
-                            } else {
-                                // For other types: no checkbox
-                                html += `<div class="leaderboard-item">
-                                    <div class="medal">${p.medal}</div>
-                                    <div class="leaderboard-info">
-                                        <div class="leaderboard-name">${p.username}</div>
-                                        <div class="leaderboard-time" style="color: #333; font-weight: 600;">${p.score} punti</div>
-                                    </div>
-                                </div>`;
-                            }
+                            // Non mostrare checkbox - mostra sempre il giocatore
+                            html += `<div class="leaderboard-item">
+                                <div class="medal">${p.medal}</div>
+                                <div class="leaderboard-info">
+                                    <div class="leaderboard-name">${p.username}</div>
+                                    <div class="leaderboard-time" style="color: #333; font-weight: 600;">${p.score} punti</div>
+                                </div>
+                            </div>`;
                         });
                         // Popola sia la sidebar che il main content
                         document.getElementById('final-leaderboard').innerHTML = html;
@@ -743,41 +686,23 @@ $roomInfo = $_SESSION[$roomInfoKey];
                         let html = '';
                         const isClickFirst = currentRoundType === 'clickfirst';
 
-                        data.top_answers.forEach((answer, i) => {
+                        // Per clickfirst, mostra solo il primo (il più veloce)
+                        const answersToShow = isClickFirst ? [data.top_answers[0]] : data.top_answers;
+
+                        answersToShow.forEach((answer, i) => {
                             const medals = ['🥇', '🥈', '🥉'];
                             const medal = medals[i] || (i + 1) + '.';
                             const time = parseFloat(answer.answer_time).toFixed(2) + 's';
 
-                            if (isClickFirst) {
-                                // Per clickfirst, aggiungi checkbox
-                                html += `<div class="leaderboard-item">
-                                    <input type="checkbox" class="clickfirst-checkbox" data-player-name="${answer.username}" data-answer-time="${answer.answer_time}">
-                                    <div class="medal">${medal}</div>
-                                    <div class="leaderboard-info">
-                                        <div class="leaderboard-name">${answer.username}</div>
-                                        <div class="leaderboard-time">${time}</div>
-                                    </div>
-                                </div>`;
-                            } else {
-                                html += `<div class="leaderboard-item">
-                                    <div class="medal">${medal}</div>
-                                    <div class="leaderboard-info">
-                                        <div class="leaderboard-name">${answer.username}</div>
-                                        <div class="leaderboard-time">${time}</div>
-                                    </div>
-                                </div>`;
-                            }
+                            html += `<div class="leaderboard-item">
+                                <div class="medal">${medal}</div>
+                                <div class="leaderboard-info">
+                                    <div class="leaderboard-name">${answer.username}</div>
+                                    <div class="leaderboard-time">${time}</div>
+                                </div>
+                            </div>`;
                         });
                         document.getElementById('leaderboard').innerHTML = html;
-
-                        // Se clickfirst, mostra messaggio per selezionare i corretti
-                        if (isClickFirst) {
-                            const leaderboardDiv = document.getElementById('leaderboard');
-                            const messageDiv = document.createElement('div');
-                            messageDiv.style.cssText = 'background: #fff9e6; border: 2px solid #ffc107; border-radius: 4px; padding: 12px; margin-top: 15px; color: #333; text-align: center; font-weight: 600;';
-                            messageDiv.innerHTML = '✓ Seleziona gli utenti che hanno risposto correttamente';
-                            leaderboardDiv.appendChild(messageDiv);
-                        }
                     }
                 });
         }
