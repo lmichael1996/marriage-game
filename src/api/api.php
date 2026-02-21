@@ -253,7 +253,7 @@ function handleAnswer($action, $game) {
         $data = json_decode(file_get_contents('php://input'), true);
 
         $round_id = $data['round_id'] ?? 0;
-        $answer = $data['answer'] ?? 0;
+        $answer = $data['answer'] ?? null;
         $time_taken = $data['time_taken'] ?? 0;
 
         if (!$round_id) {
@@ -264,7 +264,7 @@ function handleAnswer($action, $game) {
             exit();
         }
 
-        if (!$answer) {
+        if ($answer === null || $answer === '') {
             echo json_encode([
                 'success' => false,
                 'error' => 'Risposta mancante'

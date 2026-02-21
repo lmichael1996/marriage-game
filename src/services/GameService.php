@@ -297,14 +297,23 @@ class GameService {
 
         // Get full round data including correct_answer from questions table
         $round = $this->roundRepo->getRoundById($roundId);
-        if (!$round || !isset($round['correct_answer'])) {
-            throw new Exception('Risposta corretta non trovata per questo round');
+        if (!$round) {
+            throw new Exception('Round non trovato');
         }
 
-        // Per il tipo "clickfirst", accetta sempre la risposta
+        // Verifica che il round abbia i dati necessari
+        if (!isset($round['round_type'])) {
+            throw new Exception('Tipo di round non trovato');
+        }
+
+        // Per il tipo "clickfirst", accetta sempre la risposta (correct_answer può essere NULL)
         if ($round['round_type'] === 'clickfirst') {
             $is_correct = 1; // Sempre corretta per clickfirst
         } else {
+            // Per gli altri tipi, correct_answer deve essere definito
+            if (!isset($round['correct_answer'])) {
+                throw new Exception('Risposta corretta non trovata per questo round');
+            }
             // Per gli altri tipi, verifica se la risposta è corretta
             $is_correct = ($answer == $round['correct_answer']) ? 1 : 0;
         }
@@ -337,14 +346,19 @@ class GameService {
             throw new Exception('Round non trovato');
         }
 
-        if (!isset($round['correct_answer'])) {
-            throw new Exception('Risposta corretta non trovata per questo round');
+        // Verifica che il round abbia i dati necessari
+        if (!isset($round['round_type'])) {
+            throw new Exception('Tipo di round non trovato');
         }
 
-        // Per il tipo "clickfirst", accetta sempre la risposta
+        // Per il tipo "clickfirst", accetta sempre la risposta (correct_answer può essere NULL)
         if ($round['round_type'] === 'clickfirst') {
             $is_correct = 1; // Sempre corretta per clickfirst
         } else {
+            // Per gli altri tipi, correct_answer deve essere definito
+            if (!isset($round['correct_answer'])) {
+                throw new Exception('Risposta corretta non trovata per questo round');
+            }
             // Per gli altri tipi, verifica se la risposta è corretta
             $is_correct = ($answer == $round['correct_answer']) ? 1 : 0;
         }
