@@ -545,32 +545,8 @@ $roomInfo = $_SESSION[$roomInfoKey];
             let timeLeft = seconds;
             const timerEl = document.getElementById('timer');
             const nextBtn = document.getElementById('next-btn');
-            let correctAnswer = null;
-            let isClickFirst = currentRoundType === 'clickfirst';
-            let clickfirstPollingInterval = null;
             const roundId = <?php echo isset($activeRound['id']) ? $activeRound['id'] : 'null'; ?>;
 
-            // Per clickfirst, usa il polling oltre al timer
-            if (isClickFirst && roundId) {
-                // Inizia il polling ogni 5 secondi per controllare se qualcuno ha risposto
-                clickfirstPollingInterval = setInterval(() => {
-                    fetch('../src/api/api.php?endpoint=round_answers&round_id=' + roundId)
-                        .then(r => r.json())
-                        .then(data => {
-                            if (data.success && data.top_answers?.length > 0) {
-                                // Qualcuno ha risposto! Interrompi il polling
-                                clearInterval(clickfirstPollingInterval);
-                                // Mostra il primo
-                                loadRoundAnswers(roundId);
-                                // NON abilitare il pulsante ancora - aspetta che il timer scada
-                            }
-                        })
-                        .catch(err => console.error('Polling error:', err));
-                }, 5000);
-                // Continua con il timer normale per il countdown
-            }
-
-            // Per non-clickfirst, usa il timer normale
             timerInterval = setInterval(() => {
                 timeLeft--;
                 timerEl.textContent = timeLeft;
@@ -581,12 +557,7 @@ $roomInfo = $_SESSION[$roomInfoKey];
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
 
-                    // Stop clickfirst polling when timer expires
-                    if (isClickFirst && clickfirstPollingInterval) {
-                        clearInterval(clickfirstPollingInterval);
-                    }
-
-                    // After 2 seconds, show correct answer
+                    // After 2 seconds, show results
                     setTimeout(() => {
                         const correctAnswer = <?php echo isset($activeRound['correct_answer']) ? $activeRound['correct_answer'] : 'null'; ?>;
                         const isClickFirst = '<?php echo isset($activeRound['round_type']) ? $activeRound['round_type'] : ''; ?>' === 'clickfirst';
@@ -600,7 +571,6 @@ $roomInfo = $_SESSION[$roomInfoKey];
                         }
 
                         // Load top answers when timer expires
-                        const roundId = <?php echo isset($activeRound['id']) ? $activeRound['id'] : 'null'; ?>;
                         if (roundId) {
                             loadRoundAnswers(roundId);
                         }
