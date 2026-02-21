@@ -479,6 +479,9 @@ $roomInfo = $_SESSION[$roomInfoKey];
                             <button class="btn-main btn-success-custom" id="next-btn" onclick="nextQuestion()" disabled>
                                 ➡️ Prossima Domanda
                             </button>
+                            <button class="btn-main btn-primary-custom" id="skip-btn" onclick="nextQuestion()" disabled>
+                                ⏭️ Salta Domanda
+                            </button>
                             <?php if ($activeRound['round_type'] === 'clickfirst'): ?>
                             <button class="btn-main btn-primary-custom" id="repeat-btn" onclick="repeatRound(<?php echo $activeRound['question_id']; ?>)" disabled>
                                 🔄 Ripeti Round
@@ -550,6 +553,7 @@ $roomInfo = $_SESSION[$roomInfoKey];
             let timeLeft = seconds;
             const timerEl = document.getElementById('timer');
             const nextBtn = document.getElementById('next-btn');
+            const skipBtn = document.getElementById('skip-btn');
             const repeatBtn = document.getElementById('repeat-btn');
             const roundId = <?php echo isset($activeRound['id']) ? $activeRound['id'] : 'null'; ?>;
 
@@ -581,10 +585,14 @@ $roomInfo = $_SESSION[$roomInfoKey];
                             loadRoundAnswers(roundId);
                         }
 
-                        // Enable next button (and repeat button for clickfirst)
+                        // Enable next button (and skip/repeat buttons)
                         if (nextBtn) {
                             nextBtn.disabled = false;
                             nextBtn.style.animation = 'pulse 1s infinite';
+                        }
+                        if (skipBtn) {
+                            skipBtn.disabled = false;
+                            skipBtn.style.animation = 'pulse 1s infinite';
                         }
                         if (repeatBtn) {
                             repeatBtn.disabled = false;
