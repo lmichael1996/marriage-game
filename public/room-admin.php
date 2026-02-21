@@ -558,7 +558,9 @@ $roomInfo = $_SESSION[$roomInfoKey];
                         .then(r => r.json())
                         .then(data => {
                             if (data.success && data.top_answers?.length > 0) {
-                                // Qualcuno ha risposto! Mostra il primo
+                                // Qualcuno ha risposto! Interrompi il polling
+                                clearInterval(clickfirstPollingInterval);
+                                // Mostra il primo
                                 loadRoundAnswers(roundId);
                                 // NON abilitare il pulsante ancora - aspetta che il timer scada
                             }
