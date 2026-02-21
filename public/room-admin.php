@@ -479,6 +479,11 @@ $roomInfo = $_SESSION[$roomInfoKey];
                             <button class="btn-main btn-success-custom" id="next-btn" onclick="nextQuestion()" disabled>
                                 ➡️ Prossima Domanda
                             </button>
+                            <?php if ($activeRound['round_type'] === 'clickfirst'): ?>
+                            <button class="btn-main btn-primary-custom" id="repeat-btn" onclick="repeatRound(<?php echo $activeRound['question_id']; ?>)" disabled>
+                                🔄 Ripeti Round
+                            </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                 <?php else: ?>
@@ -545,6 +550,7 @@ $roomInfo = $_SESSION[$roomInfoKey];
             let timeLeft = seconds;
             const timerEl = document.getElementById('timer');
             const nextBtn = document.getElementById('next-btn');
+            const repeatBtn = document.getElementById('repeat-btn');
             const roundId = <?php echo isset($activeRound['id']) ? $activeRound['id'] : 'null'; ?>;
 
             timerInterval = setInterval(() => {
@@ -575,10 +581,14 @@ $roomInfo = $_SESSION[$roomInfoKey];
                             loadRoundAnswers(roundId);
                         }
 
-                        // Enable next button
+                        // Enable next button (and repeat button for clickfirst)
                         if (nextBtn) {
                             nextBtn.disabled = false;
                             nextBtn.style.animation = 'pulse 1s infinite';
+                        }
+                        if (repeatBtn) {
+                            repeatBtn.disabled = false;
+                            repeatBtn.style.animation = 'pulse 1s infinite';
                         }
                     }, 2000);
                 }
@@ -610,6 +620,21 @@ $roomInfo = $_SESSION[$roomInfoKey];
             fetch('room-admin.php?room_code=' + encodeURIComponent(roomCode), {
                 method: 'POST',
                 body: form
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    location.href = 'room-admin.php?room_code=' + encodeURIComponent(roomCode);
+                }
+            });
+        }
+
+        function repeatRound(questionId) {
+            // Crea un nuovo round con la stessa domanda
+            fetch('../src/api/api.php?endpoint=game&action=repeat_round', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question_id: questionId })
             })
             .then(r => r.json())
             .then(data => {
