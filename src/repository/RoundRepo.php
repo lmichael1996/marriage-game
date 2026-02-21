@@ -225,6 +225,44 @@ class RoundRepo {
         return false;
     }
 
+    public function updateRound($round_id, $updates = []) {
+        if (empty($updates)) {
+            return false;
+        }
+
+        $set_parts = [];
+        $types = '';
+        $values = [];
+
+        foreach ($updates as $key => $value) {
+            if ($key === 'is_skipped' && is_bool($value)) {
+                $set_parts[] = "is_skipped = ?";
+                $types .= 'i';
+                $values[] = $value ? 1 : 0;
+            }
+        }
+
+        if (empty($set_parts)) {
+            return false;
+        }
+
+        $values[] = $round_id;
+        $types .= 'i';
+
+        $query = "UPDATE rounds SET " . implode(', ', $set_parts) . " WHERE id = ?";
+        $stmt = $this->conn->prepare($query);
+
+        if (!$stmt) {
+            return false;
+        }
+
+        $stmt->bind_param($types, ...$values);
+        $result = $stmt->execute();
+        $stmt->close();
+
+        return $result;
+    }
+
     public function __destruct() {
         if ($this->conn) {
             $this->conn->close();

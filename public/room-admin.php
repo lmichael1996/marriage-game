@@ -479,7 +479,7 @@ $roomInfo = $_SESSION[$roomInfoKey];
                             <button class="btn-main btn-success-custom" id="next-btn" onclick="nextQuestion()" disabled>
                                 ➡️ Prossima Domanda
                             </button>
-                            <button class="btn-main btn-primary-custom" id="skip-btn" onclick="nextQuestion()" disabled>
+                            <button class="btn-main btn-primary-custom" id="skip-btn" onclick="skipQuestion()" disabled>
                                 ⏭️ Salta Domanda
                             </button>
                             <?php if ($activeRound['round_type'] === 'clickfirst'): ?>
@@ -619,6 +619,31 @@ $roomInfo = $_SESSION[$roomInfoKey];
             // Per clickfirst, il primo giocatore è automaticamente il vincitore
             // Non è più necessario selezionare manualmente i checkbox
             proceedToNextQuestion();
+        }
+
+        function skipQuestion() {
+            // Marca il round corrente come skippato e procede alla prossima domanda
+            const roundId = <?php echo isset($activeRound['id']) ? $activeRound['id'] : 'null'; ?>;
+
+            if (!roundId) {
+                proceedToNextQuestion();
+                return;
+            }
+
+            fetch('../src/api/api.php?endpoint=game&action=skip_round', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ round_id: roundId })
+            })
+            .then(r => r.json())
+            .then(data => {
+                // Procedi comunque anche se lo skip fallisce
+                proceedToNextQuestion();
+            })
+            .catch(err => {
+                console.error('Skip error:', err);
+                proceedToNextQuestion();
+            });
         }
 
         function proceedToNextQuestion() {

@@ -229,4 +229,11 @@ class RoomService {
         }
         return false;
     }
+
+    /**
+     * Mark a round as skipped
+     */
+    public function skipRound($roundId) {
+        return $this->roundRepo->updateRound($roundId, ['is_skipped' => true]);
+    }
 }
