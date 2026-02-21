@@ -309,12 +309,11 @@ VALUES
 
 -- Create a sample question set
 INSERT INTO
-    qsets (set_name, set_description, is_saved)
+    qsets (set_name, set_description)
 VALUES
     (
         'Trivia Generale',
-        'Un set di domande trivia su vari argomenti',
-        TRUE
+        'Un set di domande trivia su vari argomenti'
     );
 
 -- Associate questions with the question set (via qset_questions) - 25 domande
@@ -329,27 +328,23 @@ VALUES
 
 -- Add additional question sets (5 questions each)
 INSERT INTO
-    qsets (set_name, set_description, is_saved)
+    qsets (set_name, set_description)
 VALUES
     (
         'Set Scienza Base',
-        'Domande di scienza per principianti',
-        TRUE
+        'Domande di scienza per principianti'
     ),
     (
         'Set Storia Antica',
-        'Domande sulla storia antica e medioevo',
-        TRUE
+        'Domande sulla storia antica e medioevo'
     ),
     (
         'Set Sport Mondiale',
-        'Domande su sport internazionali',
-        TRUE
+        'Domande su sport internazionali'
     ),
     (
         'Set Cultura Generale',
-        'Domande di cultura generale miste',
-        TRUE
+        'Domande di cultura generale miste'
     );
 
 -- Associate questions with new sets
@@ -384,17 +379,15 @@ VALUES
 /*
  -- Add 20 more question sets (5 questions each) - Sets 6-25
  INSERT INTO
- qsets (set_name, set_description, is_saved)
+ qsets (set_name, set_description)
  VALUES
  (
  'Set Geografia',
- 'Domande di geografia mondiale',
- TRUE
+ 'Domande di geografia mondiale'
  ),
  (
  'Set Matematica',
- 'Domande di matematica e logica',
- TRUE
+ 'Domande di matematica e logica'
  ),
  (
  'Set Letteratura',

@@ -16,7 +16,6 @@ class QuestionSetRepo {
             SELECT qs.*, COUNT(qq.id) as question_count
             FROM qsets qs
             LEFT JOIN qset_questions qq ON qq.qset_id = qs.id
-            WHERE qs.is_saved = 1
             GROUP BY qs.id
             ORDER BY qs.set_name ASC
         ";
@@ -33,7 +32,7 @@ class QuestionSetRepo {
      * Get total count of question sets
      */
     public function getTotalCount() {
-        $result = $this->conn->query("SELECT COUNT(*) as total FROM qsets WHERE is_saved = 1");
+        $result = $this->conn->query("SELECT COUNT(*) as total FROM qsets");
         $row = $result->fetch_assoc();
         return $row['total'] ?? 0;
     }
@@ -72,7 +71,7 @@ class QuestionSetRepo {
             SELECT qs.*, COUNT(qq.id) as question_count
             FROM qsets qs
             LEFT JOIN qset_questions qq ON qq.qset_id = qs.id
-            WHERE qs.set_name LIKE ? AND qs.is_saved = 1
+            WHERE qs.set_name LIKE ?
             GROUP BY qs.id
             ORDER BY qs.set_name ASC
         ";
@@ -103,7 +102,7 @@ class QuestionSetRepo {
 
         $stmt = $this->conn->prepare("
             SELECT COUNT(*) as total FROM qsets
-            WHERE set_name LIKE ? AND is_saved = 1
+            WHERE set_name LIKE ?
         ");
         $stmt->bind_param("s", $searchPattern);
         $stmt->execute();
@@ -164,23 +163,6 @@ class QuestionSetRepo {
             WHERE id = ?
         ");
         $stmt->bind_param("i", $setId);
-        $success = $stmt->execute();
-        $stmt->close();
-
-        return $success;
-    }
-
-    /**
-     * Set the is_saved flag for a question set
-     */
-    public function setSaved($setId, $isSaved) {
-        $isSavedValue = $isSaved ? 1 : 0;
-        $stmt = $this->conn->prepare("
-            UPDATE qsets
-            SET is_saved = ?, updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-        ");
-        $stmt->bind_param("ii", $isSavedValue, $setId);
         $success = $stmt->execute();
         $stmt->close();
 
