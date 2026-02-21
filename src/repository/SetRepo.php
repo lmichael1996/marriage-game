@@ -11,11 +11,18 @@ class SetRepo {
     /**
      * Get all question sets
      */
-    public function getAll($limit = null, $offset = 0) {
+    public function getAll($limit = null, $offset = 0, $includeTemporary = false) {
         $query = "
             SELECT qs.*, COUNT(qq.id) as question_count
             FROM qsets qs
             LEFT JOIN qset_questions qq ON qq.qset_id = qs.id
+        ";
+
+        if (!$includeTemporary) {
+            $query .= " WHERE qs.set_name NOT LIKE '#Temporary set%'";
+        }
+
+        $query .= "
             GROUP BY qs.id
             ORDER BY qs.set_name ASC
         ";
@@ -31,8 +38,12 @@ class SetRepo {
     /**
      * Get total count of question sets
      */
-    public function getTotalCount() {
-        $result = $this->conn->query("SELECT COUNT(*) as total FROM qsets");
+    public function getTotalCount($includeTemporary = false) {
+        $query = "SELECT COUNT(*) as total FROM qsets";
+        if (!$includeTemporary) {
+            $query .= " WHERE set_name NOT LIKE '#Temporary set%'";
+        }
+        $result = $this->conn->query($query);
         $row = $result->fetch_assoc();
         return $row['total'] ?? 0;
     }

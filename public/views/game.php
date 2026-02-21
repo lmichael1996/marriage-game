@@ -2150,7 +2150,9 @@ function startGameWithSet(setId) {
 
     // Reindirizza direttamente - il cookie è stato preservato dalle fetch precedenti
     window.location.href = gameRoomUrl;
-}// Avvia un gioco dal modal "Crea Partita"
+}
+
+// Avvia un gioco dal modal "Crea Partita"
 function startGameFromModal() {
     const currentName = document.getElementById('edit-set-name').value || 'set temporaneo';
     const currentDescription = document.getElementById('edit-set-description').value || '';
