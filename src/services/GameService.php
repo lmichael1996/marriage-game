@@ -301,15 +301,18 @@ class GameService {
             throw new Exception('Risposta corretta non trovata per questo round');
         }
 
-        // Check if answer is correct
-        $is_correct = ($answer == $round['correct_answer']) ? 1 : 0;
-
-        error_log("Answer check: user_answer=$answer, correct_answer={$round['correct_answer']}, is_correct=$is_correct");
-
-        // Save the answer ONLY if correct
-        if ($is_correct) {
-            $this->answerRepo->submitAnswer($roundId, $userId, $timeTaken);
+        // Per il tipo "clickfirst", accetta sempre la risposta
+        if ($round['round_type'] === 'clickfirst') {
+            $is_correct = 1; // Sempre corretta per clickfirst
+        } else {
+            // Per gli altri tipi, verifica se la risposta è corretta
+            $is_correct = ($answer == $round['correct_answer']) ? 1 : 0;
         }
+
+        error_log("Answer check: user_answer=$answer, correct_answer={$round['correct_answer']}, is_correct=$is_correct, round_type={$round['round_type']}");
+
+        // Salva la risposta (per clickfirst, viene sempre salvata)
+        $this->answerRepo->submitAnswer($roundId, $userId, $timeTaken);
 
         return ['is_correct' => $is_correct];
     }
@@ -338,13 +341,16 @@ class GameService {
             throw new Exception('Risposta corretta non trovata per questo round');
         }
 
-        // Check if answer is correct
-        $is_correct = ($answer == $round['correct_answer']) ? 1 : 0;
-
-        // Save the answer
-        if ($is_correct) {
-            $this->answerRepo->submitAnswer($roundId, $playerId, $timeTaken);
+        // Per il tipo "clickfirst", accetta sempre la risposta
+        if ($round['round_type'] === 'clickfirst') {
+            $is_correct = 1; // Sempre corretta per clickfirst
+        } else {
+            // Per gli altri tipi, verifica se la risposta è corretta
+            $is_correct = ($answer == $round['correct_answer']) ? 1 : 0;
         }
+
+        // Salva la risposta
+        $this->answerRepo->submitAnswer($roundId, $playerId, $timeTaken);
 
         return [
             'success' => true,
