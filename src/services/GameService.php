@@ -322,10 +322,10 @@ class GameService {
             @session_start();
         }
 
-        $username = $_SESSION['username'] ?? null;
+        $playerId = $_SESSION['player_id'] ?? null;
 
-        if (!$username) {
-            throw new Exception('Username non trovato nella sessione');
+        if (!$playerId) {
+            throw new Exception('Player ID non trovato nella sessione');
         }
 
         // Get full round data including correct_answer from questions table
@@ -343,7 +343,7 @@ class GameService {
 
         // Save the answer
         if ($is_correct) {
-            $this->answerRepo->submitAnswer($roundId, $username, $timeTaken);
+            $this->answerRepo->submitAnswer($roundId, $playerId, $timeTaken);
         }
 
         return [

@@ -94,10 +94,11 @@ CREATE TABLE IF NOT EXISTS rounds (
 CREATE TABLE IF NOT EXISTS player_answers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     round_id INT NOT NULL,
-    username VARCHAR(50) NOT NULL,
+    player_id INT NOT NULL,
     answer_time DECIMAL(10, 4) NOT NULL,
     FOREIGN KEY (round_id) REFERENCES rounds(id) ON DELETE CASCADE,
-    UNIQUE (round_id, username)
+    FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
+    UNIQUE (round_id, player_id)
 );
 
 CREATE TABLE IF NOT EXISTS winners (

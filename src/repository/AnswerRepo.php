@@ -10,18 +10,12 @@ class AnswerRepo {
 
     public function hasAnswered($round_id, $player_id) {
         try {
-            // Get session username
-            if (session_status() === PHP_SESSION_NONE) {
-                @session_start();
-            }
-            $username = $_SESSION['username'] ?? 'unknown';
-
-            // Check if user already answered this round
+            // Check if player already answered this round
             $stmt = $this->conn->prepare("
                 SELECT id FROM player_answers
-                WHERE round_id = ? AND username = ?
+                WHERE round_id = ? AND player_id = ?
             ");
-            $stmt->bind_param("is", $round_id, $username);
+            $stmt->bind_param("ii", $round_id, $player_id);
             $stmt->execute();
             $result = $stmt->get_result();
             $exists = $result->fetch_assoc() !== null;
@@ -33,19 +27,19 @@ class AnswerRepo {
         }
     }
 
-    public function submitAnswer($round_id, $username, $time_taken) {
+    public function submitAnswer($round_id, $player_id, $time_taken) {
         try {
             // answer_time: tempo in secondi impiegato dal player per rispondere
             $answer_time = floatval($time_taken);
 
             // Insert into player_answers table
-            // Schema: (id, round_id, username, answer_time)
+            // Schema: (id, round_id, player_id, answer_time)
             // answer_time: DECIMAL(10,4) tempo in secondi
             $stmt = $this->conn->prepare("
-                INSERT INTO player_answers (round_id, username, answer_time)
+                INSERT INTO player_answers (round_id, player_id, answer_time)
                 VALUES (?, ?, ?)
             ");
-            $stmt->bind_param("isd", $round_id, $username, $answer_time);
+            $stmt->bind_param("iid", $round_id, $player_id, $answer_time);
             $success = $stmt->execute();
 
             $stmt->close();
@@ -61,9 +55,11 @@ class AnswerRepo {
                 SELECT
                     pa.id,
                     pa.round_id,
-                    pa.username,
+                    pa.player_id,
+                    p.username,
                     pa.answer_time
                 FROM player_answers pa
+                INNER JOIN players p ON p.id = pa.player_id
                 WHERE pa.round_id = ?
                 ORDER BY pa.answer_time ASC
             ");
@@ -91,12 +87,14 @@ class AnswerRepo {
         try {
             $stmt = $this->conn->prepare("
                 SELECT
-                    username,
-                    answer_time,
-                    ROW_NUMBER() OVER (ORDER BY answer_time ASC) as position
-                FROM player_answers
-                WHERE round_id = ?
-                ORDER BY answer_time ASC
+                    p.username,
+                    pa.player_id,
+                    pa.answer_time,
+                    ROW_NUMBER() OVER (ORDER BY pa.answer_time ASC) as position
+                FROM player_answers pa
+                INNER JOIN players p ON p.id = pa.player_id
+                WHERE pa.round_id = ?
+                ORDER BY pa.answer_time ASC
                 LIMIT ?
             ");
             $stmt->bind_param("ii", $round_id, $limit);
@@ -143,9 +141,9 @@ class AnswerRepo {
                         p.username,
                         COUNT(pa.id) as total_answers
                     FROM players p
-                    LEFT JOIN player_answers pa ON pa.username = p.username
+                    LEFT JOIN player_answers pa ON pa.player_id = p.id
                     WHERE p.room_id = ?
-                    GROUP BY p.username
+                    GROUP BY p.id
                     ORDER BY total_answers DESC
                     LIMIT 10
                 ");
