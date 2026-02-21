@@ -2228,7 +2228,7 @@ function createNewGame() {
 
     // Genera nome automatico con timestamp
     const timestamp = new Date().getTime();
-    document.getElementById('edit-set-name').value = 'set temporaneo ' + timestamp;
+    document.getElementById('edit-set-name').value = '#Temporary set ' + timestamp;
     document.getElementById('edit-set-description').value = '';
 
     // Nascondi i campi nome e descrizione per "Crea Partita"

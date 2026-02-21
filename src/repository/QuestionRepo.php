@@ -26,6 +26,7 @@ class QuestionRepo {
                    COUNT(qq.id) as total_rounds
             FROM qsets qs
             LEFT JOIN qset_questions qq ON qq.qset_id = qs.id
+            WHERE qs.set_name NOT LIKE '#Temporary set%'
             GROUP BY qs.id, qs.set_name, qs.set_description, qs.updated_at
             ORDER BY qs.set_name ASC
             LIMIT $perPage OFFSET $offset
@@ -91,9 +92,9 @@ class QuestionRepo {
     /**
      * Create a question set with multiple questions
      */
-    public function createWithQuestions($setName, $setDescription, $questions) {
+    public function createWithQuestions($setName, $setDescription, $questions, $is_saved = true) {
         // Create the question set
-        $setId = $this->create($setName, $setDescription);
+        $setId = $this->create($setName, $setDescription, $is_saved);
 
         if (!$setId) {
             return false;

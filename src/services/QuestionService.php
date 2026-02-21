@@ -1,6 +1,6 @@
 <?php
+require_once __DIR__ . '/../repository/SetRepo.php';
 require_once __DIR__ . '/../repository/QuestionRepo.php';
-require_once __DIR__ . '/../repository/QuestionSetRepo.php';
 require_once __DIR__ . '/../repository/RoundRepo.php';
 
 /**
@@ -10,12 +10,12 @@ require_once __DIR__ . '/../repository/RoundRepo.php';
  */
 class QuestionService {
     private $questionRepo;
-    private $questionSetRepo;
+    private $setRepo;
     private $roundRepo;
 
     public function __construct() {
         $this->questionRepo = new QuestionRepo();
-        $this->questionSetRepo = new QuestionSetRepo();
+        $this->setRepo = new SetRepo();
         $this->roundRepo = new RoundRepo();
     }
 
@@ -30,14 +30,14 @@ class QuestionService {
      * Get question by counter (order_in_set) for a specific question set
      */
     public function getQuestionByCounter($qsetId, $counter) {
-        return $this->questionSetRepo->getQuestionByCounter($qsetId, $counter);
+        return $this->setRepo->getQuestionByCounter($qsetId, $counter);
     }
 
     /**
      * Get total count of questions in a specific question set
      */
     public function getQuestionCountByQset($qsetId) {
-        return $this->questionSetRepo->getQuestionCountByQset($qsetId);
+        return $this->setRepo->getQuestionCountByQset($qsetId);
     }
 
     /**
@@ -274,8 +274,8 @@ class QuestionService {
      */
     public function getAll($page = 1, $limit = 10) {
         $offset = ($page - 1) * $limit;
-        $sets = $this->questionSetRepo->getAll($limit, $offset);
-        $total = $this->questionSetRepo->getTotalCount();
+        $sets = $this->setRepo->getAll($limit, $offset);
+        $total = $this->setRepo->getTotalCount();
 
         return [
             'sets' => $sets,
@@ -291,8 +291,8 @@ class QuestionService {
      */
     public function search($searchTerm, $searchType = 'contains', $page = 1, $limit = 10) {
         $offset = ($page - 1) * $limit;
-        $sets = $this->questionSetRepo->search($searchTerm, $searchType, $limit, $offset);
-        $total = $this->questionSetRepo->countSearch($searchTerm, $searchType);
+        $sets = $this->setRepo->search($searchTerm, $searchType, $limit, $offset);
+        $total = $this->setRepo->countSearch($searchTerm, $searchType);
 
         return [
             'sets' => $sets,
@@ -307,7 +307,7 @@ class QuestionService {
      * Get question set by ID (alias)
      */
     public function getById($setId) {
-        return $this->questionSetRepo->getById($setId);
+        return $this->setRepo->getById($setId);
     }
 
     /**
@@ -318,7 +318,7 @@ class QuestionService {
             throw new Exception("Set name is required");
         }
 
-        $setId = $this->questionSetRepo->add($setName, $setDescription);
+        $setId = $this->setRepo->add($setName, $setDescription);
         if (!$setId) {
             throw new Exception("Failed to create question set");
         }
@@ -334,7 +334,7 @@ class QuestionService {
             throw new Exception("Set name is required");
         }
 
-        $success = $this->questionSetRepo->update($setId, $setName, $setDescription);
+        $success = $this->setRepo->update($setId, $setName, $setDescription);
         if (!$success) {
             throw new Exception("Failed to update question set");
         }
@@ -346,7 +346,7 @@ class QuestionService {
      * Delete question set
      */
     public function delete($setId) {
-        $success = $this->questionSetRepo->delete($setId);
+        $success = $this->setRepo->delete($setId);
         if (!$success) {
             throw new Exception("Failed to delete question set");
         }
@@ -358,7 +358,7 @@ class QuestionService {
      * Set the is_saved flag for a question set
      */
     public function setSaved($setId, $isSaved) {
-        $success = $this->questionSetRepo->setSaved($setId, $isSaved);
+        $success = $this->setRepo->setSaved($setId, $isSaved);
         if (!$success) {
             throw new Exception("Failed to update question set saved status");
         }
@@ -370,49 +370,49 @@ class QuestionService {
      * Get questions in set
      */
     public function getQuestions($setId) {
-        return $this->questionSetRepo->getQuestions($setId);
+        return $this->setRepo->getQuestions($setId);
     }
 
     /**
      * Add question to set (from QuestionSetService)
      */
     public function addQuestionToSet($setId, $questionId, $orderInSet = 0) {
-        return $this->questionSetRepo->addQuestion($setId, $questionId, $orderInSet);
+        return $this->setRepo->addQuestion($setId, $questionId, $orderInSet);
     }
 
     /**
      * Add question to set at a specific position
      */
     public function addQuestionAtPosition($setId, $questionId, $position) {
-        return $this->questionSetRepo->addQuestionAtPosition($setId, $questionId, $position);
+        return $this->setRepo->addQuestionAtPosition($setId, $questionId, $position);
     }
 
     /**
      * Update questions order
      */
     public function updateQuestionsOrder($setId, $questions) {
-        return $this->questionSetRepo->updateQuestionsOrder($setId, $questions);
+        return $this->setRepo->updateQuestionsOrder($setId, $questions);
     }
 
     /**
      * Remove question from set
      */
     public function removeQuestion($setId, $questionId) {
-        return $this->questionSetRepo->removeQuestion($setId, $questionId);
+        return $this->setRepo->removeQuestion($setId, $questionId);
     }
 
     /**
      * Move question up in set
      */
     public function moveQuestionUp($setId, $questionId) {
-        return $this->questionSetRepo->moveQuestionUp($setId, $questionId);
+        return $this->setRepo->moveQuestionUp($setId, $questionId);
     }
 
     /**
      * Move question down in set
      */
     public function moveQuestionDown($setId, $questionId) {
-        return $this->questionSetRepo->moveQuestionDown($setId, $questionId);
+        return $this->setRepo->moveQuestionDown($setId, $questionId);
     }
 }
 
