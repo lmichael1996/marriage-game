@@ -74,7 +74,6 @@ CREATE TABLE IF NOT EXISTS players (
     username VARCHAR(50) NOT NULL,
     room_id INT NOT NULL,
     connected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_winner BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
     UNIQUE (username, room_id)
 );
