@@ -558,15 +558,9 @@ $roomInfo = $_SESSION[$roomInfoKey];
                         .then(r => r.json())
                         .then(data => {
                             if (data.success && data.top_answers?.length > 0) {
-                                // Qualcuno ha risposto! Blocca il polling
-                                clearInterval(clickfirstPollingInterval);
-                                // Mostra il primo
+                                // Qualcuno ha risposto! Mostra il primo
                                 loadRoundAnswers(roundId);
-                                // Abilita il pulsante
-                                if (nextBtn) {
-                                    nextBtn.disabled = false;
-                                    nextBtn.style.animation = 'pulse 1s infinite';
-                                }
+                                // NON abilitare il pulsante ancora - aspetta che il timer scada
                             }
                         })
                         .catch(err => console.error('Polling error:', err));
@@ -584,6 +578,11 @@ $roomInfo = $_SESSION[$roomInfoKey];
 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
+
+                    // Stop clickfirst polling when timer expires
+                    if (isClickFirst && clickfirstPollingInterval) {
+                        clearInterval(clickfirstPollingInterval);
+                    }
 
                     // After 2 seconds, show correct answer
                     setTimeout(() => {
