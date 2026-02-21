@@ -8,9 +8,9 @@ class QuestionRepo {
         $this->conn = getDBConnection();
     }
 
-    public function create($name, $description = '') {
-        $stmt = $this->conn->prepare("INSERT INTO qsets (set_name, set_description) VALUES (?, ?)");
-        $stmt->bind_param("ss", $name, $description);
+    public function create($name, $description = '', $is_saved = true) {
+        $stmt = $this->conn->prepare("INSERT INTO qsets (set_name, set_description, is_saved) VALUES (?, ?, ?)");
+        $stmt->bind_param("ssi", $name, $description, $is_saved);
         $stmt->execute();
         return $this->conn->insert_id;
     }
@@ -102,9 +102,9 @@ class QuestionRepo {
     /**
      * Create a question set with multiple questions
      */
-    public function createWithQuestions($setName, $setDescription, $questions) {
+    public function createWithQuestions($setName, $setDescription, $questions, $is_saved = true) {
         // Create the question set
-        $setId = $this->create($setName, $setDescription);
+        $setId = $this->create($setName, $setDescription, $is_saved);
 
         if (!$setId) {
             return false;
