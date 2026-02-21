@@ -121,6 +121,15 @@ class RoomService {
             return null;
         }
 
+        // Controlla se la stanza ha già un vincitore (partita finita)
+        $winner = $this->roomRepo->getWinner($room['id']);
+        if ($winner) {
+            $room['has_winner'] = true;
+            $room['winner'] = $winner;
+        } else {
+            $room['has_winner'] = false;
+        }
+
         $room['players'] = $this->getRoomPlayers($roomCode);
         $room['player_count'] = count($room['players']);
 

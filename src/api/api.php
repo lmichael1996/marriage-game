@@ -458,6 +458,17 @@ function handleConnectedDevices($room) {
                 exit();
             }
 
+            // Verifica se la stanza ha già un vincitore
+            if ($roomData['has_winner'] ?? false) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Partita già terminata',
+                    'game_finished' => true,
+                    'winner' => $roomData['winner'] ?? null
+                ]);
+                exit();
+            }
+
             // Get round at position counter via service
             $result = $room->getRoundByPosition($roomData['id'], $roundCounter);
 
@@ -578,6 +589,16 @@ function handleConnectedDevices($room) {
             $roomData = $room->getRoomDetails($roomCode);
             if (!$roomData) {
                 echo json_encode(['success' => false, 'is_winner' => false]);
+                exit();
+            }
+
+            // Verifica se la stanza ha già un vincitore
+            if ($roomData['has_winner'] ?? false) {
+                echo json_encode([
+                    'success' => true,
+                    'game_finished' => true,
+                    'winner' => $roomData['winner'] ?? null
+                ]);
                 exit();
             }
 

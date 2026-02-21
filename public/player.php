@@ -453,6 +453,12 @@ requirePlayer();
             fetch('../src/api/api.php?endpoint=game&action=get_game_state&counter=' + currentRoundCounter)
                 .then(response => response.json())
                 .then(data => {
+                    // Verifica se la partita è terminata
+                    if (data.game_finished) {
+                        showFinalResult(false); // Player non ha vinto
+                        return;
+                    }
+
                     if (data.success === false || !data.round_number) {
                         showWaitingScreen();
                         return;

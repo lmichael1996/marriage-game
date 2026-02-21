@@ -16,6 +16,16 @@ if (!$room) {
     exit;
 }
 
+// Verifica se la stanza ha già un vincitore (partita terminata)
+if ($room['has_winner'] ?? false) {
+    echo "<div class='alert alert-error'>
+            <h2>Partita Terminata</h2>
+            <p>Questa stanza ha già un vincitore. Accesso negato.</p>
+            <a href='admin.php'>Torna alla Dashboard</a>
+          </div>";
+    exit;
+}
+
 // POST handler: Increment counter
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'increment_counter') {
     $key = 'round_counter_' . $roomCode;

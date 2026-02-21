@@ -61,6 +61,15 @@ class AuthService {
             throw new Exception('Codice stanza non valido o stanza non attiva');
         }
 
+        // Verifica se la stanza ha già un vincitore (partita terminata)
+        $room = $this->roomRepo->getRoomByCode($roomCode);
+        if ($room) {
+            $winner = $this->roomRepo->getWinner($room['id']);
+            if ($winner) {
+                throw new Exception('La partita in questa stanza è già terminata');
+            }
+        }
+
         // Create new player associated with this room
         try {
             $playerId = $this->playerRepo->createPlayer($username, $roomCode);
