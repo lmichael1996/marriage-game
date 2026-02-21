@@ -93,7 +93,7 @@ class RoundRepo {
      */
     public function getRoundsByRoom($room_id) {
         $stmt = $this->conn->prepare("
-            SELECT r.id, r.room_id, r.question_id,
+            SELECT r.id, r.room_id, r.question_id, r.is_skipped,
                    q.id as question_id, q.round_type,
                    q.question, q.option1, q.option2, q.option3, q.option4,
                    q.correct_answer, q.timer

@@ -468,11 +468,12 @@ class GameService {
 
             foreach ($filteredRounds as $round) {
                 $topAnswers = $this->answerRepo->getTopFastestAnswers($round['id'], 10);
+                $roundType = $round['round_type'] ?? 'multiple';
 
                 foreach ($topAnswers as $index => $answer) {
                     $username = $answer['username'];
                     $position = $index + 1;
-                    $points = $scoreMap['multiple'][$position] ?? 0;
+                    $points = $scoreMap[$roundType][$position] ?? 0;
 
                     if (!isset($playerScores[$username])) {
                         $playerScores[$username] = 0;
