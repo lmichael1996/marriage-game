@@ -171,7 +171,14 @@ class RoomRepo {
             VALUES (?, ?)
             ON DUPLICATE KEY UPDATE user_id = VALUES(user_id)
         ");
-        $stmt->bind_param("ii", $roomId, $playerId);
+
+        // Support both integer and null for playerId
+        if ($playerId === null) {
+            $stmt->bind_param("is", $roomId, $playerId);
+        } else {
+            $stmt->bind_param("ii", $roomId, $playerId);
+        }
+
         $success = $stmt->execute();
         $stmt->close();
 

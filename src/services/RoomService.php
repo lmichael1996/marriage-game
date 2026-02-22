@@ -105,7 +105,22 @@ class RoomService {
      * Delete room completely
      */
     public function deleteRoom($roomCode) {
-        // First, remove all players from the room
+        // Get room details first
+        $room = $this->roomRepo->getRoomByCode($roomCode);
+        if (!$room) {
+            return [
+                'success' => false,
+                'message' => 'Stanza non trovata'
+            ];
+        }
+
+        // Create final round with question_id = null to signal game end
+        $this->roundRepo->createRound($room['id'], null);
+
+        // Create winner entry with user_id = null to signal game finished
+        $this->roomRepo->insertWinner($room['id'], null);
+
+        // Remove all players from the room
         $this->playerRepo->deletePlayersByRoom($roomCode);
 
         // Then delete the room itself
