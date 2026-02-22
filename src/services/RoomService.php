@@ -105,6 +105,9 @@ class RoomService {
      * Delete room completely
      */
     public function deleteRoom($roomCode) {
+        // Close the room without removing the room record from the DB.
+        // Purpose: mark the game as finished (create an end round and a placeholder
+        // winner) and remove players, but keep the room row intact.
         // Get room details first
         $room = $this->roomRepo->getRoomByCode($roomCode);
         if (!$room) {
@@ -123,12 +126,11 @@ class RoomService {
         // Remove all players from the room
         $this->playerRepo->deletePlayersByRoom($roomCode);
 
-        // Then delete the room itself
-        $success = $this->roomRepo->deleteRoom($roomCode);
-
+        // Do NOT delete the room row from the database. Return success so caller
+        // (API/UI) can proceed (for example, unset session and redirect).
         return [
-            'success' => $success,
-            'message' => $success ? 'Stanza eliminata' : 'Errore nell\'eliminazione'
+            'success' => true,
+            'message' => 'Stanza chiusa (record conservato)'
         ];
     }
 

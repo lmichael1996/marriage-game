@@ -737,7 +737,22 @@ $roomInfo = $_SESSION[$roomInfoKey];
 
         function goBack() {
             if (confirm('Termina partita?')) {
-                window.location.href = 'admin.php';
+                // Call API to close room (which creates final round and winner entry)
+                fetch('/src/api/api.php?endpoint=delete_room', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = 'admin.php';
+                    } else {
+                        alert('Errore nella chiusura della stanza');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Errore nella chiusura della stanza');
+                });
             }
         }
     </script>
