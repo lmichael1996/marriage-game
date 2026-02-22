@@ -9,6 +9,8 @@ require_once __DIR__ . '/../services/GameService.php';
 require_once __DIR__ . '/../services/RoomService.php';
 require_once __DIR__ . '/../services/AdminService.php';
 require_once __DIR__ . '/../services/QuestionService.php';
+require_once __DIR__ . '/../repository/RoundRepo.php';
+require_once __DIR__ . '/../repository/PlayerRepo.php';
 
 header('Content-Type: application/json');
 
@@ -69,6 +71,10 @@ switch ($endpoint) {
 
     case 'delete_room':
         handleDeleteRoom($room);
+        break;
+
+    case 'close_room':
+        handleCloseRoom($room);
         break;
 
     case 'generate_pdf':
@@ -406,6 +412,52 @@ function handleDeleteRoom($room) {
         }
 
         echo json_encode($result);
+
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleCloseRoom($room) {
+    requireAdminJson();
+
+    try {
+        // Get active room from session or request
+        $roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
+
+        if (!$roomCode) {
+            throw new Exception('Codice stanza mancante');
+        }
+
+        // Get room details
+        $roomDetails = $room->getRoomDetails($roomCode);
+        if (!$roomDetails) {
+            throw new Exception('Stanza non trovata');
+        }
+
+        // Create final round with question_id = 2 (end marker for goBack)
+        $roundRepo = new RoundRepo();
+        $roundResult = $roundRepo->createRound($roomDetails['id'], 2);
+
+        if (!$roundResult) {
+            throw new Exception('Errore nella creazione del round finale');
+        }
+
+        // Remove all players from the room
+        $playerRepo = new PlayerRepo();
+        $playerRepo->deletePlayersByRoom($roomCode);
+
+        // Clear room from session
+        unset($_SESSION['room_code']);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Stanza chiusa'
+        ]);
 
     } catch (Exception $e) {
         http_response_code(500);
