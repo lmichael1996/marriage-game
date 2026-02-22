@@ -153,8 +153,9 @@ if ($selectedSetId) {
             container.innerHTML = ''; // Clear previous QR
 
             // Genera l'URL del QR code (stesso URL che usa il PDF)
+            // NON codificare - la libreria lo farà
             const baseUrl = 'http://151.21.203.214:9000/public/login-player.php';
-            const qrUrl = baseUrl + '?code=' + encodeURIComponent(code);
+            const qrUrl = baseUrl + '?code=' + code;
 
             // Usa la libreria QRCode.js per generare il QR direttamente nel container
             try {

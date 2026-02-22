@@ -1627,8 +1627,9 @@ function handleGeneratePDF($room) {
         }
 
         // Genera l'URL del QR code al volo usando il room code
+        // NON codificare - le librerie QR lo faranno
         $baseUrl = 'http://151.21.203.214:9000/public/login-player.php';
-        $qrUrl = $baseUrl . '?code=' . urlencode($roomCode);
+        $qrUrl = $baseUrl . '?code=' . $roomCode;
 
         // Genera PDF con titolo, codice stanza e QR
         $pdfGenerator = new PDFGenerator($roomCode, $qrUrl);
