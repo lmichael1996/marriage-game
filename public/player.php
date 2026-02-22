@@ -650,6 +650,7 @@ requirePlayer();
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
+                            console.log("Winner check result:", data);
                             showFinalResult(data.is_winner);
                         } else {
                             attempts++;
