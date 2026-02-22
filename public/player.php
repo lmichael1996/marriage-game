@@ -457,8 +457,8 @@ requirePlayer();
 
                     // Verifica se la partita è terminata
                     if (data.game_finished) {
-                        console.log("Game finished detected");
-                        showFinalResult(false); // Player non ha vinto
+                        console.log("Game finished detected, checking winner status");
+                        checkWinnerStatus();
                         return;
                     }
 
@@ -648,6 +648,7 @@ requirePlayer();
         }
 
         function checkWinnerStatus() {
+            console.log("checkWinnerStatus called - polling for winner");
             // Poll for winner check, retrying until we get a result
             const maxAttempts = 20;
             let attempts = 0;

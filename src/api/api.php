@@ -682,7 +682,7 @@ function handleConnectedDevices($room) {
 
             // Check if winner
             $isWinner = $room->isWinner($roomData['id'], $player['id']);
-            
+
             // Verifica se la stanza ha già un vincitore
             if ($roomData['has_winner'] ?? false) {
                 echo json_encode([
