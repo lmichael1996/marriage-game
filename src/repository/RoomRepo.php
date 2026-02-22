@@ -9,23 +9,23 @@ class RoomRepo {
     }
 
     /**
-     * Create a new room. Optionally accept a QR image path (relative to public/)
+     * Create a new room. Optionally accept a QR data URI
      */
-    public function createRoom($code, $questionSetId = null, $qrPath = null) {
+    public function createRoom($code, $questionSetId = null, $qrDataUri = null) {
         $codeUpper = strtoupper($code);
 
-        if ($qrPath === null) {
-            // Without QR path
+        if ($qrDataUri === null) {
+            // Without QR data URI
             $stmt = $this->conn->prepare(
                 "INSERT INTO rooms (room_code, qset_id) VALUES (?, ?)"
             );
             $stmt->bind_param("si", $codeUpper, $questionSetId);
         } else {
-            // With QR path (store relative path, e.g. qrcodes/room_ABC.jpg)
+            // With QR data URI
             $stmt = $this->conn->prepare(
-                "INSERT INTO rooms (room_code, qset_id, qr_path) VALUES (?, ?, ?)"
+                "INSERT INTO rooms (room_code, qset_id, qr_data_uri) VALUES (?, ?, ?)"
             );
-            $stmt->bind_param("sis", $codeUpper, $questionSetId, $qrPath);
+            $stmt->bind_param("sis", $codeUpper, $questionSetId, $qrDataUri);
         }
 
         if ($stmt->execute()) {

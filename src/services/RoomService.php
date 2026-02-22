@@ -25,8 +25,8 @@ class RoomService {
     }
 
     /**
-     * Crea una nuova stanza e salva l'immagine QR su disco (public/qrcodes).
-     * Non salviamo il BLOB nel DB: memorizziamo solo il percorso relativo in qr_path.
+     * Crea una nuova stanza e salva il QR code come data URI nel DB.
+     * Non salviamo file su disco: solo data URI (base64 encoded).
      */
     public function createRoom($questionSetId = null) {
         // Genera un codice univoco di 6 caratteri
@@ -35,35 +35,17 @@ class RoomService {
         // Genera il QR code come immagine binaria
         $qrImageData = $this->generateQRImage($roomCode);
 
-        $qrPath = null;
+        $qrDataUri = null;
         if ($qrImageData !== null) {
             error_log("RoomService: Generated QR image (" . strlen($qrImageData) . " bytes) for room: $roomCode");
-
-            // Assicura che la cartella public/qrcodes esista
-            $publicQrDir = __DIR__ . '/../../public/qrcodes';
-            if (!is_dir($publicQrDir)) {
-                @mkdir($publicQrDir, 0755, true);
-                error_log("RoomService: Created qrcodes directory: $publicQrDir");
-            }
-
-            // Nome file unico (room code, con fallback uniqid)
-            $filename = 'room_' . $roomCode . '.jpg';
-            $filePath = $publicQrDir . '/' . $filename;
-
-            // Salva il file su disco
-            if (@file_put_contents($filePath, $qrImageData) !== false) {
-                // Store relative path (to be served from /public/)
-                $qrPath = 'qrcodes/' . $filename;
-                error_log("RoomService: Wrote QR file to: $filePath");
-            } else {
-                error_log("RoomService: failed to write QR file: $filePath");
-            }
+            // Converti a data URI per il salvataggio nel DB
+            $qrDataUri = 'data:image/jpeg;base64,' . base64_encode($qrImageData);
         } else {
             error_log("Warning: Failed to generate QR image for room: $roomCode");
         }
 
-        // Salva la stanza con room code e percorso immagine (se disponibile)
-        $roomId = $this->roomRepo->createRoom($roomCode, $questionSetId, $qrPath);
+        // Salva la stanza con room code e data URI QR
+        $roomId = $this->roomRepo->createRoom($roomCode, $questionSetId, $qrDataUri);
 
         if ($roomId) {
             return [
@@ -77,9 +59,7 @@ class RoomService {
             'success' => false,
             'error' => 'Errore nella creazione della stanza'
         ];
-    }
-
-    /**
+    }    /**
      * Genera un codice stanza univoco
      */
     private function generateUniqueRoomCode() {

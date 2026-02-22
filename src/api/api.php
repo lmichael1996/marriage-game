@@ -304,41 +304,15 @@ function handleCreateRoom($room) {
         error_log("Create room request: question_set_id=$questionSetId");
         $result = $room->createRoom($questionSetId);
 
-        error_log("Create room result: " . json_encode($result));
-
         // Save room_code in session for admin panel
         if ($result['success'] && isset($result['room_code'])) {
             $_SESSION['room_code'] = $result['room_code'];
 
-            // Recupera i dati della stanza (contiene il percorso dell'immagine QR se disponibile)
+            // Recupera i dati della stanza (contiene il data URI QR se disponibile)
             $roomData = $room->getRoomByCode($result['room_code']);
-            error_log("Room data retrieved: " . json_encode($roomData));
 
-            if ($roomData) {
-                if (!empty($roomData['qr_path'])) {
-                    // percorso relativo per il browser (es. qrcodes/room_ABC.jpg)
-                    $result['qr_image_url'] = $roomData['qr_path'];
-                    error_log("QR image URL set to: " . $roomData['qr_path']);
-
-                    // Forniamo anche una data URI (opzionale) così il client può mostrarla immediatamente
-                    $abs = __DIR__ . '/../../public/' . $roomData['qr_path'];
-                    error_log("Checking QR file at: $abs");
-
-                    if (file_exists($abs)) {
-                        error_log("QR file exists!");
-                        $contents = @file_get_contents($abs);
-                        if ($contents !== false) {
-                            $result['qr_data_uri'] = 'data:image/jpeg;base64,' . base64_encode($contents);
-                            error_log("QR data URI generated");
-                        }
-                    } else {
-                        error_log("QR file DOES NOT exist at $abs");
-                    }
-                } else {
-                    error_log("qr_path is empty in roomData");
-                }
-            } else {
-                error_log("Room data is NULL");
+            if ($roomData && !empty($roomData['qr_data_uri'])) {
+                $result['qr_data_uri'] = $roomData['qr_data_uri'];
             }
         }
 
@@ -1664,42 +1638,22 @@ function generateQRImage($roomCode) {
             exit();
         }
 
-        // Recupera il percorso dell'immagine QR (relativo a public/) dal DB
-        $qrPath = $roomResult['qr_path'] ?? null;
-        $qrSource = null; // Può essere un percorso file o una data URI
+        // Recupera il data URI del QR dal DB
+        $qrDataUri = $roomResult['qr_data_uri'] ?? null;
 
-        if (!empty($qrPath)) {
-            $absPath = __DIR__ . '/../../public/' . $qrPath;
-            error_log("PDF generation: checking QR file at: $absPath");
-            if (file_exists($absPath)) {
-                error_log("PDF generation: QR file found, using path directly");
-                // Usa il file direttamente come sorgente
-                $qrSource = $absPath;
-            } else {
-                error_log("PDF generation: QR file not found at $absPath");
-            }
-        } else {
-            error_log("PDF generation: No qr_path in room data");
-        }
-
-        // Se non troviamo il file su disco, generiamo l'immagine al volo (non persistiamo)
-        if (empty($qrSource)) {
-            error_log("PDF generation: Generating QR image on-the-fly for room: $roomCode");
+        // Se non lo troviamo nel DB, generiamo l'immagine al volo
+        if (empty($qrDataUri)) {
             $generated = generateQRImage($roomCode);
             if (empty($generated)) {
                 http_response_code(500);
-                error_log("PDF generation: Failed to generate QR image");
                 echo json_encode(['success' => false, 'error' => 'Failed to generate QR image']);
                 exit();
             }
-            // Genera una data URI come fallback
-            error_log("PDF generation: Using generated QR as data URI");
-            $qrSource = 'data:image/jpeg;base64,' . base64_encode($generated);
+            $qrDataUri = 'data:image/jpeg;base64,' . base64_encode($generated);
         }
 
-        // Genera PDF con titolo, codice stanza e QR (file path o data URI)
-        error_log("PDF generation: Creating PDFGenerator with source type: " . (file_exists($qrSource) ? 'file' : 'data-uri'));
-        $pdfGenerator = new PDFGenerator($roomCode, $qrSource);
+        // Genera PDF con titolo, codice stanza e QR (data URI)
+        $pdfGenerator = new PDFGenerator($roomCode, $qrDataUri);
         $pdfGenerator->generate();
         $pdfContent = $pdfGenerator->getPDF();
 

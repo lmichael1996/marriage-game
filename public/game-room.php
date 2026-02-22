@@ -328,7 +328,6 @@ if ($selectedSetId) {
                 return response.json();
             })
             .then(data => {
-                console.log('Create room response data:', data);
                 if (data.success) {
                     roomCode = data.room_code;
 
@@ -337,16 +336,15 @@ if ($selectedSetId) {
                     document.getElementById('room-info').classList.remove('hidden');
                     document.getElementById('room-code').textContent = roomCode;
 
-                    // Carica l'immagine QR direttamente dalla cartella public/qrcodes/
-                    console.log('QR image URL from server:', data.qr_image_url);
-                    if (data.qr_image_url) {
+                    // Usa data URI (unica fonte di verità)
+                    if (data.qr_data_uri) {
                         const container = document.getElementById('qr-code-container');
-                        container.innerHTML = ''; // Clear
+                        container.innerHTML = '';
                         const img = document.createElement('img');
-                        // Costruisci il percorso assoluto dal browser (es. /qrcodes/room_ABC.jpg)
-                        const imgSrc = '/' + data.qr_image_url;
-                        console.log('Setting image src to:', imgSrc);
-                        img.src = imgSrc;
+                        img.src = data.qr_data_uri;
+                        img.onerror = function() {
+                            generateQRCode(roomCode);
+                        };
                         img.style.border = '1px solid #ccc';
                         img.style.display = 'block';
                         img.style.margin = '10px auto';
@@ -354,8 +352,7 @@ if ($selectedSetId) {
                         img.style.height = '350px';
                         container.appendChild(img);
                     } else {
-                        // Fallback: genera il QR nel browser se il server non l'ha fornito
-                        console.log('No qr_image_url, generating QR client-side');
+                        // Nessun QR - genera client-side
                         generateQRCode(roomCode);
                     }
 
@@ -379,7 +376,6 @@ if ($selectedSetId) {
             })
             .catch(error => {
                 roomActive = false;
-                console.error('Create room error:', error);
                 alert('Errore nella comunicazione con il server: ' + error.message);
             });
         });
