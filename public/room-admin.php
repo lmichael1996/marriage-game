@@ -738,7 +738,7 @@ $roomInfo = $_SESSION[$roomInfoKey];
         function goBack() {
             if (confirm('Termina partita?')) {
                 // Call API to close room (which creates final round and winner entry)
-                fetch('/src/api/api.php?endpoint=delete_room', {
+                fetch('../src/api/api.php?endpoint=delete_room', {
                     method: 'POST',
                     credentials: 'include'
                 })
