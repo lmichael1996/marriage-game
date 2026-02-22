@@ -19,7 +19,12 @@ class RoundRepo {
             VALUES (?, ?)
         ");
 
-        $stmt->bind_param("ii", $room_id, $question_id);
+        // Support both integer and null for question_id
+        if ($question_id === null) {
+            $stmt->bind_param("is", $room_id, $question_id);
+        } else {
+            $stmt->bind_param("ii", $room_id, $question_id);
+        }
 
         if ($stmt->execute()) {
             $roundId = $this->conn->insert_id;
