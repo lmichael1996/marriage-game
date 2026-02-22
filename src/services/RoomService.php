@@ -118,8 +118,8 @@ class RoomService {
                 ];
             }
 
-            // Create final round with question_id = null to signal game end
-            $roundResult = $this->roundRepo->createRound($room['id'], null);
+            // Create final round with question_id = 1 (placeholder) to signal game end
+            $roundResult = $this->roundRepo->createRound($room['id'], 1);
             if (!$roundResult) {
                 error_log("deleteRoom: Failed to create final round for room: $roomCode");
                 return [

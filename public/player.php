@@ -468,9 +468,9 @@ requirePlayer();
                         return;
                     }
 
-                    // Check if this is the end-game round (question_id = null)
-                    if (data.question_id === null) {
-                        console.log("End-game round detected (question_id = null), checking winner status");
+                    // Check if this is the end-game round (question_id = 1, placeholder)
+                    if (data.question_id === 1) {
+                        console.log("End-game round detected (question_id = 1), checking winner status");
                         checkWinnerStatus();
                         return;
                     }
