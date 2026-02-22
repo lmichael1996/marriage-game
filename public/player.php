@@ -419,6 +419,14 @@ requirePlayer();
                         <p id="final-message">Complimenti! Sei il vincitore di questa partita!</p>
                     </div>
                 </div>
+
+                <div id="game-cancelled-screen" class="final-result-screen" style="background: linear-gradient(135deg, #9E9E9E 0%, #757575 100%);">
+                    <div id="game-cancelled-content">
+                        <div class="final-result-emoji">❌</div>
+                        <h1>Partita Annullata</h1>
+                        <p>L'amministratore ha chiuso la partita</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -465,6 +473,13 @@ requirePlayer();
                     if (data.success === false || !data.round_number) {
                         console.log("No round available, showing waiting screen");
                         showWaitingScreen();
+                        return;
+                    }
+
+                    // Check if admin closed the room (question_id = 2, annullamento)
+                    if (data.question_id === 2) {
+                        console.log("Game cancelled by admin (question_id = 2)");
+                        showGameCancelled();
                         return;
                     }
 
@@ -645,6 +660,7 @@ requirePlayer();
             document.getElementById('game-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'none';
             document.getElementById('final-result-screen').style.display = 'none';
+            document.getElementById('game-cancelled-screen').style.display = 'none';
         }
 
         function checkWinnerStatus() {
@@ -693,6 +709,7 @@ requirePlayer();
             document.getElementById('game-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'none';
             document.getElementById('final-result-screen').style.display = 'block';
+            document.getElementById('game-cancelled-screen').style.display = 'none';
 
             const finalScreen = document.getElementById('final-result-screen');
             const emoji = document.getElementById('final-emoji');
@@ -712,6 +729,15 @@ requirePlayer();
                 title.textContent = 'Ho Perso!';
                 message.textContent = 'Buona fortuna nella prossima partita!';
             }
+        }
+
+        function showGameCancelled() {
+            // Hide all other screens
+            document.getElementById('waiting-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('final-result-screen').style.display = 'none';
+            document.getElementById('game-cancelled-screen').style.display = 'block';
         }
     </script>
 </body>

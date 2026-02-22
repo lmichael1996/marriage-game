@@ -737,8 +737,8 @@ $roomInfo = $_SESSION[$roomInfoKey];
 
         function goBack() {
             if (confirm('Termina partita?')) {
-                // Insert final round with question_id = 2 (end marker for goBack)
-                fetch('../src/api/api.php?endpoint=game&action=close_room', {
+                // Close room with question_id = 2 (end marker for goBack)
+                fetch('../src/api/api.php?endpoint=close_room', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include'

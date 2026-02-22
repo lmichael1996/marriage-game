@@ -423,7 +423,30 @@ function handleDeleteRoom($room) {
 }
 
 function handleCloseRoom($room) {
-    requireAdminJson();
+    // Start session if needed
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    // Check if user is authenticated
+    if (!isset($_SESSION['user_id']) && !isset($_SESSION['player_id'])) {
+        http_response_code(401);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Autenticazione richiesta'
+        ]);
+        exit();
+    }
+
+    // Check if user is admin
+    if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1) {
+        http_response_code(403);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Accesso riservato agli amministratori'
+        ]);
+        exit();
+    }
 
     try {
         // Get active room from session or request
