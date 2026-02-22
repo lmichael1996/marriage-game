@@ -41,69 +41,12 @@ class QuestionService {
     }
 
     /**
-     * Crea un nuovo set di domande con le sue domande
-     * @return int Set ID
-     * @throws Exception on failure
-     */
-    public function createQuestionSet($setName, $setDescription, $questions) {
-        if (empty($setName)) {
-            throw new Exception('Nome set obbligatorio');
-        }
-
-        if (empty($questions)) {
-            throw new Exception('Almeno una domanda è obbligatoria');
-        }
-
-        $setId = $this->questionRepo->createWithQuestions($setName, $setDescription, $questions);
-
-        if (!$setId) {
-            throw new Exception('Errore nella creazione del set');
-        }
-
-        return $setId;
-    }
-
-    /**
-     * Aggiorna un set di domande esistente
-     * @return bool true on success
-     * @throws Exception on failure
-     */
-    public function updateQuestionSet($setId, $setName, $setDescription, $questions) {
-        if (empty($setId) || empty($setName)) {
-            throw new Exception('ID e nome set sono obbligatori');
-        }
-
-        $success = $this->questionRepo->updateWithQuestions($setId, $setName, $setDescription, $questions);
-
-        if (!$success) {
-            throw new Exception('Errore nell\'aggiornamento del set');
-        }
-
-        return true;
-    }
-
-    /**
-     * Elimina un set di domande
-     * @return bool true on success
-     * @throws Exception on failure
-     */
-    public function deleteQuestionSet($setId) {
-        $success = $this->questionRepo->delete($setId);
-
-        if (!$success) {
-            throw new Exception('Errore nell\'eliminazione del set');
-        }
-
-        return true;
-    }
-
-    /**
-     * Ottieni tutti i set di domande
+     * Get all individual questions with pagination
      * @return array
      */
-    public function getAllQuestionSets($page = 1, $perPage = 10) {
+    public function getAllQuestions($page = 1, $perPage = 10) {
         return [
-            'sets' => $this->questionRepo->getAll($page, $perPage),
+            'questions' => $this->questionRepo->getAll($page, $perPage),
             'total' => $this->questionRepo->getTotalCount(),
             'page' => $page,
             'perPage' => $perPage,
@@ -112,11 +55,27 @@ class QuestionService {
     }
 
     /**
+     * Get all question sets (alias for getAll)
+     * @return array
+     */
+    public function getAllQuestionSets($page = 1, $perPage = 10) {
+        return $this->getAll($page, $perPage);
+    }
+
+    /**
+     * Get question set by ID (alias for getById)
+     * @return array|null
+     */
+    public function getQuestionSetById($setId) {
+        return $this->getById($setId);
+    }
+
+    /**
      * Ottieni un set con tutte le sue domande
      * @return array|null
      */
     public function getQuestionSetWithQuestions($setId) {
-        $set = $this->questionRepo->getById($setId);
+        $set = $this->setRepo->getById($setId);
 
         if (!$set) {
             return null;
@@ -201,30 +160,7 @@ class QuestionService {
     }
 
     /**
-     * Search question sets
-     * @return array
-     */
-    public function getAllQuestions($page = 1, $perPage = 10) {
-        return [
-            'questions' => $this->questionRepo->getAllQuestions($page, $perPage),
-            'total' => $this->questionRepo->getTotalQuestionsCount(),
-            'page' => $page,
-            'perPage' => $perPage,
-            'totalPages' => ceil($this->questionRepo->getTotalQuestionsCount() / $perPage)
-        ];
-    }
-
-    /**
-     * Get question set by ID
-     * @return array|null
-     */
-    public function getQuestionSetById($id) {
-        return $this->questionRepo->getById($id);
-    }
-
-    /**
      * Get all categories
-     * @return array
      */
     public function getAllCategories() {
         return $this->questionRepo->getAllCategories();

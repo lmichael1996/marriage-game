@@ -25,6 +25,7 @@ class QuestionRepo {
                    c.category_name, c.color
             FROM questions q
             LEFT JOIN question_categories c ON q.category_id = c.id
+            WHERE q.id NOT IN (1, 2)
             ORDER BY q.question ASC
             LIMIT $perPage OFFSET $offset
         ");
