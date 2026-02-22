@@ -41,8 +41,6 @@ if ($selectedSetId) {
     <link rel="stylesheet" href="../assets/css/settings-group.css">
     <link rel="stylesheet" href="../assets/css/popup.css">
     <link rel="stylesheet" href="../assets/css/game-room.css">
-    <script src="../assets/js/qrcode.min.js"></script>
-    <script src="../assets/js/html2pdf.bundle.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -147,11 +145,29 @@ if ($selectedSetId) {
         })();
         <?php endif; ?>
 
-        // Generate QR code for room code
-        function generateQRCode(code) {
+        // Holds server-provided QR image (data URI) when available
+        let serverQrDataUri = null;
+
+        // Generate QR code for room code. If dataUri is provided (or serverQrDataUri exists),
+        // render the image element from the data URI so it matches exactly the server/PDF QR.
+        function generateQRCode(code, dataUri = null) {
             const container = document.getElementById('qr-code-container');
             container.innerHTML = ''; // Clear previous QR
 
+            const effectiveDataUri = dataUri || serverQrDataUri;
+            if (effectiveDataUri) {
+                const img = document.createElement('img');
+                img.src = effectiveDataUri;
+                img.style.border = '1px solid #ccc';
+                img.style.display = 'block';
+                img.style.margin = '10px auto';
+                img.style.width = '350px';
+                img.style.height = '350px';
+                container.appendChild(img);
+                return;
+            }
+
+            // Fallback: generate the QR client-side using QRCode.js from the URL
             // Genera l'URL del QR code (stesso URL che usa il PDF)
             // NON codificare - la libreria lo farà
             const baseUrl = 'http://151.21.203.214:9000/public/login-player.php';
@@ -321,8 +337,27 @@ if ($selectedSetId) {
                     document.getElementById('room-info').classList.remove('hidden');
                     document.getElementById('room-code').textContent = roomCode;
 
-                    // Generate QR code
-                    generateQRCode(roomCode);
+                    // Carica l'immagine QR direttamente dalla cartella public/qrcodes/
+                    console.log('QR image URL from server:', data.qr_image_url);
+                    if (data.qr_image_url) {
+                        const container = document.getElementById('qr-code-container');
+                        container.innerHTML = ''; // Clear
+                        const img = document.createElement('img');
+                        // Costruisci il percorso assoluto dal browser (es. /qrcodes/room_ABC.jpg)
+                        const imgSrc = '/' + data.qr_image_url;
+                        console.log('Setting image src to:', imgSrc);
+                        img.src = imgSrc;
+                        img.style.border = '1px solid #ccc';
+                        img.style.display = 'block';
+                        img.style.margin = '10px auto';
+                        img.style.width = '350px';
+                        img.style.height = '350px';
+                        container.appendChild(img);
+                    } else {
+                        // Fallback: genera il QR nel browser se il server non l'ha fornito
+                        console.log('No qr_image_url, generating QR client-side');
+                        generateQRCode(roomCode);
+                    }
 
                     // Disable back button
                     const backBtn = document.getElementById('btn-back-admin');

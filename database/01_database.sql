@@ -65,7 +65,8 @@ CREATE TABLE IF NOT EXISTS rooms (
     id INT AUTO_INCREMENT PRIMARY KEY,
     room_code VARCHAR(10) UNIQUE NOT NULL,
     qset_id INT DEFAULT NULL,
-    qr_image LONGBLOB DEFAULT NULL,
+    -- Store relative path to QR image under public/ (e.g. qrcodes/room_ABCD.jpg)
+    qr_path VARCHAR(255) DEFAULT NULL,
     FOREIGN KEY (qset_id) REFERENCES qsets(id) ON DELETE CASCADE
 );
 
