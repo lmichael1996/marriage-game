@@ -147,61 +147,71 @@ if ($selectedSetId) {
         })();
         <?php endif; ?>
 
-        // Generate QR code for room code
+        // Generate QR code for room code (qr_data stampabile da iframe)
         function generateQRCode(code) {
             const container = document.getElementById('qr-code-container');
             container.innerHTML = ''; // Clear previous QR
 
-            // Create QR code with URL pointing to player join page
-            const qrUrl = `http://151.21.203.214:9000/public/login-player.php?code=${encodeURIComponent(code)}`;
-            new QRCode(container, {
-                text: qrUrl,
-                width: 200,
-                height: 200,
-                colorDark: '#000000',
-                colorLight: '#ffffff',
-                correctLevel: QRCode.CorrectLevel.H
-            });
+            // Fetch QR da API per avere il PDF con QR generato dal server
+            fetch(`/src/api/api.php?endpoint=get_qr_url&room_code=${encodeURIComponent(code)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.qr_data) {
+                        // Mostra PDF del QR in iframe - stampabile, QR coerente con PDF download
+                        const iframe = document.createElement('iframe');
+                        iframe.src = data.qr_data;
+                        iframe.style.width = '350px';
+                        iframe.style.height = '350px';
+                        iframe.style.border = '1px solid #ccc';
+                        iframe.style.display = 'block';
+                        iframe.style.margin = '10px auto';
+                        container.appendChild(iframe);
+                    } else {
+                        console.error('Errore nella generazione del QR:', data.error);
+                    }
+                })
+                .catch(err => {
+                    console.error('Errore nel fetch del QR:', err);
+                });
         }
 
-        // Generate PDF with QR code and room code
+        // Generate PDF with QR code and room code (usa il QR dell'API)
         function downloadPDF() {
             const roomCode = document.getElementById('room-code').textContent;
-            const qrCanvas = document.querySelector('#qr-code-container canvas');
 
-            if (!qrCanvas) {
-                alert('QR code non ancora generato. Attendi un momento.');
+            if (!roomCode) {
+                alert('Room code non disponibile.');
                 return;
             }
 
-            // Create HTML content for PDF
-            const pdfContent = `
-                <div class="pdf-content">
-                    <h1>🎮 Marriage Game - Stanza Attiva</h1>
-                    <p class="room-code-title">Codice Stanza:</p>
-                    <p class="room-code-display">${roomCode}</p>
-                    <p class="qr-instruction">Inquadra il QR code per connetterti:</p>
-                    <div class="qr-container">
-                        ${qrCanvas.parentElement.innerHTML}
-                    </div>
-                    <p class="room-connection-info">I giocatori possono connettersi usando il codice stanza o il QR code.</p>
-                </div>
-            `;
-
-            // Generate PDF
-            const element = document.createElement('div');
-            element.innerHTML = pdfContent;
-
-            const opt = {
-                margin: [15, 10, 15, 10],
-                filename: `marriage-game-stanza-${roomCode}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, allowTaint: true },
-                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' },
-                pagebreak: { mode: [] }
-            };
-
-            html2pdf().set(opt).from(element).save();
+            // Richiedi il PDF all'API - l'API genererà il QR coerente
+            fetch('/src/api/api.php?endpoint=generate_pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    room_code: roomCode
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.pdf_data) {
+                    // Scarica il PDF
+                    const link = document.createElement('a');
+                    link.href = data.pdf_data;
+                    link.download = data.filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } else {
+                    alert('Errore nella generazione del PDF: ' + (data.error || 'Errore sconosciuto'));
+                }
+            })
+            .catch(err => {
+                console.error('Errore nel download del PDF:', err);
+                alert('Errore nella comunicazione con il server');
+            });
         }
 
         // Pre-select set if passed via URL

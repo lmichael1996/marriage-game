@@ -11,13 +11,13 @@ class RoomRepo {
     /**
      * Create a new room
      */
-    public function createRoom($code, $questionSetId = null) {
+    public function createRoom($code, $questionSetId = null, $qrData = null) {
         $stmt = $this->conn->prepare("
-            INSERT INTO rooms (room_code, qset_id)
-            VALUES (?, ?)
+            INSERT INTO rooms (room_code, qset_id, qr_data)
+            VALUES (?, ?, ?)
         ");
         $codeUpper = strtoupper($code);
-        $stmt->bind_param("si", $codeUpper, $questionSetId);
+        $stmt->bind_param("sis", $codeUpper, $questionSetId, $qrData);
 
         if ($stmt->execute()) {
             $roomId = $this->conn->insert_id;
