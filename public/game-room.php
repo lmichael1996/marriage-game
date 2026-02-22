@@ -147,35 +147,39 @@ if ($selectedSetId) {
         })();
         <?php endif; ?>
 
-        // Generate QR code for room code (qr_data stampabile da iframe)
+        // Generate QR code for room code
         function generateQRCode(code) {
             const container = document.getElementById('qr-code-container');
             container.innerHTML = ''; // Clear previous QR
 
-            // Fetch QR da API per avere il PDF con QR generato dal server
-            fetch(`/src/api/api.php?endpoint=get_qr_url&room_code=${encodeURIComponent(code)}`)
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success && data.qr_data) {
-                        // Mostra PDF del QR in iframe - stampabile, QR coerente con PDF download
-                        const iframe = document.createElement('iframe');
-                        iframe.src = data.qr_data;
-                        iframe.style.width = '350px';
-                        iframe.style.height = '350px';
-                        iframe.style.border = '1px solid #ccc';
-                        iframe.style.display = 'block';
-                        iframe.style.margin = '10px auto';
-                        container.appendChild(iframe);
-                    } else {
-                        console.error('Errore nella generazione del QR:', data.error);
-                    }
-                })
-                .catch(err => {
-                    console.error('Errore nel fetch del QR:', err);
+            // Genera l'URL del QR code (stesso URL che usa il PDF)
+            const baseUrl = 'http://151.21.203.214:9000/public/login-player.php';
+            const qrUrl = baseUrl + '?code=' + encodeURIComponent(code);
+
+            // Usa la libreria QRCode.js per generare il QR direttamente nel container
+            try {
+                new QRCode(container, {
+                    text: qrUrl,
+                    width: 350,
+                    height: 350,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.L
                 });
+
+                // Aggiungi styling al canvas
+                const canvas = container.querySelector('canvas');
+                if (canvas) {
+                    canvas.style.border = '1px solid #ccc';
+                    canvas.style.display = 'block';
+                    canvas.style.margin = '10px auto';
+                }
+            } catch (error) {
+                console.error('Errore nella generazione del QR:', error);
+            }
         }
 
-        // Generate PDF with QR code and room code (usa il QR dell'API)
+        // Generate PDF with QR code and room code
         function downloadPDF() {
             const roomCode = document.getElementById('room-code').textContent;
 

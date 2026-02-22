@@ -4,7 +4,6 @@ require_once __DIR__ . '/../repository/PlayerRepo.php';
 require_once __DIR__ . '/../repository/QuestionRepo.php';
 require_once __DIR__ . '/../repository/RoundRepo.php';
 require_once __DIR__ . '/../repository/SetRepo.php';
-require_once __DIR__ . '/../utils/QRGenerator.php';
 
 /**
  * RoomService - Gestisce la logica di business delle stanze
@@ -31,11 +30,8 @@ class RoomService {
         // Genera un codice univoco di 6 caratteri
         $roomCode = $this->generateUniqueRoomCode();
 
-        // Genera il QR data URI e salvalo
-        $qrGenerator = new QRGenerator($roomCode);
-        $qrData = $qrGenerator->getQRDataUri();
-
-        $roomId = $this->roomRepo->createRoom($roomCode, $questionSetId, $qrData);
+        // Salva la stanza con il room code
+        $roomId = $this->roomRepo->createRoom($roomCode, $questionSetId);
 
         if ($roomId) {
             return [

@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../assets/vendor/tecnickcom/tcpdf/tcpdf_barcodes_2d.
 class PDFGenerator {
     private $pdf;
     private $roomCode;
-    private $qrUrl;
+    private $qrUrl;  // QR URL string
 
     public function __construct($roomCode, $qrUrl) {
         if (empty($roomCode)) {
@@ -16,7 +16,7 @@ class PDFGenerator {
             throw new Exception('QR URL is required');
         }
         $this->roomCode = $roomCode;
-        $this->qrUrl = $qrUrl;
+        $this->qrUrl = $qrUrl;  // Store QR URL
         $this->initializePDF();
     }
 
@@ -55,15 +55,11 @@ class PDFGenerator {
         $this->pdf->Cell(0, 8, 'Inquadra il QR code per connetterti:', 0, 1, 'C');
         $this->pdf->Ln(5);
 
-        // Usa l'URL del QR passato come parametro
-        $this->pdf->write2DBarcode($this->qrUrl, 'QRCODE,L', 80, $this->pdf->GetY(), 50, 50, array(), 'N');
+        // Usa l'URL del QR code
+        $this->pdf->write2DBarcode($this->qrUrl, 'QRCODE,L', 70, $this->pdf->GetY(), 70, 70, array(), 'N');
 
-        $this->pdf->Ln(55);
+        $this->pdf->Ln(75);
         $this->pdf->Ln(5);
-    }
-
-    public function getQRUrl() {
-        return $this->qrUrl;
     }
 
     public function addFooterInfo() {

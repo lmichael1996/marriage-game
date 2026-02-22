@@ -3,7 +3,6 @@ session_start();
 
 require_once __DIR__ . '/../utils/auth.php';
 require_once __DIR__ . '/../utils/PDFGenerator.php';
-require_once __DIR__ . '/../utils/QRGenerator.php';
 require_once __DIR__ . '/../services/AuthService.php';
 require_once __DIR__ . '/../services/GameService.php';
 require_once __DIR__ . '/../services/RoomService.php';
@@ -71,12 +70,8 @@ switch ($endpoint) {
         handleDeleteRoom($room);
         break;
 
-    case 'get_qr_url':
-        handleGetQRUrl();
-        break;
-
     case 'generate_pdf':
-        handleGeneratePDF();
+        handleGeneratePDF($room);
         break;
 
     case 'connected_devices':
@@ -1610,31 +1605,8 @@ function handleIncrementCounter() {
     ]);
 }
 
-function handleGetQRUrl() {
-    $roomCode = $_GET['room_code'] ?? '';
 
-    if (!$roomCode) {
-        echo json_encode(['success' => false, 'error' => 'Room code required']);
-        exit();
-    }
-
-    try {
-        $qrGenerator = new QRGenerator($roomCode);
-        $qrUrl = $qrGenerator->getQRUrl();
-        $qrDataUri = $qrGenerator->getQRDataUri();
-
-        echo json_encode([
-            'success' => true,
-            'qr_url' => $qrUrl,
-            'qr_data' => $qrDataUri,
-            'room_code' => $roomCode
-        ]);
-    } catch (Exception $e) {
-        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
-    }
-}
-
-function handleGeneratePDF() {
+function handleGeneratePDF($room) {
     // Leggi da JSON body (non da $_POST)
     $input = json_decode(file_get_contents('php://input'), true);
     $roomCode = $input['room_code'] ?? $_POST['room_code'] ?? '';
@@ -1646,29 +1618,25 @@ function handleGeneratePDF() {
     }
 
     try {
-        // Recupera la stanza dal database per ottenere il QR salvato
-        $roomResult = $room->getRoomByCode($roomCode);
+        // Verifica che la stanza esista
+        $roomResult = $room->getRoomDetails($roomCode);
         if (!$roomResult) {
             http_response_code(404);
             echo json_encode(['success' => false, 'error' => 'Room not found']);
             exit();
         }
 
-        // Il QR è già salvato nel database (generato una sola volta)
-        $qrData = $roomResult['qr_data'] ?? null;
+        // Genera l'URL del QR code al volo usando il room code
+        $baseUrl = 'http://151.21.203.214:9000/public/login-player.php';
+        $qrUrl = $baseUrl . '?code=' . urlencode($roomCode);
 
-        if (!$qrData) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'error' => 'QR data not found']);
-            exit();
-        }
+        // Genera PDF con titolo, codice stanza e QR
+        $pdfGenerator = new PDFGenerator($roomCode, $qrUrl);
+        $pdfGenerator->generate();
+        $pdfContent = $pdfGenerator->getPDF();
 
-        // Estrai il base64 dal data URI se necessario
-        if (strpos($qrData, 'data:application/pdf;base64,') === 0) {
-            $base64 = substr($qrData, strlen('data:application/pdf;base64,'));
-        } else {
-            $base64 = base64_encode($qrData);
-        }
+        // Converti a base64 per data URI
+        $base64 = base64_encode($pdfContent);
 
         echo json_encode([
             'success' => true,
