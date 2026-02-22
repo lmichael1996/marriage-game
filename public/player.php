@@ -453,27 +453,34 @@ requirePlayer();
             fetch('../src/api/api.php?endpoint=game&action=get_game_state&counter=' + currentRoundCounter)
                 .then(response => response.json())
                 .then(data => {
+                    console.log("checkGameState response:", data);
+
                     // Verifica se la partita è terminata
                     if (data.game_finished) {
+                        console.log("Game finished detected");
                         showFinalResult(false); // Player non ha vinto
                         return;
                     }
 
                     if (data.success === false || !data.round_number) {
+                        console.log("No round available, showing waiting screen");
                         showWaitingScreen();
                         return;
                     }
 
                     // Check if this is the end-game round (question_id = null)
                     if (data.question_id === null) {
+                        console.log("End-game round detected (question_id = null), checking winner status");
                         checkWinnerStatus();
                         return;
                     }
 
                     const roundNumber = data.round_number;
                     if (roundNumber === currentRoundCounter && !hasAnswered && !roundInProgress) {
+                        console.log("Starting round", roundNumber);
                         startRound(data);
                     } else if (hasAnswered) {
+                        console.log("Already answered, showing waiting screen");
                         showWaitingScreen();
                     }
                 });
@@ -649,20 +656,24 @@ requirePlayer();
                 fetch('../src/api/api.php?endpoint=game&action=check_winner')
                     .then(response => response.json())
                     .then(data => {
+                        console.log("Winner check attempt", attempts + 1, ":", data);
                         if (data.success) {
-                            console.log("Winner check result:", data);
+                            console.log("Winner check result - is_winner:", data.is_winner);
                             showFinalResult(data.is_winner);
                         } else {
+                            console.log("Winner check failed:", data.error);
                             attempts++;
                             if (attempts < maxAttempts) {
                                 setTimeout(tryCheckWinner, 500);
                             } else {
                                 // Fallback: show waiting screen if we can't determine winner
+                                console.log("Max attempts reached, showing waiting screen");
                                 showWaitingScreen();
                             }
                         }
                     })
                     .catch(error => {
+                        console.log("Winner check error:", error);
                         attempts++;
                         if (attempts < maxAttempts) {
                             setTimeout(tryCheckWinner, 500);

@@ -665,16 +665,6 @@ function handleConnectedDevices($room) {
                 exit();
             }
 
-            // Verifica se la stanza ha già un vincitore
-            if ($roomData['has_winner'] ?? false) {
-                echo json_encode([
-                    'success' => true,
-                    'game_finished' => true,
-                    'winner' => $roomData['winner'] ?? null
-                ]);
-                exit();
-            }
-
             // Get current player
             $username = $_SESSION['username'] ?? null;
             if (!$username) {
@@ -692,6 +682,18 @@ function handleConnectedDevices($room) {
 
             // Check if winner
             $isWinner = $room->isWinner($roomData['id'], $player['id']);
+            
+            // Verifica se la stanza ha già un vincitore
+            if ($roomData['has_winner'] ?? false) {
+                echo json_encode([
+                    'success' => true,
+                    'game_finished' => true,
+                    'is_winner' => $isWinner,
+                    'winner' => $roomData['winner'] ?? null
+                ]);
+                exit();
+            }
+
             echo json_encode(['success' => true, 'is_winner' => $isWinner]);
         } catch (Exception $e) {
             error_log('check_winner error: ' . $e->getMessage());
