@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/../../assets/vendor/autoload.php';
 require_once __DIR__ . '/../../assets/vendor/tecnickcom/tcpdf/tcpdf.php';
-require_once __DIR__ . '/../../assets/vendor/tecnickcom/tcpdf/tcpdf_barcodes_2d.php';
 
 class PDFGenerator {
     private $pdf;
@@ -55,11 +54,50 @@ class PDFGenerator {
         $this->pdf->Cell(0, 8, 'Inquadra il QR code per connetterti:', 0, 1, 'C');
         $this->pdf->Ln(5);
 
-        // Usa l'URL del QR code
-        $this->pdf->write2DBarcode($this->qrUrl, 'QRCODE,L', 70, $this->pdf->GetY(), 70, 70, array(), 'N');
+        // Genera il QR code come immagine da URL
+        $qrImageDataUri = $this->generateQRImage($this->qrUrl);
+
+        if ($qrImageDataUri) {
+            // Inserisci l'immagine nel PDF (centrata)
+            $pageWidth = $this->pdf->GetPageWidth();
+            $qrWidth = 70;
+            $xPosition = ($pageWidth - $qrWidth) / 2;
+
+            $this->pdf->Image($qrImageDataUri, $xPosition, $this->pdf->GetY(), $qrWidth, $qrWidth);
+        }
 
         $this->pdf->Ln(75);
         $this->pdf->Ln(5);
+    }
+
+    /**
+     * Genera il QR code come data URI (base64)
+     * Funziona sia in TCPDF che in HTML
+     */
+    private function generateQRImage($url, $size = 250) {
+        try {
+            // Usa QR Server API
+            $qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/';
+            $params = [
+                'size' => $size . 'x' . $size,
+                'data' => $url,
+                'format' => 'jpg'
+            ];
+
+            $fullUrl = $qrApiUrl . '?' . http_build_query($params);
+
+            // Scarica l'immagine
+            $imageData = @file_get_contents($fullUrl);
+            if ($imageData === false) {
+                return null;
+            }
+
+            // Restituisci come data URI
+            $base64 = base64_encode($imageData);
+            return 'data:image/jpeg;base64,' . $base64;
+        } catch (Exception $e) {
+            return null;
+        }
     }
 
     public function addFooterInfo() {
@@ -77,11 +115,6 @@ class PDFGenerator {
 
     public function getPDF() {
         return $this->pdf->Output('', 'S');
-    }
-
-    public function download() {
-        $filename = 'marriage-game-stanza-' . $this->roomCode . '.pdf';
-        $this->pdf->Output($filename, 'D');
     }
 }
 ?>
