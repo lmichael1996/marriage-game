@@ -1618,21 +1618,24 @@ function handleGeneratePDF($room) {
     }
 
     try {
-        // Verifica che la stanza esista
-        $roomResult = $room->getRoomDetails($roomCode);
+        // Verifica che la stanza esista e recupera il BLOB del QR
+        $roomResult = $room->getRoomByCode($roomCode);
         if (!$roomResult) {
             http_response_code(404);
             echo json_encode(['success' => false, 'error' => 'Room not found']);
             exit();
         }
 
-        // Genera l'URL del QR code al volo usando il room code
-        // NON codificare - le librerie QR lo faranno
-        $baseUrl = 'http://151.21.203.214:9000/public/login-player.php';
-        $qrUrl = $baseUrl . '?code=' . $roomCode;
+        // Recupera il BLOB del QR dal database
+        $qrImageBlob = $roomResult['qr_image'] ?? null;
+        if (empty($qrImageBlob)) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => 'QR image not found in database']);
+            exit();
+        }
 
-        // Genera PDF con titolo, codice stanza e QR
-        $pdfGenerator = new PDFGenerator($roomCode, $qrUrl);
+        // Genera PDF con titolo, codice stanza e QR (BLOB dal DB)
+        $pdfGenerator = new PDFGenerator($roomCode, $qrImageBlob);
         $pdfGenerator->generate();
         $pdfContent = $pdfGenerator->getPDF();
 

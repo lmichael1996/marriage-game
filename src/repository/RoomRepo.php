@@ -9,15 +9,26 @@ class RoomRepo {
     }
 
     /**
-     * Create a new room
+     * Create a new room with QR image
      */
-    public function createRoom($code, $questionSetId = null) {
-        $stmt = $this->conn->prepare("
-            INSERT INTO rooms (room_code, qset_id)
-            VALUES (?, ?)
-        ");
+    public function createRoom($code, $questionSetId = null, $qrImage = null) {
         $codeUpper = strtoupper($code);
-        $stmt->bind_param("si", $codeUpper, $questionSetId);
+
+        if ($qrImage === null) {
+            // Senza QR image
+            $stmt = $this->conn->prepare("
+                INSERT INTO rooms (room_code, qset_id)
+                VALUES (?, ?)
+            ");
+            $stmt->bind_param("si", $codeUpper, $questionSetId);
+        } else {
+            // Con QR image
+            $stmt = $this->conn->prepare("
+                INSERT INTO rooms (room_code, qset_id, qr_image)
+                VALUES (?, ?, ?)
+            ");
+            $stmt->bind_param("sib", $codeUpper, $questionSetId, $qrImage);
+        }
 
         if ($stmt->execute()) {
             $roomId = $this->conn->insert_id;
