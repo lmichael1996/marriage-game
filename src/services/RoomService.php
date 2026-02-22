@@ -35,17 +35,17 @@ class RoomService {
         // Genera il QR code come immagine binaria
         $qrImageData = $this->generateQRImage($roomCode);
 
-        $qrDataUri = null;
+        $qrBase64 = null;
         if ($qrImageData !== null) {
             error_log("RoomService: Generated QR image (" . strlen($qrImageData) . " bytes) for room: $roomCode");
-            // Converti a data URI per il salvataggio nel DB
-            $qrDataUri = 'data:image/jpeg;base64,' . base64_encode($qrImageData);
+            // Salva solo il base64, senza il prefisso data URI
+            $qrBase64 = base64_encode($qrImageData);
         } else {
             error_log("Warning: Failed to generate QR image for room: $roomCode");
         }
 
-        // Salva la stanza con room code e data URI QR
-        $roomId = $this->roomRepo->createRoom($roomCode, $questionSetId, $qrDataUri);
+        // Salva la stanza con room code e base64 QR (senza prefisso)
+        $roomId = $this->roomRepo->createRoom($roomCode, $questionSetId, $qrBase64);
 
         if ($roomId) {
             return [

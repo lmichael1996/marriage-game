@@ -431,7 +431,6 @@ $roomInfo = $_SESSION[$roomInfoKey];
                     <p><span>👥 Giocatori:</span> <strong><?php echo $roomInfo['num_players']; ?></strong></p>
                     <p><span>🎯 Room Code:</span> <code><?php echo htmlspecialchars($roomCode); ?></code></p>
                     <p><span>📊 Domande:</span> <strong><?php echo $roomInfo['total_questions']; ?></strong></p>
-                    <p><span>📍 Domanda Attuale:</span> <strong><?php echo $counter; ?></strong></p>
                 </div>
 
                 <?php if ($gameOver): ?>
@@ -446,7 +445,7 @@ $roomInfo = $_SESSION[$roomInfoKey];
                     </div>
                 <?php elseif ($activeRound): ?>
                     <div class="game-step active">
-                        <h3>📋 Round Attivo: #<?php echo $activeRound['round_number']; ?></h3>
+                        <h3>📋 Domanda #<?php echo $counter; ?></h3>
                         <p><?php echo htmlspecialchars($activeRound['question']); ?></p>
 
                         <?php if ($activeRound['round_type'] !== 'clickfirst'): ?>
@@ -479,10 +478,10 @@ $roomInfo = $_SESSION[$roomInfoKey];
                             <button class="btn-main btn-success-custom" id="next-btn" onclick="nextQuestion()" disabled>
                                 ➡️ Prossima Domanda
                             </button>
+                            <?php if ($activeRound['round_type'] === 'clickfirst'): ?>
                             <button class="btn-main btn-primary-custom" id="skip-btn" onclick="skipQuestion()" disabled>
                                 ⏭️ Salta Domanda
                             </button>
-                            <?php if ($activeRound['round_type'] === 'clickfirst'): ?>
                             <button class="btn-main btn-primary-custom" id="repeat-btn" onclick="repeatRound(<?php echo $activeRound['question_id']; ?>)" disabled>
                                 🔄 Ripeti Round
                             </button>

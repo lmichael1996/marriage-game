@@ -308,11 +308,12 @@ function handleCreateRoom($room) {
         if ($result['success'] && isset($result['room_code'])) {
             $_SESSION['room_code'] = $result['room_code'];
 
-            // Recupera i dati della stanza (contiene il data URI QR se disponibile)
+            // Recupera i dati della stanza (contiene il base64 QR)
             $roomData = $room->getRoomByCode($result['room_code']);
 
             if ($roomData && !empty($roomData['qr_data_uri'])) {
-                $result['qr_data_uri'] = $roomData['qr_data_uri'];
+                // Aggiungi il prefisso data URI per il client
+                $result['qr_data_uri'] = 'data:image/jpeg;base64,' . $roomData['qr_data_uri'];
             }
         }
 
@@ -1638,19 +1639,22 @@ function generateQRImage($roomCode) {
             exit();
         }
 
-        // Recupera il data URI del QR dal DB
-        $qrDataUri = $roomResult['qr_data_uri'] ?? null;
+        // Recupera il base64 del QR dal DB
+        $qrBase64 = $roomResult['qr_data_uri'] ?? null;
 
         // Se non lo troviamo nel DB, generiamo l'immagine al volo
-        if (empty($qrDataUri)) {
+        if (empty($qrBase64)) {
             $generated = generateQRImage($roomCode);
             if (empty($generated)) {
                 http_response_code(500);
                 echo json_encode(['success' => false, 'error' => 'Failed to generate QR image']);
                 exit();
             }
-            $qrDataUri = 'data:image/jpeg;base64,' . base64_encode($generated);
+            $qrBase64 = base64_encode($generated);
         }
+
+        // Ricostruisci il data URI con prefisso per PDFGenerator
+        $qrDataUri = 'data:image/jpeg;base64,' . $qrBase64;
 
         // Genera PDF con titolo, codice stanza e QR (data URI)
         $pdfGenerator = new PDFGenerator($roomCode, $qrDataUri);

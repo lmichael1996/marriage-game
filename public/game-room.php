@@ -348,8 +348,8 @@ if ($selectedSetId) {
                         img.style.border = '1px solid #ccc';
                         img.style.display = 'block';
                         img.style.margin = '10px auto';
-                        img.style.width = '350px';
-                        img.style.height = '350px';
+                        img.style.width = '200px';
+                        img.style.height = '200px';
                         container.appendChild(img);
                     } else {
                         // Nessun QR - genera client-side
