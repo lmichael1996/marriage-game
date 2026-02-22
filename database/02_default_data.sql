@@ -44,15 +44,6 @@ VALUES
     ('points_tf_10th', 1),
     ('points_clickfirst', 50);
 
--- Insert default question categories
-INSERT INTO
-    question_categories (category_name, color)
-VALUES
-    ('Scienza', '#e3f2fd'),
-    ('Storia', '#f3e5f5'),
-    ('Sport', '#fff3e0'),
-    ('Intrattenimento', '#fce4ec');
-
 -- Insert sample questions (25 questions across all categories and types)
 INSERT INTO
     questions (
@@ -71,22 +62,22 @@ VALUES
     (
         'multiple',
         'Partita terminata',
-        'Saturno',
-        'Giove',
-        'Nettuno',
-        'Urano',
-        2,
-        2,
-        30
+        '',
+        '',
+        '',
+        '',
+        1,
+        null,
+        0
     ),
     (
         'multiple',
-        'In che anno è caduto il Muro di Berlino?',
-        '1987',
-        '1989',
-        '1991',
-        '1985',
-        3,
-        2,
-        30
+        'Partita annullata',
+        '',
+        '',
+        '',
+        '',
+        1,
+        null,
+        0
     );
