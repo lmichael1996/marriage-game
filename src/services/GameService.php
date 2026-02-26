@@ -363,7 +363,7 @@ class GameService {
             }
             // Per gli altri tipi, verifica se la risposta è corretta
             $is_correct = ($answer == $round['correct_answer']) ? 1 : 0;
-            
+
             // Salva solo se corretta
             if ($is_correct) {
                 $this->answerRepo->submitAnswer($roundId, $playerId, $timeTaken);
