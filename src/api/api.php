@@ -310,16 +310,22 @@ function handleCreateRoom($room) {
         error_log("Create room request: question_set_id=$questionSetId");
         $result = $room->createRoom($questionSetId);
 
-        // Save room_code in session for admin panel
-        if ($result['success'] && isset($result['room_code'])) {
-            $_SESSION['room_code'] = $result['room_code'];
+        // Save codes in session for admin panel
+        if ($result['success']) {
+            $_SESSION['code_player'] = $result['code_player'];
+            $_SESSION['code_judge'] = $result['code_judge'];
 
-            // Recupera i dati della stanza (contiene il base64 QR)
-            $roomData = $room->getRoomByCode($result['room_code']);
+            // Recupera i dati della stanza (contiene i base64 QR)
+            $roomData = $room->getRoomByCode($result['code_player']);
 
-            if ($roomData && !empty($roomData['qr_data_uri'])) {
-                // Aggiungi il prefisso data URI per il client
-                $result['qr_data_uri'] = 'data:image/jpeg;base64,' . $roomData['qr_data_uri'];
+            if ($roomData) {
+                // Aggiungi i prefissi data URI per i client
+                if (!empty($roomData['qr_uri_player'])) {
+                    $result['qr_uri_player'] = 'data:image/jpeg;base64,' . $roomData['qr_uri_player'];
+                }
+                if (!empty($roomData['qr_uri_judge'])) {
+                    $result['qr_uri_judge'] = 'data:image/jpeg;base64,' . $roomData['qr_uri_judge'];
+                }
             }
         }
 
@@ -336,7 +342,7 @@ function handleStartRoom($room) {
     requireLoginJson();
 
     try {
-        $roomCode = $_SESSION['room_code'] ?? null;
+        $roomCode = $_SESSION['code_player'] ?? null;
 
         if (!$roomCode) {
             throw new Exception('Nessuna stanza attiva nella sessione');
@@ -397,18 +403,19 @@ function handleDeleteRoom($room) {
 
     try {
         // Get active room from session or request
-        $roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
+        $codePlayer = $_SESSION['code_player'] ?? $_GET['code_player'] ?? null;
 
-        if (!$roomCode) {
+        if (!$codePlayer) {
             throw new Exception('Codice stanza mancante');
         }
 
         // Delete the room completely
-        $result = $room->deleteRoom($roomCode);
+        $result = $room->deleteRoom($codePlayer);
 
         // Clear room from session
         if ($result['success']) {
-            unset($_SESSION['room_code']);
+            unset($_SESSION['code_player']);
+            unset($_SESSION['code_judge']);
         }
 
         echo json_encode($result);

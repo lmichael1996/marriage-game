@@ -9,24 +9,17 @@ class RoomRepo {
     }
 
     /**
-     * Create a new room. Optionally accept a QR data URI
+     * Create a new room with separate codes and QR URIs for player and judge
      */
-    public function createRoom($code, $questionSetId = null, $qrDataUri = null) {
-        $codeUpper = strtoupper($code);
+    public function createRoom($codePlayer, $codeJudge, $questionSetId = null, $qrUriPlayer = null, $qrUriJudge = null) {
+        $codePlayerUpper = strtoupper($codePlayer);
+        $codeJudgeUpper = strtoupper($codeJudge);
 
-        if ($qrDataUri === null) {
-            // Without QR data URI
-            $stmt = $this->conn->prepare(
-                "INSERT INTO rooms (room_code, qset_id) VALUES (?, ?)"
-            );
-            $stmt->bind_param("si", $codeUpper, $questionSetId);
-        } else {
-            // With QR data URI
-            $stmt = $this->conn->prepare(
-                "INSERT INTO rooms (room_code, qset_id, qr_data_uri) VALUES (?, ?, ?)"
-            );
-            $stmt->bind_param("sis", $codeUpper, $questionSetId, $qrDataUri);
-        }
+        $stmt = $this->conn->prepare(
+            "INSERT INTO rooms (code_player, code_judge, qset_id, qr_uri_player, qr_uri_judge)
+             VALUES (?, ?, ?, ?, ?)"
+        );
+        $stmt->bind_param("ssiss", $codePlayerUpper, $codeJudgeUpper, $questionSetId, $qrUriPlayer, $qrUriJudge);
 
         if ($stmt->execute()) {
             $roomId = $this->conn->insert_id;
@@ -39,16 +32,16 @@ class RoomRepo {
     }
 
     /**
-     * Get room by code
+     * Get room by code (searches both code_player and code_judge)
      */
     public function getRoomByCode($code) {
         $stmt = $this->conn->prepare("
             SELECT *
             FROM rooms
-            WHERE room_code = ?
+            WHERE code_player = ? OR code_judge = ?
         ");
         $codeUpper = strtoupper($code);
-        $stmt->bind_param("s", $codeUpper);
+        $stmt->bind_param("ss", $codeUpper, $codeUpper);
         $stmt->execute();
         $result = $stmt->get_result();
         $room = $result->fetch_assoc();

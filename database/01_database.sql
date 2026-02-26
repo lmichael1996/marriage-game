@@ -63,10 +63,12 @@ CREATE TABLE IF NOT EXISTS qset_questions (
 -- Rooms table (stores active game rooms)
 CREATE TABLE IF NOT EXISTS rooms (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    room_code VARCHAR(10) UNIQUE NOT NULL,
+    code_player VARCHAR(10) UNIQUE NOT NULL,
+    code_judge VARCHAR(10) UNIQUE NOT NULL,
     qset_id INT DEFAULT NULL,
     -- Store QR code as data URI (base64 encoded image)
-    qr_data_uri LONGTEXT DEFAULT NULL,
+    qr_uri_player LONGTEXT DEFAULT NULL,
+    qr_uri_judge LONGTEXT DEFAULT NULL,
     FOREIGN KEY (qset_id) REFERENCES qsets(id) ON DELETE CASCADE
 );
 

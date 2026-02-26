@@ -29,29 +29,40 @@ class RoomService {
      * Non salviamo file su disco: solo data URI (base64 encoded).
      */
     public function createRoom($questionSetId = null) {
-        // Genera un codice univoco di 6 caratteri
-        $roomCode = $this->generateUniqueRoomCode();
+        // Genera due codici univoci per player e judge
+        $codePlayer = $this->generateUniqueRoomCode();
+        $codeJudge = $this->generateUniqueRoomCode();
 
-        // Genera il QR code come immagine binaria
-        $qrImageData = $this->generateQRImage($roomCode);
+        // Genera i QR codes come immagini binarie
+        $qrPlayerData = $this->generateQRImage($codePlayer);
+        $qrJudgeData = $this->generateQRImage($codeJudge);
 
-        $qrBase64 = null;
-        if ($qrImageData !== null) {
-            error_log("RoomService: Generated QR image (" . strlen($qrImageData) . " bytes) for room: $roomCode");
-            // Salva solo il base64, senza il prefisso data URI
-            $qrBase64 = base64_encode($qrImageData);
+        $qrPlayerBase64 = null;
+        $qrJudgeBase64 = null;
+
+        if ($qrPlayerData !== null) {
+            error_log("RoomService: Generated QR player image (" . strlen($qrPlayerData) . " bytes) for room: $codePlayer");
+            $qrPlayerBase64 = base64_encode($qrPlayerData);
         } else {
-            error_log("Warning: Failed to generate QR image for room: $roomCode");
+            error_log("Warning: Failed to generate QR player image for room: $codePlayer");
         }
 
-        // Salva la stanza con room code e base64 QR (senza prefisso)
-        $roomId = $this->roomRepo->createRoom($roomCode, $questionSetId, $qrBase64);
+        if ($qrJudgeData !== null) {
+            error_log("RoomService: Generated QR judge image (" . strlen($qrJudgeData) . " bytes) for room: $codeJudge");
+            $qrJudgeBase64 = base64_encode($qrJudgeData);
+        } else {
+            error_log("Warning: Failed to generate QR judge image for room: $codeJudge");
+        }
+
+        // Salva la stanza con entrambi i codici e QR
+        $roomId = $this->roomRepo->createRoom($codePlayer, $codeJudge, $questionSetId, $qrPlayerBase64, $qrJudgeBase64);
 
         if ($roomId) {
             return [
                 'success' => true,
                 'room_id' => $roomId,
-                'room_code' => $roomCode
+                'code_player' => $codePlayer,
+                'code_judge' => $codeJudge
             ];
         }
 

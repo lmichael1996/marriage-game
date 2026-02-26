@@ -73,9 +73,33 @@ if ($selectedSetId) {
 
                 <div id="room-info" class="info-box hidden">
                     <p><strong>🎮 Stanza Attiva</strong></p>
-                    <p>Codice stanza: <strong><span id="room-code">------</span></strong></p>
-                    <div id="qr-code-container"></div>
-                    <p>I giocatori possono ora connettersi utilizzando questo codice o inquadrando il QR.</p>
+
+                    <!-- QR Code Tabs -->
+                    <div style="margin-top: 20px;">
+                        <div class="tab-container">
+                            <button class="tab-button active" data-tab="player-qr">
+                                👤 Giocatore
+                            </button>
+                            <button class="tab-button" data-tab="judge-qr">
+                                ⚖️ Giudice
+                            </button>
+                        </div>
+
+                        <!-- Player QR Tab -->
+                        <div id="player-qr" class="tab-content active" style="text-align: center; padding: 20px;">
+                            <p>Codice: <strong><span id="room-code-player">------</span></strong></p>
+                            <div id="qr-code-container-player" style="display: inline-block; border: 2px solid #007bff; padding: 10px; border-radius: 4px;"></div>
+                            <p style="margin-top: 10px; font-size: 0.9em;">Inquadra o usa il codice</p>
+                        </div>
+
+                        <!-- Judge QR Tab -->
+                        <div id="judge-qr" class="tab-content" style="text-align: center; padding: 20px; display: none;">
+                            <p>Codice: <strong><span id="room-code-judge">------</span></strong></p>
+                            <div id="qr-code-container-judge" style="display: inline-block; border: 2px solid #28a745; padding: 10px; border-radius: 4px;"></div>
+                            <p style="margin-top: 10px; font-size: 0.9em;">Inquadra o usa il codice</p>
+                        </div>
+                    </div>
+
                     <div class="button-container-close">
                         <button class="btn btn-info" id="btn-download-pdf">
                             📄 Scarica PDF
@@ -132,7 +156,8 @@ if ($selectedSetId) {
         let selectedGameSetName = '';
         let selectedGameSetIsSaved = true;
         let roomActive = false;
-        let roomCode = '';
+        let codePlayer = '';
+        let codeJudge = '';
         let devicesInterval = null;
         let minPlayers = 1; // Valore fisso dopo rimozione dal database
 
@@ -145,31 +170,29 @@ if ($selectedSetId) {
         })();
         <?php endif; ?>
 
-        // Holds server-provided QR image (data URI) when available
-        let serverQrDataUri = null;
+        // Generate QR code for a specific code. If dataUri is provided, render the image.
+        function generateQRCode(code, containerId, dataUri = null) {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error('Container not found:', containerId);
+                return;
+            }
 
-        // Generate QR code for room code. If dataUri is provided (or serverQrDataUri exists),
-        // render the image element from the data URI so it matches exactly the server/PDF QR.
-        function generateQRCode(code, dataUri = null) {
-            const container = document.getElementById('qr-code-container');
             container.innerHTML = ''; // Clear previous QR
 
-            const effectiveDataUri = dataUri || serverQrDataUri;
-            if (effectiveDataUri) {
+            if (dataUri) {
                 const img = document.createElement('img');
-                img.src = effectiveDataUri;
+                img.src = dataUri;
                 img.style.border = '1px solid #ccc';
                 img.style.display = 'block';
                 img.style.margin = '10px auto';
-                img.style.width = '350px';
-                img.style.height = '350px';
+                img.style.width = '250px';
+                img.style.height = '250px';
                 container.appendChild(img);
                 return;
             }
 
             // Fallback: generate the QR client-side using QRCode.js from the URL
-            // Genera l'URL del QR code (stesso URL che usa il PDF)
-            // NON codificare - la libreria lo farà
             const baseUrl = 'http://151.21.203.214:9000/public/login-player.php';
             const qrUrl = baseUrl + '?code=' + code;
 
@@ -177,8 +200,8 @@ if ($selectedSetId) {
             try {
                 new QRCode(container, {
                     text: qrUrl,
-                    width: 350,
-                    height: 350,
+                    width: 250,
+                    height: 250,
                     colorDark: '#000000',
                     colorLight: '#ffffff',
                     correctLevel: QRCode.CorrectLevel.L
@@ -198,10 +221,10 @@ if ($selectedSetId) {
 
         // Generate PDF with QR code and room code
         function downloadPDF() {
-            const roomCode = document.getElementById('room-code').textContent;
+            const codePlayerElem = document.getElementById('room-code-player').textContent;
 
-            if (!roomCode) {
-                alert('Room code non disponibile.');
+            if (!codePlayerElem || codePlayerElem === '------') {
+                alert('Codice stanza non disponibile.');
                 return;
             }
 
@@ -212,7 +235,7 @@ if ($selectedSetId) {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    room_code: roomCode
+                    room_code: codePlayerElem
                 })
             })
             .then(r => r.json())
@@ -329,31 +352,29 @@ if ($selectedSetId) {
             })
             .then(data => {
                 if (data.success) {
-                    roomCode = data.room_code;
+                    codePlayer = data.code_player;
+                    codeJudge = data.code_judge;
 
                     // Show room info
                     document.getElementById('btn-create-room').style.display = 'none';
                     document.getElementById('room-info').classList.remove('hidden');
-                    document.getElementById('room-code').textContent = roomCode;
 
-                    // Usa data URI (unica fonte di verità)
-                    if (data.qr_data_uri) {
-                        const container = document.getElementById('qr-code-container');
-                        container.innerHTML = '';
-                        const img = document.createElement('img');
-                        img.src = data.qr_data_uri;
-                        img.onerror = function() {
-                            generateQRCode(roomCode);
-                        };
-                        img.style.border = '1px solid #ccc';
-                        img.style.display = 'block';
-                        img.style.margin = '10px auto';
-                        img.style.width = '200px';
-                        img.style.height = '200px';
-                        container.appendChild(img);
+                    // Update both code displays
+                    document.getElementById('room-code-player').textContent = codePlayer;
+                    document.getElementById('room-code-judge').textContent = codeJudge;
+
+                    // Genera QR per player (usa data URI se fornita dal server)
+                    if (data.qr_uri_player) {
+                        generateQRCode(codePlayer, 'qr-code-container-player', data.qr_uri_player);
                     } else {
-                        // Nessun QR - genera client-side
-                        generateQRCode(roomCode);
+                        generateQRCode(codePlayer, 'qr-code-container-player');
+                    }
+
+                    // Genera QR per judge (usa data URI se fornita dal server)
+                    if (data.qr_uri_judge) {
+                        generateQRCode(codeJudge, 'qr-code-container-judge', data.qr_uri_judge);
+                    } else {
+                        generateQRCode(codeJudge, 'qr-code-container-judge');
                     }
 
                     // Disable back button
@@ -395,7 +416,8 @@ if ($selectedSetId) {
                 .then(data => {
                     if (data.success) {
                         roomActive = false;
-                        roomCode = '';
+                        codePlayer = '';
+                        codeJudge = '';
 
                         if (devicesInterval) {
                             clearInterval(devicesInterval);
@@ -404,7 +426,8 @@ if ($selectedSetId) {
 
                         // Hide room info and show create room button again
                         document.getElementById('room-info').classList.add('hidden');
-                        document.getElementById('qr-code-container').innerHTML = '';
+                        document.getElementById('qr-code-container-player').innerHTML = '';
+                        document.getElementById('qr-code-container-judge').innerHTML = '';
                         document.getElementById('btn-create-room').style.display = 'block';
 
                         // Enable back button
@@ -456,7 +479,7 @@ if ($selectedSetId) {
             const connectedCount = parseInt(document.getElementById('connected-count').textContent) || 0;
 
             if (connectedCount < minPlayers) {
-                alert(`❌ Numero di giocatori insufficiente!\n\nGiocatori connessi: ${connectedCount}\nMinimo richiesto: ${minPlayers}\n\nAttendi che altri giocatori si connettano.`);
+                alert(`❌ Numero di giocatori insufficiente!\n\nGiocatori connessi: ${connectedCount}\nMinimo richiesto: ${minPlayers}\n\nAttendi che altri giocatori si connettino.`);
                 return;
             }
 
@@ -471,7 +494,7 @@ if ($selectedSetId) {
                 .then(data => {
                     if (data.success) {
                         setTimeout(() => {
-                            const redirectUrl = 'room-admin.php?room_code=' + encodeURIComponent(roomCode);
+                            const redirectUrl = 'room-admin.php?room_code=' + encodeURIComponent(codePlayer);
                             window.location.href = redirectUrl;
                         }, 1000);
                     } else {
@@ -486,11 +509,11 @@ if ($selectedSetId) {
 
         // Update connected devices
         function updateConnectedDevices() {
-            if (!roomCode) {
+            if (!codePlayer) {
                 return;
             }
 
-            const url = `/src/api/api.php?endpoint=connected_devices&room_code=${encodeURIComponent(roomCode)}`;
+            const url = `/src/api/api.php?endpoint=connected_devices&room_code=${encodeURIComponent(codePlayer)}`;
 
             fetch(url, {
                 credentials: 'include'
@@ -562,6 +585,31 @@ if ($selectedSetId) {
         // Initialize from URL if set_id is provided
         document.addEventListener('DOMContentLoaded', function() {
             initializeFromUrl();
+
+            // Setup tab switching for QR codes
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+
+                    // Remove active class from all buttons and contents
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        content.style.display = 'none';
+                    });
+
+                    // Add active class to clicked button and corresponding content
+                    this.classList.add('active');
+                    const activeTab = document.getElementById(tabId);
+                    if (activeTab) {
+                        activeTab.classList.add('active');
+                        activeTab.style.display = 'block';
+                    }
+                });
+            });
         });
 </script>
 </body>
