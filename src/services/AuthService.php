@@ -81,7 +81,7 @@ class AuthService {
 
         // Create new player associated with this room
         try {
-            $playerId = $this->playerRepo->createPlayer($username, $roomCode);
+            $playerId = $this->playerRepo->createPlayer($username, $roomExists['id']);
         } catch (Exception $e) {
             throw new Exception($e->getMessage());
         }

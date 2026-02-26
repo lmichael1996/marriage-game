@@ -77,6 +77,10 @@ switch ($endpoint) {
         handleCloseRoom($room);
         break;
 
+    case 'finish_game':
+        handleFinishGame($room);
+        break;
+
     case 'generate_pdf':
         handleGeneratePDF($room);
         break;
@@ -316,7 +320,7 @@ function handleCreateRoom($room) {
             $_SESSION['code_judge'] = $result['code_judge'];
 
             // Recupera i dati della stanza (contiene i base64 QR)
-            $roomData = $room->getRoomByCode($result['code_player']);
+            $roomData = $room->getRoomDetails($result['code_player']);
 
             if ($roomData) {
                 // Aggiungi i prefissi data URI per i client
@@ -410,8 +414,8 @@ function handleDeleteRoom($room) {
             throw new Exception('Codice stanza mancante');
         }
 
-        // Delete the room completely
-        $result = $room->deleteRoom($codePlayer);
+        // Cancel the room (mark as 'cancelled')
+        $result = $room->cancelRoom($codePlayer);
 
         // Clear room from session
         if ($result['success']) {
@@ -470,14 +474,6 @@ function handleCloseRoom($room) {
             throw new Exception('Stanza non trovata');
         }
 
-        // Create final round with question_id = 2 (end marker for goBack)
-        $roundRepo = new RoundRepo();
-        $roundResult = $roundRepo->createRound($roomDetails['id'], 2);
-
-        if (!$roundResult) {
-            throw new Exception('Errore nella creazione del round finale');
-        }
-
         // Remove all players from the room
         $playerRepo = new PlayerRepo();
         $playerRepo->deletePlayersByRoom($roomCode);
@@ -489,6 +485,37 @@ function handleCloseRoom($room) {
             'success' => true,
             'message' => 'Stanza chiusa'
         ]);
+
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+}
+
+function handleFinishGame($room) {
+    requireLoginJson();
+
+    try {
+        $data = json_decode(file_get_contents('php://input'), true);
+        $roomCode = $data['code_player'] ?? $_SESSION['room_code'] ?? null;
+
+        if (!$roomCode) {
+            throw new Exception('Codice stanza mancante');
+        }
+
+        // Get room details via service
+        $roomDetails = $room->getRoomDetails($roomCode);
+        if (!$roomDetails) {
+            throw new Exception('Stanza non trovata');
+        }
+
+        // Close the room via service (which calls repo)
+        $result = $room->finishGame($roomDetails['id']);
+
+        echo json_encode($result);
 
     } catch (Exception $e) {
         http_response_code(500);
@@ -514,9 +541,22 @@ function handleConnectedDevices($room) {
         }
 
         try {
-            $result = $room->getRoomPlayers($codePlayer);
+            // Get room by code
+            $roomData = $room->getRoomDetails($codePlayer);
+            if (!$roomData) {
+                echo json_encode([
+                    'success' => true,
+                    'devices' => [],
+                    'count' => 0
+                ]);
+                exit();
+            }
+
+            // Get players by room ID
+            $playerRepo = new PlayerRepo();
+            $result = $playerRepo->getPlayersByRoomId($roomData['id']);
         } catch (Exception $e) {
-            // If there's an error (like missing column), return empty list
+            // If there's an error, return empty list
             $result = [];
         }
 
@@ -1717,7 +1757,7 @@ function generateQRImage($roomCode) {
 
     try {
         // Verifica che la stanza esista e recupera i dati con i due codici e i due QR
-        $roomResult = $room->getRoomByCode($roomCode);
+        $roomResult = $room->getRoomDetails($roomCode);
         if (!$roomResult) {
             http_response_code(404);
             echo json_encode(['success' => false, 'error' => 'Room not found']);

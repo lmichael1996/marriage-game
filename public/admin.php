@@ -87,7 +87,7 @@ if ($currentTab === 'sets') {
     <div class="container">
         <div class="header">
             <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
-                <div style="width: 65px; height: 65px; background: url('../assets/image/background.jpg') no-repeat center / contain; display: inline-block;"></div>
+                <div style="width: 50px; height: 50px; background: url('../assets/image/background.jpg') no-repeat center / contain; display: inline-block;"></div>
                 <h1>Mvquiz Admin</h1>
             </div>
             <div class="user-info">

@@ -524,7 +524,8 @@ if ($selectedSetId) {
                 .then(data => {
                     if (data.success) {
                         setTimeout(() => {
-                            const redirectUrl = 'room-admin.php?room_code=' + encodeURIComponent(codePlayer);
+                            const roomId = data.room_id;
+                            const redirectUrl = 'room-admin.php?room_id=' + roomId;
                             window.location.href = redirectUrl;
                         }, 1000);
                     } else {

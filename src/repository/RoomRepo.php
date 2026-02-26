@@ -51,6 +51,24 @@ class RoomRepo {
     }
 
     /**
+     * Get room by ID
+     */
+    public function getRoomById($roomId) {
+        $stmt = $this->conn->prepare("
+            SELECT *
+            FROM rooms
+            WHERE id = ?
+        ");
+        $stmt->bind_param("i", $roomId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $room = $result->fetch_assoc();
+        $stmt->close();
+
+        return $room;
+    }
+
+    /**
      * Get active rooms (waiting or active status)
      */
     public function getActiveRooms($userId = null) {
@@ -84,9 +102,28 @@ class RoomRepo {
     }
 
     /**
-     * Delete room completely
+     * Close room when game finishes (update status to 'closed')
      */
-    public function deleteRoom($roomId) {
+    public function closeRoom($roomId) {
+        $stmt = $this->conn->prepare("
+            UPDATE rooms
+            SET status_room = 'closed'
+            WHERE id = ?
+        ");
+        $stmt->bind_param("i", $roomId);
+        $success = $stmt->execute();
+        $stmt->close();
+
+        return [
+            'success' => $success,
+            'message' => $success ? 'Partita terminata' : 'Errore nella chiusura della partita'
+        ];
+    }
+
+    /**
+     * Cancel room manually (admin closes room, update status to 'cancelled')
+     */
+    public function cancelRoom($roomId) {
         $stmt = $this->conn->prepare("
             UPDATE rooms
             SET status_room = 'cancelled'
@@ -98,7 +135,7 @@ class RoomRepo {
 
         return [
             'success' => $success,
-            'message' => $success ? 'Stanza chiusa con successo' : 'Errore nella chiusura della stanza'
+            'message' => $success ? 'Stanza cancellata' : 'Errore nella cancellazione della stanza'
         ];
     }
 

@@ -108,56 +108,20 @@ class RoomService {
 
         return [
             'success' => $success,
-            'message' => $success ? 'Stanza avviata' : 'Errore nell\'avvio'
+            'message' => $success ? 'Stanza avviata' : 'Errore nell\'avvio',
+            'room_id' => $room['id']
         ];
     }
 
     /**
-     * Delete room completely
+     * Finish game - update room status to 'closed' when all rounds are completed
      */
-    public function deleteRoom($roomCode) {
-        // Cancel the room by updating its status to 'cancelled'
-        // Purpose: mark the game as finished and keep the room record for history
+    public function finishGame($roomId) {
         try {
-            // Get room details first
-            $room = $this->roomRepo->getRoomByCode($roomCode);
-            if (!$room) {
-                return [
-                    'success' => false,
-                    'message' => 'Stanza non trovata'
-                ];
-            }
-
-            // Create final round with question_id = 1 (placeholder) to signal game end
-            $roundResult = $this->roundRepo->createRound($room['id'], 1);
-            if (!$roundResult) {
-                error_log("deleteRoom: Failed to create final round for room: $roomCode");
-                return [
-                    'success' => false,
-                    'message' => 'Errore nella creazione del round finale'
-                ];
-            }
-
-            // Remove all players from the room
-            $this->playerRepo->deletePlayersByRoom($roomCode);
-
-            // Update room status to 'cancelled' instead of deleting
-            $closeResult = $this->roomRepo->deleteRoom($room['id']);
-            if (!$closeResult['success']) {
-                error_log("deleteRoom: Failed to close room: $roomCode");
-                return [
-                    'success' => false,
-                    'message' => 'Errore nella chiusura della stanza'
-                ];
-            }
-
-            // Return success so caller (API/UI) can proceed
-            return [
-                'success' => true,
-                'message' => 'Stanza chiusa con successo (record conservato)'
-            ];
+            $result = $this->roomRepo->closeRoom($roomId);
+            return $result;
         } catch (Exception $e) {
-            error_log("deleteRoom exception: " . $e->getMessage());
+            error_log("finishGame exception: " . $e->getMessage());
             return [
                 'success' => false,
                 'message' => 'Errore: ' . $e->getMessage()
@@ -166,10 +130,26 @@ class RoomService {
     }
 
     /**
-     * Ottieni i giocatori di una stanza
+     * Cancel room (admin manually closes room)
      */
-    public function getRoomPlayers($roomCode) {
-        return $this->playerRepo->getPlayersByRoom($roomCode);
+    public function cancelRoom($roomCode) {
+        try {
+            $room = $this->roomRepo->getRoomByCode($roomCode);
+            if (!$room) {
+                return [
+                    'success' => false,
+                    'message' => 'Stanza non trovata'
+                ];
+            }
+            $result = $this->roomRepo->cancelRoom($room['id']);
+            return $result;
+        } catch (Exception $e) {
+            error_log("cancelRoom exception: " . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Errore: ' . $e->getMessage()
+            ];
+        }
     }
 
     /**
@@ -191,21 +171,14 @@ class RoomService {
             $room['has_winner'] = false;
         }
 
-        $room['players'] = $this->getRoomPlayers($roomCode);
-        $room['player_count'] = count($room['players']);
+        $room['players'] = $this->playerRepo->getPlayersByRoomId($room['id']);
+        $room['player_count'] = count($room['players'] ?? []);
 
         if ($room['qset_id'] ?? null) {
             $room['question_set'] = $this->setRepo->getById($room['qset_id']);
         }
 
         return $room;
-    }
-
-    /**
-     * Get question set ID for a room
-     */
-    public function getQuestionSetIdByRoomCode($roomCode) {
-        return $this->roomRepo->getQuestionSetIdByRoomCode($roomCode);
     }
 
     /**
@@ -303,10 +276,6 @@ class RoomService {
      */
     private function generateQRImage($roomCode) {
         return ImageGenerator::generateQRFromRoomCode($roomCode);
-    }    /**
-     * Recupera una stanza con il suo BLOB QR
-     */
-    public function getRoomByCode($roomCode) {
-        return $this->roomRepo->getRoomByCode($roomCode);
     }
 }
+

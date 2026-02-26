@@ -11,22 +11,7 @@ class PlayerRepo {
     /**
      * Create a new player associated with a room
      */
-    public function createPlayer($username, $roomCode) {
-        // First, get the room ID from code_player
-        $stmtRoom = $this->conn->prepare("SELECT id FROM rooms WHERE code_player = ?");
-        $roomCodeUpper = strtoupper($roomCode);
-        $stmtRoom->bind_param("s", $roomCodeUpper);
-        $stmtRoom->execute();
-        $result = $stmtRoom->get_result();
-        $room = $result->fetch_assoc();
-        $stmtRoom->close();
-
-        if (!$room) {
-            throw new Exception('Codice stanza non valido');
-        }
-
-        $roomId = $room['id'];
-
+    public function createPlayer($username, $roomId) {
         // Check if player with this username already exists in this room
         $stmtCheck = $this->conn->prepare("SELECT id FROM players WHERE username = ? AND room_id = ?");
         $stmtCheck->bind_param("si", $username, $roomId);
@@ -55,45 +40,6 @@ class PlayerRepo {
     }
 
     /**
-     * Get all players for a specific room
-     */
-    public function getPlayersByRoom($roomCode) {
-        // First, get the room ID from code_player
-        $stmtRoom = $this->conn->prepare("SELECT id FROM rooms WHERE code_player = ?");
-        $roomCodeUpper = strtoupper($roomCode);
-        $stmtRoom->bind_param("s", $roomCodeUpper);
-        $stmtRoom->execute();
-        $result = $stmtRoom->get_result();
-        $room = $result->fetch_assoc();
-        $stmtRoom->close();
-
-        if (!$room) {
-            return []; // Room doesn't exist
-        }
-
-        $roomId = $room['id'];
-
-        // Select with connected_at from database
-        $stmt = $this->conn->prepare("
-            SELECT
-                id,
-                username,
-                connected_at
-            FROM players
-            WHERE room_id = ?
-            ORDER BY id ASC
-        ");
-
-        $stmt->bind_param("i", $roomId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $players = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
-        $stmt->close();
-
-        return $players;
-    }
-
-    /**
      * Get all players for a specific room by room ID
      */
     public function getPlayersByRoomId($roomId) {
@@ -111,32 +57,6 @@ class PlayerRepo {
         $stmt->close();
 
         return $players;
-    }
-
-    /**
-     * Delete all players for a specific room
-     */
-    public function deletePlayersByRoom($roomCode) {
-        // First, get the room ID from code_player
-        $stmtRoom = $this->conn->prepare("SELECT id FROM rooms WHERE code_player = ?");
-        $roomCodeUpper = strtoupper($roomCode);
-        $stmtRoom->bind_param("s", $roomCodeUpper);
-        $stmtRoom->execute();
-        $result = $stmtRoom->get_result();
-        $room = $result->fetch_assoc();
-        $stmtRoom->close();
-
-        if (!$room) {
-            return false; // Room doesn't exist
-        }
-
-        $roomId = $room['id'];
-        $stmt = $this->conn->prepare("DELETE FROM players WHERE room_id = ?");
-        $stmt->bind_param("i", $roomId);
-        $success = $stmt->execute();
-        $stmt->close();
-
-        return $success;
     }
 
     /**

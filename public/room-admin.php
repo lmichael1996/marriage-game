@@ -8,13 +8,24 @@ requireAdmin();
 $questionService = new QuestionService();
 $roomService = new RoomService();
 
-// Get room code
-$roomCode = $_GET['room_code'] ?? $_SESSION['room_code'] ?? null;
-$room = $roomService->getRoomDetails($roomCode);
+// Get room ID from URL or session
+$roomId = $_GET['room_id'] ?? $_SESSION['room_id'] ?? null;
+if (!$roomId) {
+    header('Location: admin.php');
+    exit;
+}
+
+// Get room details by ID (need RoomRepo to fetch by ID)
+require_once __DIR__ . '/../src/repository/RoomRepo.php';
+$roomRepo = new RoomRepo();
+$room = $roomRepo->getRoomById($roomId);
 if (!$room) {
     header('Location: admin.php');
     exit;
 }
+
+// Store room_id in session for use in other parts
+$_SESSION['room_id'] = $roomId;
 
 // Verifica se la stanza ha già un vincitore (partita terminata)
 if ($room['has_winner'] ?? false) {
@@ -28,7 +39,7 @@ if ($room['has_winner'] ?? false) {
 
 // POST handler: Increment counter
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'increment_counter') {
-    $key = 'round_counter_' . $roomCode;
+    $key = 'round_counter_' . $roomId;
     $_SESSION[$key] = ($_SESSION[$key] ?? 1) + 1;
     header('Content-Type: application/json');
     echo json_encode(['success' => true]);
@@ -36,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 // Get counter (increments every time admin clicks "Prossima Domanda")
-$counterKey = 'round_counter_' . $roomCode;
+$counterKey = 'round_counter_' . $roomId;
 $counter = $_SESSION[$counterKey] ?? 1;
 
 // Get question by counter position
@@ -64,10 +75,14 @@ if ($gameOver) {
 }
 
 // Room info
-$roomInfoKey = 'room_info_' . $roomCode;
+$roomInfoKey = 'room_info_' . $roomId;
 if (!isset($_SESSION[$roomInfoKey])) {
+    // Get players count using RoomRepo method
+    require_once __DIR__ . '/../src/repository/PlayerRepo.php';
+    $playerRepo = new PlayerRepo();
+    $players = $playerRepo->getPlayersByRoomId($roomId);
     $_SESSION[$roomInfoKey] = [
-        'num_players' => count($roomService->getRoomPlayers($roomCode) ?? []),
+        'num_players' => count($players ?? []),
         'total_questions' => $questionService->getQuestionCountByQset($room['qset_id'])
     ];
 }
@@ -429,7 +444,7 @@ $roomInfo = $_SESSION[$roomInfoKey];
             <div class="game-main">
                 <div class="info-box">
                     <p><span>👥 Giocatori:</span> <strong><?php echo $roomInfo['num_players']; ?></strong></p>
-                    <p><span>🎯 Room Code:</span> <code><?php echo htmlspecialchars($roomCode); ?></code></p>
+                    <p><span>🎯 Room Code:</span> <code><?php echo htmlspecialchars($room['code_player']); ?></code></p>
                     <p><span>📊 Domande:</span> <strong><?php echo $roomInfo['total_questions']; ?></strong></p>
                 </div>
 
@@ -533,7 +548,8 @@ $roomInfo = $_SESSION[$roomInfoKey];
     </div>
 
     <script>
-        const roomCode = '<?php echo $roomCode; ?>';
+        const roomId = <?php echo $roomId; ?>;
+        const roomCode = '<?php echo $room['code_player']; ?>';
         let timerInterval = null;
         let currentRoundType = null;
 
@@ -609,7 +625,7 @@ $roomInfo = $_SESSION[$roomInfoKey];
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    location.href = 'room-admin.php?room_code=' + encodeURIComponent(roomCode);
+                    location.href = 'room-admin.php?room_id=' + roomId;
                 }
             });
         }
@@ -649,14 +665,14 @@ $roomInfo = $_SESSION[$roomInfoKey];
             const form = new FormData();
             form.append('action', 'increment_counter');
 
-            fetch('room-admin.php?room_code=' + encodeURIComponent(roomCode), {
+            fetch('room-admin.php?room_id=' + roomId, {
                 method: 'POST',
                 body: form
             })
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    location.href = 'room-admin.php?room_code=' + encodeURIComponent(roomCode);
+                    location.href = 'room-admin.php?room_id=' + roomId;
                 }
             });
         }
@@ -671,7 +687,7 @@ $roomInfo = $_SESSION[$roomInfoKey];
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    location.href = 'room-admin.php?room_code=' + encodeURIComponent(roomCode);
+                    location.href = 'room-admin.php?room_id=' + roomId;
                 }
             });
         }
