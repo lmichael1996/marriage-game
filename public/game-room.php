@@ -515,7 +515,10 @@ if ($selectedSetId) {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                    }
+                    },
+                    body: JSON.stringify({
+                        code_player: codePlayer
+                    })
                 })
                 .then(response => response.json())
                 .then(data => {

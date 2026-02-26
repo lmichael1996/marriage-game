@@ -68,23 +68,31 @@ class RoomRepo {
     }
 
     /**
-     * Start room (just returns true, no status tracking needed)
+     * Start room by updating its status to 'running'
      */
-    public function startRoom($roomCode) {
-        return true;
+    public function startRoom($roomId) {
+        $stmt = $this->conn->prepare("
+            UPDATE rooms
+            SET status_room = 'running'
+            WHERE id = ?
+        ");
+        $stmt->bind_param("i", $roomId);
+        $success = $stmt->execute();
+        $stmt->close();
+
+        return $success;
     }
 
     /**
      * Delete room completely
      */
-    public function deleteRoom($roomCode) {
+    public function deleteRoom($roomId) {
         $stmt = $this->conn->prepare("
             UPDATE rooms
             SET status_room = 'cancelled'
-            WHERE code_player = ?
+            WHERE id = ?
         ");
-        $roomCodeUpper = strtoupper($roomCode);
-        $stmt->bind_param("s", $roomCodeUpper);
+        $stmt->bind_param("i", $roomId);
         $success = $stmt->execute();
         $stmt->close();
 
@@ -95,33 +103,33 @@ class RoomRepo {
     }
 
     /**
-     * Verify if room code exists and is active
+     * Verify if room code exists and is open (can accept new players)
      */
     public function verifyRoomCode($code) {
         $stmt = $this->conn->prepare("
             SELECT id FROM rooms
-            WHERE code_player = ?
+            WHERE (code_player = ? OR code_judge = ?)
+            AND status_room = 'open'
         ");
         $codeUpper = strtoupper($code);
-        $stmt->bind_param("s", $codeUpper);
+        $stmt->bind_param("ss", $codeUpper, $codeUpper);
         $stmt->execute();
         $result = $stmt->get_result();
-        $exists = $result->num_rows > 0;
+        $room = $result->fetch_assoc();
         $stmt->close();
 
-        return $exists;
+        return $room ? $room['id'] : null;
     }
 
     /**
-     * Get question set ID for a room by room code
+     * Get question set ID for a room by room ID
      */
-    public function getQuestionSetIdByRoomCode($roomCode) {
+    public function getQuestionSetIdByRoomId($roomId) {
         $stmt = $this->conn->prepare("
             SELECT qset_id FROM rooms
-            WHERE code_player = ?
+            WHERE id = ?
         ");
-        $roomCodeUpper = strtoupper($roomCode);
-        $stmt->bind_param("s", $roomCodeUpper);
+        $stmt->bind_param("i", $roomId);
         $stmt->execute();
         $result = $stmt->get_result();
         $room = $result->fetch_assoc();
@@ -133,10 +141,10 @@ class RoomRepo {
     /**
      * Get players/devices connected to a room
      */
-    public function getRoomPlayers($roomCode) {
+    public function getRoomPlayers($roomId) {
         require_once __DIR__ . '/PlayerRepo.php';
         $playerRepo = new PlayerRepo();
-        return $playerRepo->getPlayersByRoom($roomCode);
+        return $playerRepo->getPlayersByRoomId($roomId);
     }
 
     /**

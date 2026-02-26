@@ -69,7 +69,8 @@ CREATE TABLE IF NOT EXISTS rooms (
     -- Store QR code as data URI (base64 encoded image)
     qr_uri_player LONGTEXT DEFAULT NULL,
     qr_uri_judge LONGTEXT DEFAULT NULL,
-    status_room ENUM('open', 'running', 'cancelled', 'closed') DEFAULT 'open',
+    status_room ENUM('open', 'running', 'closed', 'cancelled') DEFAULT 'open',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (qset_id) REFERENCES qsets(id) ON DELETE CASCADE
 );
 
@@ -118,3 +119,18 @@ CREATE TABLE IF NOT EXISTS winners (
     FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES players(id) ON DELETE CASCADE
 );
+
+-- Evento MySQL: Controlla ogni ora e chiude le stanze aperte da più di 24 ore
+SET
+    GLOBAL event_scheduler = ON;
+
+DROP EVENT IF EXISTS close_abandoned_rooms;
+
+CREATE EVENT close_abandoned_rooms ON SCHEDULE EVERY 1 HOUR DO
+UPDATE
+    rooms
+SET
+    status_room = 'cancelled'
+WHERE
+    status_room = 'open'
+    AND TIMESTAMPDIFF(HOUR, created_at, NOW()) >= 24;

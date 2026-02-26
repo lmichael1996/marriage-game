@@ -56,18 +56,27 @@ class AuthService {
             throw new Exception('Codice stanza obbligatorio');
         }
 
-        // Verify room code exists and is active
-        if (!$this->roomRepo->verifyRoomCode($roomCode)) {
-            throw new Exception('Codice stanza non valido o stanza non attiva');
+        // Check if room exists (any status)
+        $roomExists = $this->roomRepo->getRoomByCode($roomCode);
+        if (!$roomExists) {
+            throw new Exception('Codice stanza non valido');
+        }
+
+        // Check if room is in 'open' status
+        if ($roomExists['status_room'] !== 'open') {
+            $statusMessage = match($roomExists['status_room']) {
+                'running' => 'La partita è già iniziata, non puoi unirti',
+                'cancelled' => 'La stanza è stata cancellata',
+                'closed' => 'La stanza è stata chiusa',
+                default => 'Lo stato della stanza non consente l\'ingresso'
+            };
+            throw new Exception($statusMessage);
         }
 
         // Verifica se la stanza ha già un vincitore (partita terminata)
-        $room = $this->roomRepo->getRoomByCode($roomCode);
-        if ($room) {
-            $winner = $this->roomRepo->getWinner($room['id']);
-            if ($winner) {
-                throw new Exception('La partita in questa stanza è già terminata');
-            }
+        $winner = $this->roomRepo->getWinner($roomExists['id']);
+        if ($winner) {
+            throw new Exception('La partita in questa stanza è già terminata');
         }
 
         // Create new player associated with this room

@@ -342,7 +342,8 @@ function handleStartRoom($room) {
     requireLoginJson();
 
     try {
-        $roomCode = $_SESSION['code_player'] ?? null;
+        $data = json_decode(file_get_contents('php://input'), true);
+        $roomCode = $data['code_player'] ?? $_SESSION['code_player'] ?? null;
 
         if (!$roomCode) {
             throw new Exception('Nessuna stanza attiva nella sessione');

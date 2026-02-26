@@ -104,7 +104,7 @@ class RoomService {
             $this->roundRepo->resetRoundsBySetId($qsetId);
         }
 
-        $success = $this->roomRepo->startRoom($roomCode);
+        $success = $this->roomRepo->startRoom($room['id']);
 
         return [
             'success' => $success,
@@ -142,7 +142,7 @@ class RoomService {
             $this->playerRepo->deletePlayersByRoom($roomCode);
 
             // Update room status to 'cancelled' instead of deleting
-            $closeResult = $this->roomRepo->deleteRoom($roomCode);
+            $closeResult = $this->roomRepo->deleteRoom($room['id']);
             if (!$closeResult['success']) {
                 error_log("deleteRoom: Failed to close room: $roomCode");
                 return [
