@@ -744,8 +744,8 @@ $roomInfo = $_SESSION[$roomInfoKey];
 
         function goBack() {
             if (confirm('Termina partita?')) {
-                // Close room with question_id = 2 (end marker for goBack)
-                fetch('../src/api/api.php?endpoint=close_room', {
+                // Cancel room (set status to 'cancelled')
+                fetch('../src/api/api.php?endpoint=delete_room', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include'
