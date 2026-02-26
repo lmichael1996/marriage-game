@@ -8,8 +8,9 @@ class ImageGenerator {
     // URL dell'API QR Server
     private static $QR_API_URL = 'https://api.qrserver.com/v1/create-qr-code/';
 
-    // Base URL per i QR code
-    private static $BASE_URL = 'http://151.21.203.214:9000/public/login-player.php';
+    // Base URLs per i QR code
+    private static $BASE_URL_PLAYER = 'http://151.21.203.214:9000/public/login-player.php';
+    private static $BASE_URL_JUDGE = 'http://151.21.203.214:9000/public/login-judge.php';
 
     /**
      * Genera un QR code da un room code
@@ -17,11 +18,15 @@ class ImageGenerator {
      * @param string $roomCode Il codice della stanza
      * @param int $size Dimensione dell'immagine (default 250)
      * @param string $format Formato immagine: 'jpg' o 'png' (default 'jpg')
+     * @param string $type Tipo di utente: 'player' o 'judge' (default 'player')
      * @return string|null Dati binari dell'immagine o null se fallisce
      */
-    public static function generateQRFromRoomCode($roomCode, $size = 250, $format = 'jpg') {
+    public static function generateQRFromRoomCode($roomCode, $size = 250, $format = 'jpg', $type = 'player') {
+        // Scegli l'URL base in base al tipo
+        $baseUrl = ($type === 'judge') ? self::$BASE_URL_JUDGE : self::$BASE_URL_PLAYER;
+
         // Costruisci l'URL del QR
-        $qrUrl = self::$BASE_URL . '?code=' . urlencode($roomCode);
+        $qrUrl = $baseUrl . '?code=' . urlencode($roomCode);
         return self::generateQRFromURL($qrUrl, $size, $format);
     }
 

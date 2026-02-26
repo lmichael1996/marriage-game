@@ -34,8 +34,8 @@ class RoomService {
         $codeJudge = $this->generateUniqueRoomCode();
 
         // Genera i QR codes come immagini binarie
-        $qrPlayerData = $this->generateQRImage($codePlayer);
-        $qrJudgeData = $this->generateQRImage($codeJudge);
+        $qrPlayerData = $this->generateQRImage($codePlayer, 'player');
+        $qrJudgeData = $this->generateQRImage($codeJudge, 'judge');
 
         $qrPlayerBase64 = null;
         $qrJudgeBase64 = null;
@@ -274,8 +274,8 @@ class RoomService {
     /**
      * Genera il QR code come immagine binaria
      */
-    private function generateQRImage($roomCode) {
-        return ImageGenerator::generateQRFromRoomCode($roomCode);
+    private function generateQRImage($roomCode, $type = 'player') {
+        return ImageGenerator::generateQRFromRoomCode($roomCode, 250, 'jpg', $type);
     }
 }
 
