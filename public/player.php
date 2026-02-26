@@ -439,18 +439,26 @@ requirePlayer();
         let hasAnswered = false;
         let selectedAnswer = null;
         let roundInProgress = false;
+        let gameEnded = false;  // Flag to stop polling when game ends
+        let checkGameStateInterval = null;
+        let checkRoomStatusInterval = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            setInterval(checkRoomStatus, 1000);
-            setInterval(checkGameState, 1000);
+            checkRoomStatusInterval = setInterval(checkRoomStatus, 1000);
+            checkGameStateInterval = setInterval(checkGameState, 1000);
             checkGameState();
         });
 
         function checkRoomStatus() {
+            if (gameEnded) return;  // Stop checking if game has ended
+
             fetch('../src/api/api.php?endpoint=check_room_status')
                 .then(response => response.json())
                 .then(data => {
                     if (!data.room_open) {
+                        gameEnded = true;
+                        clearInterval(checkGameStateInterval);
+                        clearInterval(checkRoomStatusInterval);
                         alert(data.message || 'La stanza è stata chiusa');
                         window.location.href = 'logout.php';
                     }
@@ -458,6 +466,8 @@ requirePlayer();
         }
 
         function checkGameState() {
+            if (gameEnded) return;  // Stop checking if game has ended
+
             fetch('../src/api/api.php?endpoint=game&action=get_game_state&counter=' + currentRoundCounter)
                 .then(response => response.json())
                 .then(data => {
@@ -466,7 +476,20 @@ requirePlayer();
                     // Verifica se la partita è terminata
                     if (data.game_finished) {
                         console.log("Game finished detected, checking winner status");
+                        gameEnded = true;
+                        clearInterval(checkGameStateInterval);
+                        clearInterval(checkRoomStatusInterval);
                         checkWinnerStatus();
+                        return;
+                    }
+
+                    // Check if admin cancelled the room
+                    if (data.status_room === 'cancelled') {
+                        console.log("Game cancelled by admin (room status = cancelled)");
+                        gameEnded = true;
+                        clearInterval(checkGameStateInterval);
+                        clearInterval(checkRoomStatusInterval);
+                        showGameCancelled();
                         return;
                     }
 
@@ -476,16 +499,12 @@ requirePlayer();
                         return;
                     }
 
-                    // Check if admin cancelled the room
-                    if (data.status_room === 'cancelled') {
-                        console.log("Game cancelled by admin (room status = cancelled)");
-                        showGameCancelled();
-                        return;
-                    }
-
                     // Check if room is closed (game finished)
                     if (data.status_room === 'closed') {
                         console.log("Game finished (room status = closed), checking winner status");
+                        gameEnded = true;
+                        clearInterval(checkGameStateInterval);
+                        clearInterval(checkRoomStatusInterval);
                         checkWinnerStatus();
                         return;
                     }
