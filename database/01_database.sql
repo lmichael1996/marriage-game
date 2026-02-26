@@ -82,6 +82,13 @@ CREATE TABLE IF NOT EXISTS players (
     UNIQUE (username, room_id)
 );
 
+CREATE TABLE IF NOT EXISTS judges (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    room_id INT NOT NULL,
+    connected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE
+);
+
 -- Rounds table (stores game rounds with associated questions from qset_questions)
 CREATE TABLE IF NOT EXISTS rounds (
     id INT AUTO_INCREMENT PRIMARY KEY,

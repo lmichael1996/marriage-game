@@ -4,18 +4,22 @@ require_once __DIR__ . '/../../assets/vendor/tecnickcom/tcpdf/tcpdf.php';
 
 class PDFGenerator {
     private $pdf;
-    private $roomCode;
-    private $qrSource;  // Either a data URI (base64) or a file path to image
+    private $codePlayer;
+    private $codeJudge;
+    private $qrSourcePlayer;
+    private $qrSourceJudge;
 
-    public function __construct($roomCode, $qrSource) {
-        if (empty($roomCode)) {
-            throw new Exception('Room code is required');
+    public function __construct($codePlayer, $codeJudge, $qrSourcePlayer, $qrSourceJudge) {
+        if (empty($codePlayer) || empty($codeJudge)) {
+            throw new Exception('Both room codes are required');
         }
-        if (empty($qrSource)) {
-            throw new Exception('QR source (data URI or file path) is required');
+        if (empty($qrSourcePlayer) || empty($qrSourceJudge)) {
+            throw new Exception('Both QR sources are required');
         }
-        $this->roomCode = $roomCode;
-        $this->qrSource = $qrSource;  // Store QR source
+        $this->codePlayer = $codePlayer;
+        $this->codeJudge = $codeJudge;
+        $this->qrSourcePlayer = $qrSourcePlayer;
+        $this->qrSourceJudge = $qrSourceJudge;
         $this->initializePDF();
     }
 
@@ -23,55 +27,62 @@ class PDFGenerator {
         $this->pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
         $this->pdf->SetCreator('Marriage Game');
         $this->pdf->SetAuthor('Marriage Game Admin');
-        $this->pdf->SetTitle('Room Code: ' . $this->roomCode);
+        $this->pdf->SetTitle('Marriage Game - QR Codes');
         $this->pdf->setPrintHeader(false);
         $this->pdf->setPrintFooter(false);
-        $this->pdf->AddPage();
     }
 
-    public function addTitle() {
+    private function addPageTitle($title, $roleColor) {
+        // Remove emoji, use background color header instead
+        $this->pdf->SetFillColor($roleColor[0], $roleColor[1], $roleColor[2]);
         $this->pdf->SetFont('helvetica', 'B', 24);
-        $this->pdf->Cell(0, 15, '🎮 Marriage Game', 0, 1, 'C');
-
-        $this->pdf->SetFont('helvetica', 'B', 16);
-        $this->pdf->Cell(0, 10, 'Stanza Attiva', 0, 1, 'C');
-
+        $this->pdf->SetTextColor(255, 255, 255);
+        $this->pdf->Cell(0, 20, $title, 0, 1, 'C', true);
+        $this->pdf->SetTextColor(0, 0, 0);
         $this->pdf->Ln(10);
     }
 
-    public function addRoomCode() {
+    private function addRoomCodeSection($code) {
         $this->pdf->SetFont('helvetica', '', 12);
         $this->pdf->Cell(0, 8, 'Codice Stanza:', 0, 1, 'C');
 
         $this->pdf->SetFont('helvetica', 'B', 32);
-        $this->pdf->Cell(0, 20, $this->roomCode, 0, 1, 'C');
+        $this->pdf->Cell(0, 20, $code, 0, 1, 'C');
 
         $this->pdf->Ln(10);
     }
 
-    public function addQRCode() {
+    private function addQRCodeSection($qrSource) {
         $this->pdf->SetFont('helvetica', '', 12);
         $this->pdf->Cell(0, 8, 'Inquadra il QR code per connetterti:', 0, 1, 'C');
         $this->pdf->Ln(5);
 
-        // The source may be either a local file path or a data URI. TCPDF prefers files.
-        if (!empty($this->qrSource)) {
+        if (!empty($qrSource)) {
+            $base64Data = null;
+
             // If it's an existing file path, use it directly
-            if (is_string($this->qrSource) && file_exists($this->qrSource)) {
+            if (is_string($qrSource) && file_exists($qrSource)) {
                 $pageWidth = $this->pdf->GetPageWidth();
                 $qrWidth = 70;
                 $xPosition = ($pageWidth - $qrWidth) / 2;
 
                 // Guess type from extension (default to JPG)
-                $ext = strtolower(pathinfo($this->qrSource, PATHINFO_EXTENSION));
+                $ext = strtolower(pathinfo($qrSource, PATHINFO_EXTENSION));
                 if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) {
                     $ext = 'jpg';
                 }
-                $this->pdf->Image($this->qrSource, $xPosition, $this->pdf->GetY(), $qrWidth, $qrWidth, strtoupper($ext));
-            } else if (strpos($this->qrSource, 'data:image/') === 0) {
-                // Data URI: decode and write temp file
-                $parts = explode(',', $this->qrSource, 2);
+                $this->pdf->Image($qrSource, $xPosition, $this->pdf->GetY(), $qrWidth, $qrWidth, strtoupper($ext));
+            } else if (strpos($qrSource, 'data:image/') === 0) {
+                // Data URI with prefix: decode and write temp file
+                $parts = explode(',', $qrSource, 2);
                 $base64Data = $parts[1] ?? '';
+            } else {
+                // Pure base64 from database (no prefix)
+                $base64Data = $qrSource;
+            }
+
+            // If we have base64 data, decode and create temp file
+            if (!empty($base64Data)) {
                 $binaryData = base64_decode($base64Data, true);
                 if ($binaryData !== false) {
                     $tempFile = sys_get_temp_dir() . '/qr_' . uniqid() . '.jpg';
@@ -92,17 +103,31 @@ class PDFGenerator {
         $this->pdf->Ln(5);
     }
 
-    public function addFooterInfo() {
+    private function addFooterInfo($roleText) {
         $this->pdf->SetFont('helvetica', '', 10);
         $this->pdf->SetTextColor(100, 100, 100);
-        $this->pdf->MultiCell(0, 5, 'I giocatori possono connettersi usando il codice stanza o scannerizzando il QR code.', 0, 'C');
+        $this->pdf->MultiCell(0, 5, $roleText . ': Puoi connetterti usando il codice stanza o scannerizzando il QR code.', 0, 'C');
+    }
+
+    private function addPlayerPage() {
+        $this->pdf->AddPage();
+        $this->addPageTitle('Marriage Game - Giocatore', [0, 123, 255]); // Blue for player
+        $this->addRoomCodeSection($this->codePlayer);
+        $this->addQRCodeSection($this->qrSourcePlayer);
+        $this->addFooterInfo('Il Giocatore');
+    }
+
+    private function addJudgePage() {
+        $this->pdf->AddPage();
+        $this->addPageTitle('Marriage Game - Giudice', [40, 167, 69]); // Green for judge
+        $this->addRoomCodeSection($this->codeJudge);
+        $this->addQRCodeSection($this->qrSourceJudge);
+        $this->addFooterInfo('Il Giudice');
     }
 
     public function generate() {
-        $this->addTitle();
-        $this->addRoomCode();
-        $this->addQRCode();
-        $this->addFooterInfo();
+        $this->addPlayerPage();
+        $this->addJudgePage();
     }
 
     public function getPDF() {

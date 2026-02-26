@@ -1715,7 +1715,7 @@ function generateQRImage($roomCode) {
     }
 
     try {
-        // Verifica che la stanza esista e recupera il BLOB del QR
+        // Verifica che la stanza esista e recupera i dati con i due codici e i due QR
         $roomResult = $room->getRoomByCode($roomCode);
         if (!$roomResult) {
             http_response_code(404);
@@ -1723,25 +1723,44 @@ function generateQRImage($roomCode) {
             exit();
         }
 
-        // Recupera il base64 del QR dal DB
-        $qrBase64 = $roomResult['qr_data_uri'] ?? null;
+        // Recupera i due codici
+        $codePlayer = $roomResult['code_player'] ?? null;
+        $codeJudge = $roomResult['code_judge'] ?? null;
 
-        // Se non lo troviamo nel DB, generiamo l'immagine al volo
-        if (empty($qrBase64)) {
-            $generated = generateQRImage($roomCode);
-            if (empty($generated)) {
-                http_response_code(500);
-                echo json_encode(['success' => false, 'error' => 'Failed to generate QR image']);
-                exit();
-            }
-            $qrBase64 = base64_encode($generated);
+        if (empty($codePlayer) || empty($codeJudge)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Both room codes are required']);
+            exit();
         }
 
-        // Ricostruisci il data URI con prefisso per PDFGenerator
-        $qrDataUri = 'data:image/jpeg;base64,' . $qrBase64;
+        // Recupera i base64 dei QR dal DB (sono già base64, senza prefisso)
+        $qrBase64Player = $roomResult['qr_uri_player'] ?? null;
+        $qrBase64Judge = $roomResult['qr_uri_judge'] ?? null;
 
-        // Genera PDF con titolo, codice stanza e QR (data URI)
-        $pdfGenerator = new PDFGenerator($roomCode, $qrDataUri);
+        // Se mancano, generiamo i QR al volo
+        if (empty($qrBase64Player)) {
+            $generatedPlayer = generateQRImage($codePlayer);
+            if (!empty($generatedPlayer)) {
+                $qrBase64Player = base64_encode($generatedPlayer);
+            }
+        }
+
+        if (empty($qrBase64Judge)) {
+            $generatedJudge = generateQRImage($codeJudge);
+            if (!empty($generatedJudge)) {
+                $qrBase64Judge = base64_encode($generatedJudge);
+            }
+        }
+
+        if (empty($qrBase64Player) || empty($qrBase64Judge)) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => 'Failed to generate QR images']);
+            exit();
+        }
+
+        // Genera PDF con due pagine (player e judge) con i rispettivi QR
+        // PDFGenerator sa gestire sia base64 puro che data URI
+        $pdfGenerator = new PDFGenerator($codePlayer, $codeJudge, $qrBase64Player, $qrBase64Judge);
         $pdfGenerator->generate();
         $pdfContent = $pdfGenerator->getPDF();
 
@@ -1751,7 +1770,7 @@ function generateQRImage($roomCode) {
         echo json_encode([
             'success' => true,
             'pdf_data' => 'data:application/pdf;base64,' . $base64,
-            'filename' => 'marriage-game-stanza-' . $roomCode . '.pdf'
+            'filename' => 'marriage-game-stanza-' . $codePlayer . '.pdf'
         ]);
     } catch (Exception $e) {
         http_response_code(500);
