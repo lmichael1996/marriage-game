@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Amministratore - Marriage Game</title>
+    <title>Login Amministratore - Mvquiz</title>
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/login.css">
 </head>
 <body>
     <div class="container">
         <div class="login-box">
-            <h1>🔐 Marriage Game</h1>
+            <h1>🔐 Mvquiz</h1>
             <h2>Login Amministratore</h2>
 
             <div id="error-message" class="error hidden"></div>
@@ -30,9 +30,7 @@
             </form>
 
             <div class="login-nav">
-                <a href="login-player.php" class="login-nav-link">
-                    🎮 Sei un giocatore? Clicca qui
-                </a>
+                <p><a href="../index.html" class="login-nav-link">← Torna in Home</a></p>
             </div>
         </div>
     </div>

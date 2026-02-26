@@ -178,7 +178,11 @@ if ($selectedSetId) {
                 return;
             }
 
-            container.innerHTML = ''; // Clear previous QR
+            // Completamente svuota il contenitore da qualsiasi contenuto precedente
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+            container.innerHTML = '';
 
             if (dataUri) {
                 const img = document.createElement('img');
@@ -414,6 +418,7 @@ if ($selectedSetId) {
                 })
                 .then(response => response.json())
                 .then(data => {
+                    console.log('Close room response:', data);
                     if (data.success) {
                         roomActive = false;
                         codePlayer = '';
@@ -424,10 +429,29 @@ if ($selectedSetId) {
                             devicesInterval = null;
                         }
 
-                        // Hide room info and show create room button again
-                        document.getElementById('room-info').classList.add('hidden');
-                        document.getElementById('qr-code-container-player').innerHTML = '';
-                        document.getElementById('qr-code-container-judge').innerHTML = '';
+                        // Hide room info box using classList (consistent with show)
+                        const roomInfoDiv = document.getElementById('room-info');
+                        if (roomInfoDiv) {
+                            roomInfoDiv.classList.add('hidden');
+                        }
+
+                        // Completely clear QR containers
+                        const playerContainer = document.getElementById('qr-code-container-player');
+                        if (playerContainer) {
+                            while (playerContainer.firstChild) {
+                                playerContainer.removeChild(playerContainer.firstChild);
+                            }
+                            playerContainer.innerHTML = '';
+                        }
+
+                        const judgeContainer = document.getElementById('qr-code-container-judge');
+                        if (judgeContainer) {
+                            while (judgeContainer.firstChild) {
+                                judgeContainer.removeChild(judgeContainer.firstChild);
+                            }
+                            judgeContainer.innerHTML = '';
+                        }
+
                         document.getElementById('btn-create-room').style.display = 'block';
 
                         // Enable back button
@@ -449,10 +473,13 @@ if ($selectedSetId) {
 
                         // Reset devices count
                         document.getElementById('connected-count').textContent = '0';
+                    } else {
+                        alert('Errore: ' + (data.message || 'impossibile chiudere la stanza'));
                     }
                 })
                 .catch(error => {
-                    alert('Errore nella chiusura della stanza');
+                    console.error('Error:', error);
+                    alert('Errore nella chiusura della stanza: ' + error);
                 });
             }
         });
@@ -513,7 +540,7 @@ if ($selectedSetId) {
                 return;
             }
 
-            const url = `/src/api/api.php?endpoint=connected_devices&room_code=${encodeURIComponent(codePlayer)}`;
+            const url = `/src/api/api.php?endpoint=connected_devices&code_player=${encodeURIComponent(codePlayer)}`;
 
             fetch(url, {
                 credentials: 'include'

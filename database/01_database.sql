@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS rooms (
     -- Store QR code as data URI (base64 encoded image)
     qr_uri_player LONGTEXT DEFAULT NULL,
     qr_uri_judge LONGTEXT DEFAULT NULL,
+    status_room ENUM('open', 'running', 'cancelled', 'closed') DEFAULT 'open',
     FOREIGN KEY (qset_id) REFERENCES qsets(id) ON DELETE CASCADE
 );
 

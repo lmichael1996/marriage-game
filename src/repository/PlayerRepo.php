@@ -12,8 +12,8 @@ class PlayerRepo {
      * Create a new player associated with a room
      */
     public function createPlayer($username, $roomCode) {
-        // First, get the room ID from room_code
-        $stmtRoom = $this->conn->prepare("SELECT id FROM rooms WHERE room_code = ?");
+        // First, get the room ID from code_player
+        $stmtRoom = $this->conn->prepare("SELECT id FROM rooms WHERE code_player = ?");
         $roomCodeUpper = strtoupper($roomCode);
         $stmtRoom->bind_param("s", $roomCodeUpper);
         $stmtRoom->execute();
@@ -58,8 +58,8 @@ class PlayerRepo {
      * Get all players for a specific room
      */
     public function getPlayersByRoom($roomCode) {
-        // First, get the room ID from room_code
-        $stmtRoom = $this->conn->prepare("SELECT id FROM rooms WHERE room_code = ?");
+        // First, get the room ID from code_player
+        $stmtRoom = $this->conn->prepare("SELECT id FROM rooms WHERE code_player = ?");
         $roomCodeUpper = strtoupper($roomCode);
         $stmtRoom->bind_param("s", $roomCodeUpper);
         $stmtRoom->execute();
@@ -117,8 +117,8 @@ class PlayerRepo {
      * Delete all players for a specific room
      */
     public function deletePlayersByRoom($roomCode) {
-        // First, get the room ID from room_code
-        $stmtRoom = $this->conn->prepare("SELECT id FROM rooms WHERE room_code = ?");
+        // First, get the room ID from code_player
+        $stmtRoom = $this->conn->prepare("SELECT id FROM rooms WHERE code_player = ?");
         $roomCodeUpper = strtoupper($roomCode);
         $stmtRoom->bind_param("s", $roomCodeUpper);
         $stmtRoom->execute();

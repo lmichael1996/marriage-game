@@ -117,8 +117,8 @@ class AnswerRepo {
     public function getLeaderboard($roomCode = null) {
         try {
             if ($roomCode) {
-                // Get room ID from room_code
-                $stmtRoom = $this->conn->prepare("SELECT id FROM rooms WHERE room_code = ?");
+                // Get room ID from code_player
+                $stmtRoom = $this->conn->prepare("SELECT id FROM rooms WHERE code_player = ?");
                 $roomCodeUpper = strtoupper($roomCode);
                 $stmtRoom->bind_param("s", $roomCodeUpper);
                 $stmtRoom->execute();
@@ -168,7 +168,7 @@ class AnswerRepo {
             if (session_status() === PHP_SESSION_NONE) {
                 @session_start();
             }
-            $roomCode = $_SESSION['room_code'] ?? null;
+            $roomCode = $_SESSION['code_player'] ?? null;
 
             if (!$roomCode) {
                 return [

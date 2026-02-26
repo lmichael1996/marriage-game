@@ -75,7 +75,7 @@ if ($currentTab === 'sets') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Marriage Game</title>
+    <title>Admin - Mvquiz</title>
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
     <link rel="stylesheet" href="../assets/css/tab.css">
@@ -86,7 +86,10 @@ if ($currentTab === 'sets') {
 <body>
     <div class="container">
         <div class="header">
-            <h1>Admin Panel - Marriage Game</h1>
+            <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
+                <div style="width: 65px; height: 65px; background: url('../assets/image/background.jpg') no-repeat center / contain; display: inline-block;"></div>
+                <h1>Mvquiz Admin</h1>
+            </div>
             <div class="user-info">
                 <a href="logout.php?logout=1" class="btn btn-secondary">Logout</a>
             </div>

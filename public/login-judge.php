@@ -3,35 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Giocatore - Mvquiz</title>
+    <title>Login Giudice - Mvquiz</title>
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/login.css">
 </head>
 <body>
     <div class="container">
         <div class="login-box">
-            <h1>🎮 Mvquiz</h1>
-            <h2>Login Giocatore</h2>
+            <h1>⚖️ Mvquiz</h1>
+            <h2>Login Giudice</h2>
 
             <div id="error-message" class="error hidden"></div>
 
-            <form id="player-login-form">
-                <div class="form-group">
-                    <label for="username">👤 Nome Giocatore:</label>
-                    <input type="text" id="username" name="username" required autofocus placeholder="Inserisci il tuo nome">
-                </div>
-
+            <form id="judge-login-form">
                 <div class="form-group">
                     <label for="room_code">🔑 Codice Stanza:</label>
-                    <input type="text" id="room_code" name="room_code" class="uppercase" required maxlength="10">
-                    <small class="form-helper-text">Chiedi il codice all'amministratore</small>
+                    <input type="text" id="room_code" name="room_code" class="uppercase" required maxlength="10" autofocus placeholder="Inserisci il codice del giudice">
+                    <small class="form-helper-text">Chiedi il codice al'amministratore</small>
                 </div>
 
-                <button type="submit" class="btn btn-primary">🚀 Entra nel Gioco</button>
+                <button type="submit" class="btn btn-primary">⚖️ Entra come Giudice</button>
             </form>
 
             <div class="login-nav">
-                <p><a href="../index.html" class="login-nav-link">← Torna in Home</a></p>
+                <p><a href="../index.html" class="login-nav-link">← Torna alla Home</a></p>
             </div>
         </div>
     </div>
@@ -46,35 +41,30 @@
                 const roomCodeInput = document.getElementById('room_code');
                 roomCodeInput.value = codeFromUrl.toUpperCase();
                 roomCodeInput.disabled = true;
-
-                // Optional: focus on username field
-                document.getElementById('username').focus();
             }
         });
 
-        document.getElementById('player-login-form').addEventListener('submit', async (e) => {
+        document.getElementById('judge-login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const username = document.getElementById('username').value.trim();
             const roomCode = document.getElementById('room_code').value.trim().toUpperCase();
             const errorDiv = document.getElementById('error-message');
 
             errorDiv.classList.add('hidden');
 
-            if (!username || !roomCode) {
-                errorDiv.textContent = 'Inserisci nome e codice stanza';
+            if (!roomCode) {
+                errorDiv.textContent = 'Inserisci il codice stanza del giudice';
                 errorDiv.classList.remove('hidden');
                 return;
             }
 
             try {
-                const response = await fetch('../src/api/api.php?endpoint=player_login', {
+                const response = await fetch('../src/api/api.php?endpoint=judge_login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        username: username,
                         room_code: roomCode
                     })
                 });
@@ -84,13 +74,13 @@
                 if (result.success) {
                     window.location.href = result.redirect;
                 } else {
-                    errorDiv.textContent = result.error;
+                    errorDiv.textContent = result.error || 'Errore nel login';
                     errorDiv.classList.remove('hidden');
                 }
             } catch (error) {
                 errorDiv.textContent = 'Errore di connessione. Riprova.';
                 errorDiv.classList.remove('hidden');
-                console.error('Login error:', error);
+                console.error('Judge login error:', error);
             }
         });
 

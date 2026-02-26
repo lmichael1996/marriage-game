@@ -25,9 +25,9 @@ class PDFGenerator {
 
     private function initializePDF() {
         $this->pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-        $this->pdf->SetCreator('Marriage Game');
-        $this->pdf->SetAuthor('Marriage Game Admin');
-        $this->pdf->SetTitle('Marriage Game - QR Codes');
+        $this->pdf->SetCreator('Mvquiz');
+        $this->pdf->SetAuthor('Mvquiz Admin');
+        $this->pdf->SetTitle('Mvquiz - QR Codes');
         $this->pdf->setPrintHeader(false);
         $this->pdf->setPrintFooter(false);
     }
@@ -111,7 +111,16 @@ class PDFGenerator {
 
     private function addPlayerPage() {
         $this->pdf->AddPage();
-        $this->addPageTitle('Marriage Game - Giocatore', [0, 123, 255]); // Blue for player
+
+        // Add background image with opacity - narrower width
+        $logoPath = __DIR__ . '/../../assets/image/background.jpg';
+        if (file_exists($logoPath)) {
+            $this->pdf->setAlpha(0.2); // 20% opacity
+            $this->pdf->Image($logoPath, 5, 0, 200, 297); // 200mm width instead of 210mm
+            $this->pdf->setAlpha(1); // Reset to full opacity
+        }
+
+        $this->addPageTitle('Mvquiz - Giocatore', [128, 128, 128]); // Gray for player
         $this->addRoomCodeSection($this->codePlayer);
         $this->addQRCodeSection($this->qrSourcePlayer);
         $this->addFooterInfo('Il Giocatore');
@@ -119,7 +128,16 @@ class PDFGenerator {
 
     private function addJudgePage() {
         $this->pdf->AddPage();
-        $this->addPageTitle('Marriage Game - Giudice', [40, 167, 69]); // Green for judge
+
+        // Add background image with opacity - narrower width
+        $logoPath = __DIR__ . '/../../assets/image/background.jpg';
+        if (file_exists($logoPath)) {
+            $this->pdf->setAlpha(0.2); // 20% opacity
+            $this->pdf->Image($logoPath, 5, 0, 200, 297); // 200mm width instead of 210mm
+            $this->pdf->setAlpha(1); // Reset to full opacity
+        }
+
+        $this->addPageTitle('Mvquiz - Giudice', [128, 128, 128]); // Gray for judge
         $this->addRoomCodeSection($this->codeJudge);
         $this->addQRCodeSection($this->qrSourceJudge);
         $this->addFooterInfo('Il Giudice');

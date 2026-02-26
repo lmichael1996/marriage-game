@@ -79,15 +79,19 @@ class RoomRepo {
      */
     public function deleteRoom($roomCode) {
         $stmt = $this->conn->prepare("
-            DELETE FROM rooms
-            WHERE room_code = ?
+            UPDATE rooms
+            SET status_room = 'cancelled'
+            WHERE code_player = ?
         ");
         $roomCodeUpper = strtoupper($roomCode);
         $stmt->bind_param("s", $roomCodeUpper);
         $success = $stmt->execute();
         $stmt->close();
 
-        return $success;
+        return [
+            'success' => $success,
+            'message' => $success ? 'Stanza chiusa con successo' : 'Errore nella chiusura della stanza'
+        ];
     }
 
     /**
@@ -96,7 +100,7 @@ class RoomRepo {
     public function verifyRoomCode($code) {
         $stmt = $this->conn->prepare("
             SELECT id FROM rooms
-            WHERE room_code = ?
+            WHERE code_player = ?
         ");
         $codeUpper = strtoupper($code);
         $stmt->bind_param("s", $codeUpper);
@@ -114,7 +118,7 @@ class RoomRepo {
     public function getQuestionSetIdByRoomCode($roomCode) {
         $stmt = $this->conn->prepare("
             SELECT qset_id FROM rooms
-            WHERE room_code = ?
+            WHERE code_player = ?
         ");
         $roomCodeUpper = strtoupper($roomCode);
         $stmt->bind_param("s", $roomCodeUpper);

@@ -500,10 +500,10 @@ function handleCloseRoom($room) {
 
 function handleConnectedDevices($room) {
     try {
-        // Get room code from session or request
-        $roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
+        // Get room code from session (code_player) or request
+        $codePlayer = $_SESSION['code_player'] ?? $_GET['code_player'] ?? null;
 
-        if (!$roomCode) {
+        if (!$codePlayer) {
             echo json_encode([
                 'success' => true,
                 'devices' => [],
@@ -513,7 +513,7 @@ function handleConnectedDevices($room) {
         }
 
         try {
-            $result = $room->getRoomPlayers($roomCode);
+            $result = $room->getRoomPlayers($codePlayer);
         } catch (Exception $e) {
             // If there's an error (like missing column), return empty list
             $result = [];
