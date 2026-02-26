@@ -476,16 +476,16 @@ requirePlayer();
                         return;
                     }
 
-                    // Check if admin closed the room (question_id = 2, annullamento)
-                    if (data.question_id === 2) {
-                        console.log("Game cancelled by admin (question_id = 2)");
+                    // Check if admin cancelled the room
+                    if (data.status_room === 'cancelled') {
+                        console.log("Game cancelled by admin (room status = cancelled)");
                         showGameCancelled();
                         return;
                     }
 
-                    // Check if this is the end-game round (question_id = 1, placeholder)
-                    if (data.question_id === 1) {
-                        console.log("End-game round detected (question_id = 1), checking winner status");
+                    // Check if room is closed (game finished)
+                    if (data.status_room === 'closed') {
+                        console.log("Game finished (room status = closed), checking winner status");
                         checkWinnerStatus();
                         return;
                     }

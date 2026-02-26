@@ -65,15 +65,6 @@ if ($question) {
 // Game over: No question at current counter = we've finished all questions
 $gameOver = !$question;
 
-// If game over, insert end-game round with question_id = 1 (placeholder)
-if ($gameOver) {
-    $endGameRound = $roomService->getActiveRound($room['id']);
-    if (!$endGameRound || $endGameRound['question_id'] !== 1) {
-        // Insert end-game round with question_id = 1 (placeholder)
-        $roomService->insertRound($room['id'], 1);
-    }
-}
-
 // Room info
 $roomInfoKey = 'room_info_' . $roomId;
 if (!isset($_SESSION[$roomInfoKey])) {
