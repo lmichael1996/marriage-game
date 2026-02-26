@@ -70,7 +70,9 @@ class RoomService {
             'success' => false,
             'error' => 'Errore nella creazione della stanza'
         ];
-    }    /**
+    }
+
+    /**
      * Genera un codice stanza univoco
      */
     private function generateUniqueRoomCode() {
