@@ -348,7 +348,6 @@ if ($selectedSetId) {
                 credentials: 'include'
             })
             .then(response => {
-                console.log('Create room response status:', response.status);
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
                 }

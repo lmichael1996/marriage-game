@@ -9,8 +9,8 @@ class ImageGenerator {
     private static $QR_API_URL = 'https://api.qrserver.com/v1/create-qr-code/';
 
     // Base URLs per i QR code
-    private static $BASE_URL_PLAYER = 'http://151.21.203.214:9000/public/login-player.php';
-    private static $BASE_URL_JUDGE = 'http://151.21.203.214:9000/public/login-judge.php';
+    private static $BASE_URL_PLAYER = 'http://151.64.86.229:9000/public/login-player.php';
+    private static $BASE_URL_JUDGE = 'http://151.64.86.229:9000/public/login-judge.php';
 
     /**
      * Genera un QR code da un room code

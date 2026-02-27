@@ -18,8 +18,8 @@
             <form id="judge-login-form">
                 <div class="form-group">
                     <label for="room_code">🔑 Codice Stanza:</label>
-                    <input type="text" id="room_code" name="room_code" class="uppercase" required maxlength="10" autofocus placeholder="Inserisci il codice del giudice">
-                    <small class="form-helper-text">Chiedi il codice al'amministratore</small>
+                    <input type="text" id="room_code" name="room_code" class="uppercase" required maxlength="10" autofocus placeholder="Codice stanza del gioco">
+                    <small class="form-helper-text">Chiedi il codice all'amministratore</small>
                 </div>
 
                 <button type="submit" class="btn btn-primary">⚖️ Entra come Giudice</button>
