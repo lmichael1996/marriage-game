@@ -152,8 +152,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Trigger change per mostrare i campi risposte
                         document.getElementById('edit-type').dispatchEvent(new Event('change'));
 
-                        // Popola le risposte solo se il tipo è multipla
-                        if (q.round_type === 'multiple') {
+                        // Popola le risposte in base al tipo
+                        if (q.round_type === 'truefalse') {
+                            if (q.option1) document.getElementById('edit-answer1').value = q.option1;
+                            if (q.option2) document.getElementById('edit-answer2').value = q.option2;
+                            if (q.correct_answer) document.getElementById('edit-correct').value = q.correct_answer;
+                        } else if (q.round_type === 'multiple') {
                             if (q.option1) document.getElementById('edit-answer1').value = q.option1;
                             if (q.option2) document.getElementById('edit-answer2').value = q.option2;
                             if (q.option3) document.getElementById('edit-answer3').value = q.option3;
@@ -612,21 +616,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Validazione risposte non vuote (solo per multiple choice)
-            if (typeSelected === 'multiple') {
-                const answer1 = document.getElementById('new-answer1').value.trim();
-                const answer2 = document.getElementById('new-answer2').value.trim();
-                const answer3 = document.getElementById('new-answer3').value.trim();
-                const answer4 = document.getElementById('new-answer4').value.trim();
-
-                if (!answer1 || !answer2 || !answer3 || !answer4) {
-                    e.preventDefault();
-                    alert('Tutte le risposte sono obbligatorie');
-                    return;
-                }
-            }
-            // Per "Vero/Falso" e "Clicca il Primo" non servono risposte
-
             e.preventDefault();
             const formData = new FormData(formNewQuestion);
             formData.append('action', 'add_question');
@@ -753,19 +742,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Validazione risposte non vuote (solo per multiple choice)
-            if (typeSelected === 'multiple') {
-                const answer1 = document.getElementById('edit-answer1').value.trim();
-                const answer2 = document.getElementById('edit-answer2').value.trim();
-                const answer3 = document.getElementById('edit-answer3').value.trim();
-                const answer4 = document.getElementById('edit-answer4').value.trim();
-
-                if (!answer1 || !answer2 || !answer3 || !answer4) {
-                    e.preventDefault();
-                    alert('Tutte le risposte sono obbligatorie');
-                    return;
-                }
-            }
             // Per "Vero/Falso" e "Clicca il Primo" non servono risposte
 
             e.preventDefault();

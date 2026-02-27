@@ -481,17 +481,14 @@ $roomInfo = $_SESSION[$roomInfoKey];
                         </div>
 
                         <div class="button-group">
-                            <button class="btn-main btn-success-custom" id="next-btn" onclick="nextQuestion()" disabled>
+                            <button
+                                class="btn-main btn-success-custom"
+                                id="next-btn"
+                                onclick="nextQuestion()"
+                                disabled
+                            >
                                 ➡️ Prossima Domanda
                             </button>
-                            <?php if ($activeRound['round_type'] === 'clickfirst'): ?>
-                            <button class="btn-main btn-primary-custom" id="skip-btn" onclick="skipQuestion()" disabled>
-                                ⏭️ Salta Domanda
-                            </button>
-                            <button class="btn-main btn-primary-custom" id="repeat-btn" onclick="repeatRound(<?php echo $activeRound['question_id']; ?>)" disabled>
-                                🔄 Ripeti Round
-                            </button>
-                            <?php endif; ?>
                         </div>
                     </div>
                 <?php else: ?>
@@ -559,8 +556,6 @@ $roomInfo = $_SESSION[$roomInfoKey];
             let timeLeft = seconds;
             const timerEl = document.getElementById('timer');
             const nextBtn = document.getElementById('next-btn');
-            const skipBtn = document.getElementById('skip-btn');
-            const repeatBtn = document.getElementById('repeat-btn');
             const roundId = <?php echo isset($activeRound['id']) ? $activeRound['id'] : 'null'; ?>;
 
             timerInterval = setInterval(() => {
@@ -573,41 +568,35 @@ $roomInfo = $_SESSION[$roomInfoKey];
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
 
-                    // After 2 seconds, show results
                     setTimeout(() => {
                         const correctAnswer = <?php echo isset($activeRound['correct_answer']) ? $activeRound['correct_answer'] : 'null'; ?>;
-                        const isClickFirst = '<?php echo isset($activeRound['round_type']) ? $activeRound['round_type'] : ''; ?>' === 'clickfirst';
+                        const isClickFirst =
+                            '<?php echo isset($activeRound['round_type']) ? $activeRound['round_type'] : ''; ?>' ===
+                            'clickfirst';
 
-                        // Show correct answer for non-clickfirst rounds
                         if (!isClickFirst && correctAnswer) {
-                            const correctOption = document.querySelector('#option-' + correctAnswer);
+                            const correctOption = document.querySelector(
+                                '#option-' + correctAnswer
+                            );
                             if (correctOption) {
                                 correctOption.style.background = '#4caf50';
                             }
                         }
 
-                        // Load top answers when timer expires
                         if (roundId) {
                             loadRoundAnswers(roundId);
                         }
 
-                        // Enable next button (and skip/repeat buttons)
                         if (nextBtn) {
                             nextBtn.disabled = false;
                             nextBtn.style.animation = 'pulse 1s infinite';
                         }
-                        if (skipBtn) {
-                            skipBtn.disabled = false;
-                            skipBtn.style.animation = 'pulse 1s infinite';
-                        }
-                        if (repeatBtn) {
-                            repeatBtn.disabled = false;
-                            repeatBtn.style.animation = 'pulse 1s infinite';
-                        }
                     }, 2000);
                 }
             }, 1000);
-        }        function startRound(questionId) {
+        }
+
+        function startRound(questionId) {
             fetch('../src/api/api.php?endpoint=game&action=start_round', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -622,34 +611,7 @@ $roomInfo = $_SESSION[$roomInfoKey];
         }
 
         function nextQuestion() {
-            // Per clickfirst, il primo giocatore è automaticamente il vincitore
-            // Non è più necessario selezionare manualmente i checkbox
             proceedToNextQuestion();
-        }
-
-        function skipQuestion() {
-            // Marca il round corrente come skippato e procede alla prossima domanda
-            const roundId = <?php echo isset($activeRound['id']) ? $activeRound['id'] : 'null'; ?>;
-
-            if (!roundId) {
-                proceedToNextQuestion();
-                return;
-            }
-
-            fetch('../src/api/api.php?endpoint=game&action=skip_round', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ round_id: roundId })
-            })
-            .then(r => r.json())
-            .then(data => {
-                // Procedi comunque anche se lo skip fallisce
-                proceedToNextQuestion();
-            })
-            .catch(err => {
-                console.error('Skip error:', err);
-                proceedToNextQuestion();
-            });
         }
 
         function proceedToNextQuestion() {
@@ -658,40 +620,24 @@ $roomInfo = $_SESSION[$roomInfoKey];
 
             fetch('room-admin.php?room_id=' + roomId, {
                 method: 'POST',
-                body: form
+                body: form,
             })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    location.href = 'room-admin.php?room_id=' + roomId;
-                }
-            });
-        }
-
-        function repeatRound(questionId) {
-            // Crea un nuovo round con la stessa domanda
-            fetch('../src/api/api.php?endpoint=game&action=repeat_round', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question_id: questionId })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    location.href = 'room-admin.php?room_id=' + roomId;
-                }
-            });
+                .then((r) => r.json())
+                .then((data) => {
+                    if (data.success) {
+                        location.href = 'room-admin.php?room_id=' + roomId;
+                    }
+                });
         }
 
         function loadFinalLeaderboard() {
             fetch('../src/api/api.php?endpoint=final_leaderboard')
-                .then(r => r.json())
-                .then(data => {
+                .then((r) => r.json())
+                .then((data) => {
                     if (data.success && data.leaderboard?.length > 0) {
                         let html = '';
 
                         data.leaderboard.forEach((p) => {
-                            // Non mostrare checkbox - mostra sempre il giocatore
                             html += `<div class="leaderboard-item">
                                 <div class="medal">${p.medal}</div>
                                 <div class="leaderboard-info">
@@ -700,34 +646,43 @@ $roomInfo = $_SESSION[$roomInfoKey];
                                 </div>
                             </div>`;
                         });
-                        // Popola sia la sidebar che il main content
+
                         document.getElementById('final-leaderboard').innerHTML = html;
                         document.getElementById('leaderboard').innerHTML = html;
 
-                        // Mark the winner after displaying the leaderboard
-                        fetch('../src/api/api.php?endpoint=game&action=mark_winner', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' }
-                        });
+                        fetch(
+                            '../src/api/api.php?endpoint=game&action=mark_winner',
+                            {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                            }
+                        );
                     }
                 });
         }
 
         function loadRoundAnswers(roundId) {
-            fetch('../src/api/api.php?endpoint=round_answers&round_id=' + roundId)
-                .then(r => r.json())
-                .then(data => {
+            fetch(
+                '../src/api/api.php?endpoint=round_answers&round_id=' +
+                    roundId
+            )
+                .then((r) => r.json())
+                .then((data) => {
                     if (data.success && data.top_answers?.length > 0) {
                         let html = '';
-                        const isClickFirst = currentRoundType === 'clickfirst';
+                        const isClickFirst =
+                            currentRoundType === 'clickfirst';
 
-                        // Per clickfirst, mostra solo il primo (il più veloce)
-                        const answersToShow = isClickFirst ? [data.top_answers[0]] : data.top_answers;
+                        const answersToShow = isClickFirst
+                            ? [data.top_answers[0]]
+                            : data.top_answers;
 
                         answersToShow.forEach((answer, i) => {
                             const medals = ['🥇', '🥈', '🥉'];
-                            const medal = medals[i] || (i + 1) + '.';
-                            const time = parseFloat(answer.answer_time).toFixed(2) + 's';
+                            const medal = medals[i] || i + 1 + '.';
+                            const time = parseFloat(
+                                answer.answer_time
+                            ).toFixed(2) + 's';
 
                             html += `<div class="leaderboard-item">
                                 <div class="medal">${medal}</div>
@@ -737,31 +692,34 @@ $roomInfo = $_SESSION[$roomInfoKey];
                                 </div>
                             </div>`;
                         });
-                        document.getElementById('leaderboard').innerHTML = html;
+                        document.getElementById('leaderboard').innerHTML =
+                            html;
                     }
                 });
         }
 
         function goBack() {
             if (confirm('Termina partita?')) {
-                // Cancel room (set status to 'cancelled')
                 fetch('../src/api/api.php?endpoint=delete_room', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include'
+                    credentials: 'include',
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        window.location.href = 'admin.php';
-                    } else {
-                        alert('Errore nella chiusura della stanza: ' + (data.error || data.message));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Errore nella chiusura della stanza');
-                });
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.success) {
+                            window.location.href = 'admin.php';
+                        } else {
+                            alert(
+                                'Errore nella chiusura della stanza: ' +
+                                    (data.error || data.message)
+                            );
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                        alert('Errore nella chiusura della stanza');
+                    });
             }
         }
     </script>

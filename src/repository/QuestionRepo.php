@@ -112,24 +112,51 @@ class QuestionRepo {
         $type = $data['round_type'] ?? '';
         $categoryId = $data['category_id'] ?? 1;
         $timer = $data['timer'] ?? 30;
-        $answer1 = $data['answer1'] ?? '';
-        $answer2 = $data['answer2'] ?? '';
-        $answer3 = $data['answer3'] ?? '';
-        $answer4 = $data['answer4'] ?? '';
-        $correctAnswer = intval($data['correct_answer'] ?? 1);
+        $answer1 = $data['answer1'] ?? null;
+        $answer2 = $data['answer2'] ?? null;
+        $answer3 = $data['answer3'] ?? null;
+        $answer4 = $data['answer4'] ?? null;
+        $correctAnswer = $data['correct_answer'] ?? null;
 
-        $stmt = $this->conn->prepare("
-            UPDATE questions
-            SET question = ?, round_type = ?, category_id = ?, timer = ?,
-                option1 = ?, option2 = ?, option3 = ?, option4 = ?, correct_answer = ?
-            WHERE id = ?
-        ");
+        // Build dynamic query based on what fields are provided
+        $updateFields = ["question = ?", "round_type = ?", "category_id = ?", "timer = ?"];
+        $params = [$question, $type, $categoryId, $timer];
+        $paramTypes = "ssii";
 
-        $stmt->bind_param(
-            "ssiissssii",
-            $question, $type, $categoryId, $timer,
-            $answer1, $answer2, $answer3, $answer4, $correctAnswer, $id
-        );
+        // Only update answer fields if they are provided
+        if ($answer1 !== null) {
+            $updateFields[] = "option1 = ?";
+            $params[] = $answer1;
+            $paramTypes .= "s";
+        }
+        if ($answer2 !== null) {
+            $updateFields[] = "option2 = ?";
+            $params[] = $answer2;
+            $paramTypes .= "s";
+        }
+        if ($answer3 !== null) {
+            $updateFields[] = "option3 = ?";
+            $params[] = $answer3;
+            $paramTypes .= "s";
+        }
+        if ($answer4 !== null) {
+            $updateFields[] = "option4 = ?";
+            $params[] = $answer4;
+            $paramTypes .= "s";
+        }
+        if ($correctAnswer !== null) {
+            $updateFields[] = "correct_answer = ?";
+            $params[] = $correctAnswer;
+            $paramTypes .= "i";
+        }
+
+        $params[] = $id;
+        $paramTypes .= "i";
+
+        $updateQuery = "UPDATE questions SET " . implode(", ", $updateFields) . " WHERE id = ?";
+
+        $stmt = $this->conn->prepare($updateQuery);
+        $stmt->bind_param($paramTypes, ...$params);
 
         return $stmt->execute();
     }

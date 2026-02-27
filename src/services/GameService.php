@@ -438,7 +438,7 @@ class GameService {
 
             $allRounds = $this->roundRepo->getRoundsByRoom($room['id']);
 
-            // Step 1: Filter repeated rounds - keep only the latest for each question_id
+            // Keep only the latest round for each question
             $latestRounds = [];
             foreach ($allRounds as $round) {
                 $questionId = $round['question_id'];
@@ -446,20 +446,13 @@ class GameService {
                 if (!isset($latestRounds[$questionId])) {
                     $latestRounds[$questionId] = $round;
                 } else {
-                    // Keep the one with the highest ID (latest)
                     if ($round['id'] > $latestRounds[$questionId]['id']) {
                         $latestRounds[$questionId] = $round;
                     }
                 }
             }
 
-            // Step 2: Exclude skipped rounds
-            $filteredRounds = [];
-            foreach ($latestRounds as $round) {
-                if (!$round['is_skipped']) {
-                    $filteredRounds[] = $round;
-                }
-            }
+            $filteredRounds = array_values($latestRounds);
 
             // Default scoring
             $scoreMap = [

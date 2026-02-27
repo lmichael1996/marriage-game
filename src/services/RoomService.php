@@ -267,13 +267,6 @@ class RoomService {
     }
 
     /**
-     * Mark a round as skipped
-     */
-    public function skipRound($roundId) {
-        return $this->roundRepo->updateRound($roundId, ['is_skipped' => true]);
-    }
-
-    /**
      * Genera il QR code come immagine binaria
      */
     private function generateQRImage($roomCode, $type = 'player') {

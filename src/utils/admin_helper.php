@@ -105,10 +105,6 @@ function handleAddQuestion($question) {
             $answer4 = $_POST['answer4'] ?? '';
             $correctAnswer = intval($_POST['correct_answer'] ?? 1);
 
-            if (empty($answer1) || empty($answer2) || empty($answer3) || empty($answer4)) {
-                throw new Exception('Tutte le risposte sono obbligatorie per Multiple Choice');
-            }
-
             $result = $question->addQuestion([
                 'question' => $questionText,
                 'round_type' => $type,
@@ -197,17 +193,14 @@ function handleUpdateQuestion($question) {
             $answer4 = $_POST['answer4'] ?? '';
             $correctAnswer = intval($_POST['correct_answer'] ?? 1);
 
-            if (empty($answer1) || empty($answer2) || empty($answer3) || empty($answer4)) {
-                throw new Exception('Tutte le risposte sono obbligatorie per Multiple Choice');
-            }
-
             $updateData['answer1'] = $answer1;
             $updateData['answer2'] = $answer2;
             $updateData['answer3'] = $answer3;
             $updateData['answer4'] = $answer4;
             $updateData['correct_answer'] = $correctAnswer;
         } else if ($type === 'clickfirst') {
-            // No answers needed for clickfirst
+            // For clickfirst, don't modify answer fields - keep existing values
+            // Don't add anything to $updateData for answers
         }
 
         // Chiama metodo di aggiornamento

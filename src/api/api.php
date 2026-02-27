@@ -683,66 +683,6 @@ function handleConnectedDevices($room) {
         exit();
     }
 
-    if ($action === 'repeat_round') {
-        requireLoginJson();
-
-        try {
-            $questionId = $_GET['question_id'] ?? 0;
-
-            if (!$questionId && $_SERVER['REQUEST_METHOD'] === 'POST') {
-                $postData = json_decode(file_get_contents('php://input'), true);
-                $questionId = $postData['question_id'] ?? 0;
-            }
-
-            if (!$questionId) {
-                echo json_encode(['success' => false, 'message' => 'Question ID required']);
-                exit();
-            }
-
-            $roomCode = $_SESSION['room_code'] ?? null;
-            if (!$roomCode) {
-                echo json_encode(['success' => false, 'message' => 'Room code not found']);
-                exit();
-            }
-
-            // Use GameService to create a new round with the same question
-            $result = $game->startRound($questionId, $roomCode);
-            echo json_encode($result);
-        } catch (Exception $e) {
-            error_log('repeat_round error: ' . $e->getMessage());
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'Server error: ' . $e->getMessage()]);
-        }
-        exit();
-    }
-
-    if ($action === 'skip_round') {
-        requireLoginJson();
-
-        try {
-            $roundId = $_GET['round_id'] ?? 0;
-
-            if (!$roundId && $_SERVER['REQUEST_METHOD'] === 'POST') {
-                $postData = json_decode(file_get_contents('php://input'), true);
-                $roundId = $postData['round_id'] ?? 0;
-            }
-
-            if (!$roundId) {
-                echo json_encode(['success' => false, 'message' => 'Round ID required']);
-                exit();
-            }
-
-            // Use RoomService to mark round as skipped
-            $result = $room->skipRound($roundId);
-            echo json_encode(['success' => $result, 'message' => $result ? 'Round skipped' : 'Could not skip round']);
-        } catch (Exception $e) {
-            error_log('skip_round error: ' . $e->getMessage());
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'Server error: ' . $e->getMessage()]);
-        }
-        exit();
-    }
-
     if ($action === 'mark_winner') {
         requireLoginJson();
 
