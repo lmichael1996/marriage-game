@@ -196,31 +196,8 @@ if ($selectedSetId) {
                 return;
             }
 
-            // Fallback: generate the QR client-side using QRCode.js from the URL
-            const baseUrl = 'http://151.21.203.214:9000/public/login-player.php';
-            const qrUrl = baseUrl + '?code=' + code;
-
-            // Usa la libreria QRCode.js per generare il QR direttamente nel container
-            try {
-                new QRCode(container, {
-                    text: qrUrl,
-                    width: 250,
-                    height: 250,
-                    colorDark: '#000000',
-                    colorLight: '#ffffff',
-                    correctLevel: QRCode.CorrectLevel.L
-                });
-
-                // Aggiungi styling al canvas
-                const canvas = container.querySelector('canvas');
-                if (canvas) {
-                    canvas.style.border = '1px solid #ccc';
-                    canvas.style.display = 'block';
-                    canvas.style.margin = '10px auto';
-                }
-            } catch (error) {
-                console.error('Errore nella generazione del QR:', error);
-            }
+            // Se non c'è dataUri, non fare nulla (il QR verrà generato on-demand dal server quando serve)
+            container.innerHTML = '<p style="color: #999; text-align: center;">QR code generato al momento...</p>';
         }
 
         // Generate PDF with QR code and room code

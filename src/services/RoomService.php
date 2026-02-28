@@ -52,17 +52,11 @@ class RoomService {
         $qrJudgeBase64 = null;
 
         if ($qrPlayerData !== null) {
-            error_log("RoomService: Generated QR player image (" . strlen($qrPlayerData) . " bytes) for room: $codePlayer");
             $qrPlayerBase64 = base64_encode($qrPlayerData);
-        } else {
-            error_log("Warning: Failed to generate QR player image for room: $codePlayer");
         }
 
         if ($qrJudgeData !== null) {
-            error_log("RoomService: Generated QR judge image (" . strlen($qrJudgeData) . " bytes) for room: $codeJudge");
             $qrJudgeBase64 = base64_encode($qrJudgeData);
-        } else {
-            error_log("Warning: Failed to generate QR judge image for room: $codeJudge");
         }
 
         // Salva la stanza con entrambi i codici e QR
