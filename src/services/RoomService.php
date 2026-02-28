@@ -4,7 +4,7 @@ require_once __DIR__ . '/../repository/PlayerRepo.php';
 require_once __DIR__ . '/../repository/QuestionRepo.php';
 require_once __DIR__ . '/../repository/RoundRepo.php';
 require_once __DIR__ . '/../repository/SetRepo.php';
-require_once __DIR__ . '/../utils/ImageGenerator.php';
+require_once __DIR__ . '/../utils/QRGenerator.php';
 
 /**
  * RoomService - Gestisce la logica di business delle stanze
@@ -29,13 +29,24 @@ class RoomService {
      * Non salviamo file su disco: solo data URI (base64 encoded).
      */
     public function createRoom($questionSetId = null) {
-        // Genera due codici univoci per player e judge
-        $codePlayer = $this->generateUniqueRoomCode();
-        $codeJudge = $this->generateUniqueRoomCode();
+        // Istanzia due oggetti QRGenerator distinti con URL specifici
+        $qrGeneratorPlayer = new QRGenerator(
+            'http://151.64.86.229:9000/public/login-player.php'
+        );
 
-        // Genera i QR codes come immagini binarie
-        $qrPlayerData = $this->generateQRImage($codePlayer, 'player');
-        $qrJudgeData = $this->generateQRImage($codeJudge, 'judge');
+        $qrGeneratorJudge = new QRGenerator(
+            'http://151.64.86.229:9000/public/login-judge.php'
+        );
+
+        // Genera codice e QR per player
+        $playerPair = $qrGeneratorPlayer->generate();
+        $codePlayer = $playerPair['code'];
+        $qrPlayerData = $playerPair['data'];
+
+        // Genera codice e QR per judge
+        $judgePair = $qrGeneratorJudge->generate();
+        $codeJudge = $judgePair['code'];
+        $qrJudgeData = $judgePair['data'];
 
         $qrPlayerBase64 = null;
         $qrJudgeBase64 = null;
@@ -70,20 +81,6 @@ class RoomService {
             'success' => false,
             'error' => 'Errore nella creazione della stanza'
         ];
-    }
-
-    /**
-     * Genera un codice stanza univoco
-     */
-    private function generateUniqueRoomCode() {
-        $attempts = 0;
-        do {
-            $code = strtoupper(substr(md5(uniqid(rand(), true)), 0, 6));
-            $exists = $this->roomRepo->getRoomByCode($code);
-            $attempts++;
-        } while ($exists && $attempts < 10);
-
-        return $code;
     }
 
     /**
@@ -205,13 +202,6 @@ class RoomService {
     }
 
     /**
-     * Inserisci un round nella stanza
-     */
-    public function insertRound($roomId, $questionId = null) {
-        return $this->roundRepo->insertRound($roomId, $questionId);
-    }
-
-    /**
      * Mark the winner of a room (highest score)
      */
     public function markWinner($roomId) {
@@ -264,13 +254,6 @@ class RoomService {
             return true;
         }
         return false;
-    }
-
-    /**
-     * Genera il QR code come immagine binaria
-     */
-    private function generateQRImage($roomCode, $type = 'player') {
-        return ImageGenerator::generateQRFromRoomCode($roomCode, 250, 'jpg', $type);
     }
 }
 

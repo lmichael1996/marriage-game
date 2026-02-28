@@ -3,7 +3,7 @@ session_start();
 
 require_once __DIR__ . '/../utils/auth.php';
 require_once __DIR__ . '/../utils/PDFGenerator.php';
-require_once __DIR__ . '/../utils/ImageGenerator.php';
+require_once __DIR__ . '/../utils/QRGenerator.php';
 require_once __DIR__ . '/../services/AuthService.php';
 require_once __DIR__ . '/../services/GameService.php';
 require_once __DIR__ . '/../services/RoomService.php';
@@ -1683,7 +1683,9 @@ function handleIncrementCounter() {
  * Genera il QR code come immagine binaria
  */
 function generateQRImage($roomCode) {
-    return ImageGenerator::generateQRFromRoomCode($roomCode);
+    $baseUrl = 'http://151.64.86.229:9000/public/login-player.php';
+    $qrUrl = $baseUrl . '?code=' . urlencode($roomCode);
+    return QRGenerator::generateQRFromURL($qrUrl);
 }function handleGeneratePDF($room) {
     // Leggi da JSON body (non da $_POST)
     $input = json_decode(file_get_contents('php://input'), true);
