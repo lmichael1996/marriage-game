@@ -2,21 +2,23 @@
 require_once __DIR__ . '/../repository/UserRepo.php';
 require_once __DIR__ . '/../repository/PlayerRepo.php';
 require_once __DIR__ . '/../repository/RoomRepo.php';
-require_once __DIR__ . '/TokenService.php';
+require_once __DIR__ . '/../repository/TokenRepo.php';
 
 /**
  * Auth - Gestisce la logica di autenticazione
- * Setta cookie HMAC firmati per identità, sessione PHP solo per stato UI.
+ * Setta cookie DB token per identità, sessione PHP solo per stato UI.
  */
 class AuthService {
     private $userRepo;
     private $playerRepo;
     private $roomRepo;
+    private $tokenRepo;
 
     public function __construct() {
         $this->userRepo = new UserRepo();
         $this->playerRepo = new PlayerRepo();
         $this->roomRepo = new RoomRepo();
+        $this->tokenRepo = new TokenRepo();
     }
 
     /**
@@ -31,8 +33,8 @@ class AuthService {
             throw new Exception('Username o password non validi');
         }
 
-        // Cookie HMAC per identità admin
-        TokenService::setAdminCookie((int)$user['id'], $user['username']);
+        // Cookie DB token per identità admin
+        $this->tokenRepo->setAdminCookie((int)$user['id'], $user['username']);
 
         return 'admin';
     }
@@ -89,10 +91,57 @@ class AuthService {
             throw new Exception('Errore durante la creazione del giocatore');
         }
 
-        // Cookie HMAC per identità player
-        TokenService::setPlayerCookie($playerId, $username, $roomCode);
+        // Cookie DB token per identità player
+        $this->tokenRepo->setPlayerCookie($playerId, $username, $roomCode);
 
         return 'player';
+    }
+
+    /**
+     * Judge login with room code (code_judge)
+     * @return string 'judge' on success
+     * @throws Exception on failure
+     */
+    public function judgeLogin($roomCode) {
+        $roomCode = strtoupper(trim($roomCode));
+
+        if (empty($roomCode)) {
+            throw new Exception('Codice stanza obbligatorio');
+        }
+
+        // Cerca stanza tramite code_judge
+        $room = $this->roomRepo->getRoomByCode($roomCode);
+        if (!$room || $room['code_judge'] !== $roomCode) {
+            throw new Exception('Codice giudice non valido');
+        }
+
+        // Verifica stato stanza (accetta open e running)
+        if (!in_array($room['status_room'], ['open', 'running'])) {
+            $statusMessage = match($room['status_room']) {
+                'cancelled' => 'La stanza è stata cancellata',
+                'closed' => 'La stanza è stata chiusa',
+                default => 'Lo stato della stanza non consente l\'ingresso'
+            };
+            throw new Exception($statusMessage);
+        }
+
+        // Crea record giudice
+        $db = getDBConnection();
+        $stmt = $db->prepare("INSERT INTO judges (room_id) VALUES (?)");
+        $stmt->bind_param('i', $room['id']);
+        $stmt->execute();
+        $judgeId = $db->insert_id;
+        $stmt->close();
+        $db->close();
+
+        if (!$judgeId) {
+            throw new Exception('Errore durante la creazione del giudice');
+        }
+
+        // Cookie DB token per identità judge
+        $this->tokenRepo->setJudgeCookie($judgeId, $roomCode);
+
+        return 'judge';
     }
 
     /**
@@ -100,10 +149,42 @@ class AuthService {
      * @return bool true on success
      */
     public function logout() {
-        TokenService::clearAll();
+        $this->tokenRepo->clearAll();
         if (session_status() !== PHP_SESSION_NONE) {
             session_destroy();
         }
         return true;
+    }
+
+    // ── Verifica autenticazione ──────────────────────────────────────────
+
+    /** Ritorna il payload admin dal cookie, o null. */
+    public function getAdmin(): ?array {
+        return $this->tokenRepo->getAdmin();
+    }
+
+    /** Ritorna il payload player dal cookie, o null. */
+    public function getPlayer(): ?array {
+        return $this->tokenRepo->getPlayer();
+    }
+
+    /** Ritorna il payload judge dal cookie, o null. */
+    public function getJudge(): ?array {
+        return $this->tokenRepo->getJudge();
+    }
+
+    /** Ritorna il payload di qualsiasi utente autenticato, o null. */
+    public function getAnyUser(): ?array {
+        return $this->tokenRepo->getAnyUser();
+    }
+
+    /** Setta il cookie admin (utile per aggiornamento credenziali). */
+    public function setAdminCookie(int $userId, string $username): void {
+        $this->tokenRepo->setAdminCookie($userId, $username);
+    }
+
+    /** Cancella tutti i cookie auth e token dal DB. */
+    public function clearAll(): void {
+        $this->tokenRepo->clearAll();
     }
 }

@@ -1,11 +1,11 @@
 <?php
-require_once __DIR__ . '/../services/TokenService.php';
+require_once __DIR__ . '/../services/ServiceLoader.php';
 
 /**
- * Auth guard functions — Autenticazione via cookie HMAC.
+ * Auth guard functions — Autenticazione via cookie DB token.
  *
- * I cookie admin_token / player_token sono indipendenti,
- * quindi admin e player possono coesistere nello stesso browser.
+ * I cookie admin_token / player_token / judge_token sono indipendenti,
+ * quindi admin, player e judge possono coesistere nello stesso browser.
  * Le sessioni PHP restano attive solo per stato UI (tabs, counter, ecc.)
  */
 
@@ -24,7 +24,7 @@ function ensureSession(): void {
  */
 function requireAdmin(): void {
     ensureSession();
-    if (!TokenService::getAdmin()) {
+    if (!svc('auth')->getAdmin()) {
         header('Location: login-admin.php');
         exit();
     }
@@ -36,8 +36,20 @@ function requireAdmin(): void {
  */
 function requirePlayer(): void {
     ensureSession();
-    if (!TokenService::getPlayer()) {
+    if (!svc('auth')->getPlayer()) {
         header('Location: login-player.php');
+        exit();
+    }
+}
+
+/**
+ * Check if user is judge (cookie-based).
+ * Redirect to judge login if not authenticated as judge.
+ */
+function requireJudge(): void {
+    ensureSession();
+    if (!svc('auth')->getJudge()) {
+        header('Location: login-judge.php');
         exit();
     }
 }
@@ -48,7 +60,7 @@ function requirePlayer(): void {
  */
 function requireLoginJson(): void {
     ensureSession();
-    if (!TokenService::getAnyUser()) {
+    if (!svc('auth')->getAnyUser()) {
         http_response_code(401);
         echo json_encode([
             'success' => false,
@@ -64,7 +76,7 @@ function requireLoginJson(): void {
  */
 function requireAdminJson(): void {
     ensureSession();
-    if (!TokenService::getAdmin()) {
+    if (!svc('auth')->getAdmin()) {
         http_response_code(403);
         echo json_encode([
             'success' => false,
@@ -78,17 +90,22 @@ function requireAdminJson(): void {
 
 /** Ritorna il payload admin dal cookie, o null. */
 function authAdmin(): ?array {
-    return TokenService::getAdmin();
+    return svc('auth')->getAdmin();
 }
 
 /** Ritorna il payload player dal cookie, o null. */
 function authPlayer(): ?array {
-    return TokenService::getPlayer();
+    return svc('auth')->getPlayer();
+}
+
+/** Ritorna il payload judge dal cookie, o null. */
+function authJudge(): ?array {
+    return svc('auth')->getJudge();
 }
 
 /** Ritorna il payload di qualsiasi utente autenticato, o null. */
 function authUser(): ?array {
-    return TokenService::getAnyUser();
+    return svc('auth')->getAnyUser();
 }
 
 /**
@@ -97,7 +114,7 @@ function authUser(): ?array {
  */
 function authRoomCode(): ?string {
     // 1. Cookie player (fonte primaria per i player)
-    $player = TokenService::getPlayer();
+    $player = svc('auth')->getPlayer();
     if ($player) return $player['room_code'];
 
     // 2. Sessione (code_player per admin che gestisce stanza)
@@ -108,7 +125,7 @@ function authRoomCode(): ?string {
  * Ritorna lo username dal cookie (admin o player).
  */
 function authUsername(): ?string {
-    $user = TokenService::getAnyUser();
+    $user = svc('auth')->getAnyUser();
     return $user['username'] ?? null;
 }
 
@@ -116,7 +133,7 @@ function authUsername(): ?string {
  * Ritorna il player_id dal cookie player.
  */
 function authPlayerId(): ?int {
-    $player = TokenService::getPlayer();
+    $player = svc('auth')->getPlayer();
     return $player ? (int)$player['player_id'] : null;
 }
 
@@ -124,7 +141,15 @@ function authPlayerId(): ?int {
  * Ritorna lo user_id dal cookie admin.
  */
 function authUserId(): ?int {
-    $admin = TokenService::getAdmin();
+    $admin = svc('auth')->getAdmin();
     return $admin ? (int)$admin['user_id'] : null;
+}
+
+/**
+ * Ritorna il judge_id dal cookie judge.
+ */
+function authJudgeId(): ?int {
+    $judge = svc('auth')->getJudge();
+    return $judge ? (int)$judge['judge_id'] : null;
 }
 

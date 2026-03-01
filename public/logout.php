@@ -1,8 +1,8 @@
 <?php
-require_once __DIR__ . '/../src/services/TokenService.php';
+require_once __DIR__ . '/../src/services/ServiceLoader.php';
 
 // Cancella cookie auth
-TokenService::clearAll();
+svc('auth')->clearAll();
 
 // Distruggi sessione (stato UI)
 session_start();

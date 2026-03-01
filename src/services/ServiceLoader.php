@@ -1,5 +1,4 @@
 <?php
-require_once __DIR__ . '/TokenService.php';
 require_once __DIR__ . '/AuthService.php';
 require_once __DIR__ . '/GameService.php';
 require_once __DIR__ . '/RoomService.php';

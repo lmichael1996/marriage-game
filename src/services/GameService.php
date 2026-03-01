@@ -4,8 +4,6 @@ require_once __DIR__ . '/../repository/AnswerRepo.php';
 require_once __DIR__ . '/../repository/SettingsRepo.php';
 require_once __DIR__ . '/../repository/PlayerRepo.php';
 require_once __DIR__ . '/../repository/RoomRepo.php';
-require_once __DIR__ . '/QuestionService.php';
-require_once __DIR__ . '/TokenService.php';
 
 /**
  * GameService - Gestisce la logica di business del gioco
@@ -45,7 +43,7 @@ class GameService {
 
             // Use roomCode from param or from cookie/session
             if (!$roomCode) {
-                $player = TokenService::getPlayer();
+                $player = svc('auth')->getPlayer();
                 $roomCode = $player['room_code'] ?? ($_SESSION['code_player'] ?? null);
             }
 
@@ -118,7 +116,7 @@ class GameService {
             @session_start();
         }
 
-        $player = TokenService::getPlayer();
+        $player = svc('auth')->getPlayer();
         $roomCode = $player['room_code'] ?? ($_SESSION['code_player'] ?? null);
 
         if (!$roomCode) {
@@ -158,7 +156,7 @@ class GameService {
             if (session_status() === PHP_SESSION_NONE) {
                 @session_start();
             }
-            $player = TokenService::getPlayer();
+            $player = svc('auth')->getPlayer();
             $roomCode = $player['room_code'] ?? ($_SESSION['code_player'] ?? null);
             if ($roomCode) {
                 unset($_SESSION['active_round_' . $roomCode]);
@@ -274,7 +272,7 @@ class GameService {
             @session_start();
         }
 
-        $player = TokenService::getPlayer();
+        $player = svc('auth')->getPlayer();
         $roomCode = $player['room_code'] ?? ($_SESSION['code_player'] ?? null);
 
         if (!$roomCode) {
@@ -339,7 +337,7 @@ class GameService {
             @session_start();
         }
 
-        $player = TokenService::getPlayer();
+        $player = svc('auth')->getPlayer();
         $playerId = $player['player_id'] ?? null;
 
         if (!$playerId) {
@@ -429,7 +427,7 @@ class GameService {
      */
     public function getFinalLeaderboard($roomCode = null) {
         if (!$roomCode) {
-            $player = TokenService::getPlayer();
+            $player = svc('auth')->getPlayer();
             $roomCode = $player['room_code'] ?? ($_SESSION['code_player'] ?? null);
         }
 

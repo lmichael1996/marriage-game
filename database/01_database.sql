@@ -120,9 +120,30 @@ CREATE TABLE IF NOT EXISTS winners (
     FOREIGN KEY (user_id) REFERENCES players(id) ON DELETE CASCADE
 );
 
--- Evento MySQL: Controlla ogni ora e chiude le stanze aperte da più di 24 ore
+CREATE TABLE IF NOT EXISTS auth_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    token VARCHAR(64) UNIQUE NOT NULL,
+    auth_role ENUM('admin', 'player', 'judge') NOT NULL,
+    user_id INT DEFAULT NULL,
+    player_id INT DEFAULT NULL,
+    judge_id INT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
+    FOREIGN KEY (judge_id) REFERENCES judges(id) ON DELETE CASCADE
+);
+
+-- Evento MySQL: Cancella i token di autenticazione scaduti (più vecchi di 24 ore)
 SET
     GLOBAL event_scheduler = ON;
+
+DROP EVENT IF EXISTS clean_expired_tokens;
+
+CREATE EVENT clean_expired_tokens ON SCHEDULE EVERY 1 HOUR DO
+DELETE FROM
+    auth_tokens
+WHERE
+    TIMESTAMPDIFF(HOUR, created_at, NOW()) >= 24;
 
 DROP EVENT IF EXISTS close_abandoned_rooms;
 

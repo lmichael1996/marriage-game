@@ -35,7 +35,7 @@ function handleCredentials(): void {
             $_POST['confirm_password'] ?? $_POST['admin_confirm_password'] ?? null
         );
         // Aggiorna il cookie admin con il nuovo username
-        TokenService::setAdminCookie(authUserId(), $result['username']);
+        svc('auth')->setAdminCookie(authUserId(), $result['username']);
         redirect($tab, 'credentials_updated');
     } catch (Exception $e) {
         redirect($tab, null, $e->getMessage());

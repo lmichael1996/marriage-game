@@ -12,7 +12,6 @@ requirePlayer();
     <title>Player - Marriage Game</title>
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
-    <link rel="stylesheet" href="../assets/css/mobile.css">
     <style>
         .player-container {
             display: grid;
@@ -473,9 +472,9 @@ requirePlayer();
                 .then(data => {
                     console.log("checkGameState response:", data);
 
-                    // Verifica se la partita è terminata
-                    if (data.game_finished) {
-                        console.log("Game finished detected, checking winner status");
+                    // Verifica se la partita è terminata (room closed o vincitore)
+                    if (data.game_finished || data.status_room === 'closed') {
+                        console.log("Game finished detected (status_room=closed), checking winner");
                         gameEnded = true;
                         clearInterval(checkGameStateInterval);
                         clearInterval(checkRoomStatusInterval);
@@ -496,16 +495,6 @@ requirePlayer();
                     if (data.success === false || !data.round_number) {
                         console.log("No round available, showing waiting screen");
                         showWaitingScreen();
-                        return;
-                    }
-
-                    // Check if room is closed (game finished)
-                    if (data.status_room === 'closed') {
-                        console.log("Game finished (room status = closed), checking winner status");
-                        gameEnded = true;
-                        clearInterval(checkGameStateInterval);
-                        clearInterval(checkRoomStatusInterval);
-                        checkWinnerStatus();
                         return;
                     }
 

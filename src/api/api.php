@@ -52,6 +52,10 @@ switch ($endpoint) {
         handleAdminLogin();
         break;
 
+    case 'judge_login':
+        handleJudgeLogin();
+        break;
+
     case 'answer':
         handleAnswer();
         break;
@@ -221,6 +225,17 @@ function handleAdminLogin() {
     }
 }
 
+function handleJudgeLogin() {
+    requirePost();
+    $data = input();
+    try {
+        svc('auth')->judgeLogin($data['room_code'] ?? '');
+        respond(['success' => true, 'redirect' => '../public/game.php']);
+    } catch (Exception $e) {
+        respondError($e->getMessage(), 401);
+    }
+}
+
 // ── Game ─────────────────────────────────────────────────────────────────
 
 function handleAnswer() {
@@ -372,13 +387,31 @@ function handleGetGameState() {
         $roomData = $room->getRoomDetails($roomCode);
         if (!$roomData) respond(['success' => false]);
 
-        if ($roomData['has_winner'] ?? false) {
-            respond(['success' => false, 'error' => 'Partita già terminata', 'game_finished' => true, 'winner' => $roomData['winner'] ?? null]);
+        $statusRoom = $roomData['status_room'] ?? null;
+
+        // Se la room è chiusa o cancellata, comunicalo subito al player
+        if ($statusRoom === 'closed' || ($roomData['has_winner'] ?? false)) {
+            respond([
+                'success'       => false,
+                'game_finished' => true,
+                'status_room'   => $statusRoom,
+                'winner'        => $roomData['winner'] ?? null,
+            ]);
+        }
+
+        if ($statusRoom === 'cancelled') {
+            respond([
+                'success'     => false,
+                'status_room' => 'cancelled',
+            ]);
         }
 
         $counter = max(1, intval($_GET['counter'] ?? 1));
         $result  = $room->getRoundByPosition($roomData['id'], $counter);
-        respond($result ? array_merge($result, ['success' => true]) : ['success' => false]);
+        $response = $result
+            ? array_merge($result, ['success' => true, 'status_room' => $statusRoom])
+            : ['success' => false, 'status_room' => $statusRoom];
+        respond($response);
     } catch (Exception $e) {
         respondError($e->getMessage(), 500);
     }
@@ -440,6 +473,13 @@ function handleCheckWinner() {
         $room = svc('room');
         $roomData = $room->getRoomDetails($roomCode);
         if (!$roomData) respond($fail);
+
+        // Se la room è chiusa/closed ma non c'è ancora un vincitore, marcalo ora
+        if (!($roomData['has_winner'] ?? false) && ($roomData['status_room'] ?? '') === 'closed') {
+            $room->markWinner($roomData['id']);
+            // Ricarica per avere il vincitore aggiornato
+            $roomData = $room->getRoomDetails($roomCode);
+        }
 
         $username = authUsername();
         if (!$username) respond($fail);

@@ -168,8 +168,8 @@ class AnswerRepo {
             if (session_status() === PHP_SESSION_NONE) {
                 @session_start();
             }
-            require_once __DIR__ . '/../services/TokenService.php';
-            $player = TokenService::getPlayer();
+            require_once __DIR__ . '/../services/ServiceLoader.php';
+            $player = svc('auth')->getPlayer();
             $roomCode = $player['room_code'] ?? ($_SESSION['code_player'] ?? null);
 
             if (!$roomCode) {
