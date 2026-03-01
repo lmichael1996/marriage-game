@@ -187,15 +187,14 @@ class RoomRepo {
     /**
      * Count correct answers for a player in a room
      */
-    public function countCorrectAnswersByPlayer($roomId, $username) {
+    public function countCorrectAnswersByPlayer($roomId, $playerId) {
         $stmt = $this->conn->prepare("
             SELECT COUNT(*) as correct_count
             FROM player_answers pa
             JOIN rounds r ON pa.round_id = r.id
-            JOIN questions q ON r.question_id = q.id
-            WHERE r.room_id = ? AND pa.username = ? AND pa.answer = q.correct_answer
+            WHERE r.room_id = ? AND pa.player_id = ?
         ");
-        $stmt->bind_param("is", $roomId, $username);
+        $stmt->bind_param("ii", $roomId, $playerId);
         $stmt->execute();
         $result = $stmt->get_result();
         $row = $result->fetch_assoc();

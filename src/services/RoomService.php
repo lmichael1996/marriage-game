@@ -200,7 +200,7 @@ class RoomService {
         // Calculate scores for each player
         $scores = [];
         foreach ($players as $player) {
-            $correctAnswers = $this->roomRepo->countCorrectAnswersByPlayer($roomId, $player['username']);
+            $correctAnswers = $this->roomRepo->countCorrectAnswersByPlayer($roomId, $player['id']);
             $scores[$player['id']] = [
                 'username' => $player['username'],
                 'score' => $correctAnswers

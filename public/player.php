@@ -449,17 +449,26 @@ requirePlayer();
         });
 
         function checkRoomStatus() {
-            if (gameEnded) return;  // Stop checking if game has ended
+            if (gameEnded) return;
 
             fetch('../src/api/api.php?endpoint=check_room_status')
                 .then(response => response.json())
                 .then(data => {
-                    if (!data.room_open) {
+                    // Se la room è chiusa (partita finita), mostra vincitore/perdente
+                    if (data.status === 'closed') {
                         gameEnded = true;
                         clearInterval(checkGameStateInterval);
                         clearInterval(checkRoomStatusInterval);
-                        alert(data.message || 'La stanza è stata chiusa');
-                        window.location.href = 'logout.php';
+                        checkWinnerStatus();
+                        return;
+                    }
+                    // Se la room è cancellata dall'admin, mostra schermata annullamento
+                    if (data.status === 'cancelled') {
+                        gameEnded = true;
+                        clearInterval(checkGameStateInterval);
+                        clearInterval(checkRoomStatusInterval);
+                        showGameCancelled();
+                        return;
                     }
                 });
         }

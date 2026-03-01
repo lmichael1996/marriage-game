@@ -290,15 +290,18 @@ function handleStartRoom() {
 function handleCheckRoomStatus() {
     requireLoginJson();
     try {
-        $flagFile = sys_get_temp_dir() . '/marriage_game_room_closed.flag';
-        if (file_exists($flagFile)) {
-            $closedTime = (int)file_get_contents($flagFile);
-            if ((time() - $closedTime) < 5) {
-                respond(['room_open' => false, 'message' => 'La stanza è stata chiusa dall\'admin']);
-            }
-            unlink($flagFile);
-        }
-        respond(['room_open' => true]);
+        $roomCode = authRoomCode();
+        if (!$roomCode) respond(['room_open' => false, 'status' => 'unknown', 'message' => 'Nessuna stanza associata']);
+
+        $roomData = svc('room')->getRoomDetails($roomCode);
+        if (!$roomData) respond(['room_open' => false, 'status' => 'unknown', 'message' => 'Stanza non trovata']);
+
+        $status = $roomData['status_room'] ?? 'unknown';
+        respond([
+            'room_open'  => ($status === 'open' || $status === 'running'),
+            'status'     => $status,
+            'has_winner' => $roomData['has_winner'] ?? false,
+        ]);
     } catch (Exception $e) {
         respondError($e->getMessage(), 500);
     }
