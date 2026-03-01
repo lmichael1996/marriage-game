@@ -5,20 +5,21 @@ class PDFGenerator {
     private $pdf;
     private $codePlayer;
     private $codeJudge;
-    private $qrSourcePlayer;
-    private $qrSourceJudge;
+    private $svgPlayer;
+    private $svgJudge;
+    private $logoPath = __DIR__ . '/../../assets/image/background.jpg';
 
-    public function __construct($codePlayer, $codeJudge, $qrSourcePlayer, $qrSourceJudge) {
+    public function __construct($codePlayer, $codeJudge, $svgPlayer, $svgJudge) {
         if (empty($codePlayer) || empty($codeJudge)) {
             throw new Exception('Both room codes are required');
         }
-        if (empty($qrSourcePlayer) || empty($qrSourceJudge)) {
-            throw new Exception('Both QR sources are required');
+        if (empty($svgPlayer) || empty($svgJudge)) {
+            throw new Exception('Both QR SVGs are required');
         }
         $this->codePlayer = $codePlayer;
         $this->codeJudge = $codeJudge;
-        $this->qrSourcePlayer = $qrSourcePlayer;
-        $this->qrSourceJudge = $qrSourceJudge;
+        $this->svgPlayer = $svgPlayer;
+        $this->svgJudge = $svgJudge;
         $this->initializePDF();
     }
 
@@ -31,120 +32,52 @@ class PDFGenerator {
         $this->pdf->setPrintFooter(false);
     }
 
-    private function addPageTitle($title, $roleColor) {
-        // Remove emoji, use background color header instead
-        $this->pdf->SetFillColor($roleColor[0], $roleColor[1], $roleColor[2]);
+    private function addPage($title, $code, $svgMarkup, $footerRole) {
+        $this->pdf->AddPage();
+
+        if (file_exists($logoPath)) {
+            $this->pdf->setAlpha(0.2);
+            $this->pdf->Image($logoPath, 5, 0, 200, 297);
+            $this->pdf->setAlpha(1);
+        }
+
+        // Titolo
+        $this->pdf->SetFillColor(128, 128, 128);
         $this->pdf->SetFont('helvetica', 'B', 24);
         $this->pdf->SetTextColor(255, 255, 255);
         $this->pdf->Cell(0, 20, $title, 0, 1, 'C', true);
         $this->pdf->SetTextColor(0, 0, 0);
         $this->pdf->Ln(10);
-    }
 
-    private function addRoomCodeSection($code) {
+        // Codice stanza
         $this->pdf->SetFont('helvetica', '', 12);
         $this->pdf->Cell(0, 8, 'Codice Stanza:', 0, 1, 'C');
-
         $this->pdf->SetFont('helvetica', 'B', 32);
         $this->pdf->Cell(0, 20, $code, 0, 1, 'C');
-
         $this->pdf->Ln(10);
-    }
 
-    private function addQRCodeSection($qrSource) {
+        // QR code SVG
         $this->pdf->SetFont('helvetica', '', 12);
         $this->pdf->Cell(0, 8, 'Inquadra il QR code per connetterti:', 0, 1, 'C');
         $this->pdf->Ln(5);
 
-        if (!empty($qrSource)) {
-            $base64Data = null;
+        $tempFile = sys_get_temp_dir() . '/qr_' . uniqid() . '.svg';
+        file_put_contents($tempFile, $svgMarkup);
+        $qrSize = 70;
+        $xPosition = ($this->pdf->GetPageWidth() - $qrSize) / 2;
+        $this->pdf->ImageSVG($tempFile, $xPosition, $this->pdf->GetY(), $qrSize, $qrSize);
+        @unlink($tempFile);
+        $this->pdf->Ln(80);
 
-            // If it's an existing file path, use it directly
-            if (is_string($qrSource) && file_exists($qrSource)) {
-                $pageWidth = $this->pdf->GetPageWidth();
-                $qrWidth = 70;
-                $xPosition = ($pageWidth - $qrWidth) / 2;
-
-                // Guess type from extension (default to JPG)
-                $ext = strtolower(pathinfo($qrSource, PATHINFO_EXTENSION));
-                if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) {
-                    $ext = 'jpg';
-                }
-                $this->pdf->Image($qrSource, $xPosition, $this->pdf->GetY(), $qrWidth, $qrWidth, strtoupper($ext));
-            } else if (strpos($qrSource, 'data:image/') === 0) {
-                // Data URI with prefix: decode and write temp file
-                $parts = explode(',', $qrSource, 2);
-                $base64Data = $parts[1] ?? '';
-            } else {
-                // Pure base64 from database (no prefix)
-                $base64Data = $qrSource;
-            }
-
-            // If we have base64 data, decode and create temp file
-            if (!empty($base64Data)) {
-                $binaryData = base64_decode($base64Data, true);
-                if ($binaryData !== false) {
-                    $tempFile = sys_get_temp_dir() . '/qr_' . uniqid() . '.jpg';
-                    if (file_put_contents($tempFile, $binaryData) !== false && file_exists($tempFile)) {
-                        $pageWidth = $this->pdf->GetPageWidth();
-                        $qrWidth = 70;
-                        $xPosition = ($pageWidth - $qrWidth) / 2;
-
-                        $this->pdf->Image($tempFile, $xPosition, $this->pdf->GetY(), $qrWidth, $qrWidth, 'JPG');
-
-                        @unlink($tempFile);
-                    }
-                }
-            }
-        }
-
-        $this->pdf->Ln(75);
-        $this->pdf->Ln(5);
-    }
-
-    private function addFooterInfo($roleText) {
+        // Footer
         $this->pdf->SetFont('helvetica', '', 10);
         $this->pdf->SetTextColor(100, 100, 100);
-        $this->pdf->MultiCell(0, 5, $roleText . ': Puoi connetterti usando il codice stanza o scannerizzando il QR code.', 0, 'C');
-    }
-
-    private function addPlayerPage() {
-        $this->pdf->AddPage();
-
-        // Add background image with opacity - narrower width
-        $logoPath = __DIR__ . '/../../assets/image/background.jpg';
-        if (file_exists($logoPath)) {
-            $this->pdf->setAlpha(0.2); // 20% opacity
-            $this->pdf->Image($logoPath, 5, 0, 200, 297); // 200mm width instead of 210mm
-            $this->pdf->setAlpha(1); // Reset to full opacity
-        }
-
-        $this->addPageTitle('Mvquiz - Giocatore', [128, 128, 128]); // Gray for player
-        $this->addRoomCodeSection($this->codePlayer);
-        $this->addQRCodeSection($this->qrSourcePlayer);
-        $this->addFooterInfo('Il Giocatore');
-    }
-
-    private function addJudgePage() {
-        $this->pdf->AddPage();
-
-        // Add background image with opacity - narrower width
-        $logoPath = __DIR__ . '/../../assets/image/background.jpg';
-        if (file_exists($logoPath)) {
-            $this->pdf->setAlpha(0.2); // 20% opacity
-            $this->pdf->Image($logoPath, 5, 0, 200, 297); // 200mm width instead of 210mm
-            $this->pdf->setAlpha(1); // Reset to full opacity
-        }
-
-        $this->addPageTitle('Mvquiz - Giudice', [128, 128, 128]); // Gray for judge
-        $this->addRoomCodeSection($this->codeJudge);
-        $this->addQRCodeSection($this->qrSourceJudge);
-        $this->addFooterInfo('Il Giudice');
+        $this->pdf->MultiCell(0, 5, $footerRole . ': Puoi connetterti usando il codice stanza o scannerizzando il QR code.', 0, 'C');
     }
 
     public function generate() {
-        $this->addPlayerPage();
-        $this->addJudgePage();
+        $this->addPage('Mvquiz - Giocatore', $this->codePlayer, $this->svgPlayer, 'Il Giocatore');
+        $this->addPage('Mvquiz - Giudice', $this->codeJudge, $this->svgJudge, 'Il Giudice');
     }
 
     public function getPDF() {

@@ -29,35 +29,21 @@ class RoomService {
      * Non salviamo file su disco: solo data URI (base64 encoded).
      */
     public function createRoom($questionSetId = null) {
-        // Istanzia due oggetti QRGenerator distinti con URL specifici
-        $qrGeneratorPlayer = new QRGenerator(
-            'http://151.64.86.229:9000/public/login-player.php'
-        );
+        // Istanzia due oggetti QRGenerator con nome pagina login
+        $qrGeneratorPlayer = new QRGenerator('login-player.php');
+        $qrGeneratorJudge  = new QRGenerator('login-judge.php');
 
-        $qrGeneratorJudge = new QRGenerator(
-            'http://151.64.86.229:9000/public/login-judge.php'
-        );
-
-        // Genera codice e QR per player
+        // Genera codice e SVG QR per player
         $playerPair = $qrGeneratorPlayer->generate();
         $codePlayer = $playerPair['code'];
-        $qrPlayerData = $playerPair['data'];
 
-        // Genera codice e QR per judge
+        // Genera codice e SVG QR per judge
         $judgePair = $qrGeneratorJudge->generate();
         $codeJudge = $judgePair['code'];
-        $qrJudgeData = $judgePair['data'];
 
-        $qrPlayerBase64 = null;
-        $qrJudgeBase64 = null;
-
-        if ($qrPlayerData !== null) {
-            $qrPlayerBase64 = base64_encode($qrPlayerData);
-        }
-
-        if ($qrJudgeData !== null) {
-            $qrJudgeBase64 = base64_encode($qrJudgeData);
-        }
+        // Salva SVG come base64 nel DB
+        $qrPlayerBase64 = !empty($playerPair['svg']) ? base64_encode($playerPair['svg']) : null;
+        $qrJudgeBase64  = !empty($judgePair['svg'])  ? base64_encode($judgePair['svg'])  : null;
 
         // Salva la stanza con entrambi i codici e QR
         $roomId = $this->roomRepo->createRoom($codePlayer, $codeJudge, $questionSetId, $qrPlayerBase64, $qrJudgeBase64);
@@ -248,6 +234,32 @@ class RoomService {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Delete all players from a room by room code
+     */
+    public function deletePlayersByRoom($roomCode) {
+        return $this->playerRepo->deletePlayersByRoom($roomCode);
+    }
+
+    /**
+     * Get connected devices (players) for a room by code
+     */
+    public function getConnectedDevices($codePlayer) {
+        $roomData = $this->getRoomDetails($codePlayer);
+        if (!$roomData) return ['devices' => [], 'count' => 0];
+
+        $devices = $this->playerRepo->getPlayersByRoomId($roomData['id']);
+        $devices = is_array($devices) ? $devices : [];
+        return ['devices' => $devices, 'count' => count($devices)];
+    }
+
+    /**
+     * Get a player by room ID and username
+     */
+    public function getPlayerByRoomAndUsername($roomId, $username) {
+        return $this->playerRepo->getPlayerByRoomAndUsername($roomId, $username);
     }
 }
 

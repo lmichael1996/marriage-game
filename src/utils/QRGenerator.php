@@ -1,103 +1,61 @@
 <?php
+require_once __DIR__ . '/../../vendor/tecnickcom/tcpdf/tcpdf_barcodes_2d.php';
+
 /**
  * QRGenerator - Genera codici QR e codici univoci per stanze
- * Classe oggetto semplificata con un URL base
+ * Usa TCPDF2DBarcode per generare QR SVG internamente (no API esterna, no GD)
  */
 class QRGenerator {
 
-    // URL dell'API QR Server
-    private const QR_API_URL = 'https://api.qrserver.com/v1/create-qr-code/';
-
-    // Parametri di istanza
-    private $baseUrl;
+    /** Pagina login relativa (es. 'login-player.php') */
+    private $loginPage;
 
     /**
-     * Costruttore della classe QRGenerator
-     *
-     * @param string $baseUrl URL base per il login (player o judge)
+     * @param string $loginPage Nome della pagina login (es. 'login-player.php')
      */
-    public function __construct($baseUrl) {
-        $this->baseUrl = $baseUrl;
+    public function __construct($loginPage) {
+        $this->loginPage = $loginPage;
     }
 
     /**
-     * Genera sia il codice che il QR code in un'unica chiamata
+     * Costruisce il base URL dal server corrente (no link hardcoded)
+     */
+    private static function getBaseUrl() {
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        return $scheme . '://' . $host . '/public/';
+    }
+
+    /**
+     * Genera codice univoco + SVG del QR
      *
-     * @return array Array con 'code' e 'data' (QR binario)
+     * @return array ['code' => string, 'svg' => string (SVG markup)]
      */
     public function generate() {
-        // Genera codice univoco
         $code = strtoupper(substr(md5(uniqid(rand(), true)), 0, 6));
-
-        // Genera QR code
-        $url = $this->baseUrl . '?code=' . urlencode($code);
-        $qrData = $this->generateQRFromURL($url, 250);
+        $url = self::getBaseUrl() . $this->loginPage . '?code=' . urlencode($code);
 
         return [
             'code' => $code,
-            'data' => $qrData
+            'svg'  => $this->generateSVG($url)
         ];
     }
 
     /**
-     * Genera un QR code da una URL (metodo privato)
+     * Genera SVG del QR code usando TCPDF2DBarcode (puro PHP, nessuna estensione)
      *
-     * @param string $url L'URL da codificare nel QR
-     * @param int $size Dimensione dell'immagine
-     * @return string|null Dati binari dell'immagine o null se fallisce
+     * @param string $data Contenuto da codificare nel QR
+     * @return string|null SVG markup o null se fallisce
      */
-    private function generateQRFromURL($url, $size = 250) {
-        if (empty($url)) {
+    private function generateSVG($data) {
+        if (empty($data)) {
             return null;
         }
 
         try {
-            $params = [
-                'size' => $size . 'x' . $size,
-                'data' => $url,
-                'format' => 'jpg'
-            ];
-
-            $fullUrl = self::QR_API_URL . '?' . http_build_query($params);
-
-            // Scarica il QR usando curl
-            $imageData = $this->fetchWithCurl($fullUrl);
-            if ($imageData !== null) {
-                return $imageData;
-            }
-
-            return null;
-
-        } catch (Exception $e) {
-            return null;
-        }
-    }
-
-    /**
-     * Scarica un'immagine usando curl (metodo privato)
-     *
-     * @param string $url L'URL da scaricare
-     * @return string|null Dati binari o null se fallisce
-     */
-    private function fetchWithCurl($url) {
-        try {
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-
-            $imageData = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            if ($httpCode == 200 && $imageData !== false && !empty($imageData)) {
-                return $imageData;
-            }
-
-            return null;
+            $barcode = new TCPDF2DBarcode($data, 'QRCODE,H');
+            $svg = $barcode->getBarcodeSVGcode(3, 3, 'black');
+            return !empty($svg) ? $svg : null;
         } catch (Exception $e) {
             return null;
         }

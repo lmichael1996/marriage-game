@@ -76,6 +76,22 @@ class PlayerRepo {
         return $player;
     }
 
+    /**
+     * Delete all players from a room by room code
+     */
+    public function deletePlayersByRoom($roomCode) {
+        $stmt = $this->conn->prepare("
+            DELETE p FROM players p
+            INNER JOIN rooms r ON p.room_id = r.id
+            WHERE r.code_player = ? OR r.code_judge = ?
+        ");
+        $stmt->bind_param("ss", $roomCode, $roomCode);
+        $result = $stmt->execute();
+        $stmt->close();
+
+        return $result;
+    }
+
     public function __destruct() {
         if ($this->conn) {
             $this->conn->close();
