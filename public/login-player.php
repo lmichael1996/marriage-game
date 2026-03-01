@@ -93,11 +93,6 @@
                 console.error('Login error:', error);
             }
         });
-
-        // Auto-uppercase for room code
-        document.getElementById('room_code').addEventListener('input', (e) => {
-            e.target.value = e.target.value.toUpperCase();
-        });
     </script>
 </body>
 </html>
