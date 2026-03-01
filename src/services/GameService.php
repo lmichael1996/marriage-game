@@ -152,6 +152,21 @@ class GameService {
             // Get top 10 fastest answers
             $topAnswers = $this->answerRepo->getTopFastestAnswers($roundId, 10);
 
+            // Build and save ranking JSON
+            $roundType = $round['round_type'] ?? 'multiple';
+            $ranking = [];
+            foreach ($topAnswers as $i => $answer) {
+                $position = $i + 1;
+                $ranking[] = [
+                    'position'    => $position,
+                    'username'    => $answer['username'],
+                    'player_id'   => (int)$answer['player_id'],
+                    'answer_time' => (float)$answer['answer_time'],
+                    'points'      => $this->getPointsForPosition($roundType, $position)
+                ];
+            }
+            $this->roundRepo->saveRanking($roundId, $ranking);
+
             // Clear active round from session and file
             if (session_status() === PHP_SESSION_NONE) {
                 @session_start();

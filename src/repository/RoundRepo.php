@@ -77,7 +77,7 @@ class RoundRepo {
      */
     public function getRoundById($round_id) {
         $stmt = $this->conn->prepare("
-            SELECT r.id, r.room_id,
+            SELECT r.id, r.room_id, r.ranking,
                    q.id as question_id, q.round_type,
                    q.question, q.option1, q.option2, q.option3, q.option4,
                    q.correct_answer, q.timer
@@ -98,7 +98,7 @@ class RoundRepo {
      */
     public function getRoundsByRoom($room_id) {
         $stmt = $this->conn->prepare("
-            SELECT r.id, r.room_id, r.question_id,
+            SELECT r.id, r.room_id, r.question_id, r.ranking,
                    q.id as question_id, q.round_type,
                    q.question, q.option1, q.option2, q.option3, q.option4,
                    q.correct_answer, q.timer
@@ -230,6 +230,18 @@ class RoundRepo {
 
         $stmt->close();
         return false;
+    }
+
+    /**
+     * Save the ranking JSON for a round
+     */
+    public function saveRanking($roundId, array $ranking) {
+        $json = json_encode($ranking, JSON_UNESCAPED_UNICODE);
+        $stmt = $this->conn->prepare("UPDATE rounds SET ranking = ? WHERE id = ?");
+        $stmt->bind_param("si", $json, $roundId);
+        $result = $stmt->execute();
+        $stmt->close();
+        return $result;
     }
 
     public function __destruct() {

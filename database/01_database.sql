@@ -96,6 +96,7 @@ CREATE TABLE IF NOT EXISTS rounds (
     id INT AUTO_INCREMENT PRIMARY KEY,
     room_id INT NOT NULL,
     question_id INT DEFAULT NULL,
+    ranking JSON DEFAULT NULL,
     FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
     FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
 );
