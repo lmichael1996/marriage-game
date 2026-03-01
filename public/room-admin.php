@@ -487,6 +487,7 @@ if ($room['has_winner'] ?? false) {
     <script>
         const roomId = <?php echo $roomId; ?>;
         const roomCode = '<?php echo $room['code_player']; ?>';
+        const activeRoundId = <?php echo isset($activeRound['id']) ? $activeRound['id'] : 'null'; ?>;
         let timerInterval = null;
         let currentRoundType = null;
 
@@ -560,7 +561,19 @@ if ($room['has_winner'] ?? false) {
         }
 
         function nextQuestion() {
-            proceedToNextQuestion();
+            if (!activeRoundId) {
+                proceedToNextQuestion();
+                return;
+            }
+            // Close current round (saves ranking JSON) then advance
+            fetch('../src/api/api.php?endpoint=game&action=close_round', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ round_id: activeRoundId })
+            })
+            .then(r => r.json())
+            .then(() => proceedToNextQuestion())
+            .catch(() => proceedToNextQuestion());
         }
 
         function proceedToNextQuestion() {
