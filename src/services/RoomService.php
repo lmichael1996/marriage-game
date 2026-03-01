@@ -261,5 +261,20 @@ class RoomService {
     public function getPlayerByRoomAndUsername($roomId, $username) {
         return $this->playerRepo->getPlayerByRoomAndUsername($roomId, $username);
     }
+
+    /**
+     * Get room by ID
+     */
+    public function getRoomById(int $roomId): ?array {
+        return $this->roomRepo->getRoomById($roomId) ?: null;
+    }
+
+    /**
+     * Get count of players connected to a room
+     */
+    public function getPlayerCount(int $roomId): int {
+        $players = $this->playerRepo->getPlayersByRoomId($roomId);
+        return count($players ?? []);
+    }
 }
 

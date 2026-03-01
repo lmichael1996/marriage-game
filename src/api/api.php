@@ -4,29 +4,11 @@ session_start();
 require_once __DIR__ . '/../utils/auth.php';
 require_once __DIR__ . '/../utils/PDFGenerator.php';
 require_once __DIR__ . '/../utils/QRGenerator.php';
-require_once __DIR__ . '/../services/AuthService.php';
-require_once __DIR__ . '/../services/GameService.php';
-require_once __DIR__ . '/../services/RoomService.php';
-require_once __DIR__ . '/../services/AdminService.php';
-require_once __DIR__ . '/../services/QuestionService.php';
+require_once __DIR__ . '/../services/ServiceLoader.php';
 
 header('Content-Type: application/json');
 
 // ── Helpers ──────────────────────────────────────────────────────────────
-
-$services = [];
-
-function svc(string $name) {
-    global $services;
-    return $services[$name] ??= match ($name) {
-        'auth'     => new AuthService(),
-        'game'     => new GameService(),
-        'room'     => new RoomService(),
-        'admin'    => new AdminService(),
-        'question' => new QuestionService(),
-        default    => throw new Exception("Servizio '$name' non trovato"),
-    };
-}
 
 function respond($data)
 {
@@ -62,42 +44,148 @@ if (!$endpoint && $_SERVER['REQUEST_METHOD'] === 'POST') {
 $action = $_GET['action'] ?? '';
 
 switch ($endpoint) {
-    case 'player_login':        handlePlayerLogin(); break;
-    case 'admin_login':         handleAdminLogin(); break;
-    case 'answer':              handleAnswer(); break;
-    case 'create_room':         handleCreateRoom(); break;
-    case 'start_room':          handleStartRoom(); break;
-    case 'check_room_status':   handleCheckRoomStatus(); break;
-    case 'delete_room':         handleDeleteRoom(); break;
-    case 'close_room':          handleCloseRoom(); break;
-    case 'finish_game':         handleFinishGame(); break;
-    case 'generate_pdf':        handleGeneratePDF(); break;
-    case 'connected_devices':   handleConnectedDevices(); break;
-    case 'game':                handleGame($action); break;
-    case 'increment_counter':   handleIncrementCounter(); break;
-    case 'leaderboard':         handleLeaderboard(); break;
-    case 'round_answers':       handleRoundAnswers(); break;
-    case 'final_leaderboard':   handleFinalLeaderboard(); break;
-    case 'get_question':        handleGetQuestion(); break;
-    case 'get_questions':       handleGetQuestions(); break;
-    case 'add_category':        handleAddCategory(); break;
-    case 'update_category':     handleUpdateCategory(); break;
-    case 'delete_category':     handleDeleteCategory(); break;
-    case 'get_categories':      handleGetCategories(); break;
-    case 'save_categories':     handleSaveCategories(); break;
-    case 'get_questionset':     handleGetQuestionSet(); break;
-    case 'add_questionset':     handleAddQuestionSet(); break;
-    case 'update_questionset':  handleUpdateQuestionSet(); break;
-    case 'update_questionset_metadata': handleUpdateQuestionSetMetadata(); break;
-    case 'delete_questionset':  handleDeleteQuestionSet(); break;
-    case 'get_questionsets':    handleGetQuestionSets(); break;
-    case 'get_set_questions':   handleGetSetQuestions(); break;
-    case 'add_question_to_set': handleAddQuestionToSet(); break;
-    case 'add_question_to_set_at_position': handleAddQuestionToSetAtPosition(); break;
-    case 'remove_question_from_set': handleRemoveQuestionFromSet(); break;
-    case 'update_question_order': handleUpdateQuestionOrder(); break;
-    case 'move_question_up':    handleMoveQuestionUp(); break;
-    case 'move_question_down':  handleMoveQuestionDown(); break;
+    case 'player_login':
+        handlePlayerLogin();
+        break;
+
+    case 'admin_login':
+        handleAdminLogin();
+        break;
+
+    case 'answer':
+        handleAnswer();
+        break;
+
+    case 'create_room':
+        handleCreateRoom();
+        break;
+
+    case 'start_room':
+        handleStartRoom();
+        break;
+
+    case 'check_room_status':
+        handleCheckRoomStatus();
+        break;
+
+    case 'delete_room':
+        handleDeleteRoom();
+        break;
+
+    case 'close_room':
+        handleCloseRoom();
+        break;
+    case 'finish_game':
+        handleFinishGame();
+        break;
+
+    case 'generate_pdf':
+        handleGeneratePDF();
+        break;
+
+    case 'connected_devices':
+        handleConnectedDevices();
+        break;
+
+    case 'game':
+        handleGame($action);
+        break;
+
+    case 'increment_counter':
+        handleIncrementCounter();
+        break;
+
+    case 'leaderboard':
+        handleLeaderboard();
+        break;
+
+    case 'round_answers':
+        handleRoundAnswers();
+        break;
+
+    case 'final_leaderboard':
+        handleFinalLeaderboard();
+        break;
+
+    case 'get_question':
+        handleGetQuestion();
+        break;
+
+    case 'get_questions':
+        handleGetQuestions();
+        break;
+
+    case 'add_category':
+        handleAddCategory();
+        break;
+
+    case 'update_category':
+        handleUpdateCategory();
+        break;
+
+    case 'delete_category':
+        handleDeleteCategory();
+        break;
+
+    case 'get_categories':
+        handleGetCategories();
+        break;
+
+    case 'save_categories':
+        handleSaveCategories();
+        break;
+
+    case 'get_questionset':
+        handleGetQuestionSet();
+        break;
+
+    case 'add_questionset':
+        handleAddQuestionSet();
+        break;
+
+    case 'update_questionset':
+        handleUpdateQuestionSet();
+        break;
+
+    case 'update_questionset_metadata':
+        handleUpdateQuestionSetMetadata();
+        break;
+
+    case 'delete_questionset':
+        handleDeleteQuestionSet();
+        break;
+
+    case 'get_questionsets':
+        handleGetQuestionSets();
+        break;
+
+    case 'get_set_questions':
+        handleGetSetQuestions();
+        break;
+
+    case 'add_question_to_set':
+        handleAddQuestionToSet();
+        break;
+
+    case 'add_question_to_set_at_position':
+        handleAddQuestionToSetAtPosition();
+        break;
+
+    case 'remove_question_from_set':
+        handleRemoveQuestionFromSet();
+        break;
+
+    case 'update_question_order':
+        handleUpdateQuestionOrder();
+        break;
+
+    case 'move_question_up':
+        handleMoveQuestionUp();
+        break;
+
+    case 'move_question_down':
+        handleMoveQuestionDown();
+        break;
 
     case 'start_game_room':
         $set_id = $_GET['set_id'] ?? null;
@@ -258,7 +346,9 @@ function handleConnectedDevices() {
     } catch (Exception $e) {
         respondError($e->getMessage(), 500);
     }
-}// ── Game Actions ─────────────────────────────────────────────────────────
+}
+
+// ── Game Actions ─────────────────────────────────────────────────────────
 
 function handleGame($action) {
     requireLoginJson();
@@ -655,7 +745,7 @@ function handleGeneratePDF() {
         respond([
             'success'  => true,
             'pdf_data' => 'data:application/pdf;base64,' . base64_encode($pdf->getPDF()),
-            'filename' => 'marriage-game-stanza-' . $codePlayer . '.pdf'
+            'filename' => 'Mvquiz-stanza-' . $codePlayer . '-' . $codeJudge . '.pdf'
         ]);
     } catch (Exception $e) {
         respondError($e->getMessage(), 500);

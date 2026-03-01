@@ -7,7 +7,8 @@ class PDFGenerator {
     private $codeJudge;
     private $svgPlayer;
     private $svgJudge;
-    private $logoPath = __DIR__ . '/../../assets/image/background.jpg';
+
+    private const LOGO_PATH = __DIR__ . '/../../assets/image/background.jpg';
 
     public function __construct($codePlayer, $codeJudge, $svgPlayer, $svgJudge) {
         if (empty($codePlayer) || empty($codeJudge)) {
@@ -35,9 +36,9 @@ class PDFGenerator {
     private function addPage($title, $code, $svgMarkup, $footerRole) {
         $this->pdf->AddPage();
 
-        if (file_exists($logoPath)) {
+        if (file_exists(self::LOGO_PATH)) {
             $this->pdf->setAlpha(0.2);
-            $this->pdf->Image($logoPath, 5, 0, 200, 297);
+            $this->pdf->Image(self::LOGO_PATH, 5, 0, 200, 297);
             $this->pdf->setAlpha(1);
         }
 
@@ -65,6 +66,11 @@ class PDFGenerator {
         file_put_contents($tempFile, $svgMarkup);
         $qrSize = 70;
         $xPosition = ($this->pdf->GetPageWidth() - $qrSize) / 2;
+
+        // Sfondo bianco dietro il QR
+        $this->pdf->SetFillColor(255, 255, 255);
+        $this->pdf->Rect($xPosition, $this->pdf->GetY(), $qrSize, $qrSize, 'F');
+
         $this->pdf->ImageSVG($tempFile, $xPosition, $this->pdf->GetY(), $qrSize, $qrSize);
         @unlink($tempFile);
         $this->pdf->Ln(80);

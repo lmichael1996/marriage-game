@@ -1,32 +1,10 @@
 <?php
-session_start();
 require_once __DIR__ . '/../src/utils/auth.php';
-require_once __DIR__ . '/../src/services/AdminService.php';
-require_once __DIR__ . '/../src/services/QuestionService.php';
+require_once __DIR__ . '/../src/utils/helper.php';
 
-// Check admin access
-// TODO: Debug - temporarily disabled
-// requireAdmin();
+requireAdmin();
 
-// Use services directly (Controller layer removed)
-$admin = new AdminService();
-$questionService = new QuestionService();
-
-// Get game settings (AdminService returns key=>value settings)
-$settingsResult = $admin->getAllSettings();
-$gameSettings = $settingsResult['settings'] ?? [];
-
-// Get all question sets for the dropdown (QuestionService returns structured array)
-$questionSetsResult = $questionService->getAllQuestionSets(1, 100);
-$questionSets = $questionSetsResult['sets'] ?? [];
-
-// Get selected set ID from URL if available
-$selectedSetId = isset($_GET['set_id']) ? (int)$_GET['set_id'] : null;
-$selectedSet = null;
-
-if ($selectedSetId) {
-    $selectedSet = $questionService->getQuestionSetById($selectedSetId);
-}
+extract(loadGameRoom());
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -299,7 +277,7 @@ if ($selectedSetId) {
         // Back to admin button
         document.getElementById('btn-back-admin').addEventListener('click', function() {
             if (roomActive) {
-                alert('⚠️ Stanza ancora attiva! Chiudi la stanza prima di tornare a Admin.');
+                alert('⚠️ Non è possibile tornare ad admin con partita aperta. Chiudi la stanza prima di tornare.');
                 return;
             }
             window.location.href = 'admin.php';
@@ -359,7 +337,6 @@ if ($selectedSetId) {
 
                     // Disable back button
                     const backBtn = document.getElementById('btn-back-admin');
-                    backBtn.disabled = true;
                     backBtn.title = 'Stanza attiva - Chiudi la stanza prima di tornare';
 
                     // Show step 3 below step 2 (don't hide step 2)
@@ -432,7 +409,6 @@ if ($selectedSetId) {
 
                         // Enable back button
                         const backBtn = document.getElementById('btn-back-admin');
-                        backBtn.disabled = false;
                         backBtn.title = 'Torna a Admin';
 
                         // Hide step 3 (devices)

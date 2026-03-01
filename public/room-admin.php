@@ -1,33 +1,24 @@
 <?php
 require_once __DIR__ . '/../src/utils/auth.php';
-require_once __DIR__ . '/../src/services/QuestionService.php';
-require_once __DIR__ . '/../src/services/RoomService.php';
+require_once __DIR__ . '/../src/utils/helper.php';
 
 requireAdmin();
 
-$questionService = new QuestionService();
-$roomService = new RoomService();
-
-// Get room ID from URL or session
-$roomId = $_GET['room_id'] ?? $_SESSION['room_id'] ?? null;
-if (!$roomId) {
-    header('Location: admin.php');
-    exit;
-}
-
-// Get room details by ID (need RoomRepo to fetch by ID)
-require_once __DIR__ . '/../src/repository/RoomRepo.php';
-$roomRepo = new RoomRepo();
-$room = $roomRepo->getRoomById($roomId);
-if (!$room) {
-    header('Location: admin.php');
-    exit;
-}
-
-// Store room_id in session for use in other parts
-$_SESSION['room_id'] = $roomId;
-
 // Verifica se la stanza ha già un vincitore (partita terminata)
+// (va prima del loadRoomAdmin per evitare caricamento dati inutile)
+
+// POST handler: Increment counter
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'increment_counter') {
+    $roomId = (int)($_GET['room_id'] ?? $_SESSION['room_id'] ?? 0);
+    $key = 'round_counter_' . $roomId;
+    $_SESSION[$key] = ($_SESSION[$key] ?? 1) + 1;
+    header('Content-Type: application/json');
+    echo json_encode(['success' => true]);
+    exit;
+}
+
+extract(loadRoomAdmin());
+
 if ($room['has_winner'] ?? false) {
     echo "<div class='alert alert-error'>
             <h2>Partita Terminata</h2>
@@ -36,48 +27,6 @@ if ($room['has_winner'] ?? false) {
           </div>";
     exit;
 }
-
-// POST handler: Increment counter
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'increment_counter') {
-    $key = 'round_counter_' . $roomId;
-    $_SESSION[$key] = ($_SESSION[$key] ?? 1) + 1;
-    header('Content-Type: application/json');
-    echo json_encode(['success' => true]);
-    exit;
-}
-
-// Get counter (increments every time admin clicks "Prossima Domanda")
-$counterKey = 'round_counter_' . $roomId;
-$counter = $_SESSION[$counterKey] ?? 1;
-
-// Get question by counter position
-$question = $questionService->getQuestionByCounter($room['qset_id'], $counter);
-
-// Get active round from DB for this question
-$activeRound = null;
-if ($question) {
-    $allRounds = $roomService->getActiveRound($room['id']);
-    if ($allRounds && $allRounds['question_id'] == $question['id']) {
-        $activeRound = $allRounds;
-    }
-}
-
-// Game over: No question at current counter = we've finished all questions
-$gameOver = !$question;
-
-// Room info
-$roomInfoKey = 'room_info_' . $roomId;
-if (!isset($_SESSION[$roomInfoKey])) {
-    // Get players count using RoomRepo method
-    require_once __DIR__ . '/../src/repository/PlayerRepo.php';
-    $playerRepo = new PlayerRepo();
-    $players = $playerRepo->getPlayersByRoomId($roomId);
-    $_SESSION[$roomInfoKey] = [
-        'num_players' => count($players ?? []),
-        'total_questions' => $questionService->getQuestionCountByQset($room['qset_id'])
-    ];
-}
-$roomInfo = $_SESSION[$roomInfoKey];
 ?>
 <!DOCTYPE html>
 <html lang="it">

@@ -1,18 +1,8 @@
 <?php
-session_start();
-
 require_once __DIR__ . '/../src/utils/auth.php';
-require_once __DIR__ . '/../src/utils/admin_helper.php';
-require_once __DIR__ . '/../src/services/AdminService.php';
-require_once __DIR__ . '/../src/services/GameService.php';
-require_once __DIR__ . '/../src/services/QuestionService.php';
+require_once __DIR__ . '/../src/utils/helper.php';
 
 requireAdmin();
-
-$admin = new AdminService();
-$question = new QuestionService();
-$game = new GameService();
-$questionSet = $question; // Alias for backward compatibility
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_tab'])) {
     $_SESSION['admin_tab'] = $_POST['change_tab'];
@@ -21,54 +11,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_tab'])) {
 
 $currentTab = $_SESSION['admin_tab'] ?? 'sets';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
-    if (!empty($action)) {
-        if ($action === 'save_settings' && !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
-            handleAction($action, $admin, $game, $question, $questionSet);
-            exit;
-        }
-        handleAction($action, $admin, $game, $question, $questionSet);
-    }
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action = $_POST['action'] ?? '')) {
+    match ($action) {
+        'change_credentials', 'update_credentials', 'update_admin_credentials' => handleCredentials(),
+        'save_settings', 'update_general_settings' => handleSettings(),
+        'start_round', 'close_round' => handleRound($action),
+        'add_question', 'save_question' => handleQuestion(false),
+        'update_question' => handleQuestion(true),
+        'delete_question' => handleDeleteQuestion(),
+        'add_questionset', 'update_questionset', 'delete_questionset' => handleQuestionSet($action),
+        default => redirect('sets', null, 'invalid_action'),
+    };
 }
 
-handleAjaxRequest($question);
-
-// Inizializza variabili di sessione per la paginazione
-if (!isset($_SESSION['questions_page'])) $_SESSION['questions_page'] = 1;
-if (!isset($_SESSION['sets_page'])) $_SESSION['sets_page'] = 1;
-
-// Carica dati solo per il tab attivo
-if ($currentTab === 'sets') {
-    // Aggiorna pagina se ricevuto POST
-    if (!empty($_POST['questions_page'])) $_SESSION['questions_page'] = (int)$_POST['questions_page'];
-
-    $searchQuery = $_POST['search_query'] ?? '';
-    $searchType = $_POST['search_type'] ?? 'contains';
-    $category = $_POST['category'] ?? '';
-    $currentPage = $_SESSION['questions_page'];
-    $questionsData = getAllQuestions($question, $searchQuery, $currentPage, $searchType, $category);
-    $questions = $questionsData['questions'];
-    $pagination = $questionsData['pagination'];
-    $categories = $question->getAllCategories();
-} elseif ($currentTab === 'settings') {
-    // Aggiorna pagina se ricevuto POST
-    if (!empty($_POST['sets_page'])) $_SESSION['sets_page'] = (int)$_POST['sets_page'];
-
-    $setSearchQuery = $_POST['set_search_query'] ?? '';
-    $setSearchType = $_POST['set_search_type'] ?? 'contains';
-    $setCurrentPage = $_SESSION['sets_page'];
-    if (!empty($setSearchQuery)) {
-        $setsData = $questionSet->search($setSearchQuery, $setSearchType, $setCurrentPage);
-    } else {
-        $setsData = $questionSet->getAll($setCurrentPage);
-    }
-    $questionSets = $setsData['sets'];
-    $pagination = $setsData;
-} elseif ($currentTab === 'general') {
-    $settingsResult = $admin->getAllSettings();
-    $gameSettings = $settingsResult['success'] ? $settingsResult['settings'] : [];
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'delete_question') {
+    handleDeleteQuestion();
 }
+
+$_SESSION['questions_page'] ??= 1;
+$_SESSION['sets_page'] ??= 1;
+
+$questions = $categories = $questionSets = $gameSettings = [];
+$pagination = ['total' => 0, 'page' => 1, 'perPage' => 10, 'totalPages' => 1];
+
+$tabData = match ($currentTab) {
+    'sets'     => loadQuestionsTab(),
+    'settings' => loadSetsTab(),
+    'general'  => loadGeneralTab(),
+    default    => [],
+};
+extract($tabData);
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -86,8 +58,8 @@ if ($currentTab === 'sets') {
 <body>
     <div class="container">
         <div class="header">
-            <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
-                <div style="width: 50px; height: 50px; background: url('../assets/image/background.jpg') no-repeat center / contain; display: inline-block;"></div>
+            <div class="header-brand">
+                <div class="header-logo"></div>
                 <h1>Mvquiz Admin</h1>
             </div>
             <div class="user-info">
@@ -124,7 +96,7 @@ if ($currentTab === 'sets') {
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const activeTab = '<?php echo $currentTab; ?>';
+            const activeTab = '<?php echo htmlspecialchars($currentTab, ENT_QUOTES); ?>';
 
             // Rimuovi active da tutti
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
