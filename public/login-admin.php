@@ -74,7 +74,6 @@
             } catch (error) {
                 errorDiv.textContent = 'Errore di connessione. Riprova.';
                 errorDiv.classList.remove('hidden');
-                console.error('Login error:', error);
             }
         });
     </script>

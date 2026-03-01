@@ -80,7 +80,6 @@
             } catch (error) {
                 errorDiv.textContent = 'Errore di connessione. Riprova.';
                 errorDiv.classList.remove('hidden');
-                console.error('Judge login error:', error);
             }
         });
     </script>
