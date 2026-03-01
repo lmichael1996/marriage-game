@@ -98,7 +98,7 @@ class RoundRepo {
      */
     public function getRoundsByRoom($room_id) {
         $stmt = $this->conn->prepare("
-            SELECT r.id, r.room_id, r.question_id, r.is_skipped,
+            SELECT r.id, r.room_id, r.question_id,
                    q.id as question_id, q.round_type,
                    q.question, q.option1, q.option2, q.option3, q.option4,
                    q.correct_answer, q.timer
@@ -230,44 +230,6 @@ class RoundRepo {
 
         $stmt->close();
         return false;
-    }
-
-    public function updateRound($round_id, $updates = []) {
-        if (empty($updates)) {
-            return false;
-        }
-
-        $set_parts = [];
-        $types = '';
-        $values = [];
-
-        foreach ($updates as $key => $value) {
-            if ($key === 'is_skipped' && is_bool($value)) {
-                $set_parts[] = "is_skipped = ?";
-                $types .= 'i';
-                $values[] = $value ? 1 : 0;
-            }
-        }
-
-        if (empty($set_parts)) {
-            return false;
-        }
-
-        $values[] = $round_id;
-        $types .= 'i';
-
-        $query = "UPDATE rounds SET " . implode(', ', $set_parts) . " WHERE id = ?";
-        $stmt = $this->conn->prepare($query);
-
-        if (!$stmt) {
-            return false;
-        }
-
-        $stmt->bind_param($types, ...$values);
-        $result = $stmt->execute();
-        $stmt->close();
-
-        return $result;
     }
 
     public function __destruct() {
