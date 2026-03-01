@@ -18,7 +18,7 @@
             <form id="judge-login-form">
                 <div class="form-group">
                     <label for="room_code">🔑 Codice Stanza:</label>
-                    <input type="text" id="room_code" name="room_code" class="uppercase" required maxlength="10" autofocus placeholder="Codice stanza del gioco">
+                    <input type="text" id="room_code" name="room_code" class="uppercase" maxlength="6" required autofocus placeholder="Esempio: ABC123">
                     <small class="form-helper-text">Chiedi il codice all'amministratore</small>
                 </div>
 

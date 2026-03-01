@@ -18,12 +18,12 @@
             <form id="player-login-form">
                 <div class="form-group">
                     <label for="username">👤 Nome Giocatore:</label>
-                    <input type="text" id="username" name="username" required autofocus placeholder="Inserisci il tuo nome">
+                    <input type="text" id="username" name="username" maxlength="50" required autofocus placeholder="Inserisci il tuo nome">
                 </div>
 
                 <div class="form-group">
                     <label for="room_code">🔑 Codice Stanza:</label>
-                    <input type="text" id="room_code" name="room_code" class="uppercase" required maxlength="10" autofocus placeholder="Codice stanza del gioco">
+                    <input type="text" id="room_code" name="room_code" class="uppercase" required maxlength="6" autofocus placeholder="Esempio: ABC123">
                     <small class="form-helper-text">Chiedi il codice all'amministratore</small>
                 </div>
 
