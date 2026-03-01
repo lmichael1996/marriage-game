@@ -33,10 +33,12 @@ class TokenRepo {
         $stmt->close();
 
         $token = $this->generateToken();
+        $hash  = hash('sha256', $token);
+        $ip    = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
         $stmt  = $this->conn->prepare(
-            "INSERT INTO auth_tokens (token, auth_role, user_id) VALUES (?, 'admin', ?)"
+            "INSERT INTO auth_tokens (token_hash, auth_role, ip_address, user_id) VALUES (?, 'admin', ?, ?)"
         );
-        $stmt->bind_param('si', $token, $userId);
+        $stmt->bind_param('ssi', $hash, $ip, $userId);
         $stmt->execute();
         $stmt->close();
 
@@ -50,14 +52,16 @@ class TokenRepo {
         $token = $_COOKIE[self::COOKIE_ADMIN] ?? null;
         if (!$token) return null;
 
+        $hash = hash('sha256', $token);
+        $ip   = $_SERVER['REMOTE_ADDR'] ?? '';
         $stmt = $this->conn->prepare(
             "SELECT t.user_id, u.username
              FROM auth_tokens t
              JOIN users u ON u.id = t.user_id
-             WHERE t.token = ? AND t.auth_role = 'admin'
+             WHERE t.token_hash = ? AND t.ip_address = ? AND t.auth_role = 'admin'
                AND t.created_at > NOW() - INTERVAL " . self::TTL . " SECOND"
         );
-        $stmt->bind_param('s', $token);
+        $stmt->bind_param('ss', $hash, $ip);
         $stmt->execute();
         $row = $stmt->get_result()->fetch_assoc();
         $stmt->close();
@@ -91,10 +95,12 @@ class TokenRepo {
         $stmt->close();
 
         $token = $this->generateToken();
+        $hash  = hash('sha256', $token);
+        $ip    = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
         $stmt  = $this->conn->prepare(
-            "INSERT INTO auth_tokens (token, auth_role, player_id) VALUES (?, 'player', ?)"
+            "INSERT INTO auth_tokens (token_hash, auth_role, ip_address, player_id) VALUES (?, 'player', ?, ?)"
         );
-        $stmt->bind_param('si', $token, $playerId);
+        $stmt->bind_param('ssi', $hash, $ip, $playerId);
         $stmt->execute();
         $stmt->close();
 
@@ -108,15 +114,17 @@ class TokenRepo {
         $token = $_COOKIE[self::COOKIE_PLAYER] ?? null;
         if (!$token) return null;
 
+        $hash = hash('sha256', $token);
+        $ip   = $_SERVER['REMOTE_ADDR'] ?? '';
         $stmt = $this->conn->prepare(
             "SELECT t.player_id, p.username, r.code_player AS room_code
              FROM auth_tokens t
              JOIN players p ON p.id = t.player_id
              JOIN rooms r ON r.id = p.room_id
-             WHERE t.token = ? AND t.auth_role = 'player'
+             WHERE t.token_hash = ? AND t.ip_address = ? AND t.auth_role = 'player'
                AND t.created_at > NOW() - INTERVAL " . self::TTL . " SECOND"
         );
-        $stmt->bind_param('s', $token);
+        $stmt->bind_param('ss', $hash, $ip);
         $stmt->execute();
         $row = $stmt->get_result()->fetch_assoc();
         $stmt->close();
@@ -150,10 +158,12 @@ class TokenRepo {
         $stmt->close();
 
         $token = $this->generateToken();
+        $hash  = hash('sha256', $token);
+        $ip    = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
         $stmt  = $this->conn->prepare(
-            "INSERT INTO auth_tokens (token, auth_role, judge_id) VALUES (?, 'judge', ?)"
+            "INSERT INTO auth_tokens (token_hash, auth_role, ip_address, judge_id) VALUES (?, 'judge', ?, ?)"
         );
-        $stmt->bind_param('si', $token, $judgeId);
+        $stmt->bind_param('ssi', $hash, $ip, $judgeId);
         $stmt->execute();
         $stmt->close();
 
@@ -167,15 +177,17 @@ class TokenRepo {
         $token = $_COOKIE[self::COOKIE_JUDGE] ?? null;
         if (!$token) return null;
 
+        $hash = hash('sha256', $token);
+        $ip   = $_SERVER['REMOTE_ADDR'] ?? '';
         $stmt = $this->conn->prepare(
             "SELECT t.judge_id, r.code_judge AS room_code, r.id AS room_id
              FROM auth_tokens t
              JOIN judges j ON j.id = t.judge_id
              JOIN rooms r ON r.id = j.room_id
-             WHERE t.token = ? AND t.auth_role = 'judge'
+             WHERE t.token_hash = ? AND t.ip_address = ? AND t.auth_role = 'judge'
                AND t.created_at > NOW() - INTERVAL " . self::TTL . " SECOND"
         );
-        $stmt->bind_param('s', $token);
+        $stmt->bind_param('ss', $hash, $ip);
         $stmt->execute();
         $row = $stmt->get_result()->fetch_assoc();
         $stmt->close();
@@ -223,8 +235,9 @@ class TokenRepo {
     private function clearTokenByCookie(string $cookieName): void {
         $token = $_COOKIE[$cookieName] ?? null;
         if ($token) {
-            $stmt = $this->conn->prepare("DELETE FROM auth_tokens WHERE token = ?");
-            $stmt->bind_param('s', $token);
+            $hash = hash('sha256', $token);
+            $stmt = $this->conn->prepare("DELETE FROM auth_tokens WHERE token_hash = ?");
+            $stmt->bind_param('s', $hash);
             $stmt->execute();
             $stmt->close();
         }

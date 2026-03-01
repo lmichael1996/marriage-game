@@ -1,1 +1,1 @@
-cd /home/mich/Software/marriage-game/database && sudo mariadb -e "DROP DATABASE IF EXISTS marriage_game;" && sudo mariadb < 01_database.sql && sudo mariadb marriage_game < 02_default_data.sql && sudo mariadb marriage_game < 03_test_data.sql && cd ..
+sudo mariadb -e "DROP DATABASE IF EXISTS marriage_game;" && sudo mariadb < database/01_database.sql && sudo mariadb marriage_game < database/02_default_data.sql && sudo mariadb marriage_game < database/03_test_data.sql

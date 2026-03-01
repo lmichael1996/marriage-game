@@ -122,8 +122,9 @@ CREATE TABLE IF NOT EXISTS winners (
 
 CREATE TABLE IF NOT EXISTS auth_tokens (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    token VARCHAR(64) UNIQUE NOT NULL,
+    token_hash VARCHAR(64) UNIQUE NOT NULL,
     auth_role ENUM('admin', 'player', 'judge') NOT NULL,
+    ip_address VARCHAR(45) NOT NULL,
     user_id INT DEFAULT NULL,
     player_id INT DEFAULT NULL,
     judge_id INT DEFAULT NULL,
@@ -131,6 +132,14 @@ CREATE TABLE IF NOT EXISTS auth_tokens (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
     FOREIGN KEY (judge_id) REFERENCES judges(id) ON DELETE CASCADE,
+    -- Un solo token attivo per utente/ruolo
+    UNIQUE (auth_role, user_id),
+    UNIQUE (auth_role, player_id),
+    UNIQUE (auth_role, judge_id),
+    -- Indice per query di pulizia TTL
+    INDEX idx_created_at (created_at),
+    -- Hash SHA-256 = esattamente 64 caratteri hex
+    CHECK (CHAR_LENGTH(token_hash) = 64),
     -- Ogni ruolo deve avere esattamente il suo ID valorizzato
     CHECK (
         auth_role != 'admin'
