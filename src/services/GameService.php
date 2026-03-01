@@ -5,6 +5,7 @@ require_once __DIR__ . '/../repository/SettingsRepo.php';
 require_once __DIR__ . '/../repository/PlayerRepo.php';
 require_once __DIR__ . '/../repository/RoomRepo.php';
 require_once __DIR__ . '/QuestionService.php';
+require_once __DIR__ . '/TokenService.php';
 
 /**
  * GameService - Gestisce la logica di business del gioco
@@ -42,9 +43,10 @@ class GameService {
                 @session_start();
             }
 
-            // Use roomCode from param or from session
-            if (!$roomCode && isset($_SESSION['room_code'])) {
-                $roomCode = $_SESSION['room_code'];
+            // Use roomCode from param or from cookie/session
+            if (!$roomCode) {
+                $player = TokenService::getPlayer();
+                $roomCode = $player['room_code'] ?? ($_SESSION['code_player'] ?? null);
             }
 
             if (!$roomCode) {
@@ -116,7 +118,8 @@ class GameService {
             @session_start();
         }
 
-        $roomCode = $_SESSION['room_code'] ?? null;
+        $player = TokenService::getPlayer();
+        $roomCode = $player['room_code'] ?? ($_SESSION['code_player'] ?? null);
 
         if (!$roomCode) {
             return null;
@@ -155,7 +158,8 @@ class GameService {
             if (session_status() === PHP_SESSION_NONE) {
                 @session_start();
             }
-            $roomCode = $_SESSION['room_code'] ?? null;
+            $player = TokenService::getPlayer();
+            $roomCode = $player['room_code'] ?? ($_SESSION['code_player'] ?? null);
             if ($roomCode) {
                 unset($_SESSION['active_round_' . $roomCode]);
                 // Clear from file as well
@@ -270,7 +274,8 @@ class GameService {
             @session_start();
         }
 
-        $roomCode = $_SESSION['room_code'] ?? null;
+        $player = TokenService::getPlayer();
+        $roomCode = $player['room_code'] ?? ($_SESSION['code_player'] ?? null);
 
         if (!$roomCode) {
             throw new Exception('Room code non trovato nella sessione');
@@ -334,7 +339,8 @@ class GameService {
             @session_start();
         }
 
-        $playerId = $_SESSION['player_id'] ?? null;
+        $player = TokenService::getPlayer();
+        $playerId = $player['player_id'] ?? null;
 
         if (!$playerId) {
             throw new Exception('Player ID non trovato nella sessione');
@@ -422,8 +428,9 @@ class GameService {
      * Get final leaderboard for a room
      */
     public function getFinalLeaderboard($roomCode = null) {
-        if (!$roomCode && isset($_SESSION['room_code'])) {
-            $roomCode = $_SESSION['room_code'];
+        if (!$roomCode) {
+            $player = TokenService::getPlayer();
+            $roomCode = $player['room_code'] ?? ($_SESSION['code_player'] ?? null);
         }
 
         if (!$roomCode) {

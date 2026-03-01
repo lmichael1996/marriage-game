@@ -12,7 +12,7 @@ $admin = new AdminService();
 $questionService = new QuestionService();
 
 // Get room info
-$roomCode = $_SESSION['room_code'] ?? null;
+$roomCode = authRoomCode();
 $questionSetId = null;
 
 if ($roomCode) {

@@ -306,14 +306,13 @@ function handleDeleteRoom() {
 function handleCloseRoom() {
     requireAdminJson();
     try {
-        $roomCode = $_SESSION['room_code'] ?? $_GET['room_code'] ?? null;
+        $roomCode = authRoomCode() ?? $_GET['room_code'] ?? null;
         if (!$roomCode) throw new Exception('Codice stanza mancante');
 
         $room = svc('room');
         if (!$room->getRoomDetails($roomCode)) throw new Exception('Stanza non trovata');
 
         $room->deletePlayersByRoom($roomCode);
-        unset($_SESSION['room_code']);
         respond(['success' => true, 'message' => 'Stanza chiusa']);
     } catch (Exception $e) {
         respondError($e->getMessage(), 500);
@@ -323,7 +322,7 @@ function handleCloseRoom() {
 function handleFinishGame() {
     requireLoginJson();
     try {
-        $roomCode = input()['code_player'] ?? $_SESSION['room_code'] ?? null;
+        $roomCode = input()['code_player'] ?? authRoomCode() ?? null;
         if (!$roomCode) throw new Exception('Codice stanza mancante');
 
         $room = svc('room');
@@ -366,7 +365,7 @@ function handleGame($action) {
 
 function handleGetGameState() {
     try {
-        $roomCode = $_SESSION['room_code'] ?? null;
+        $roomCode = authRoomCode();
         if (!$roomCode) respond(['success' => false]);
 
         $room = svc('room');
@@ -401,7 +400,7 @@ function handleStartRound() {
     if (!$questionId && $_SERVER['REQUEST_METHOD'] === 'POST') $questionId = input()['question_id'] ?? 0;
     if (!$questionId) respondError('Question ID required');
 
-    $roomCode = $_SESSION['room_code'] ?? null;
+    $roomCode = authRoomCode();
     if (!$roomCode) respondError('Room code not found');
 
     try { respond(svc('game')->startRound($questionId, $roomCode)); }
@@ -419,7 +418,7 @@ function handleCloseRound() {
 
 function handleMarkWinner() {
     try {
-        $roomCode = $_SESSION['room_code'] ?? null;
+        $roomCode = authRoomCode();
         if (!$roomCode) respondError('Room code not found');
 
         $roomData = svc('room')->getRoomDetails($roomCode);
@@ -434,7 +433,7 @@ function handleMarkWinner() {
 
 function handleCheckWinner() {
     try {
-        $roomCode = $_SESSION['room_code'] ?? null;
+        $roomCode = authRoomCode();
         $fail = ['success' => false, 'is_winner' => false];
         if (!$roomCode) respond($fail);
 
@@ -442,7 +441,7 @@ function handleCheckWinner() {
         $roomData = $room->getRoomDetails($roomCode);
         if (!$roomData) respond($fail);
 
-        $username = $_SESSION['username'] ?? null;
+        $username = authUsername();
         if (!$username) respond($fail);
 
         $player = $room->getPlayerByRoomAndUsername($roomData['id'], $username);
@@ -474,7 +473,7 @@ function handleResetGame() {
 
 function handleLeaderboard() {
     requireLoginJson();
-    respond(svc('game')->getLeaderboard($_SESSION['room_code'] ?? $_GET['room_code'] ?? null));
+    respond(svc('game')->getLeaderboard(authRoomCode() ?? $_GET['room_code'] ?? null));
 }
 
 function handleRoundAnswers() {
@@ -486,7 +485,7 @@ function handleRoundAnswers() {
 
 function handleFinalLeaderboard() {
     requireLoginJson();
-    $roomCode = $_SESSION['room_code'] ?? null;
+    $roomCode = authRoomCode();
     if (!$roomCode) respond(['success' => false, 'leaderboard' => []]);
     respond(svc('game')->getFinalLeaderboard($roomCode));
 }
@@ -711,7 +710,7 @@ function handleMoveQuestionDown() {
 
 function handleIncrementCounter() {
     requireLoginJson();
-    $roomCode = $_SESSION['room_code'] ?? null;
+    $roomCode = authRoomCode();
     if (!$roomCode) respondError('Nessuna stanza attiva');
 
     $counterKey = 'round_counter_' . $roomCode;

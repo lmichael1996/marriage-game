@@ -17,3 +17,6 @@ Thumbs.db
 # Composer
 vendor/
 composer.lock
+
+# Secret key (HMAC auth)
+.secret_key

@@ -12,7 +12,7 @@
 
             <div class="form-group">
                 <label for="admin-username">Username:</label>
-                <input type="text" id="admin-username" name="admin_username" value="<?php echo htmlspecialchars($_SESSION['username'] ?? 'admin'); ?>">
+                <input type="text" id="admin-username" name="admin_username" value="<?php echo htmlspecialchars(authUsername() ?? 'admin'); ?>">
                 <small>Username per accedere al pannello amministratore</small>
             </div>
 

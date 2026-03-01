@@ -29,12 +29,13 @@ function handleCredentials(): void {
     $tab = isset($_POST['admin_new_password']) ? 'general' : 'settings';
     try {
         $result = svc('admin')->updateCredentials(
-            $_SESSION['user_id'],
+            authUserId(),
             $_POST['new_username'] ?? $_POST['admin_username'] ?? '',
             $_POST['new_password'] ?? $_POST['admin_new_password'] ?? null,
             $_POST['confirm_password'] ?? $_POST['admin_confirm_password'] ?? null
         );
-        $_SESSION['username'] = $result['username'];
+        // Aggiorna il cookie admin con il nuovo username
+        TokenService::setAdminCookie(authUserId(), $result['username']);
         redirect($tab, 'credentials_updated');
     } catch (Exception $e) {
         redirect($tab, null, $e->getMessage());
@@ -261,6 +262,13 @@ function loadRoomAdmin(): array {
     }
 
     $gameOver = !$question;
+
+    // Se non ci sono più domande e la stanza è ancora 'running', chiudila
+    if ($gameOver && ($room['status_room'] ?? '') === 'running') {
+        svc('room')->finishGame($roomId);
+        // Aggiorna il dato locale per coerenza
+        $room['status_room'] = 'closed';
+    }
 
     // Info stanza (cached in sessione)
     $roomInfoKey = 'room_info_' . $roomId;

@@ -164,11 +164,13 @@ class AnswerRepo {
                 ];
             }
 
-            // If no room code, get leaderboard for current session room
+            // If no room code, get leaderboard for current session/cookie room
             if (session_status() === PHP_SESSION_NONE) {
                 @session_start();
             }
-            $roomCode = $_SESSION['code_player'] ?? null;
+            require_once __DIR__ . '/../services/TokenService.php';
+            $player = TokenService::getPlayer();
+            $roomCode = $player['room_code'] ?? ($_SESSION['code_player'] ?? null);
 
             if (!$roomCode) {
                 return [

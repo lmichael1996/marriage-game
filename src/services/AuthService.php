@@ -2,10 +2,11 @@
 require_once __DIR__ . '/../repository/UserRepo.php';
 require_once __DIR__ . '/../repository/PlayerRepo.php';
 require_once __DIR__ . '/../repository/RoomRepo.php';
+require_once __DIR__ . '/TokenService.php';
 
 /**
  * Auth - Gestisce la logica di autenticazione
- * Restituisce true/false o lancia eccezioni, il controller gestisce gli errori
+ * Setta cookie HMAC firmati per identità, sessione PHP solo per stato UI.
  */
 class AuthService {
     private $userRepo;
@@ -30,10 +31,8 @@ class AuthService {
             throw new Exception('Username o password non validi');
         }
 
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['username'] = $user['username'];
-        $_SESSION['is_admin'] = 1;
-        $_SESSION['logged_in_via_login'] = true;
+        // Cookie HMAC per identità admin
+        TokenService::setAdminCookie((int)$user['id'], $user['username']);
 
         return 'admin';
     }
@@ -90,20 +89,21 @@ class AuthService {
             throw new Exception('Errore durante la creazione del giocatore');
         }
 
-        $_SESSION['player_id'] = $playerId;
-        $_SESSION['username'] = $username;
-        $_SESSION['room_code'] = $roomCode;
-        $_SESSION['logged_in_via_login'] = true;
+        // Cookie HMAC per identità player
+        TokenService::setPlayerCookie($playerId, $username, $roomCode);
 
         return 'player';
     }
 
     /**
-     * Logout
+     * Logout — cancella cookie auth + distrugge sessione
      * @return bool true on success
      */
     public function logout() {
-        session_destroy();
+        TokenService::clearAll();
+        if (session_status() !== PHP_SESSION_NONE) {
+            session_destroy();
+        }
         return true;
     }
 }
