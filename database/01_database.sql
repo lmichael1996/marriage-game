@@ -130,7 +130,32 @@ CREATE TABLE IF NOT EXISTS auth_tokens (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
-    FOREIGN KEY (judge_id) REFERENCES judges(id) ON DELETE CASCADE
+    FOREIGN KEY (judge_id) REFERENCES judges(id) ON DELETE CASCADE,
+    -- Ogni ruolo deve avere esattamente il suo ID valorizzato
+    CHECK (
+        auth_role != 'admin'
+        OR (
+            user_id IS NOT NULL
+            AND player_id IS NULL
+            AND judge_id IS NULL
+        )
+    ),
+    CHECK (
+        auth_role != 'player'
+        OR (
+            player_id IS NOT NULL
+            AND user_id IS NULL
+            AND judge_id IS NULL
+        )
+    ),
+    CHECK (
+        auth_role != 'judge'
+        OR (
+            judge_id IS NOT NULL
+            AND user_id IS NULL
+            AND player_id IS NULL
+        )
+    )
 );
 
 -- Evento MySQL: Cancella i token di autenticazione scaduti (più vecchi di 24 ore)
