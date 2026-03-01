@@ -1,6 +1,5 @@
 <?php
-require_once __DIR__ . '/../../assets/vendor/autoload.php';
-require_once __DIR__ . '/../../assets/vendor/tecnickcom/tcpdf/tcpdf.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 class PDFGenerator {
     private $pdf;

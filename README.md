@@ -5,7 +5,7 @@ Un gioco interattivo con sistema di login, pannello admin e interfaccia giocator
 ## 🎯 Caratteristiche
 
 - **Sistema di Login**: Autenticazione per admin e giocatori
-- **Pannello Admin**: 
+- **Pannello Admin**:
   - Creazione e gestione round
   - Impostazione risposta corretta (4 opzioni)
   - Avvio e chiusura round in tempo reale
@@ -56,8 +56,15 @@ marriage-game/
 
 1. **Clona o copia i file** nella directory del web server
 
-2. **Configura il database**:
+2. **Installa le dipendenze PHP**:
+
+   ```bash
+   composer install
+   ```
+
+3. **Configura il database**:
    - Apri `src/config/database.php` e modifica le credenziali se necessario:
+
    ```php
    define('DB_HOST', 'localhost');
    define('DB_USER', 'root');
@@ -65,41 +72,46 @@ marriage-game/
    define('DB_NAME', 'marriage_game');
    ```
 
-3. **Importa il database**:
+4. **Importa il database**:
+
    ```bash
    mysql -u root -p < database.sql
    ```
-   
+
    Oppure tramite phpMyAdmin, importa il file `database.sql`
 
-4. **Configura il web server**:
-   
+5. **Configura il web server**:
+
    **Apache (.htaccess già incluso nella root):**
+
    ```apache
    RewriteEngine On
    RewriteCond %{REQUEST_FILENAME} !-f
    RewriteCond %{REQUEST_FILENAME} !-d
    RewriteRule ^(.*)$ public/$1 [L]
    ```
-   
+
    **Nginx:**
+
    ```nginx
    location / {
        try_files $uri $uri/ /public/$uri /public/index.php?$args;
    }
    ```
-   
+
    **PHP Built-in Server:**
+
    ```bash
    php -S localhost:8000
    ```
 
-5. **Accedi all'applicazione**:
+6. **Accedi all'applicazione**:
    - Apri il browser su `http://localhost:8000`
 
 ## 🔑 Credenziali di Default
 
 **Admin:**
+
 - Username: `admin`
 - Password: `admin123`
 
@@ -142,9 +154,11 @@ marriage-game/
 ## 🔌 API Endpoints
 
 ### `src/api/game.php`
+
 - `GET ?action=get_game_state` - Ottiene lo stato corrente del gioco
 
 ### `src/api/answer.php`
+
 - `POST ?action=submit` - Invia risposta giocatore
   ```json
   {
@@ -155,6 +169,7 @@ marriage-game/
   ```
 
 ### `src/api/leaderboard.php`
+
 - `GET` - Ottiene classifica giocatori
 
 ## 🗄️ Database
@@ -192,19 +207,23 @@ Il database include le seguenti tabelle:
 ## 🐛 Troubleshooting
 
 **Errore di connessione al database:**
+
 - Verifica le credenziali in `src/config/database.php`
 - Assicurati che MySQL sia in esecuzione
 - Controlla che il database `marriage_game` sia stato creato
 
 **Errori 404 sulle API:**
+
 - Verifica i path relativi nelle chiamate fetch
 - Controlla la configurazione del web server
 
 **Il timer non funziona:**
+
 - Verifica che JavaScript sia abilitato nel browser
 - Controlla la console del browser per errori
 
 **I giocatori non vedono il round attivo:**
+
 - Verifica che l'admin abbia cliccato "Avvia Round"
 - Controlla che il round non sia già scaduto (>10 secondi)
 - Verifica le chiamate API nella console del browser

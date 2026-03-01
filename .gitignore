@@ -13,3 +13,7 @@ Thumbs.db
 *.tmp
 *.swp
 *~
+
+# Composer
+vendor/
+composer.lock

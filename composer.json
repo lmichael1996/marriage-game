@@ -1,0 +1,9 @@
+{
+  "name": "lmichael1996/marriage-game",
+  "description": "Gioco interattivo a quiz con pannello admin e interfaccia giocatore",
+  "type": "project",
+  "require": {
+    "php": ">=7.4",
+    "tecnickcom/tcpdf": "^6.7"
+  }
+}

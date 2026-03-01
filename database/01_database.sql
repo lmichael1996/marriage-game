@@ -132,5 +132,8 @@ UPDATE
 SET
     status_room = 'cancelled'
 WHERE
-    status_room = 'open'
+    (
+        status_room = 'open'
+        OR status_room = 'running'
+    )
     AND TIMESTAMPDIFF(HOUR, created_at, NOW()) >= 24;
