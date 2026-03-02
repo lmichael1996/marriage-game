@@ -75,8 +75,7 @@ class AuthService {
         }
 
         // Verifica se la stanza ha già un vincitore (partita terminata)
-        $winner = $this->roomRepo->getWinner($roomExists['id']);
-        if ($winner) {
+        if ($roomExists['winner_id'] !== null) {
             throw new Exception('La partita in questa stanza è già terminata');
         }
 

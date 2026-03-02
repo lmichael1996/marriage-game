@@ -454,12 +454,22 @@ requirePlayer();
             fetch('../src/api/api.php?endpoint=check_room_status')
                 .then(response => response.json())
                 .then(data => {
-                    // Se la room è chiusa (partita finita), mostra vincitore/perdente
+                    // Se la room è chiusa (partita finita), chiedi is_winner via get_game_state
                     if (data.status === 'closed') {
                         gameEnded = true;
                         clearInterval(checkGameStateInterval);
                         clearInterval(checkRoomStatusInterval);
-                        checkWinnerStatus();
+                        // Usa get_game_state che ritorna is_winner direttamente
+                        fetch('../src/api/api.php?endpoint=game&action=get_game_state&counter=' + currentRoundCounter)
+                            .then(r => r.json())
+                            .then(d => {
+                                if (d.is_winner !== undefined) {
+                                    showFinalResult(d.is_winner);
+                                } else {
+                                    checkWinnerStatus();
+                                }
+                            })
+                            .catch(() => checkWinnerStatus());
                         return;
                     }
                     // Se la room è cancellata dall'admin, mostra schermata annullamento
@@ -483,11 +493,15 @@ requirePlayer();
 
                     // Verifica se la partita è terminata (room closed o vincitore)
                     if (data.game_finished || data.status_room === 'closed') {
-                        console.log("Game finished detected (status_room=closed), checking winner");
+                        console.log("Game finished detected, is_winner:", data.is_winner);
                         gameEnded = true;
                         clearInterval(checkGameStateInterval);
                         clearInterval(checkRoomStatusInterval);
-                        checkWinnerStatus();
+                        if (data.is_winner !== undefined) {
+                            showFinalResult(data.is_winner);
+                        } else {
+                            checkWinnerStatus();
+                        }
                         return;
                     }
 

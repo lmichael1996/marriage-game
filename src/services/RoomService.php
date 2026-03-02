@@ -139,13 +139,7 @@ class RoomService {
         }
 
         // Controlla se la stanza ha già un vincitore (partita finita)
-        $winner = $this->roomRepo->getWinner($room['id']);
-        if ($winner) {
-            $room['has_winner'] = true;
-            $room['winner'] = $winner;
-        } else {
-            $room['has_winner'] = false;
-        }
+        $room['has_winner'] = $room['winner_id'] !== null;
 
         $room['players'] = $this->playerRepo->getPlayersByRoomId($room['id']);
         $room['player_count'] = count($room['players'] ?? []);
@@ -212,18 +206,15 @@ class RoomService {
         }
 
         // Insert winner record
-        return $this->roomRepo->insertWinner($roomId, $winnerId);
+        return $this->roomRepo->setWinner($roomId, $winnerId);
     }
 
     /**
      * Check if a player is the winner
      */
     public function isWinner($roomId, $playerId) {
-        $winner = $this->roomRepo->getWinner($roomId);
-        if ($winner && $winner['user_id'] == $playerId) {
-            return true;
-        }
-        return false;
+        $winnerId = $this->roomRepo->getWinnerId($roomId);
+        return $winnerId !== null && $winnerId == $playerId;
     }
 
     /**

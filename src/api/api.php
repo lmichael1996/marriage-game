@@ -342,13 +342,29 @@ function handleGetGameState() {
 
         $statusRoom = $roomData['status_room'] ?? null;
 
-        // Se la room è chiusa o cancellata, comunicalo subito al player
+        // Se la room è chiusa o cancellata, comunicalo subito al player con is_winner
         if ($statusRoom === 'closed' || ($roomData['has_winner'] ?? false)) {
+            // Se non c'è ancora un vincitore, marcalo ora
+            if (!($roomData['has_winner'] ?? false)) {
+                $room->markWinner($roomData['id']);
+                $roomData = $room->getRoomDetails($roomCode);
+            }
+
+            $isWinner = false;
+            $username = authUsername();
+            if ($username) {
+                $player = $room->getPlayerByRoomAndUsername($roomData['id'], $username);
+                if ($player) {
+                    $isWinner = $room->isWinner($roomData['id'], $player['id']);
+                }
+            }
+
             respond([
                 'success'       => false,
                 'game_finished' => true,
                 'status_room'   => $statusRoom,
-                'winner'        => $roomData['winner'] ?? null,
+                'is_winner'     => $isWinner,
+                'winner_id'     => $roomData['winner_id'] ?? null,
             ]);
         }
 
@@ -428,7 +444,7 @@ function handleCheckWinner() {
         $isWinner = $room->isWinner($roomData['id'], $player['id']);
 
         if ($roomData['has_winner'] ?? false) {
-            respond(['success' => true, 'game_finished' => true, 'is_winner' => $isWinner, 'winner' => $roomData['winner'] ?? null]);
+            respond(['success' => true, 'game_finished' => true, 'is_winner' => $isWinner, 'winner_id' => $roomData['winner_id'] ?? null]);
         }
         respond(['success' => true, 'is_winner' => $isWinner]);
     } catch (Exception $e) {

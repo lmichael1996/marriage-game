@@ -204,22 +204,13 @@ class RoomRepo {
     }
 
     /**
-     * Insert winner record
+     * Set winner_id on room
      */
-    public function insertWinner($roomId, $playerId) {
+    public function setWinner($roomId, $playerId) {
         $stmt = $this->conn->prepare("
-            INSERT INTO winners (room_id, user_id)
-            VALUES (?, ?)
-            ON DUPLICATE KEY UPDATE user_id = VALUES(user_id)
+            UPDATE rooms SET winner_id = ? WHERE id = ?
         ");
-
-        // Support both integer and null for playerId
-        if ($playerId === null) {
-            $stmt->bind_param("is", $roomId, $playerId);
-        } else {
-            $stmt->bind_param("ii", $roomId, $playerId);
-        }
-
+        $stmt->bind_param("ii", $playerId, $roomId);
         $success = $stmt->execute();
         $stmt->close();
 
@@ -227,21 +218,19 @@ class RoomRepo {
     }
 
     /**
-     * Get winner for a room
+     * Get winner_id for a room (returns player_id or null)
      */
-    public function getWinner($roomId) {
+    public function getWinnerId($roomId) {
         $stmt = $this->conn->prepare("
-            SELECT id, room_id, user_id
-            FROM winners
-            WHERE room_id = ?
+            SELECT winner_id FROM rooms WHERE id = ?
         ");
         $stmt->bind_param("i", $roomId);
         $stmt->execute();
         $result = $stmt->get_result();
-        $winner = $result->fetch_assoc();
+        $room = $result->fetch_assoc();
         $stmt->close();
 
-        return $winner;
+        return $room ? $room['winner_id'] : null;
     }
 
     public function __destruct() {

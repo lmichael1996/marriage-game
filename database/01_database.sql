@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS rooms (
     qr_uri_judge LONGTEXT DEFAULT NULL,
     status_room ENUM('open', 'running', 'closed', 'cancelled') DEFAULT 'open',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    winner_id INT DEFAULT NULL,
     FOREIGN KEY (qset_id) REFERENCES qsets(id) ON DELETE CASCADE
 );
 
@@ -83,6 +84,14 @@ CREATE TABLE IF NOT EXISTS players (
     FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
     UNIQUE (username, room_id)
 );
+
+-- FK aggiunta dopo players per risolvere dipendenza circolare
+ALTER TABLE
+    rooms
+ADD
+    FOREIGN KEY (winner_id) REFERENCES players(id) ON DELETE
+SET
+    NULL;
 
 CREATE TABLE IF NOT EXISTS judges (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -110,14 +119,6 @@ CREATE TABLE IF NOT EXISTS player_answers (
     FOREIGN KEY (round_id) REFERENCES rounds(id) ON DELETE CASCADE,
     FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
     UNIQUE (round_id, player_id)
-);
-
-CREATE TABLE IF NOT EXISTS winners (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    room_id INT UNIQUE NOT NULL,
-    user_id INT NOT NULL,
-    FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES players(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS auth_tokens (

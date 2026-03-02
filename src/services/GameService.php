@@ -267,7 +267,7 @@ class GameService {
                 if ($first) {
                     $player = $this->playerRepo->getPlayerByRoomAndUsername($room['id'], $username);
                     if ($player) {
-                        $this->roomRepo->insertWinner($room['id'], $player['id']);
+                        $this->roomRepo->setWinner($room['id'], $player['id']);
                     }
                     $first = false;
                 }
