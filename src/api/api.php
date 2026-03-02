@@ -351,12 +351,9 @@ function handleGetGameState() {
             }
 
             $isWinner = false;
-            $username = authUsername();
-            if ($username) {
-                $player = $room->getPlayerByRoomAndUsername($roomData['id'], $username);
-                if ($player) {
-                    $isWinner = $room->isWinner($roomData['id'], $player['id']);
-                }
+            $playerId = authPlayerId();
+            if ($playerId) {
+                $isWinner = $room->isWinner($roomData['id'], $playerId);
             }
 
             respond([
@@ -435,13 +432,10 @@ function handleCheckWinner() {
             $roomData = $room->getRoomDetails($roomCode);
         }
 
-        $username = authUsername();
-        if (!$username) respond($fail);
+        $playerId = authPlayerId();
+        if (!$playerId) respond($fail);
 
-        $player = $room->getPlayerByRoomAndUsername($roomData['id'], $username);
-        if (!$player) respond($fail);
-
-        $isWinner = $room->isWinner($roomData['id'], $player['id']);
+        $isWinner = $room->isWinner($roomData['id'], $playerId);
 
         if ($roomData['has_winner'] ?? false) {
             respond(['success' => true, 'game_finished' => true, 'is_winner' => $isWinner, 'winner_id' => $roomData['winner_id'] ?? null]);
