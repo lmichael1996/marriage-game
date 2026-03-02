@@ -217,37 +217,18 @@ class GameService {
                 }
             }
 
-            // Default scoring
-            $scoreMap = [
-                'clickfirst' => [1 => 50],
-                'multiple'   => [1 => 25, 2 => 18, 3 => 15, 4 => 12, 5 => 10, 6 => 8, 7 => 6, 8 => 4, 9 => 2, 10 => 1],
-                'truefalse'  => [1 => 20, 2 => 15, 3 => 12, 4 => 10, 5 => 8, 6 => 6, 7 => 5, 8 => 3, 9 => 2, 10 => 1]
-            ];
-
+            // Sum points from saved ranking JSON
             $playerScores = [];
-
             foreach ($latestRounds as $round) {
-                $topAnswers = $this->answerRepo->getTopFastestAnswers($round['id'], 10);
-                $roundType = $round['round_type'] ?? 'multiple';
-
-                $ranking = [];
-                foreach ($topAnswers as $index => $answer) {
-                    $username = $answer['username'];
-                    $position = $index + 1;
-                    $points = $scoreMap[$roundType][$position] ?? 0;
-
-                    $playerScores[$username] = ($playerScores[$username] ?? 0) + $points;
-
-                    $ranking[] = [
-                        'position'    => $position,
-                        'username'    => $username,
-                        'player_id'   => (int)$answer['player_id'],
-                        'answer_time' => (float)$answer['answer_time'],
-                        'points'      => $points
-                    ];
+                $ranking = json_decode($round['ranking'] ?? '[]', true);
+                if (!is_array($ranking)) continue;
+                foreach ($ranking as $entry) {
+                    $username = $entry['username'] ?? null;
+                    $points   = $entry['points'] ?? 0;
+                    if ($username) {
+                        $playerScores[$username] = ($playerScores[$username] ?? 0) + $points;
+                    }
                 }
-
-                $this->roundRepo->saveRanking($round['id'], $ranking);
             }
 
             arsort($playerScores);
