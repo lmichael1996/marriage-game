@@ -534,7 +534,13 @@ if ($room['has_winner'] ?? false) {
                         }
 
                         if (roundId) {
-                            loadRoundAnswers(roundId);
+                            // Close round (saves ranking) and show answers
+                            fetch('../src/api/api.php?endpoint=game&action=close_round', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ round_id: roundId })
+                            }).then(() => loadRoundAnswers(roundId))
+                              .catch(() => loadRoundAnswers(roundId));
                         }
 
                         if (nextBtn) {
@@ -561,19 +567,7 @@ if ($room['has_winner'] ?? false) {
         }
 
         function nextQuestion() {
-            if (!activeRoundId) {
-                proceedToNextQuestion();
-                return;
-            }
-            // Close current round (saves ranking JSON) then advance
-            fetch('../src/api/api.php?endpoint=game&action=close_round', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ round_id: activeRoundId })
-            })
-            .then(r => r.json())
-            .then(() => proceedToNextQuestion())
-            .catch(() => proceedToNextQuestion());
+            proceedToNextQuestion();
         }
 
         function proceedToNextQuestion() {
@@ -593,7 +587,7 @@ if ($room['has_winner'] ?? false) {
         }
 
         function loadFinalLeaderboard() {
-            fetch('../src/api/api.php?endpoint=final_leaderboard')
+            fetch('../src/api/api.php?endpoint=final_leaderboard&room_id=' + roomId)
                 .then((r) => r.json())
                 .then((data) => {
                     if (data.success && data.leaderboard?.length > 0) {

@@ -440,18 +440,21 @@ class GameService {
     /**
      * Get final leaderboard for a room
      */
-    public function getFinalLeaderboard($roomCode = null) {
-        if (!$roomCode) {
-            $player = svc('auth')->getPlayer();
-            $roomCode = $player['room_code'] ?? ($_SESSION['code_player'] ?? null);
-        }
-
-        if (!$roomCode) {
-            return ['success' => false, 'leaderboard' => []];
+    public function getFinalLeaderboard($roomCode = null, $roomId = null) {
+        if (!$roomId) {
+            if (!$roomCode) {
+                $player = svc('auth')->getPlayer();
+                $roomCode = $player['room_code'] ?? ($_SESSION['code_player'] ?? null);
+            }
+            if (!$roomCode) {
+                return ['success' => false, 'leaderboard' => []];
+            }
+            $room = $this->getRoomByCode($roomCode);
+        } else {
+            $room = $this->roomRepo->getRoomById($roomId);
         }
 
         try {
-            $room = $this->getRoomByCode($roomCode);
             if (!$room) {
                 return ['success' => false, 'leaderboard' => []];
             }
@@ -487,6 +490,7 @@ class GameService {
                 $topAnswers = $this->answerRepo->getTopFastestAnswers($round['id'], 10);
                 $roundType = $round['round_type'] ?? 'multiple';
 
+                $ranking = [];
                 foreach ($topAnswers as $index => $answer) {
                     $username = $answer['username'];
                     $position = $index + 1;
@@ -496,7 +500,18 @@ class GameService {
                         $playerScores[$username] = 0;
                     }
                     $playerScores[$username] += $points;
+
+                    $ranking[] = [
+                        'position'    => $position,
+                        'username'    => $username,
+                        'player_id'   => (int)$answer['player_id'],
+                        'answer_time' => (float)$answer['answer_time'],
+                        'points'      => $points
+                    ];
                 }
+
+                // Save per-round ranking JSON
+                $this->roundRepo->saveRanking($round['id'], $ranking);
             }
 
             arsort($playerScores);

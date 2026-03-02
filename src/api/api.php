@@ -528,9 +528,10 @@ function handleRoundAnswers() {
 
 function handleFinalLeaderboard() {
     requireLoginJson();
-    $roomCode = authRoomCode();
-    if (!$roomCode) respond(['success' => false, 'leaderboard' => []]);
-    respond(svc('game')->getFinalLeaderboard($roomCode));
+    $roomId   = $_GET['room_id'] ?? null;
+    $roomCode = $_GET['room_code'] ?? authRoomCode();
+    if (!$roomId && !$roomCode) respond(['success' => false, 'leaderboard' => []]);
+    respond(svc('game')->getFinalLeaderboard($roomCode, $roomId));
 }
 
 // ── Questions ────────────────────────────────────────────────────────────
