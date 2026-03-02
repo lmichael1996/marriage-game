@@ -34,8 +34,8 @@ function handleCredentials(): void {
             $_POST['new_password'] ?? $_POST['admin_new_password'] ?? null,
             $_POST['confirm_password'] ?? $_POST['admin_confirm_password'] ?? null
         );
-        // Aggiorna il cookie admin con il nuovo username
-        svc('auth')->setAdminCookie(authUserId(), $result['username']);
+        // Aggiorna la sessione admin con il nuovo username
+        svc('auth')->updateAdminSession(authUserId(), $result['username']);
         redirect($tab, 'credentials_updated');
     } catch (Exception $e) {
         redirect($tab, null, $e->getMessage());
