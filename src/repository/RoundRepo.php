@@ -179,60 +179,6 @@ class RoundRepo {
     }
 
     /**
-     * Delete all rounds for a room (used when advancing to next question)
-     */
-    public function deleteRoundByRoom($room_id) {
-        $stmt = $this->conn->prepare("
-            DELETE FROM rounds WHERE room_id = ?
-        ");
-        $stmt->bind_param("i", $room_id);
-        $success = $stmt->execute();
-        $stmt->close();
-        return $success;
-    }
-
-    /**
-     * Delete the most recent (active) round for a room
-     * Used when admin clicks "Prossima Domanda" to clear the current round before advancing
-     */
-    public function deleteActiveRound($room_id) {
-        // Find the ID of the most recent round and delete it
-        $stmt = $this->conn->prepare("
-            DELETE FROM rounds
-            WHERE room_id = ?
-            AND id = (
-                SELECT MAX(id) FROM rounds WHERE room_id = ?
-            )
-        ");
-        $stmt->bind_param("ii", $room_id, $room_id);
-        $success = $stmt->execute();
-        $stmt->close();
-        return $success;
-    }
-
-    /**
-     * Insert a round with optional question_id (can be NULL for end-game marker)
-     */
-    public function insertRound($room_id, $question_id = null) {
-        $stmt = $this->conn->prepare("
-            INSERT INTO rounds (room_id, question_id)
-            VALUES (?, ?)
-        ");
-
-        // Always use "ii" for two integers; NULL is handled automatically by MySQLi
-        $stmt->bind_param("ii", $room_id, $question_id);
-
-        if ($stmt->execute()) {
-            $roundId = $this->conn->insert_id;
-            $stmt->close();
-            return $roundId;
-        }
-
-        $stmt->close();
-        return false;
-    }
-
-    /**
      * Save the ranking JSON for a round
      */
     public function saveRanking($roundId, array $ranking) {

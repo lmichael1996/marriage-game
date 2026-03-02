@@ -76,13 +76,6 @@ switch ($endpoint) {
         handleDeleteRoom();
         break;
 
-    case 'close_room':
-        handleCloseRoom();
-        break;
-    case 'finish_game':
-        handleFinishGame();
-        break;
-
     case 'generate_pdf':
         handleGeneratePDF();
         break;
@@ -93,10 +86,6 @@ switch ($endpoint) {
 
     case 'game':
         handleGame($action);
-        break;
-
-    case 'increment_counter':
-        handleIncrementCounter();
         break;
 
     case 'leaderboard':
@@ -190,12 +179,6 @@ switch ($endpoint) {
     case 'move_question_down':
         handleMoveQuestionDown();
         break;
-
-    case 'start_game_room':
-        $set_id = $_GET['set_id'] ?? null;
-        if (!$set_id) respondError('set_id required');
-        header('Location: ../../public/game-room.php?set_id=' . $set_id);
-        exit;
 
     default:
         respondError('Endpoint non trovato', 404);
@@ -321,38 +304,6 @@ function handleDeleteRoom() {
     }
 }
 
-function handleCloseRoom() {
-    requireAdminJson();
-    try {
-        $roomCode = authRoomCode() ?? $_GET['room_code'] ?? null;
-        if (!$roomCode) throw new Exception('Codice stanza mancante');
-
-        $room = svc('room');
-        if (!$room->getRoomDetails($roomCode)) throw new Exception('Stanza non trovata');
-
-        $room->deletePlayersByRoom($roomCode);
-        respond(['success' => true, 'message' => 'Stanza chiusa']);
-    } catch (Exception $e) {
-        respondError($e->getMessage(), 500);
-    }
-}
-
-function handleFinishGame() {
-    requireLoginJson();
-    try {
-        $roomCode = input()['code_player'] ?? authRoomCode() ?? null;
-        if (!$roomCode) throw new Exception('Codice stanza mancante');
-
-        $room = svc('room');
-        $roomDetails = $room->getRoomDetails($roomCode);
-        if (!$roomDetails) throw new Exception('Stanza non trovata');
-
-        respond($room->finishGame($roomDetails['id']));
-    } catch (Exception $e) {
-        respondError($e->getMessage(), 500);
-    }
-}
-
 function handleConnectedDevices() {
     try {
         $codePlayer = $_SESSION['code_player'] ?? $_GET['code_player'] ?? null;
@@ -374,7 +325,6 @@ function handleGame($action) {
         'get_set'        => handleGetSet(),
         'start_round'    => handleStartRound(),
         'close_round'    => handleCloseRound(),
-        'mark_winner'    => handleMarkWinner(),
         'check_winner'   => handleCheckWinner(),
         'reset_game'     => handleResetGame(),
         default          => respondError('Azione non valida'),
@@ -450,21 +400,6 @@ function handleCloseRound() {
 
     try { respond(svc('game')->closeRound($roundId)); }
     catch (Exception $e) { respondError($e->getMessage(), 500); }
-}
-
-function handleMarkWinner() {
-    try {
-        $roomCode = authRoomCode();
-        if (!$roomCode) respondError('Room code not found');
-
-        $roomData = svc('room')->getRoomDetails($roomCode);
-        if (!$roomData) respondError('Room not found');
-
-        $result = svc('room')->markWinner($roomData['id']);
-        respond(['success' => $result, 'message' => $result ? 'Winner marked' : 'Could not mark winner']);
-    } catch (Exception $e) {
-        respondError('Server error: ' . $e->getMessage(), 500);
-    }
 }
 
 function handleCheckWinner() {
@@ -751,18 +686,6 @@ function handleMoveQuestionDown() {
 }
 
 // ── Misc ─────────────────────────────────────────────────────────────────
-
-function handleIncrementCounter() {
-    requireLoginJson();
-    $roomCode = authRoomCode();
-    if (!$roomCode) respondError('Nessuna stanza attiva');
-
-    $counterKey = 'round_counter_' . $roomCode;
-    $newCounter = ($_SESSION[$counterKey] ?? 1) + 1;
-    $_SESSION[$counterKey] = $newCounter;
-    session_write_close();
-    respond(['success' => true, 'newCounter' => $newCounter]);
-}
 
 function handleGeneratePDF() {
     $data     = input();

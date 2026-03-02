@@ -605,14 +605,6 @@ if ($room['has_winner'] ?? false) {
 
                         document.getElementById('final-leaderboard').innerHTML = html;
                         document.getElementById('leaderboard').innerHTML = html;
-
-                        fetch(
-                            '../src/api/api.php?endpoint=game&action=mark_winner',
-                            {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                            }
-                        );
                     }
                 });
         }

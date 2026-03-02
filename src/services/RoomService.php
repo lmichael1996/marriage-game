@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/../repository/RoomRepo.php';
 require_once __DIR__ . '/../repository/PlayerRepo.php';
-require_once __DIR__ . '/../repository/QuestionRepo.php';
 require_once __DIR__ . '/../repository/RoundRepo.php';
 require_once __DIR__ . '/../repository/SetRepo.php';
 require_once __DIR__ . '/../utils/QRGenerator.php';
@@ -12,14 +11,12 @@ require_once __DIR__ . '/../utils/QRGenerator.php';
 class RoomService {
     private $roomRepo;
     private $playerRepo;
-    private $questionRepo;
     private $roundRepo;
-    private $questionSetRepo;
+    private $setRepo;
 
     public function __construct() {
         $this->roomRepo = new RoomRepo();
         $this->playerRepo = new PlayerRepo();
-        $this->questionRepo = new QuestionRepo();
         $this->roundRepo = new RoundRepo();
         $this->setRepo = new SetRepo();
     }
@@ -175,13 +172,6 @@ class RoomService {
     }
 
     /**
-     * Delete all rounds for a room (used when advancing to next question)
-     */
-    public function deleteRoundByRoom($roomId) {
-        return $this->roundRepo->deleteRoundByRoom($roomId);
-    }
-
-    /**
      * Mark the winner of a room (highest score)
      */
     public function markWinner($roomId) {
@@ -234,13 +224,6 @@ class RoomService {
             return true;
         }
         return false;
-    }
-
-    /**
-     * Delete all players from a room by room code
-     */
-    public function deletePlayersByRoom($roomCode) {
-        return $this->playerRepo->deletePlayersByRoom($roomCode);
     }
 
     /**
