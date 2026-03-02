@@ -432,13 +432,16 @@ class SetRepo {
      * Get question by counter (order_in_set) for a specific question set
      */
     public function getQuestionByCounter($qsetId, $counter) {
+        $offset = max(0, $counter - 1);
         $stmt = $this->conn->prepare("
             SELECT qq.id as qset_question_id, qq.question_id, q.*
             FROM qset_questions qq
             JOIN questions q ON qq.question_id = q.id
-            WHERE qq.qset_id = ? AND qq.order_in_set = ?
+            WHERE qq.qset_id = ?
+            ORDER BY qq.order_in_set ASC
+            LIMIT 1 OFFSET ?
         ");
-        $stmt->bind_param("ii", $qsetId, $counter);
+        $stmt->bind_param("ii", $qsetId, $offset);
         $stmt->execute();
         $result = $stmt->get_result();
         $question = $result->fetch_assoc();

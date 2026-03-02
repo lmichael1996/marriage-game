@@ -60,6 +60,14 @@ CREATE TABLE IF NOT EXISTS qset_questions (
     UNIQUE (qset_id, question_id)
 );
 
+-- Players table (for game participants associated with a room)
+CREATE TABLE IF NOT EXISTS players (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    room_id INT NOT NULL,
+    connected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Rooms table (stores active game rooms)
 CREATE TABLE IF NOT EXISTS rooms (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -72,26 +80,19 @@ CREATE TABLE IF NOT EXISTS rooms (
     status_room ENUM('open', 'running', 'closed', 'cancelled') DEFAULT 'open',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     winner_id INT DEFAULT NULL,
-    FOREIGN KEY (qset_id) REFERENCES qsets(id) ON DELETE CASCADE
-);
-
--- Players table (for game participants associated with a room)
-CREATE TABLE IF NOT EXISTS players (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL,
-    room_id INT NOT NULL,
-    connected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
-    UNIQUE (username, room_id)
-);
-
--- FK aggiunta dopo players per risolvere dipendenza circolare
-ALTER TABLE
-    rooms
-ADD
+    FOREIGN KEY (qset_id) REFERENCES qsets(id) ON DELETE CASCADE,
     FOREIGN KEY (winner_id) REFERENCES players(id) ON DELETE
-SET
-    NULL;
+    SET
+        NULL
+);
+
+-- FK e UNIQUE aggiunti dopo rooms per risolvere dipendenza circolare
+ALTER TABLE
+    players
+ADD
+    FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
+ADD
+    UNIQUE (username, room_id);
 
 CREATE TABLE IF NOT EXISTS judges (
     id INT AUTO_INCREMENT PRIMARY KEY,
