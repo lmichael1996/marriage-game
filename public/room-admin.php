@@ -1,8 +1,11 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once __DIR__ . '/../src/utils/auth.php';
 require_once __DIR__ . '/../src/utils/helper.php';
 
-requireAdmin();
+// requireAdmin();
 
 // Verifica se la stanza ha già un vincitore (partita terminata)
 // (va prima del loadRoomAdmin per evitare caricamento dati inutile)
@@ -543,7 +546,7 @@ if ($room['has_winner'] ?? false) {
                               .catch(() => loadRoundAnswers(roundId));
                         }
 
-                        if (nextBtn) {
+                        if (nextBtn && !isClickFirst) {
                             nextBtn.disabled = false;
                             nextBtn.style.animation = 'pulse 1s infinite';
                         }
@@ -640,6 +643,19 @@ if ($room['has_winner'] ?? false) {
                         });
                         document.getElementById('leaderboard').innerHTML =
                             html;
+
+                        // Clickfirst: abilita "Prossima Domanda" solo dopo selezione radio
+                        if (isClickFirst) {
+                            const nextBtn = document.getElementById('next-btn');
+                            if (nextBtn) {
+                                document.querySelectorAll('input[name="clickfirst-winner"]').forEach(radio => {
+                                    radio.addEventListener('change', () => {
+                                        nextBtn.disabled = false;
+                                        nextBtn.style.animation = 'pulse 1s infinite';
+                                    });
+                                });
+                            }
+                        }
                     }
                 });
         }

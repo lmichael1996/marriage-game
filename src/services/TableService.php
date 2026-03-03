@@ -43,6 +43,15 @@ class TableService {
             return '<span class="password-hidden">••••••••</span>';
         }
 
+        // JSON: mostra formattato
+        if ($this->isJsonColumn($type, $columnName, $value)) {
+            $decoded = json_decode($value, true);
+            if ($decoded !== null) {
+                $pretty = htmlspecialchars(json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                return '<pre class="json-value">' . $pretty . '</pre>';
+            }
+        }
+
         // Gestione booleani/tinyint
         if (strpos($type, 'tinyint') !== false || strpos($type, 'boolean') !== false) {
             if ($value === '0' || $value === 0) {
@@ -59,6 +68,18 @@ class TableService {
         }
 
         return $text;
+    }
+
+    /**
+     * Verifica se una colonna contiene JSON
+     */
+    private function isJsonColumn($type, $columnName, $value) {
+        if (stripos($type, 'json') !== false) return true;
+        if (in_array(strtolower($columnName), ['ranking', 'metadata', 'data', 'config'])) return true;
+        if (is_string($value) && strlen($value) > 1 && ($value[0] === '[' || $value[0] === '{')) {
+            return json_decode($value) !== null;
+        }
+        return false;
     }
 
     /**
