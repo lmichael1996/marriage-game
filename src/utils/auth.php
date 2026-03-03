@@ -70,6 +70,8 @@ function authUser(): ?array {
 function authRoomCode(): ?string {
     $player = svc('auth')->getPlayer();
     if ($player) return $player['room_code'];
+    $judge = svc('auth')->getJudge();
+    if ($judge) return $judge['room_code'];
     return $_SESSION['code_player'] ?? null;
 }
 

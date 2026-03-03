@@ -3,6 +3,7 @@ require_once __DIR__ . '/../repository/RoomRepo.php';
 require_once __DIR__ . '/../repository/PlayerRepo.php';
 require_once __DIR__ . '/../repository/RoundRepo.php';
 require_once __DIR__ . '/../repository/SetRepo.php';
+require_once __DIR__ . '/../repository/JudgeRepo.php';
 require_once __DIR__ . '/../utils/QRGenerator.php';
 
 /**
@@ -13,12 +14,14 @@ class RoomService {
     private $playerRepo;
     private $roundRepo;
     private $setRepo;
+    private $judgeRepo;
 
     public function __construct() {
         $this->roomRepo = new RoomRepo();
         $this->playerRepo = new PlayerRepo();
         $this->roundRepo = new RoundRepo();
         $this->setRepo = new SetRepo();
+        $this->judgeRepo = new JudgeRepo();
     }
 
     /**
@@ -222,11 +225,14 @@ class RoomService {
      */
     public function getConnectedDevices($codePlayer) {
         $roomData = $this->getRoomDetails($codePlayer);
-        if (!$roomData) return ['devices' => [], 'count' => 0];
+        if (!$roomData) return ['devices' => [], 'count' => 0, 'judge_connected' => false];
 
         $devices = $this->playerRepo->getPlayersByRoomId($roomData['id']);
         $devices = is_array($devices) ? $devices : [];
-        return ['devices' => $devices, 'count' => count($devices)];
+
+        $judgeConnected = $this->judgeRepo->isJudgeConnected($roomData['id']);
+
+        return ['devices' => $devices, 'count' => count($devices), 'judge_connected' => $judgeConnected];
     }
 
     /**
@@ -249,6 +255,13 @@ class RoomService {
     public function getPlayerCount(int $roomId): int {
         $players = $this->playerRepo->getPlayersByRoomId($roomId);
         return count($players ?? []);
+    }
+
+    /**
+     * Controlla se il giudice è connesso alla stanza
+     */
+    public function isJudgeConnected(int $roomId): bool {
+        return $this->judgeRepo->isJudgeConnected($roomId);
     }
 }
 

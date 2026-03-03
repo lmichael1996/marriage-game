@@ -213,7 +213,7 @@ function handleJudgeLogin() {
     $data = input();
     try {
         svc('auth')->judgeLogin($data['room_code'] ?? '');
-        respond(['success' => true, 'redirect' => '../public/game.php']);
+        respond(['success' => true, 'redirect' => '../public/judge.php']);
     } catch (Exception $e) {
         respondError($e->getMessage(), 401);
     }
@@ -310,7 +310,7 @@ function handleConnectedDevices() {
         if (!$codePlayer) respond(['success' => true, 'devices' => [], 'count' => 0]);
 
         $result = svc('room')->getConnectedDevices($codePlayer);
-        respond(['success' => true, 'devices' => $result['devices'], 'count' => $result['count']]);
+        respond(['success' => true, 'devices' => $result['devices'], 'count' => $result['count'], 'judge_connected' => $result['judge_connected'] ?? false]);
     } catch (Exception $e) {
         respondError($e->getMessage(), 500);
     }

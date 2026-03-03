@@ -118,6 +118,7 @@ extract(loadGameRoom());
                     <div id="final-info">
                         <p><strong>Set selezionato:</strong> <span id="selected-set-name-final"></span></p>
                         <p><strong>Giocatori connessi:</strong> <span id="connected-count">0</span></p>
+                        <p><strong>Giudice:</strong> <span id="judge-status">❌ Non connesso</span></p>
                         <div class="button-container">
                             <button class="btn btn-success" id="btn-start-game" disabled>
                                 Avvia Partita
@@ -518,6 +519,13 @@ extract(loadGameRoom());
                         if (countSpan) {
                             countSpan.textContent = count;
                             updateStartButton();
+                        }
+
+                        const judgeStatus = document.getElementById('judge-status');
+                        if (judgeStatus) {
+                            judgeStatus.innerHTML = data.judge_connected
+                                ? '✅ Connesso'
+                                : '❌ Non connesso';
                         }
 
                         if (devices.length === 0) {

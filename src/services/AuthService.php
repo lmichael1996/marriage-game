@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../repository/UserRepo.php';
 require_once __DIR__ . '/../repository/PlayerRepo.php';
 require_once __DIR__ . '/../repository/RoomRepo.php';
+require_once __DIR__ . '/../repository/JudgeRepo.php';
 
 /**
  * AuthService — Autenticazione basata su sessione PHP.
@@ -13,11 +14,13 @@ class AuthService {
     private $userRepo;
     private $playerRepo;
     private $roomRepo;
+    private $judgeRepo;
 
     public function __construct() {
         $this->userRepo = new UserRepo();
         $this->playerRepo = new PlayerRepo();
         $this->roomRepo = new RoomRepo();
+        $this->judgeRepo = new JudgeRepo();
     }
 
     // ── Login ────────────────────────────────────────────────────────────
@@ -99,13 +102,7 @@ class AuthService {
             throw new Exception($statusMessage);
         }
 
-        $db = getDBConnection();
-        $stmt = $db->prepare("INSERT INTO judges (room_id) VALUES (?)");
-        $stmt->bind_param('i', $room['id']);
-        $stmt->execute();
-        $judgeId = $db->insert_id;
-        $stmt->close();
-        $db->close();
+        $judgeId = $this->judgeRepo->createJudge($room['id']);
 
         if (!$judgeId) throw new Exception('Errore durante la creazione del giudice');
 
