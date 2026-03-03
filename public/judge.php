@@ -121,6 +121,38 @@ $judge = authJudge();
             margin-bottom: 10px;
         }
 
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+
+        .option-btn {
+            padding: 12px;
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #999;
+            font-weight: 600;
+            font-size: 0.95em;
+            text-align: center;
+            min-height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .option-btn.correct {
+            background: #4caf50;
+            color: #fff;
+            border-color: #333;
+            font-weight: bold;
+        }
+
         .leaderboard-section {
             margin-top: 20px;
         }
@@ -251,6 +283,8 @@ $judge = authJudge();
                         <p id="question-text"></p>
                     </div>
 
+                    <div id="options-container" class="options-grid" style="display: none;"></div>
+
                     <div class="timer-box">
                         <h4>⏱️ Timer Rimanente</h4>
                         <span id="timer-value">-</span>
@@ -283,6 +317,8 @@ $judge = authJudge();
     <script>
         let currentRoundCounter = 1;
         let currentRoundId = null;
+        let currentCorrectAnswer = null;
+        let currentRoundType = null;
         let timerInterval = null;
         let roundInProgress = false;
         let roundEnded = false;
@@ -350,6 +386,8 @@ $judge = authJudge();
             roundInProgress = true;
             roundEnded = false;
             currentRoundId = round.id;
+            currentCorrectAnswer = round.correct_answer || null;
+            currentRoundType = round.round_type || 'multiple';
 
             document.getElementById('round-number').textContent = round.round_number;
             document.getElementById('question-text').textContent = round.question || '';
@@ -360,6 +398,24 @@ $judge = authJudge();
                 'clickfirst': '⚡ Clicca per Primo'
             };
             document.getElementById('round-type-badge').textContent = typeLabels[round.round_type] || round.round_type;
+
+            // Mostra le opzioni di risposta
+            const optionsContainer = document.getElementById('options-container');
+            if (round.round_type === 'clickfirst') {
+                optionsContainer.style.display = 'none';
+                optionsContainer.innerHTML = '';
+            } else {
+                let optionsHtml = '';
+                const maxOptions = round.round_type === 'truefalse' ? 2 : 4;
+                for (let i = 1; i <= maxOptions; i++) {
+                    const text = round['option' + i] || '';
+                    if (text) {
+                        optionsHtml += `<div class="option-btn" id="judge-option-${i}">${text}</div>`;
+                    }
+                }
+                optionsContainer.innerHTML = optionsHtml;
+                optionsContainer.style.display = 'grid';
+            }
 
             document.getElementById('round-leaderboard-section').style.display = 'none';
             document.getElementById('round-leaderboard').innerHTML = '';
@@ -398,6 +454,14 @@ $judge = authJudge();
         function onRoundEnd() {
             if (roundEnded) return;
             roundEnded = true;
+
+            // Evidenzia la risposta corretta
+            if (currentCorrectAnswer && currentRoundType !== 'clickfirst') {
+                const correctEl = document.getElementById('judge-option-' + currentCorrectAnswer);
+                if (correctEl) {
+                    correctEl.classList.add('correct');
+                }
+            }
 
             // Attendi 2 secondi (come room-admin), poi carica classifica round
             setTimeout(() => {
