@@ -337,6 +337,10 @@ $judge = authJudge();
                         <h4>⏱️ Timer Rimanente</h4>
                         <span id="timer-value">-</span>
                     </div>
+
+                    <button id="judge-confirm-btn" class="btn-judge-confirm" disabled onclick="confirmClickfirstWinner()">
+                        ✅ Conferma Vincitore
+                    </button>
                 </div>
 
                 <!-- Fine partita -->
@@ -360,9 +364,6 @@ $judge = authJudge();
                 <div id="sidebar-leaderboard">
                     <div class="empty-state">Nessun dato</div>
                 </div>
-                <button id="judge-confirm-btn" class="btn-judge-confirm" disabled onclick="confirmClickfirstWinner()">
-                    ✅ Conferma Vincitore
-                </button>
             </div>
         </div>
     </div>
