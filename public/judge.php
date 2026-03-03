@@ -171,7 +171,6 @@ $judge = authJudge();
         }
 
         .btn-judge-confirm {
-            display: none;
             width: 100%;
             padding: 12px 20px;
             margin-top: 15px;
@@ -338,8 +337,8 @@ $judge = authJudge();
                         <span id="timer-value">-</span>
                     </div>
 
-                    <button id="judge-confirm-btn" class="btn-judge-confirm" disabled onclick="confirmClickfirstWinner()">
-                        ✅ Conferma Vincitore
+                    <button id="judge-confirm-btn" class="btn-judge-confirm" disabled onclick="judgeNextRound()">
+                        ➡️ Prossima Domanda
                     </button>
                 </div>
 
@@ -524,7 +523,6 @@ $judge = authJudge();
 
         function loadRoundLeaderboard(roundId) {
             const confirmBtn = document.getElementById('judge-confirm-btn');
-            confirmBtn.style.display = 'none';
             confirmBtn.disabled = true;
 
             fetch('../src/api/api.php?endpoint=round_answers&round_id=' + roundId)
@@ -554,7 +552,6 @@ $judge = authJudge();
                         document.getElementById('sidebar-leaderboard').innerHTML = html;
 
                         if (isClickFirst) {
-                            confirmBtn.style.display = 'block';
                             document.querySelectorAll('input[name="clickfirst-winner"]').forEach(radio => {
                                 radio.addEventListener('change', () => {
                                     confirmBtn.disabled = false;
@@ -563,25 +560,24 @@ $judge = authJudge();
                         }
                     } else {
                         document.getElementById('sidebar-leaderboard').innerHTML = '<div class="empty-state">Nessuna risposta</div>';
-                        if (isClickFirst) {
-                            // Nessuna risposta: conferma senza vincitore
-                            confirmBtn.style.display = 'block';
-                            confirmBtn.disabled = false;
-                            confirmBtn.textContent = '➡️ Prossima Domanda';
-                        }
                     }
 
-                    // Per non-clickfirst, attendi che l'admin avanzi
-                    if (!isClickFirst) {
+                    if (isClickFirst) {
+                        // Per clickfirst: abilitato subito se nessuna risposta, altrimenti dopo selezione radio
+                        if (!data.success || !data.top_answers?.length) {
+                            confirmBtn.disabled = false;
+                        }
+                    } else {
+                        // Per altri round: bottone disabilitato, attendi che l'admin avanzi
+                        confirmBtn.disabled = true;
                         waitForNextRound();
                     }
                 });
         }
 
-        function confirmClickfirstWinner() {
+        function judgeNextRound() {
             const confirmBtn = document.getElementById('judge-confirm-btn');
             confirmBtn.disabled = true;
-            confirmBtn.textContent = '⏳ Salvataggio...';
 
             const selected = document.querySelector('input[name="clickfirst-winner"]:checked');
 
@@ -593,8 +589,8 @@ $judge = authJudge();
                 });
             }
 
-            if (selected) {
-                // Salva il vincitore, poi segnala advance
+            if (currentRoundType === 'clickfirst' && selected) {
+                // Clickfirst con vincitore selezionato
                 fetch('../src/api/api.php?endpoint=game&action=set_clickfirst_winner', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -610,13 +606,11 @@ $judge = authJudge();
                     }
                 })
                 .then(() => {
-                    confirmBtn.textContent = '✅ Vincitore confermato';
                     waitForNextRound();
                 });
             } else {
-                // Nessuna risposta, segnala advance e avanza
+                // Clickfirst senza risposte: segnala advance
                 signalJudgeAdvance().then(() => {
-                    confirmBtn.textContent = '✅ Avanzamento...';
                     waitForNextRound();
                 });
             }
