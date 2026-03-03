@@ -570,7 +570,28 @@ if ($room['has_winner'] ?? false) {
         }
 
         function nextQuestion() {
-            proceedToNextQuestion();
+            // Clickfirst: salva il vincitore selezionato prima di avanzare
+            if (currentRoundType === 'clickfirst' && activeRoundId) {
+                const selected = document.querySelector('input[name="clickfirst-winner"]:checked');
+                if (!selected) return;
+
+                fetch('../src/api/api.php?endpoint=game&action=set_clickfirst_winner', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        round_id: activeRoundId,
+                        winner_index: parseInt(selected.value)
+                    })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        proceedToNextQuestion();
+                    }
+                });
+            } else {
+                proceedToNextQuestion();
+            }
         }
 
         function proceedToNextQuestion() {

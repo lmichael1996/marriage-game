@@ -325,6 +325,7 @@ function handleGame($action) {
         'get_set'        => handleGetSet(),
         'start_round'    => handleStartRound(),
         'close_round'    => handleCloseRound(),
+        'set_clickfirst_winner' => handleSetClickfirstWinner(),
         'check_winner'   => handleCheckWinner(),
         'reset_game'     => handleResetGame(),
         default          => respondError('Azione non valida'),
@@ -412,6 +413,17 @@ function handleCloseRound() {
     if (!$roundId) respondError('Round ID mancante');
 
     try { respond(svc('game')->closeRound($roundId)); }
+    catch (Exception $e) { respondError($e->getMessage(), 500); }
+}
+
+function handleSetClickfirstWinner() {
+    $data = input();
+    $roundId = $data['round_id'] ?? 0;
+    $winnerIndex = $data['winner_index'] ?? null;
+    if (!$roundId) respondError('Round ID mancante');
+    if ($winnerIndex === null) respondError('Indice vincitore mancante');
+
+    try { respond(svc('game')->setClickfirstWinner($roundId, (int)$winnerIndex)); }
     catch (Exception $e) { respondError($e->getMessage(), 500); }
 }
 

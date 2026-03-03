@@ -136,6 +136,36 @@ class GameService {
     }
 
     /**
+     * Imposta il vincitore del clickfirst: riscrive il ranking con solo il giocatore selezionato
+     */
+    public function setClickfirstWinner($roundId, $winnerIndex) {
+        $round = $this->roundRepo->getRoundById($roundId);
+        if (!$round) {
+            return ['success' => false, 'error' => 'Round non trovato'];
+        }
+
+        $currentRanking = json_decode($round['ranking'] ?? '[]', true);
+        if (!is_array($currentRanking) || !isset($currentRanking[$winnerIndex])) {
+            return ['success' => false, 'error' => 'Indice vincitore non valido'];
+        }
+
+        $winner = $currentRanking[$winnerIndex];
+        $points = intval($this->settingsRepo->getSetting('points_clickfirst'));
+
+        $newRanking = [[
+            'position'    => 1,
+            'username'    => $winner['username'],
+            'player_id'   => (int)$winner['player_id'],
+            'answer_time' => (float)$winner['answer_time'],
+            'points'      => $points,
+        ]];
+
+        $this->roundRepo->saveRanking($roundId, $newRanking);
+
+        return ['success' => true, 'message' => 'Vincitore clickfirst salvato'];
+    }
+
+    /**
      * Ottieni la classifica generale (usata dal judge in game.php)
      */
     public function getLeaderboard($roomCode = null) {
