@@ -18,10 +18,10 @@ $judge = authJudge();
     <style>
         .judge-container {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr 350px;
             grid-auto-rows: max-content;
             gap: 20px;
-            max-width: 800px;
+            max-width: 1200px;
             margin: 20px auto;
             padding: 0 20px;
             align-items: start;
@@ -32,6 +32,23 @@ $judge = authJudge();
             border: 2px solid #333;
             padding: 25px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .judge-sidebar {
+            background: #fff;
+            border: 2px solid #333;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            height: fit-content;
+        }
+
+        .sidebar-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
         }
 
         .waiting-screen {
@@ -153,19 +170,6 @@ $judge = authJudge();
             font-weight: bold;
         }
 
-        .leaderboard-section {
-            margin-top: 20px;
-        }
-
-        .leaderboard-section h3 {
-            font-size: 1.1em;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: #333;
-            border-bottom: 2px solid #333;
-            padding-bottom: 8px;
-        }
-
         .leaderboard-item {
             display: flex;
             align-items: center;
@@ -249,8 +253,19 @@ $judge = authJudge();
             margin-bottom: 20px;
         }
 
+        @media (max-width: 1024px) {
+            .judge-container {
+                grid-template-columns: 1fr;
+            }
+
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         @media (max-width: 640px) {
             .judge-main { padding: 15px; }
+            .judge-sidebar { padding: 15px; }
             .judge-container { margin: 15px auto; padding: 0 10px; }
             #timer-value { font-size: 2.5em; }
         }
@@ -289,11 +304,6 @@ $judge = authJudge();
                         <h4>⏱️ Timer Rimanente</h4>
                         <span id="timer-value">-</span>
                     </div>
-
-                    <div class="leaderboard-section" id="round-leaderboard-section" style="display: none;">
-                        <h3>🏆 Classifica Round</h3>
-                        <div id="round-leaderboard"></div>
-                    </div>
                 </div>
 
                 <!-- Fine partita -->
@@ -309,6 +319,13 @@ $judge = authJudge();
                     <div class="game-cancelled-emoji">❌</div>
                     <h1>Partita Annullata</h1>
                     <p>L'amministratore ha chiuso la partita</p>
+                </div>
+            </div>
+
+            <div class="judge-sidebar">
+                <div class="sidebar-title">🏆 Classifica</div>
+                <div id="sidebar-leaderboard">
+                    <div class="empty-state">Nessun dato</div>
                 </div>
             </div>
         </div>
@@ -417,8 +434,7 @@ $judge = authJudge();
                 optionsContainer.style.display = 'grid';
             }
 
-            document.getElementById('round-leaderboard-section').style.display = 'none';
-            document.getElementById('round-leaderboard').innerHTML = '';
+            document.getElementById('sidebar-leaderboard').innerHTML = '<div class="empty-state">In attesa...</div>';
 
             hideAll();
             document.getElementById('game-screen').style.display = 'block';
@@ -490,11 +506,9 @@ $judge = authJudge();
                             </div>`;
                         });
 
-                        document.getElementById('round-leaderboard').innerHTML = html;
-                        document.getElementById('round-leaderboard-section').style.display = 'block';
+                        document.getElementById('sidebar-leaderboard').innerHTML = html;
                     } else {
-                        document.getElementById('round-leaderboard').innerHTML = '<div class="empty-state">Nessuna risposta in questo round</div>';
-                        document.getElementById('round-leaderboard-section').style.display = 'block';
+                        document.getElementById('sidebar-leaderboard').innerHTML = '<div class="empty-state">Nessuna risposta</div>';
                     }
 
                     // Dopo aver mostrato la classifica, attendi che l'admin avanzi
