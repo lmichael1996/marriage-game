@@ -621,13 +621,11 @@ if ($room['has_winner'] ?? false) {
                         const isClickFirst =
                             currentRoundType === 'clickfirst';
 
-                        const answersToShow = isClickFirst
-                            ? [data.top_answers[0]]
-                            : data.top_answers;
-
-                        answersToShow.forEach((answer, i) => {
+                        data.top_answers.forEach((answer, i) => {
                             const medals = ['🥇', '🥈', '🥉'];
-                            const medal = medals[i] || i + 1 + '.';
+                            const medal = isClickFirst
+                                ? `<input type="radio" name="clickfirst-winner" value="${i}">`
+                                : (medals[i] || i + 1 + '.');
                             const time = parseFloat(
                                 answer.answer_time
                             ).toFixed(2) + 's';
