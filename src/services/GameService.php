@@ -166,6 +166,20 @@ class GameService {
     }
 
     /**
+     * Segna che il giudice ha deciso per questo round (clickfirst)
+     */
+    public function markJudgeDecided($roundId) {
+        $this->roundRepo->setJudgeDecided($roundId);
+    }
+
+    /**
+     * Controlla se il giudice ha deciso per questo round
+     */
+    public function isJudgeDecided($roundId) {
+        return $this->roundRepo->isJudgeDecided($roundId);
+    }
+
+    /**
      * Ottieni la classifica generale (usata dal judge in game.php)
      */
     public function getLeaderboard($roomCode = null) {

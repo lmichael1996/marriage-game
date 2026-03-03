@@ -190,6 +190,22 @@ class RoundRepo {
         return $result;
     }
 
+    public function setJudgeDecided($roundId) {
+        $stmt = $this->conn->prepare("UPDATE rounds SET judge_decided = 1 WHERE id = ?");
+        $stmt->bind_param("i", $roundId);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    public function isJudgeDecided($roundId) {
+        $stmt = $this->conn->prepare("SELECT judge_decided FROM rounds WHERE id = ?");
+        $stmt->bind_param("i", $roundId);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        return $result ? (bool)$result['judge_decided'] : false;
+    }
+
     public function __destruct() {
         if ($this->conn) {
             $this->conn->close();

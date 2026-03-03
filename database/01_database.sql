@@ -107,6 +107,7 @@ CREATE TABLE IF NOT EXISTS rounds (
     room_id INT NOT NULL,
     question_id INT DEFAULT NULL,
     ranking JSON DEFAULT NULL,
+    judge_decided TINYINT(1) NOT NULL DEFAULT 0,
     FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
     FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
 );

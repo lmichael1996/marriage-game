@@ -495,6 +495,7 @@ if ($room['has_winner'] ?? false) {
         const roomId = <?php echo $roomId; ?>;
         const roomCode = '<?php echo $room['code_player']; ?>';
         const activeRoundId = <?php echo isset($activeRound['id']) ? $activeRound['id'] : 'null'; ?>;
+        const judgeConnected = <?php echo $judgeConnected ? 'true' : 'false'; ?>;
         let timerInterval = null;
         let currentRoundType = null;
 
@@ -642,6 +643,16 @@ if ($room['has_winner'] ?? false) {
         }
 
         function loadRoundAnswers(roundId) {
+            const isClickFirst = currentRoundType === 'clickfirst';
+
+            // Clickfirst con giudice connesso: delega al judge
+            if (isClickFirst && judgeConnected) {
+                document.getElementById('leaderboard').innerHTML =
+                    '<div class="empty-state">⚖️ In attesa del giudice...</div>';
+                pollJudgeDecision(roundId);
+                return;
+            }
+
             fetch(
                 '../src/api/api.php?endpoint=round_answers&round_id=' +
                     roundId
@@ -650,8 +661,6 @@ if ($room['has_winner'] ?? false) {
                 .then((data) => {
                     if (data.success && data.top_answers?.length > 0) {
                         let html = '';
-                        const isClickFirst =
-                            currentRoundType === 'clickfirst';
 
                         data.top_answers.forEach((answer, i) => {
                             const medals = ['🥇', '🥈', '🥉'];
@@ -685,7 +694,7 @@ if ($room['has_winner'] ?? false) {
                                 });
                             }
                         }
-                    } else if (currentRoundType === 'clickfirst') {
+                    } else if (isClickFirst) {
                         // Nessuna risposta nel clickfirst: abilita prossima domanda
                         const nextBtn = document.getElementById('next-btn');
                         if (nextBtn) {
@@ -694,6 +703,22 @@ if ($room['has_winner'] ?? false) {
                         }
                     }
                 });
+        }
+
+        function pollJudgeDecision(roundId) {
+            const pollInterval = setInterval(() => {
+                fetch('../src/api/api.php?endpoint=game&action=check_judge_decision&round_id=' + roundId)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success && data.judge_decided) {
+                            clearInterval(pollInterval);
+                            document.getElementById('leaderboard').innerHTML =
+                                '<div class="empty-state">✅ Giudice ha deciso</div>';
+                            // Auto-avanza alla prossima domanda
+                            proceedToNextQuestion();
+                        }
+                    });
+            }, 1000);
         }
 
         function goBack() {

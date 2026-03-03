@@ -280,5 +280,7 @@ function loadRoomAdmin(): array {
     }
     $roomInfo = $_SESSION[$roomInfoKey];
 
-    return compact('roomId', 'room', 'counter', 'question', 'activeRound', 'gameOver', 'roomInfo');
+    $judgeConnected = svc('room')->isJudgeConnected($roomId);
+
+    return compact('roomId', 'room', 'counter', 'question', 'activeRound', 'gameOver', 'roomInfo', 'judgeConnected');
 }

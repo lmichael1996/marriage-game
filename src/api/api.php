@@ -326,6 +326,8 @@ function handleGame($action) {
         'start_round'    => handleStartRound(),
         'close_round'    => handleCloseRound(),
         'set_clickfirst_winner' => handleSetClickfirstWinner(),
+        'judge_advance'  => handleJudgeAdvance(),
+        'check_judge_decision' => handleCheckJudgeDecision(),
         'check_winner'   => handleCheckWinner(),
         'reset_game'     => handleResetGame(),
         default          => respondError('Azione non valida'),
@@ -425,6 +427,27 @@ function handleSetClickfirstWinner() {
 
     try { respond(svc('game')->setClickfirstWinner($roundId, (int)$winnerIndex)); }
     catch (Exception $e) { respondError($e->getMessage(), 500); }
+}
+
+function handleJudgeAdvance() {
+    $data = input();
+    $roundId = $data['round_id'] ?? 0;
+    if (!$roundId) respondError('Round ID mancante');
+
+    try {
+        svc('game')->markJudgeDecided($roundId);
+        respond(['success' => true, 'message' => 'Judge advance segnalato']);
+    } catch (Exception $e) { respondError($e->getMessage(), 500); }
+}
+
+function handleCheckJudgeDecision() {
+    $roundId = $_GET['round_id'] ?? 0;
+    if (!$roundId) respondError('Round ID mancante');
+
+    try {
+        $decided = svc('game')->isJudgeDecided($roundId);
+        respond(['success' => true, 'judge_decided' => $decided]);
+    } catch (Exception $e) { respondError($e->getMessage(), 500); }
 }
 
 function handleCheckWinner() {

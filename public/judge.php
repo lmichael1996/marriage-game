@@ -170,6 +170,39 @@ $judge = authJudge();
             font-weight: bold;
         }
 
+        .btn-judge-confirm {
+            display: none;
+            width: 100%;
+            padding: 12px 20px;
+            margin-top: 15px;
+            font-size: 1em;
+            font-weight: 600;
+            background: #fff;
+            color: #333;
+            border: 2px solid #333;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .btn-judge-confirm:hover:not(:disabled) {
+            background: #333;
+            color: #fff;
+        }
+
+        .btn-judge-confirm:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f0f0f0;
+        }
+
+        .judge-waiting-msg {
+            text-align: center;
+            padding: 15px;
+            color: #666;
+            font-style: italic;
+        }
+
         .leaderboard-item {
             display: flex;
             align-items: center;
@@ -327,6 +360,9 @@ $judge = authJudge();
                 <div id="sidebar-leaderboard">
                     <div class="empty-state">Nessun dato</div>
                 </div>
+                <button id="judge-confirm-btn" class="btn-judge-confirm" disabled onclick="confirmClickfirstWinner()">
+                    ✅ Conferma Vincitore
+                </button>
             </div>
         </div>
     </div>
@@ -486,15 +522,23 @@ $judge = authJudge();
         }
 
         function loadRoundLeaderboard(roundId) {
+            const confirmBtn = document.getElementById('judge-confirm-btn');
+            confirmBtn.style.display = 'none';
+            confirmBtn.disabled = true;
+
             fetch('../src/api/api.php?endpoint=round_answers&round_id=' + roundId)
                 .then(r => r.json())
                 .then(data => {
+                    const isClickFirst = currentRoundType === 'clickfirst';
+
                     if (data.success && data.top_answers?.length > 0) {
                         const medals = ['🥇', '🥈', '🥉'];
                         let html = '';
 
                         data.top_answers.forEach((answer, i) => {
-                            const medal = medals[i] || (i + 1 + '.');
+                            const medal = isClickFirst
+                                ? `<input type="radio" name="clickfirst-winner" value="${i}">`
+                                : (medals[i] || (i + 1 + '.'));
                             const time = parseFloat(answer.answer_time).toFixed(2) + 's';
 
                             html += `<div class="leaderboard-item">
@@ -507,13 +551,74 @@ $judge = authJudge();
                         });
 
                         document.getElementById('sidebar-leaderboard').innerHTML = html;
+
+                        if (isClickFirst) {
+                            confirmBtn.style.display = 'block';
+                            document.querySelectorAll('input[name="clickfirst-winner"]').forEach(radio => {
+                                radio.addEventListener('change', () => {
+                                    confirmBtn.disabled = false;
+                                });
+                            });
+                        }
                     } else {
                         document.getElementById('sidebar-leaderboard').innerHTML = '<div class="empty-state">Nessuna risposta</div>';
+                        if (isClickFirst) {
+                            // Nessuna risposta: conferma senza vincitore
+                            confirmBtn.style.display = 'block';
+                            confirmBtn.disabled = false;
+                            confirmBtn.textContent = '➡️ Prossima Domanda';
+                        }
                     }
 
-                    // Dopo aver mostrato la classifica, attendi che l'admin avanzi
+                    // Per non-clickfirst, attendi che l'admin avanzi
+                    if (!isClickFirst) {
+                        waitForNextRound();
+                    }
+                });
+        }
+
+        function confirmClickfirstWinner() {
+            const confirmBtn = document.getElementById('judge-confirm-btn');
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = '⏳ Salvataggio...';
+
+            const selected = document.querySelector('input[name="clickfirst-winner"]:checked');
+
+            function signalJudgeAdvance() {
+                return fetch('../src/api/api.php?endpoint=game&action=judge_advance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ round_id: currentRoundId })
+                });
+            }
+
+            if (selected) {
+                // Salva il vincitore, poi segnala advance
+                fetch('../src/api/api.php?endpoint=game&action=set_clickfirst_winner', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        round_id: currentRoundId,
+                        winner_index: parseInt(selected.value)
+                    })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        return signalJudgeAdvance();
+                    }
+                })
+                .then(() => {
+                    confirmBtn.textContent = '✅ Vincitore confermato';
                     waitForNextRound();
                 });
+            } else {
+                // Nessuna risposta, segnala advance e avanza
+                signalJudgeAdvance().then(() => {
+                    confirmBtn.textContent = '✅ Avanzamento...';
+                    waitForNextRound();
+                });
+            }
         }
 
         function waitForNextRound() {
