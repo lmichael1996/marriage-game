@@ -478,12 +478,14 @@ if ($room['has_winner'] ?? false) {
                 <?php endif; ?>
             </div>
 
+            <?php if (!$gameOver): ?>
             <div class="game-sidebar">
                 <div class="sidebar-title">🏆 Classifica</div>
                 <div id="leaderboard">
                     <div class="empty-state">Nessun dato</div>
                 </div>
             </div>
+            <?php endif; ?>
         </div>
     </div>
 
