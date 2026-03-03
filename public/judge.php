@@ -556,6 +556,9 @@ $judge = authJudge();
         function showFinalLeaderboard() {
             hideAll();
             document.getElementById('final-result-screen').style.display = 'block';
+            document.querySelector('.judge-sidebar').style.display = 'none';
+            document.querySelector('.judge-container').style.gridTemplateColumns = '1fr';
+            document.querySelector('.judge-container').style.maxWidth = '800px';
 
             fetch('../src/api/api.php?endpoint=final_leaderboard&room_id=<?php echo $judge['room_id'] ?? 0; ?>')
                 .then(r => r.json())
@@ -587,6 +590,9 @@ $judge = authJudge();
         function showGameCancelled() {
             hideAll();
             document.getElementById('game-cancelled-screen').style.display = 'block';
+            document.querySelector('.judge-sidebar').style.display = 'none';
+            document.querySelector('.judge-container').style.gridTemplateColumns = '1fr';
+            document.querySelector('.judge-container').style.maxWidth = '800px';
         }
 
         function hideAll() {

@@ -53,6 +53,11 @@ if ($room['has_winner'] ?? false) {
             align-items: start;
         }
 
+        .game-container.game-over-layout {
+            grid-template-columns: 1fr;
+            max-width: 800px;
+        }
+
         .game-main {
             background: #fff;
             border: 2px solid #333;
@@ -383,7 +388,7 @@ if ($room['has_winner'] ?? false) {
             <button class="btn btn-secondary" onclick="goBack()">← Torna a Admin</button>
         </div>
 
-        <div class="game-container">
+        <div class="game-container<?php if ($gameOver): ?> game-over-layout<?php endif; ?>">
             <div class="game-main">
                 <div class="info-box">
                     <p><span>👥 Giocatori:</span> <strong><?php echo $roomInfo['num_players']; ?></strong></p>
@@ -396,9 +401,6 @@ if ($room['has_winner'] ?? false) {
                         <h3>🎉 Partita Terminata!</h3>
                         <div id="final-leaderboard" style="margin-top: 20px;">
                             <p class="empty-state">Caricamento classifica...</p>
-                        </div>
-                        <div class="button-group">
-                            <button class="btn-main btn-success-custom" onclick="goBack()">← Torna a Admin</button>
                         </div>
                     </div>
                 <?php elseif ($activeRound): ?>
@@ -575,7 +577,11 @@ if ($room['has_winner'] ?? false) {
             // Clickfirst: salva il vincitore selezionato prima di avanzare
             if (currentRoundType === 'clickfirst' && activeRoundId) {
                 const selected = document.querySelector('input[name="clickfirst-winner"]:checked');
-                if (!selected) return;
+                if (!selected) {
+                    // Nessuna risposta o nessun radio: procedi senza vincitore
+                    proceedToNextQuestion();
+                    return;
+                }
 
                 fetch('../src/api/api.php?endpoint=game&action=set_clickfirst_winner', {
                     method: 'POST',
@@ -678,6 +684,13 @@ if ($room['has_winner'] ?? false) {
                                     });
                                 });
                             }
+                        }
+                    } else if (currentRoundType === 'clickfirst') {
+                        // Nessuna risposta nel clickfirst: abilita prossima domanda
+                        const nextBtn = document.getElementById('next-btn');
+                        if (nextBtn) {
+                            nextBtn.disabled = false;
+                            nextBtn.style.animation = 'pulse 1s infinite';
                         }
                     }
                 });
