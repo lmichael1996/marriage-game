@@ -859,6 +859,142 @@ mark {
     padding: 8px 12px;
     font-size: 0.9em;
   }
+
+  /* ========== POINTS TABLE → UNA SOLA COPPIA Posizione|Punti PER RIGA ========== */
+  .points-table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  .points-table thead {
+    display: none;
+  }
+
+  .points-table tbody {
+    display: grid;
+    grid-template-columns: auto 1fr;
+  }
+
+  .points-table tbody tr {
+    display: contents;
+  }
+
+  /* Riordina: prima tutte le posizioni 1°-5° (colonne 1-2), poi 6°-10° (colonne 3-4) */
+  /* tr:1 → td1(1°)=order1, td2(input)=order2, td3(6°)=order11, td4(input)=order12 */
+  .points-table tbody tr:nth-child(1) td:nth-child(1) {
+    order: 1;
+  }
+  .points-table tbody tr:nth-child(1) td:nth-child(2) {
+    order: 2;
+  }
+  .points-table tbody tr:nth-child(1) td:nth-child(3) {
+    order: 11;
+  }
+  .points-table tbody tr:nth-child(1) td:nth-child(4) {
+    order: 12;
+  }
+
+  .points-table tbody tr:nth-child(2) td:nth-child(1) {
+    order: 3;
+  }
+  .points-table tbody tr:nth-child(2) td:nth-child(2) {
+    order: 4;
+  }
+  .points-table tbody tr:nth-child(2) td:nth-child(3) {
+    order: 13;
+  }
+  .points-table tbody tr:nth-child(2) td:nth-child(4) {
+    order: 14;
+  }
+
+  .points-table tbody tr:nth-child(3) td:nth-child(1) {
+    order: 5;
+  }
+  .points-table tbody tr:nth-child(3) td:nth-child(2) {
+    order: 6;
+  }
+  .points-table tbody tr:nth-child(3) td:nth-child(3) {
+    order: 15;
+  }
+  .points-table tbody tr:nth-child(3) td:nth-child(4) {
+    order: 16;
+  }
+
+  .points-table tbody tr:nth-child(4) td:nth-child(1) {
+    order: 7;
+  }
+  .points-table tbody tr:nth-child(4) td:nth-child(2) {
+    order: 8;
+  }
+  .points-table tbody tr:nth-child(4) td:nth-child(3) {
+    order: 17;
+  }
+  .points-table tbody tr:nth-child(4) td:nth-child(4) {
+    order: 18;
+  }
+
+  .points-table tbody tr:nth-child(5) td:nth-child(1) {
+    order: 9;
+  }
+  .points-table tbody tr:nth-child(5) td:nth-child(2) {
+    order: 10;
+  }
+  .points-table tbody tr:nth-child(5) td:nth-child(3) {
+    order: 19;
+  }
+  .points-table tbody tr:nth-child(5) td:nth-child(4) {
+    order: 20;
+  }
+
+  .points-table td {
+    padding: 8px 10px;
+    border: 1px solid #e0e0e0;
+  }
+
+  .points-table td input[type="number"] {
+    width: 100%;
+  }
+
+  /* ========== QUESTION-ITEM COMPACT (modal lists) ========== */
+  .question-item {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 8px !important;
+  }
+
+  /* Testo domanda — full width, centrato */
+  .question-item > div:first-child {
+    flex: none !important;
+    font-size: 0.9em;
+    line-height: 1.35;
+    text-align: center;
+  }
+
+  /* Badge riga — category + type centrati */
+  .question-item > div:nth-child(2),
+  .question-item > div:nth-child(3) {
+    flex: none !important;
+    text-align: center !important;
+  }
+
+  /* Badges più piccoli */
+  .question-item span[style*="border-radius: 12px"] {
+    font-size: 0.75em !important;
+    padding: 2px 8px !important;
+  }
+
+  /* Azioni — centrate */
+  .question-item > div:last-child,
+  .question-item > button:last-child {
+    align-self: center;
+  }
+
+  .question-item .btn-sm,
+  .question-item .btn {
+    padding: 4px 10px;
+    font-size: 0.8em;
+  }
 }
 
 @media (max-width: 479px) {
@@ -942,5 +1078,20 @@ mark {
 
   .page-info {
     font-size: 0.9em;
+  }
+
+  /* Question-item ultra-compact */
+  .question-item {
+    padding: 6px !important;
+    gap: 4px !important;
+  }
+
+  .question-item > div:first-child {
+    font-size: 0.85em;
+  }
+
+  .question-item span[style*="border-radius: 12px"] {
+    font-size: 0.7em !important;
+    padding: 2px 6px !important;
   }
 }
