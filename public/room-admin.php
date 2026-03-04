@@ -1,11 +1,8 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
 require_once __DIR__ . '/../src/utils/auth.php';
 require_once __DIR__ . '/../src/utils/helper.php';
 
-// requireAdmin();
+requireAdmin();
 
 // Verifica se la stanza ha già un vincitore (partita terminata)
 // (va prima del loadRoomAdmin per evitare caricamento dati inutile)

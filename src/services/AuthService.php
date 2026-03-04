@@ -6,9 +6,7 @@ require_once __DIR__ . '/../repository/JudgeRepo.php';
 
 /**
  * AuthService — Autenticazione basata su sessione PHP.
- *
- * Sessione unica con chiavi separate: auth_admin, auth_player, auth_judge.
- * Admin, player e judge possono coesistere nella stessa sessione.
+ * La sessione viene avviata centralmente da auth.php.
  */
 class AuthService {
     private $userRepo;
@@ -31,7 +29,6 @@ class AuthService {
             throw new Exception('Username o password non validi');
         }
 
-        $this->ensureSession();
         $_SESSION['auth_admin'] = [
             'role'     => 'admin',
             'user_id'  => (int)$user['id'],
@@ -73,7 +70,6 @@ class AuthService {
 
         if (!$playerId) throw new Exception('Errore durante la creazione del giocatore');
 
-        $this->ensureSession();
         $_SESSION['auth_player'] = [
             'role'      => 'player',
             'player_id' => (int)$playerId,
@@ -106,7 +102,6 @@ class AuthService {
 
         if (!$judgeId) throw new Exception('Errore durante la creazione del giudice');
 
-        $this->ensureSession();
         $_SESSION['auth_judge'] = [
             'role'      => 'judge',
             'judge_id'  => (int)$judgeId,
@@ -120,7 +115,6 @@ class AuthService {
     // ── Logout ───────────────────────────────────────────────────────────
 
     public function logout(): bool {
-        $this->ensureSession();
         session_destroy();
         return true;
     }
@@ -128,17 +122,14 @@ class AuthService {
     // ── Verifica autenticazione ──────────────────────────────────────────
 
     public function getAdmin(): ?array {
-        $this->ensureSession();
         return $_SESSION['auth_admin'] ?? null;
     }
 
     public function getPlayer(): ?array {
-        $this->ensureSession();
         return $_SESSION['auth_player'] ?? null;
     }
 
     public function getJudge(): ?array {
-        $this->ensureSession();
         return $_SESSION['auth_judge'] ?? null;
     }
 
@@ -146,21 +137,11 @@ class AuthService {
         return $this->getAdmin() ?? $this->getPlayer() ?? $this->getJudge();
     }
 
-    /** Aggiorna i dati admin in sessione (es. dopo cambio username). */
     public function updateAdminSession(int $userId, string $username): void {
-        $this->ensureSession();
         $_SESSION['auth_admin'] = [
             'role'     => 'admin',
             'user_id'  => $userId,
             'username' => $username,
         ];
-    }
-
-    // ── Internal ─────────────────────────────────────────────────────────
-
-    private function ensureSession(): void {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
     }
 }

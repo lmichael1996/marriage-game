@@ -1,11 +1,13 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require_once __DIR__ . '/../services/ServiceLoader.php';
 
 /**
- * Auth guard functions — Autenticazione via sessione PHP.
- *
- * Le chiavi auth_admin / auth_player / auth_judge sono indipendenti in sessione,
- * quindi admin, player e judge possono coesistere nello stesso browser.
+ * Auth guard e helper — Autenticazione via sessione PHP.
+ * Questo file avvia la sessione automaticamente al require.
  */
 
 // ── Guards (redirect se non autenticato) ─────────────────────────────────
@@ -51,20 +53,8 @@ function requireAdminJson(): void {
 
 // ── Convenience getters ──────────────────────────────────────────────────
 
-function authAdmin(): ?array {
-    return svc('auth')->getAdmin();
-}
-
-function authPlayer(): ?array {
-    return svc('auth')->getPlayer();
-}
-
 function authJudge(): ?array {
     return svc('auth')->getJudge();
-}
-
-function authUser(): ?array {
-    return svc('auth')->getAnyUser();
 }
 
 function authRoomCode(): ?string {
@@ -72,7 +62,7 @@ function authRoomCode(): ?string {
     if ($player) return $player['room_code'];
     $judge = svc('auth')->getJudge();
     if ($judge) return $judge['room_code'];
-    return $_SESSION['code_player'] ?? null;
+    return null;
 }
 
 function authUsername(): ?string {

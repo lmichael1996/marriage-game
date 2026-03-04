@@ -4,6 +4,7 @@ require_once __DIR__ . '/../repository/AnswerRepo.php';
 require_once __DIR__ . '/../repository/SettingsRepo.php';
 require_once __DIR__ . '/../repository/PlayerRepo.php';
 require_once __DIR__ . '/../repository/RoomRepo.php';
+require_once __DIR__ . '/../utils/auth.php';
 
 /**
  * GameService - Gestisce la logica di business del gioco
@@ -61,15 +62,10 @@ class GameService {
     }
 
     /**
-     * Get active round from session (usato da game.php per il judge)
+     * Get active round from session
      */
     public function getActiveRound($questionSetId = null) {
-        if (session_status() === PHP_SESSION_NONE) {
-            @session_start();
-        }
-
-        $player = svc('auth')->getPlayer();
-        $roomCode = $player['room_code'] ?? ($_SESSION['code_player'] ?? null);
+        $roomCode = authRoomCode();
         if (!$roomCode) {
             return null;
         }
@@ -234,8 +230,7 @@ class GameService {
     public function getFinalLeaderboard($roomCode = null, $roomId = null) {
         if (!$roomId) {
             if (!$roomCode) {
-                $player = svc('auth')->getPlayer();
-                $roomCode = $player['room_code'] ?? ($_SESSION['code_player'] ?? null);
+                $roomCode = authRoomCode();
             }
             if (!$roomCode) {
                 return ['success' => false, 'leaderboard' => []];

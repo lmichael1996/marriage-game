@@ -1,6 +1,4 @@
 <?php
-session_start();
-
 require_once __DIR__ . '/../utils/auth.php';
 require_once __DIR__ . '/../utils/PDFGenerator.php';
 require_once __DIR__ . '/../utils/QRGenerator.php';
@@ -244,8 +242,8 @@ function handleCreateRoom() {
         $result = $room->createRoom(input()['question_set_id'] ?? null);
 
         if ($result['success']) {
-            $_SESSION['code_player'] = $result['code_player'];
-            $_SESSION['code_judge']  = $result['code_judge'];
+            $_SESSION['active_room_code']  = $result['code_player'];
+            $_SESSION['active_judge_code'] = $result['code_judge'];
 
             $roomData = $room->getRoomDetails($result['code_player']);
             if ($roomData) {
@@ -262,7 +260,7 @@ function handleCreateRoom() {
 function handleStartRoom() {
     requireLoginJson();
     try {
-        $roomCode = input()['code_player'] ?? $_SESSION['code_player'] ?? null;
+        $roomCode = input()['code_player'] ?? $_SESSION['active_room_code'] ?? null;
         if (!$roomCode) throw new Exception('Nessuna stanza attiva nella sessione');
         respond(svc('room')->startRoom($roomCode));
     } catch (Exception $e) {
@@ -293,11 +291,11 @@ function handleCheckRoomStatus() {
 function handleDeleteRoom() {
     requireAdminJson();
     try {
-        $codePlayer = $_SESSION['code_player'] ?? $_GET['code_player'] ?? null;
+        $codePlayer = $_SESSION['active_room_code'] ?? $_GET['code_player'] ?? null;
         if (!$codePlayer) throw new Exception('Codice stanza mancante');
 
         $result = svc('room')->cancelRoom($codePlayer);
-        if ($result['success']) { unset($_SESSION['code_player'], $_SESSION['code_judge']); }
+        if ($result['success']) { unset($_SESSION['active_room_code'], $_SESSION['active_judge_code']); }
         respond($result);
     } catch (Exception $e) {
         respondError($e->getMessage(), 500);
@@ -306,7 +304,7 @@ function handleDeleteRoom() {
 
 function handleConnectedDevices() {
     try {
-        $codePlayer = $_SESSION['code_player'] ?? $_GET['code_player'] ?? null;
+        $codePlayer = $_SESSION['active_room_code'] ?? $_GET['code_player'] ?? null;
         if (!$codePlayer) respond(['success' => true, 'devices' => [], 'count' => 0]);
 
         $result = svc('room')->getConnectedDevices($codePlayer);
