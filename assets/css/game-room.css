@@ -152,3 +152,126 @@
   justify-content: center;
   align-items: center;
 }
+
+/* ========== MOBILE ========== */
+@media (max-width: 767px) {
+
+  /* Nascondi QR code su mobile — mostra solo i codici testuali */
+  #qr-code-container-player,
+  #qr-code-container-judge {
+    display: none !important;
+  }
+
+  /* Tab QR più compatti */
+  .tab-container {
+    display: flex;
+    gap: 0;
+  }
+
+  .tab-button {
+    flex: 1;
+    font-size: 0.85em;
+    padding: 8px 6px;
+  }
+
+  .tab-content {
+    padding: 12px 10px !important;
+  }
+
+  /* Codice stanza grande e centrato */
+  .tab-content p strong span {
+    font-size: 1.3em;
+    letter-spacing: 2px;
+  }
+
+  /* Nascondi testo "Inquadra o usa il codice" */
+  .tab-content p:last-child {
+    display: none;
+  }
+
+  /* Bottoni PDF/Chiudi stanza — colonna */
+  .button-container-close {
+    flex-direction: column;
+  }
+
+  .button-container-close .btn {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Tabella dispositivi → card */
+  .sets-table thead {
+    display: none;
+  }
+
+  .sets-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .sets-table tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    gap: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+
+  .sets-table tbody td {
+    padding: 0;
+    border: none;
+    font-size: 0.9em;
+  }
+
+  /* Giocatore: nome a sinistra */
+  .sets-table tbody td:first-child {
+    font-weight: 600;
+    flex: 1;
+  }
+
+  /* Stato: al centro */
+  .sets-table tbody td:nth-child(2) {
+    flex-shrink: 0;
+  }
+
+  /* Connesso da: a destra */
+  .sets-table tbody td:last-child {
+    color: #666;
+    font-size: 0.8em;
+    flex-shrink: 0;
+  }
+
+  /* Header compatto */
+  .header h1 {
+    font-size: 1.1em;
+  }
+
+  /* Settings group compatto */
+  .settings-group {
+    padding: 12px;
+  }
+
+  .settings-group h2 {
+    font-size: 1.05em;
+  }
+
+  /* Info box compatto */
+  #final-info p {
+    font-size: 0.9em;
+  }
+
+  /* Bottone Avvia Partita full width */
+  .button-container .btn {
+    width: 100%;
+  }
+
+  #btn-start-game {
+    width: 100%;
+  }
+}
