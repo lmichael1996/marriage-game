@@ -155,7 +155,6 @@
 
 /* ========== MOBILE ========== */
 @media (max-width: 767px) {
-
   /* Nascondi QR code su mobile — mostra solo i codici testuali */
   #qr-code-container-player,
   #qr-code-container-judge {

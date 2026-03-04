@@ -569,11 +569,15 @@ requirePlayer();
             answerGrid.style.display = 'grid';
             document.getElementById('click-first-screen').style.display = 'none';
 
+            const tfLabels = { 1: 'Vero', 2: 'Falso' };
+
             for (let i = 1; i <= 4; i++) {
                 const btn = document.getElementById('btn-' + i);
                 if (i <= numOptions) {
                     btn.style.display = 'flex';
-                    btn.textContent = round['option' + i] || 'Opzione ' + i;
+                    btn.textContent = round.round_type === 'truefalse'
+                        ? tfLabels[i]
+                        : (round['option' + i] || 'Opzione ' + i);
                 } else {
                     btn.style.display = 'none';
                 }

@@ -457,8 +457,11 @@ $judge = authJudge();
             } else {
                 let optionsHtml = '';
                 const maxOptions = round.round_type === 'truefalse' ? 2 : 4;
+                const tfLabels = { 1: 'Vero', 2: 'Falso' };
                 for (let i = 1; i <= maxOptions; i++) {
-                    const text = round['option' + i] || '';
+                    const text = round.round_type === 'truefalse'
+                        ? tfLabels[i]
+                        : (round['option' + i] || '');
                     if (text) {
                         optionsHtml += `<div class="option-btn" id="judge-option-${i}">${text}</div>`;
                     }

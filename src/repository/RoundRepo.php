@@ -173,6 +173,12 @@ class RoundRepo {
         if ($round) {
             // Add round_number (position)
             $round['round_number'] = $position;
+
+            // Truefalse: opzioni fisse "Vero"/"Falso" (nel DB sono vuote)
+            if (($round['round_type'] ?? '') === 'truefalse') {
+                $round['option1'] = 'Vero';
+                $round['option2'] = 'Falso';
+            }
         }
 
         return $round;
