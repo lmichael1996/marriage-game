@@ -690,6 +690,17 @@ mark {
     font-size: 0.85em;
   }
 
+  /* Search row dentro i modal — verticale su mobile */
+  .search-row {
+    flex-direction: column;
+  }
+
+  .search-row-input,
+  .search-row-select,
+  .search-row .btn {
+    width: 100%;
+  }
+
   /* ========== QUESTIONS TABLE → CARD LAYOUT ========== */
   .questions-table {
     border: none;
