@@ -64,7 +64,8 @@ function authRoomCode(): ?string {
     if ($player) return $player['room_code'];
     $judge = svc('auth')->getJudge();
     if ($judge) return $judge['room_code'];
-    return null;
+    // Admin: room code salvato quando crea/avvia la stanza
+    return $_SESSION['active_room_code'] ?? null;
 }
 
 function authUsername(): ?string {

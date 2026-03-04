@@ -245,6 +245,7 @@ function loadRoomAdmin(): array {
     }
 
     $_SESSION['room_id'] = $roomId;
+    $_SESSION['active_room_code'] = $room['code_player'];
 
     // Counter: incrementa ogni volta che l'admin clicca "Prossima Domanda"
     $counterKey = 'round_counter_' . $roomId;
