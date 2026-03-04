@@ -64,8 +64,8 @@ class QuestionRepo {
 
         // Normalizza i dati in base al tipo
         if ($roundType === 'truefalse') {
-            $answer1 = $answer1 ?: 'Vero';
-            $answer2 = $answer2 ?: 'Falso';
+            $answer1 = '';
+            $answer2 = '';
             $answer3 = '';
             $answer4 = '';
             $correctAnswer = intval($correctAnswer ?? 1);
@@ -123,31 +123,61 @@ class QuestionRepo {
         $params = [$question, $type, $categoryId, $timer];
         $paramTypes = "ssii";
 
-        // Only update answer fields if they are provided
-        if ($answer1 !== null) {
+        if ($type === 'clickfirst') {
+            // Clickfirst: azzera tutte le opzioni e correct_answer
             $updateFields[] = "option1 = ?";
-            $params[] = $answer1;
-            $paramTypes .= "s";
-        }
-        if ($answer2 !== null) {
             $updateFields[] = "option2 = ?";
-            $params[] = $answer2;
-            $paramTypes .= "s";
-        }
-        if ($answer3 !== null) {
             $updateFields[] = "option3 = ?";
-            $params[] = $answer3;
-            $paramTypes .= "s";
-        }
-        if ($answer4 !== null) {
             $updateFields[] = "option4 = ?";
-            $params[] = $answer4;
-            $paramTypes .= "s";
-        }
-        if ($correctAnswer !== null) {
-            $updateFields[] = "correct_answer = ?";
-            $params[] = $correctAnswer;
-            $paramTypes .= "i";
+            $updateFields[] = "correct_answer = NULL";
+            $params[] = '';
+            $params[] = '';
+            $params[] = '';
+            $params[] = '';
+            $paramTypes .= "ssss";
+        } else if ($type === 'truefalse') {
+            // Truefalse: azzera opzioni e aggiorna correct_answer
+            $updateFields[] = "option1 = ?";
+            $updateFields[] = "option2 = ?";
+            $updateFields[] = "option3 = ?";
+            $updateFields[] = "option4 = ?";
+            $params[] = '';
+            $params[] = '';
+            $params[] = '';
+            $params[] = '';
+            $paramTypes .= "ssss";
+            if ($correctAnswer !== null) {
+                $updateFields[] = "correct_answer = ?";
+                $params[] = $correctAnswer;
+                $paramTypes .= "i";
+            }
+        } else {
+            // Only update answer fields if they are provided
+            if ($answer1 !== null) {
+                $updateFields[] = "option1 = ?";
+                $params[] = $answer1;
+                $paramTypes .= "s";
+            }
+            if ($answer2 !== null) {
+                $updateFields[] = "option2 = ?";
+                $params[] = $answer2;
+                $paramTypes .= "s";
+            }
+            if ($answer3 !== null) {
+                $updateFields[] = "option3 = ?";
+                $params[] = $answer3;
+                $paramTypes .= "s";
+            }
+            if ($answer4 !== null) {
+                $updateFields[] = "option4 = ?";
+                $params[] = $answer4;
+                $paramTypes .= "s";
+            }
+            if ($correctAnswer !== null) {
+                $updateFields[] = "correct_answer = ?";
+                $params[] = $correctAnswer;
+                $paramTypes .= "i";
+            }
         }
 
         $params[] = $id;

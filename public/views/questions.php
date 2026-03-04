@@ -587,10 +587,23 @@ document.addEventListener('DOMContentLoaded', function() {
     // Attach event listeners alle categorie
     attachCategoryEventListeners();
 
+    function resetAddForm() {
+        const form = document.getElementById('form-new-question');
+        if (form) form.reset();
+        document.getElementById('add-question-message').innerHTML = '';
+    }
+
+    function resetEditForm() {
+        const form = document.getElementById('form-edit-question');
+        if (form) form.reset();
+        document.getElementById('edit-question-message').innerHTML = '';
+    }
+
     const closeBtn = document.querySelector('#modal-add-question .modal-close');
     if (closeBtn) {
         closeBtn.addEventListener('click', () => {
             modalOverlay.style.display = 'none';
+            resetAddForm();
         });
     }
 
@@ -599,6 +612,7 @@ document.addEventListener('DOMContentLoaded', function() {
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) {
                 modalOverlay.style.display = 'none';
+                resetAddForm();
             }
         });
     }
@@ -653,6 +667,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeSelect) {
         typeSelect.addEventListener('change', (e) => {
             const type = e.target.value;
+            const answerInputs = [document.getElementById('new-answer1'), document.getElementById('new-answer2'), document.getElementById('new-answer3'), document.getElementById('new-answer4')];
 
             // Mostra/nascondi sezione risposte basato sul tipo
             if (type === 'multiple') {
@@ -663,6 +678,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('new-answer1').parentElement.style.display = 'block';
                 document.getElementById('new-answer2').parentElement.style.display = 'block';
                 correctSelect.innerHTML = '<option value="1">Risposta 1</option><option value="2">Risposta 2</option><option value="3">Risposta 3</option><option value="4">Risposta 4</option>';
+                answerInputs.forEach(input => input.required = true);
             } else if (type === 'truefalse') {
                 answersContainer.style.display = 'block';
                 answer3Group.style.display = 'none';
@@ -671,8 +687,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('new-answer1').parentElement.style.display = 'none';
                 document.getElementById('new-answer2').parentElement.style.display = 'none';
                 correctSelect.innerHTML = '<option value="1">Vero</option><option value="2">Falso</option>';
+                answerInputs.forEach(input => input.required = false);
             } else {
                 answersContainer.style.display = 'none';
+                answerInputs.forEach(input => input.required = false);
             }
         });
     }
@@ -685,6 +703,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (closeEditBtn) {
         closeEditBtn.addEventListener('click', () => {
             modalEditQuestion.style.display = 'none';
+            resetEditForm();
         });
     }
 
@@ -692,6 +711,7 @@ document.addEventListener('DOMContentLoaded', function() {
         modalEditQuestion.addEventListener('click', (e) => {
             if (e.target === modalEditQuestion) {
                 modalEditQuestion.style.display = 'none';
+                resetEditForm();
             }
         });
     }
@@ -706,6 +726,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (editTypeSelect) {
         editTypeSelect.addEventListener('change', (e) => {
             const type = e.target.value;
+            const editAnswerInputs = [document.getElementById('edit-answer1'), document.getElementById('edit-answer2'), document.getElementById('edit-answer3'), document.getElementById('edit-answer4')];
 
             if (type === 'truefalse') {
                 editAnswersContainer.style.display = 'block';
@@ -715,6 +736,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('edit-answer1').parentElement.style.display = 'none';
                 document.getElementById('edit-answer2').parentElement.style.display = 'none';
                 editCorrectSelect.innerHTML = '<option value="1">Vero</option><option value="2">Falso</option>';
+                editAnswerInputs.forEach(input => input.required = false);
             } else if (type === 'multiple') {
                 editAnswersContainer.style.display = 'block';
                 editAnswer3Group.style.display = 'block';
@@ -723,10 +745,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('edit-answer1').parentElement.style.display = 'block';
                 document.getElementById('edit-answer2').parentElement.style.display = 'block';
                 editCorrectSelect.innerHTML = '<option value="1">Risposta 1</option><option value="2">Risposta 2</option><option value="3">Risposta 3</option><option value="4">Risposta 4</option>';
+                editAnswerInputs.forEach(input => input.required = true);
             } else if (type === 'clickfirst') {
                 editAnswersContainer.style.display = 'none';
+                editAnswerInputs.forEach(input => input.required = false);
             } else {
                 editAnswersContainer.style.display = 'none';
+                editAnswerInputs.forEach(input => input.required = false);
             }
         });
     }
@@ -826,7 +851,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="form-row">
                 <div class="form-group">
                     <label for="new-timer">Timer (secondi)</label>
-                    <input type="number" id="new-timer" name="timer" required min="5" max="120" value="30">
+                    <input type="number" id="new-timer" name="timer" required min="5" max="120" step="5" value="30">
                 </div>
             </div>
 
@@ -834,19 +859,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h3>Risposte</h3>
                 <div class="form-group">
                     <label for="new-answer1">Risposta 1</label>
-                    <input type="text" id="new-answer1" name="answer1">
+                    <input type="text" id="new-answer1" name="answer1" required>
                 </div>
                 <div class="form-group">
                     <label for="new-answer2">Risposta 2</label>
-                    <input type="text" id="new-answer2" name="answer2">
+                    <input type="text" id="new-answer2" name="answer2" required>
                 </div>
                 <div class="form-group" id="answer3-group" style="display: none;">
                     <label for="new-answer3">Risposta 3</label>
-                    <input type="text" id="new-answer3" name="answer3">
+                    <input type="text" id="new-answer3" name="answer3" required>
                 </div>
                 <div class="form-group" id="answer4-group" style="display: none;">
                     <label for="new-answer4">Risposta 4</label>
-                    <input type="text" id="new-answer4" name="answer4">
+                    <input type="text" id="new-answer4" name="answer4" required>
                 </div>
                 <div class="form-group">
                     <label for="new-correct">Risposta Corretta</label>
@@ -904,7 +929,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="form-row">
                 <div class="form-group">
                     <label for="edit-timer">Timer (secondi)</label>
-                    <input type="number" id="edit-timer" name="timer" required min="5" max="120" value="30">
+                    <input type="number" id="edit-timer" name="timer" required min="5" max="120" step="5" value="30">
                 </div>
             </div>
 
@@ -912,19 +937,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h3>Risposte</h3>
                 <div class="form-group">
                     <label for="edit-answer1">Risposta 1</label>
-                    <input type="text" id="edit-answer1" name="answer1" placeholder="Risposta corretta">
+                    <input type="text" id="edit-answer1" name="answer1" placeholder="Risposta corretta" required>
                 </div>
                 <div class="form-group">
                     <label for="edit-answer2">Risposta 2</label>
-                    <input type="text" id="edit-answer2" name="answer2" placeholder="Risposta sbagliata">
+                    <input type="text" id="edit-answer2" name="answer2" placeholder="Risposta sbagliata" required>
                 </div>
                 <div class="form-group" id="edit-answer3-group" style="display: none;">
                     <label for="edit-answer3">Risposta 3</label>
-                    <input type="text" id="edit-answer3" name="answer3" placeholder="Risposta sbagliata">
+                    <input type="text" id="edit-answer3" name="answer3" placeholder="Risposta sbagliata" required>
                 </div>
                 <div class="form-group" id="edit-answer4-group" style="display: none;">
                     <label for="edit-answer4">Risposta 4</label>
-                    <input type="text" id="edit-answer4" name="answer4" placeholder="Risposta sbagliata">
+                    <input type="text" id="edit-answer4" name="answer4" placeholder="Risposta sbagliata" required>
                 </div>
                 <div class="form-group">
                     <label for="edit-correct">Risposta Corretta</label>

@@ -147,9 +147,8 @@ function buildQuestionData(): array {
         $data['correct_answer'] = (int)($_POST['correct_answer'] ?? 1);
         $isTF     = $data['round_type'] === 'truefalse';
         $max      = $isTF ? 2 : 4;
-        $defaults = $isTF ? [1 => 'Vero', 2 => 'Falso'] : [];
         for ($i = 1; $i <= $max; $i++) {
-            $data["answer$i"] = $_POST["answer$i"] ?? ($defaults[$i] ?? '');
+            $data["answer$i"] = $_POST["answer$i"] ?? '';
         }
     }
     return $data;
