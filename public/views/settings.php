@@ -13,19 +13,19 @@
             <div class="form-group">
                 <label for="admin-username">Username:</label>
                 <input type="text" id="admin-username" name="admin_username" value="<?php echo htmlspecialchars(authUsername() ?? 'admin'); ?>">
-                <small>Username per accedere al pannello amministratore</small>
+                <small>Utilizzato per effettuare il login al pannello di amministrazione.</small>
             </div>
 
             <div class="form-group">
                 <label for="admin-new-password">Nuova Password:</label>
                 <input type="password" id="admin-new-password" name="admin_new_password" placeholder="Lascia vuoto per mantenere la password attuale">
-                <small>Lascia vuoto per mantenere la password attuale. Minimo 6 caratteri.</small>
+                <small>Minimo 6 caratteri. Lascia vuoto per non modificarla.</small>
             </div>
 
             <div class="form-group">
                 <label for="admin-confirm-password">Conferma Password:</label>
                 <input type="password" id="admin-confirm-password" name="admin_confirm_password" placeholder="Reinserisci la nuova password">
-                <small>Reinserisci la nuova password</small>
+                <small>Deve corrispondere alla nuova password inserita sopra.</small>
             </div>
 
             <div id="credentials-message" class="credentials-message"></div>
@@ -192,9 +192,10 @@
         const newPassword = document.getElementById('admin-new-password').value;
         const confirmPassword = document.getElementById('admin-confirm-password').value;
         const msg = document.getElementById('credentials-message');
+        const hasPassword = newPassword || confirmPassword;
 
-        // Validation
-        if (newPassword || confirmPassword) {
+        // Validation password solo se inserita
+        if (hasPassword) {
             if (newPassword.length < 6) {
                 msg.innerHTML = '<div class="alert-warning">⚠️ La password deve avere almeno 6 caratteri</div>';
                 return;
@@ -204,10 +205,6 @@
                 msg.innerHTML = '<div class="alert-error">✗ Le password non corrispondono</div>';
                 return;
             }
-        } else {
-            msg.innerHTML = '<div class="alert-warning">ℹ️ Nessuna password inserita. Le credenziali rimangono invariate.</div>';
-            setTimeout(() => msg.innerHTML = '', 3000);
-            return;
         }
 
         const formData = new FormData(this);
@@ -218,12 +215,17 @@
         })
         .then(r => r.text())
         .then(data => {
-            msg.innerHTML = '<div class="alert-success">✓ Credenziali aggiornate correttamente. Effettua nuovamente il login.</div>';
-            document.getElementById('admin-new-password').value = '';
-            document.getElementById('admin-confirm-password').value = '';
-            setTimeout(() => {
-                window.location.href = 'logout.php?logout=1';
-            }, 2000);
+            if (hasPassword) {
+                msg.innerHTML = '<div class="alert-success">✓ Credenziali aggiornate. Effettua nuovamente il login.</div>';
+                document.getElementById('admin-new-password').value = '';
+                document.getElementById('admin-confirm-password').value = '';
+                setTimeout(() => {
+                    window.location.href = 'logout.php?logout=1';
+                }, 2000);
+            } else {
+                msg.innerHTML = '<div class="alert-success">✓ Username aggiornato correttamente.</div>';
+                setTimeout(() => msg.innerHTML = '', 3000);
+            }
         })
         .catch(err => {
             msg.innerHTML = '<div class="alert-error">✗ Errore durante l\'aggiornamento delle credenziali</div>';
