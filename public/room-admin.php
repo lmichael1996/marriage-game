@@ -452,12 +452,16 @@ if ($room['has_winner'] ?? false) {
                         <p><?php echo htmlspecialchars($question['question']); ?></p>
 
                         <?php if ($question['round_type'] !== 'clickfirst'): ?>
+                            <?php
+                                $qOpt1 = $question['round_type'] === 'truefalse' ? 'Vero' : $question['option1'];
+                                $qOpt2 = $question['round_type'] === 'truefalse' ? 'Falso' : $question['option2'];
+                            ?>
                             <div class="options-grid">
                                 <div class="option-btn">
-                                    <?php echo htmlspecialchars($question['option1']); ?>
+                                    <?php echo htmlspecialchars($qOpt1); ?>
                                 </div>
                                 <div class="option-btn">
-                                    <?php echo htmlspecialchars($question['option2']); ?>
+                                    <?php echo htmlspecialchars($qOpt2); ?>
                                 </div>
                                 <?php if ($question['round_type'] === 'multiple'): ?>
                                     <div class="option-btn">
