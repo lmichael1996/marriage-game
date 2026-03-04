@@ -116,7 +116,34 @@
     </div>
 </div>
 
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+
 <script>
+// ========== TOAST NOTIFICATION SYSTEM ==========
+function showToast(message, type = 'info', duration = 3000) {
+    const container = document.getElementById('toast-container');
+    const icons = { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' };
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.style.setProperty('--toast-duration', duration + 'ms');
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || icons.info}</span>
+        <span class="toast-message">${message}</span>
+        <button class="toast-close" onclick="this.parentElement.classList.add('toast-hiding'); setTimeout(() => this.parentElement.remove(), 300)">×</button>
+        <div class="toast-progress"></div>
+    `;
+
+    container.appendChild(toast);
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.classList.add('toast-hiding');
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, duration);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // ========== TRACCIAMENTO MODIFICHE CATEGORIE ==========
     let categoryChanges = {
@@ -169,11 +196,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         const modal = document.getElementById('modal-edit-question');
                         modal.style.display = 'flex';
                     } else {
-                        alert('Errore nel caricamento della domanda');
+                        showToast('Errore nel caricamento della domanda', 'error');
                     }
                 })
                 .catch(error => {
-                    alert('Errore nel caricamento della domanda');
+                    showToast('Errore nel caricamento della domanda', 'error');
                 });
             return;
         }
@@ -193,7 +220,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     <input type="hidden" name="question_id" value="${questionId}">
                 `;
                 document.body.appendChild(form);
-                alert('✓ Domanda eliminata con successo!');
                 form.submit();
             };
         }
@@ -388,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const newColor = categoryCard.querySelector('.edit-category-color').value;
 
                 if (!newName) {
-                    alert('Inserisci il nome della categoria');
+                    showToast('Inserisci il nome della categoria', 'warning');
                     return;
                 }
 
@@ -417,7 +443,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 viewMode.style.display = 'flex';
                 editMode.style.display = 'none';
 
-                alert('✓ Categoria "' + newName + '" aggiornata localmente. Salva per confermare.');
+                showToast('Categoria "' + newName + '" aggiornata. Salva per confermare.', 'info');
             });
         });
 
@@ -440,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Rimuovi dal DOM
                     categoryCard.remove();
-                    alert('✓ Categoria "' + categoryName + '" eliminata localmente. Salva per confermare.');
+                    showToast('Categoria "' + categoryName + '" eliminata. Salva per confermare.', 'info');
                 }
             });
         });
@@ -471,7 +497,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const categoryColor = document.getElementById('new-category-color').value;
 
             if (!categoryName) {
-                alert('Inserisci il nome della categoria');
+                showToast('Inserisci il nome della categoria', 'warning');
                 return;
             }
 
@@ -539,7 +565,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Re-attach event listeners per i nuovi button
             attachCategoryEventListeners();
 
-            alert('✓ Categoria "' + categoryName + '" aggiunta localmente. Salva per confermare.');
+            showToast('Categoria "' + categoryName + '" aggiunta. Salva per confermare.', 'success');
         });
     }
 
@@ -569,16 +595,16 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('✓ ' + data.message);
+                    showToast(data.message, 'success');
                     // Chiudi il modal e ricarica
                     document.getElementById('modal-categories').style.display = 'none';
                     location.reload();
                 } else {
-                    alert('❌ Errore: ' + (data.message || 'Errore sconosciuto'));
+                    showToast(data.message || 'Errore sconosciuto', 'error');
                 }
             })
             .catch(err => {
-                alert('❌ Errore di rete: ' + err.message);
+                showToast('Errore di rete: ' + err.message, 'error');
             });
         });
     }
@@ -626,7 +652,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!typeSelected) {
                 e.preventDefault();
-                alert('Seleziona il tipo di domanda');
+                showToast('Seleziona il tipo di domanda', 'warning');
                 return;
             }
 
@@ -763,7 +789,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!typeSelected) {
                 e.preventDefault();
-                alert('Seleziona il tipo di domanda');
+                showToast('Seleziona il tipo di domanda', 'warning');
                 return;
             }
 
@@ -1117,7 +1143,7 @@ function createCategoryCard(id, name, color, existing = false) {
 
 function updateCategoryChange(card, id, name, color) {
     if (!name) {
-        alert('Nome obbligatorio');
+        showToast('Nome categoria obbligatorio', 'warning');
         return;
     }
 
@@ -1149,7 +1175,7 @@ function addCategoryUI() {
     const name = document.getElementById('newCatName').value.trim();
     const color = document.getElementById('newCatColor').value;
 
-    if (!name) { alert('Nome obbligatorio'); return; }
+    if (!name) { showToast('Nome categoria obbligatorio', 'warning'); return; }
 
     categoryChanges.added.push({ name, color });
     createCategoryCard('temp_' + Date.now(), name, color, false);
