@@ -690,43 +690,163 @@ mark {
     font-size: 0.85em;
   }
 
-  /* Hide some columns on questions table for tablet */
-  .questions-table th:nth-child(3),
-  .questions-table td:nth-child(3),
-  .questions-table th:nth-child(4),
-  .questions-table td:nth-child(4) {
+  /* ========== QUESTIONS TABLE → CARD LAYOUT ========== */
+  .questions-table {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .questions-table thead {
     display: none;
   }
 
-  /* Adjust column widths for tablet */
-  .questions-table th:first-child,
-  .questions-table td:first-child {
-    width: 50%;
+  .questions-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 
-  .questions-table th:nth-child(2),
-  .questions-table td:nth-child(2) {
-    width: 20%;
-  }
-
-  .questions-table th:last-child,
-  .questions-table td:last-child {
-    width: 30%;
-  }
-
-  /* Improve button icons for tablet */
-  .questions-table .btn-icon {
-    padding: 8px 12px;
-    font-size: 1em;
-    border-radius: 8px;
-  }
-
-  .questions-table td:last-child {
+  .questions-table tbody tr {
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 5px;
+    justify-content: center;
     align-items: center;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    gap: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .questions-table tbody tr:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Domanda — riga principale, occupa tutto lo spazio */
+  .questions-table td:first-child {
+    flex: 1 1 100%;
+    font-size: 0.95em;
+    line-height: 1.4;
+    padding: 0;
+    border: none;
+    text-align: center;
+  }
+
+  /* Categoria — badge inline */
+  .questions-table td:nth-child(2) {
+    padding: 0;
+    border: none;
+  }
+
+  /* Tipo — badge inline */
+  .questions-table td:nth-child(3) {
+    padding: 0;
+    border: none;
+  }
+
+  /* Timer */
+  .questions-table td:nth-child(4) {
+    padding: 0;
+    border: none;
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  .questions-table td:nth-child(4)::before {
+    content: "⏱ ";
+  }
+
+  /* Azioni — centrate */
+  .questions-table td:last-child {
+    flex: 1 1 100%;
+    padding: 0;
+    border: none;
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .questions-table .btn-icon {
+    padding: 6px 10px;
+    font-size: 0.95em;
+    border-radius: 6px;
+    min-width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .questions-table .btn-icon:active {
+    transform: scale(0.95);
+  }
+
+  /* Badge compact su card */
+  .questions-table .badge-type,
+  .questions-table .badge-category {
+    font-size: 0.75em;
+    padding: 2px 8px;
+  }
+
+  /* ========== SETS TABLE → CARD OVERRIDES ========== */
+  /* Rimuovi il prefisso ⏱ dalla colonna data */
+  .sets-list-table td:nth-child(4)::before {
+    content: none;
+  }
+
+  /* Descrizione — testo secondario */
+  .sets-list-table td:nth-child(2) {
+    flex: 1 1 100%;
+    font-size: 0.85em;
+    color: #666;
+    padding: 0;
+    border: none;
+    text-align: center;
+  }
+
+  /* Conteggio domande */
+  .sets-list-table td:nth-child(3) {
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  .sets-list-table td:nth-child(3)::before {
+    content: "📋 ";
+  }
+
+  /* Data aggiornamento */
+  .sets-list-table td:nth-child(4) {
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  .sets-list-table td:nth-child(4)::before {
+    content: "📅 ";
+  }
+
+  /* Azioni edit/delete */
+  .sets-list-table td:nth-child(5) {
+    padding: 0;
+    border: none;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  /* Avvia partita — full width centrato */
+  .sets-list-table td:last-child {
+    flex: 1 1 100%;
+  }
+
+  .sets-list-table td:last-child .btn-icon {
+    width: 100%;
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 0.9em;
   }
 }
 
@@ -743,63 +863,26 @@ mark {
     padding: 10px;
   }
 
-  .questions-table td,
   .sets-table td,
   .points-table td {
     padding: 10px;
   }
 
-  /* Hide columns on questions table for mobile */
-  .questions-table th:nth-child(2),
-  .questions-table td:nth-child(2),
-  .questions-table th:nth-child(3),
-  .questions-table td:nth-child(3),
-  .questions-table th:nth-child(4),
-  .questions-table td:nth-child(4) {
-    display: none;
+  /* Card layout più compatto su schermi piccoli */
+  .questions-table tbody tr {
+    padding: 10px;
+    gap: 6px;
   }
 
-  /* Resize question column to take full width */
-  .questions-table th:first-child,
   .questions-table td:first-child {
-    width: 70%;
+    font-size: 0.9em;
   }
 
-  /* Keep actions column visible */
-  .questions-table th:last-child,
-  .questions-table td:last-child {
-    width: 28%;
-    padding: 0;
-    text-align: right;
-  }
-
-  /* Improve button icons for mobile - compact horizontal layout */
   .questions-table .btn-icon {
-    padding: 4px 6px;
-    font-size: 0.85em;
-    font-weight: 600;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-    margin: 0;
-    min-width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .questions-table .btn-icon:active {
-    transform: scale(0.95);
-  }
-
-  /* Wrap buttons horizontally in compact style - right aligned */
-  .questions-table td:last-child {
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: flex-end;
-    gap: 2px;
-    align-items: center;
-    padding: 0;
+    padding: 5px 8px;
+    font-size: 0.9em;
+    min-width: 30px;
+    height: 30px;
   }
 
   /* Apply same compact button style to sets table */

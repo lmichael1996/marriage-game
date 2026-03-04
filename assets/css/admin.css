@@ -421,8 +421,6 @@
     font-size: 0.85em;
   }
 
-  .questions-table th,
-  .questions-table td,
   .sets-table th,
   .sets-table td {
     padding: 8px 6px;
@@ -470,8 +468,6 @@
     font-size: 0.8em;
   }
 
-  .questions-table th,
-  .questions-table td,
   .sets-table th,
   .sets-table td {
     padding: 6px 4px;

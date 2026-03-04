@@ -28,7 +28,7 @@
 
     <!-- Table View -->
     <div class="settings-group">
-        <table class="questions-table">
+        <table class="questions-table sets-list-table">
             <thead>
                 <tr>
                     <th>Nome Set</th>
@@ -100,6 +100,34 @@
         </div>
     </div>
 </div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+function showToast(message, type = 'info', duration = 3000) {
+    const container = document.getElementById('toast-container');
+    const icons = { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' };
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.style.setProperty('--toast-duration', duration + 'ms');
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || icons.info}</span>
+        <span class="toast-message">${message}</span>
+        <button class="toast-close" onclick="this.parentElement.classList.add('toast-hiding'); setTimeout(() => this.parentElement.remove(), 300)">×</button>
+        <div class="toast-progress"></div>
+    `;
+
+    container.appendChild(toast);
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.classList.add('toast-hiding');
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, duration);
+}
+</script>
 
 <!-- Modal: Modifica Set -->
 <div id="modal-edit-set" class="modal-overlay">
@@ -778,12 +806,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Carica domande associate al set
                         loadSetQuestions(s.id);
                     } else {
-                        alert('Errore nel caricamento del set');
+                        showToast('Errore nel caricamento del set', 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Errore nel caricamento del set');
+                    showToast('Errore nel caricamento del set', 'error');
                 });
             return;
         }
@@ -1555,7 +1583,7 @@ function updateOrderAfterMove(setId, questionId) {
     .then(data => {
         if (!data.success) {
             console.error('Errore nell\'aggiornamento ordine:', data.error);
-            alert('✗ Errore nell\'aggiornamento dell\'ordine');
+            showToast('Errore nell\'aggiornamento dell\'ordine', 'error');
             setTimeout(() => {
                 loadSetQuestions(setId);
             }, 300);
@@ -1571,7 +1599,7 @@ function updateOrderAfterMove(setId, questionId) {
     })
     .catch(error => {
         console.error('Errore:', error);
-        alert('✗ Errore durante l\'aggiornamento dell\'ordine');
+        showToast('Errore nell\'aggiornamento dell\'ordine', 'error');
         setTimeout(() => {
             loadSetQuestions(setId);
         }, 300);
@@ -1874,7 +1902,7 @@ function addQuestionToSet(setId, questionId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('✓ Domanda aggiunta con successo!');
+            showToast('Domanda aggiunta con successo!', 'success');
             // Ricarica sia le domande associate che la ricerca
             loadSetQuestions(setId);
             setTimeout(() => {
@@ -1890,13 +1918,13 @@ function addQuestionToSet(setId, questionId) {
                 // Mostra banda rossa sotto la domanda al posto dell'alert
                 showAlreadyPresentError(questionId);
             } else {
-                alert('Errore: ' + errorMsg);
+                showToast(errorMsg, 'error');
             }
         }
     })
     .catch(error => {
         console.error('Errore:', error);
-        alert('Errore durante l\'aggiunta della domanda');
+        showToast('Errore durante l\'aggiunta della domanda', 'error');
     });
 }
 
@@ -2133,12 +2161,12 @@ function addQuestionBelowInSet(setId, questionId, positionIndex) {
             loadSetQuestions(setId);
             searchAvailableQuestions();
         } else {
-            alert('Errore: ' + (data.error || 'Non è stato possibile aggiungere la domanda'));
+            showToast(data.error || 'Non è stato possibile aggiungere la domanda', 'error');
         }
     })
     .catch(error => {
         console.error('Errore:', error);
-        alert('Errore durante l\'aggiunta della domanda');
+        showToast('Errore durante l\'aggiunta della domanda', 'error');
     });
 }
 
