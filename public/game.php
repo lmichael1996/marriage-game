@@ -678,7 +678,7 @@ $activeRound = $game->getActiveRound($questionSetId);
                 <h1>🎮 Partita in Corso</h1>
                 <div>
                     <a href="admin.php?tab=game" class="btn">← Pannello Admin</a>
-                    <a href="logout.php?logout=1" class="btn btn-danger">Logout</a>
+                    <a href="logout.php?role=admin" class="btn btn-danger">Logout</a>
                 </div>
             </div>
 

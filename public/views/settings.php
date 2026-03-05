@@ -220,7 +220,7 @@
                 document.getElementById('admin-new-password').value = '';
                 document.getElementById('admin-confirm-password').value = '';
                 setTimeout(() => {
-                    window.location.href = 'logout.php?logout=1';
+                    window.location.href = 'logout.php?role=admin';
                 }, 2000);
             } else {
                 msg.innerHTML = '<div class="alert-success">✓ Username aggiornato correttamente.</div>';

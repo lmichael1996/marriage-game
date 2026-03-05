@@ -1,6 +1,22 @@
 <?php
 require_once __DIR__ . '/../src/utils/auth.php';
 
-svc('auth')->logout();
-header('Location: ../index.html');
+$role = $_GET['role'] ?? null;
+
+if ($role && in_array($role, ['admin', 'player', 'judge'])) {
+    // Logout singolo ruolo
+    svc('auth')->logout($role);
+
+    $redirect = match ($role) {
+        'admin'  => 'login-admin.php',
+        'player' => 'login-player.php',
+        'judge'  => 'login-judge.php',
+    };
+} else {
+    // Logout totale (distrugge sessione)
+    svc('auth')->logout();
+    $redirect = '../index.html';
+}
+
+header('Location: ' . $redirect);
 exit();

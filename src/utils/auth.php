@@ -1,7 +1,7 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
-    ini_set('session.gc_maxlifetime', 86400);   // 24 ore
-    session_set_cookie_params(86400);            // cookie dura 24 ore
+    ini_set('session.gc_maxlifetime', 86400);
+    session_set_cookie_params(['lifetime' => 86400, 'path' => '/']);
     session_start();
 }
 

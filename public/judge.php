@@ -306,7 +306,7 @@ $judge = authJudge();
             <h1>⚖️ Giudice</h1>
             <div class="user-info">
                 <span>Stanza: <?php echo htmlspecialchars($judge['room_code'] ?? ''); ?></span>
-                <a href="logout.php?logout=1" class="btn btn-secondary">Logout</a>
+                <a href="logout.php?role=judge" class="btn btn-secondary">Logout</a>
             </div>
         </div>
 

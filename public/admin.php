@@ -63,7 +63,7 @@ extract($tabData);
                 <h1>Mvquiz Admin</h1>
             </div>
             <div class="user-info">
-                <a href="logout.php?logout=1" class="btn btn-secondary">Logout</a>
+                <a href="logout.php?role=admin" class="btn btn-secondary">Logout</a>
             </div>
         </div>
 

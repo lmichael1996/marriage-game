@@ -114,8 +114,16 @@ class AuthService {
 
     // ── Logout ───────────────────────────────────────────────────────────
 
-    public function logout(): bool {
-        session_destroy();
+    public function logout(?string $role = null): bool {
+        if ($role) {
+            unset($_SESSION['auth_' . $role]);
+            // Pulisci anche dati collegati al ruolo
+            if ($role === 'admin') {
+                unset($_SESSION['active_room_code'], $_SESSION['active_judge_code'], $_SESSION['room_id']);
+            }
+        } else {
+            session_destroy();
+        }
         return true;
     }
 
