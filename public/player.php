@@ -12,48 +12,98 @@ requirePlayer();
     <title>Player - Marriage Game</title>
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
+    <link rel="stylesheet" href="../assets/css/logo.css">
     <style>
-        .player-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            grid-auto-rows: max-content;
-            gap: 20px;
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 0 20px;
-            align-items: start;
+        body {
+            background: #f0f2f5;
+            padding: 20px;
+            display: block;
         }
 
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px 25px;
+            background: #fff;
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+
+        .header h1 {
+            font-size: 1.4em;
+            font-weight: 800;
+            color: #2d3436;
+        }
+
+        .header .user-info span {
+            font-weight: 600;
+            color: #2d3436;
+        }
+
+        /* ===== LAYOUT ===== */
+        .player-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* ===== MAIN CARD ===== */
         .player-main {
             background: #fff;
-            border: 2px solid #333;
-            border-radius: 0;
-            padding: 25px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: none;
+            border-radius: 20px;
+            padding: 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            overflow: hidden;
         }
 
-        .sidebar-title {
-            font-weight: 600;
+        /* ===== CATEGORY HEADER BAR (colored) ===== */
+        .category-header {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            padding: 18px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.4s ease;
+        }
+
+        .category-header .round-label {
+            color: #2d3436;
+            font-weight: 800;
             font-size: 1.1em;
-            margin-bottom: 15px;
-            color: #333;
-            border-bottom: 2px solid #333;
-            padding-bottom: 10px;
         }
 
+        .category-header .timer-label {
+            color: #2d3436;
+            font-weight: 800;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ===== WAITING SCREEN ===== */
         .waiting-screen {
             text-align: center;
-            padding: 40px 20px;
+            padding: 60px 25px;
         }
 
         .spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid #f0f0f0;
-            border-top: 4px solid #333;
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e9ecef;
+            border-top: 4px solid #74b9ff;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 30px;
+            margin: 0 auto 25px;
         }
 
         @keyframes spin {
@@ -62,96 +112,72 @@ requirePlayer();
         }
 
         .waiting-screen h2 {
-            font-size: 1.4em;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #333;
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #2d3436;
         }
 
         .waiting-screen p {
             font-size: 0.95em;
-            color: #666;
+            color: #636e72;
         }
 
+        /* ===== QUESTION AREA ===== */
         .round-info {
+            padding: 35px 25px;
             text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #333;
-        }
-
-        .round-info h2 {
-            font-size: 1.3em;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #333;
+            border: none;
+            margin: 0;
         }
 
         #question-text {
-            font-size: 1.2em;
-            color: #333;
-            margin: 15px 0;
-            font-weight: 600;
-            line-height: 1.6;
+            font-size: 1.35em;
+            color: #2d3436;
+            margin: 0;
+            font-weight: 800;
+            line-height: 1.4;
         }
 
-        .timer-box {
-            background: #f5f5f5;
-            color: #333;
-            border: 2px solid #333;
-            border-radius: 0;
-            padding: 20px;
-            text-align: center;
-            margin: 20px 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .timer-box h4 {
-            margin: 0 0 12px 0;
-            font-size: 1em;
-            font-weight: 600;
-            color: #333;
-        }
-
-        #timer-value {
-            font-size: 3em;
-            font-weight: bold;
-            color: #333;
-            font-variant-numeric: tabular-nums;
-        }
-
+        /* ===== ANSWER BUTTONS (rounded pills, single column) ===== */
         .options-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin: 25px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 0;
+            padding: 0 25px 25px;
         }
 
         .option-btn {
-            background: #fff;
-            border: 2px solid #333;
-            border-radius: 0;
-            padding: 25px 15px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 50px;
+            padding: 18px 28px;
             cursor: pointer;
             text-align: center;
-            font-size: 1em;
-            font-weight: 600;
-            color: #333;
+            font-size: 1.05em;
+            font-weight: 700;
+            color: #2d3436;
             transition: all 0.2s ease;
-            min-height: 100px;
+            min-height: auto;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-family: inherit;
         }
 
         .option-btn:hover:not(:disabled) {
-            background: #333;
-            color: #fff;
+            background: #e9ecef;
+            border-color: #74b9ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         }
 
         .option-btn.selected {
-            background: #333;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: #fff;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(26,26,46,0.3);
         }
 
         .option-btn:disabled {
@@ -159,21 +185,22 @@ requirePlayer();
             cursor: not-allowed;
         }
 
+        /* ===== ACTION BUTTONS ===== */
         .button-group {
             display: flex;
             gap: 10px;
-            margin-top: 20px;
+            padding: 0 25px 25px;
             flex-wrap: wrap;
         }
 
         .btn-main {
             flex: 1;
             min-width: 200px;
-            padding: 12px 20px;
+            padding: 14px 24px;
             font-size: 1em;
-            font-weight: 600;
-            border: 2px solid #333;
-            border-radius: 0;
+            font-weight: 700;
+            border: none;
+            border-radius: 50px;
             cursor: pointer;
             transition: all 0.2s ease;
             text-align: center;
@@ -181,37 +208,43 @@ requirePlayer();
             align-items: center;
             justify-content: center;
             gap: 8px;
-            background: #fff;
-            color: #333;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(26,26,46,0.3);
+            font-family: inherit;
         }
 
         .btn-main:hover:not(:disabled) {
-            background: #333;
-            color: #fff;
+            background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+            box-shadow: 0 6px 20px rgba(26,26,46,0.4);
+            transform: translateY(-2px);
         }
 
         .btn-main:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            background: #f0f0f0;
         }
 
+        /* ===== CLICK FIRST ===== */
         .click-first-btn {
-            background: #fff;
-            color: #333;
-            border: 2px solid #333;
-            padding: 40px 60px;
-            font-size: 1.8em;
-            font-weight: 600;
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            padding: 30px 60px;
+            font-size: 1.6em;
+            font-weight: 800;
             cursor: pointer;
             transition: all 0.2s ease;
             display: inline-block;
             margin: 20px auto;
+            box-shadow: 0 6px 25px rgba(225,112,85,0.4);
+            font-family: inherit;
         }
 
         .click-first-btn:hover:not(:disabled) {
-            background: #333;
-            color: #fff;
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 10px 35px rgba(225,112,85,0.5);
         }
 
         .click-first-btn:disabled {
@@ -219,146 +252,100 @@ requirePlayer();
             cursor: not-allowed;
         }
 
+        /* ===== RESULT SCREEN ===== */
         .result-screen {
             text-align: center;
-            padding: 30px;
+            padding: 40px 25px;
         }
 
         .result-screen h2 {
-            font-size: 1.5em;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 15px;
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #2d3436;
+            margin-bottom: 10px;
         }
 
         .result-screen p {
             font-size: 0.95em;
-            color: #666;
+            color: #636e72;
         }
 
+        /* ===== FINAL RESULT ===== */
         .final-result-screen {
             text-align: center;
             padding: 60px 20px;
             display: none;
+            border-radius: 20px;
         }
 
         .final-result-screen.winner {
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
         }
 
         .final-result-screen.loser {
-            background: linear-gradient(135deg, #E0E0E0 0%, #BDBDBD 100%);
+            background: linear-gradient(135deg, #b2bec3 0%, #636e72 100%);
         }
 
         .final-result-emoji {
-            font-size: 6em;
+            font-size: 5em;
             margin-bottom: 20px;
             animation: bounce 1s infinite;
         }
 
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
+            50% { transform: translateY(-15px); }
         }
 
         .final-result-screen h1 {
-            font-size: 3em;
-            font-weight: bold;
-            margin-bottom: 20px;
+            font-size: 2.5em;
+            font-weight: 800;
+            margin-bottom: 15px;
             color: #fff;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.15);
         }
 
         .final-result-screen p {
-            font-size: 1.2em;
+            font-size: 1.1em;
             color: #fff;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
         }
 
-        .leaderboard-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px;
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 0;
-            margin-bottom: 8px;
-            border-left: 3px solid #333;
-            transition: all 0.2s ease;
-        }
-
-        .leaderboard-item:hover {
-            background: #f0f0f0;
-        }
-
-        .medal {
-            font-size: 1.3em;
-            min-width: 30px;
-            text-align: center;
-        }
-
-        .leaderboard-info {
-            flex: 1;
-        }
-
-        .leaderboard-name {
-            font-weight: 600;
-            color: #333;
-            font-size: 0.95em;
-        }
-
-        .leaderboard-time {
-            font-size: 0.85em;
-            color: #666;
-        }
-
-        .empty-state {
-            color: #999;
-            font-size: 0.9em;
-            padding: 15px;
-            text-align: center;
-        }
-
-        @media (max-width: 1024px) {
-            .player-container {
-                grid-template-columns: 1fr;
-            }
-
-            .options-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 640px) {
-            .player-main {
-                padding: 15px;
+            body { padding: 10px; }
+
+            .header {
+                padding: 16px 18px;
+                border-radius: 16px;
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
             }
 
-            .player-sidebar {
-                padding: 15px;
-            }
+            .header h1 { font-size: 1.2em; }
 
-            .round-info {
-                margin-bottom: 20px;
-                padding-bottom: 15px;
-            }
+            .player-main { border-radius: 16px; }
+
+            .category-header { padding: 14px 18px; }
+
+            .round-info { padding: 25px 18px; }
+
+            #question-text { font-size: 1.15em; }
+
+            .options-grid { padding: 0 18px 18px; gap: 10px; }
+
+            .option-btn { padding: 16px 20px; font-size: 0.95em; }
 
             .button-group {
                 flex-direction: column;
+                padding: 0 18px 18px;
             }
 
-            .btn-main {
-                width: 100%;
-            }
+            .btn-main { width: 100%; min-width: unset; }
 
-            #timer-value {
-                font-size: 2.5em;
-            }
-
-            .player-container {
-                margin: 15px auto;
-                padding: 0 10px;
+            .click-first-btn {
+                padding: 25px 50px;
+                font-size: 1.4em;
             }
         }
     </style>
@@ -366,15 +353,18 @@ requirePlayer();
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎮 Giocatore</h1>
-            <div class="user-info">
-                <span>Giocatore: <?php echo htmlspecialchars(authUsername() ?? 'Giocatore'); ?></span>
-                <a href="logout.php?role=player" class="btn btn-secondary">Logout</a>
-            </div>
+            <h1>🎮 Giocatore <?php echo htmlspecialchars(authUsername() ?? 'Giocatore'); ?></h1>
+            <a href="logout.php?role=player" class="btn btn-secondary">Logout</a>
         </div>
 
         <div class="player-container">
             <div class="player-main">
+                <!-- Category colored header bar -->
+                <div id="category-header" class="category-header" style="display: none;">
+                    <span class="round-label">Domanda <span id="header-round">-</span> — <span id="header-category">Categoria</span></span>
+                    <span class="timer-label">⏱️ <span id="header-timer">10</span></span>
+                </div>
+
                 <div id="waiting-screen" class="waiting-screen">
                     <div class="spinner"></div>
                     <h2>In attesa del prossimo round...</h2>
@@ -383,16 +373,7 @@ requirePlayer();
 
                 <div id="game-screen" style="display: none;">
                     <div class="round-info">
-                        <h2 style="display: flex; justify-content: space-between; align-items: center;">
-                            Round <span id="round-number">-</span>
-                            <span id="category-badge" style="font-size: 0.55em; font-weight: 600; padding: 3px 10px; border-radius: 12px; display: none;"></span>
-                        </h2>
                         <p id="question-text"></p>
-                    </div>
-
-                    <div class="timer-box">
-                        <h4>⏱️ Timer Rimanente</h4>
-                        <span id="timer-value">10</span>
                     </div>
 
                     <div id="answer-grid" class="options-grid">
@@ -555,24 +536,17 @@ requirePlayer();
             startTime = Date.now();
             currentRoundId = round.id;
 
-            // Bordo colorato categoria
-            const catColor = round.category_color || '#333';
+            // Category colored header bar
+            const catColor = round.category_color || '#74b9ff';
             const catName = round.category_name || '';
-            const el = document.querySelector('.player-main');
-            if (el) el.style.border = '5px solid ' + catColor;
-
-            // Badge categoria
-            const badge = document.getElementById('category-badge');
-            if (badge && catName) {
-                badge.textContent = catName;
-                badge.style.backgroundColor = catColor;
-                badge.style.color = '#333';
-                badge.style.display = 'inline-block';
-            } else if (badge) {
-                badge.style.display = 'none';
+            const catHeader = document.getElementById('category-header');
+            if (catHeader) {
+                catHeader.style.display = 'flex';
+                catHeader.style.background = `linear-gradient(135deg, ${catColor} 0%, ${catColor}dd 100%)`;
+                document.getElementById('header-round').textContent = round.round_number;
+                document.getElementById('header-category').textContent = catName;
             }
 
-            document.getElementById('round-number').textContent = round.round_number;
             document.getElementById('question-text').textContent = round.question || '';
 
             document.getElementById('waiting-screen').style.display = 'none';
@@ -597,7 +571,7 @@ requirePlayer();
 
         function setupRound(round, numOptions) {
             const answerGrid = document.getElementById('answer-grid');
-            answerGrid.style.display = 'grid';
+            answerGrid.style.display = 'flex';
             document.getElementById('click-first-screen').style.display = 'none';
 
             const tfLabels = { 1: 'Vero', 2: 'Falso' };
@@ -686,13 +660,14 @@ requirePlayer();
             let timeLeft = parseInt(initialTime);
             if (isNaN(timeLeft) || timeLeft <= 0) timeLeft = 10;
 
-            document.getElementById('timer-value').textContent = timeLeft;
+            const headerTimer = document.getElementById('header-timer');
+            if (headerTimer) headerTimer.textContent = timeLeft;
 
             if (timerInterval) clearInterval(timerInterval);
 
             timerInterval = setInterval(() => {
                 timeLeft--;
-                document.getElementById('timer-value').textContent = timeLeft;
+                if (headerTimer) headerTimer.textContent = timeLeft;
 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
@@ -728,6 +703,10 @@ requirePlayer();
             document.getElementById('result-screen').style.display = 'none';
             document.getElementById('final-result-screen').style.display = 'none';
             document.getElementById('game-cancelled-screen').style.display = 'none';
+
+            // Hide category header bar when waiting
+            const catHeader = document.getElementById('category-header');
+            if (catHeader) catHeader.style.display = 'none';
         }
 
         function checkWinnerStatus() {
@@ -778,6 +757,10 @@ requirePlayer();
             document.getElementById('final-result-screen').style.display = 'block';
             document.getElementById('game-cancelled-screen').style.display = 'none';
 
+            // Hide category header
+            const catHeader = document.getElementById('category-header');
+            if (catHeader) catHeader.style.display = 'none';
+
             const finalScreen = document.getElementById('final-result-screen');
             const emoji = document.getElementById('final-emoji');
             const title = document.getElementById('final-title');
@@ -805,6 +788,10 @@ requirePlayer();
             document.getElementById('result-screen').style.display = 'none';
             document.getElementById('final-result-screen').style.display = 'none';
             document.getElementById('game-cancelled-screen').style.display = 'block';
+
+            // Hide category header
+            const catHeader = document.getElementById('category-header');
+            if (catHeader) catHeader.style.display = 'none';
         }
     </script>
 </body>

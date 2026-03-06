@@ -26,7 +26,7 @@
                     <input type="password" id="password" name="password" required placeholder="Inserisci password">
                 </div>
 
-                <button type="submit" class="btn btn-primary">🚀 Accedi</button>
+                <button type="submit" class="btn btn-primary">Accedi</button>
             </form>
 
             <div class="login-nav">
