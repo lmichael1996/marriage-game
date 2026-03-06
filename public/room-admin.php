@@ -57,35 +57,35 @@ if ($room['has_winner'] ?? false) {
 
         .game-main {
             background: #fff;
-            border: 2px solid #333;
-            border-radius: 0;
+            border: none;
+            border-radius: 20px;
             padding: 25px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
         }
 
         .game-sidebar {
             background: #fff;
-            border: 2px solid #333;
-            border-radius: 0;
+            border: none;
+            border-radius: 20px;
             padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
             height: fit-content;
             max-height: none;
             overflow-y: visible;
         }
 
         .info-box {
-            background: #f5f5f5;
-            border: 1px solid #ddd;
-            border-radius: 0;
-            padding: 15px;
+            background: #f8f9fa;
+            border: none;
+            border-radius: 16px;
+            padding: 18px;
             margin-bottom: 20px;
         }
 
         .info-box p {
             margin: 8px 0;
             font-size: 0.95em;
-            color: #333;
+            color: #636e72;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -93,21 +93,21 @@ if ($room['has_winner'] ?? false) {
 
         .info-box span {
             font-weight: 600;
-            color: #333;
+            color: #636e72;
         }
 
         .info-box code {
-            background: #e8e8e8;
+            background: #e9ecef;
             padding: 4px 10px;
-            border-radius: 0;
+            border-radius: 10px;
             font-weight: bold;
             font-size: 1.05em;
         }
 
         .game-step {
             background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 0;
+            border: none;
+            border-radius: 16px;
             padding: 20px;
             margin-bottom: 15px;
         }
@@ -115,10 +115,10 @@ if ($room['has_winner'] ?? false) {
         .game-step h3 {
             margin-top: 0;
             margin-bottom: 12px;
-            color: #333;
+            color: #2d3436;
             font-size: 1.2em;
-            font-weight: 600;
-            border-bottom: 2px solid #333;
+            font-weight: 800;
+            border-bottom: none;
             padding-bottom: 10px;
             display: flex;
             justify-content: space-between;
@@ -127,91 +127,121 @@ if ($room['has_winner'] ?? false) {
 
         .category-badge {
             font-size: 0.7em;
-            font-weight: 600;
+            font-weight: 700;
             padding: 3px 10px;
             border-radius: 12px;
-            color: #333;
+            color: #2d3436;
+        }
+
+        /* ===== CATEGORY HEADER BAR (colored) ===== */
+        .category-header {
+            padding: 16px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 16px;
+            margin-bottom: 15px;
+        }
+
+        .category-header .round-label {
+            color: #2d3436;
+            font-weight: 800;
+            font-size: 1.1em;
+        }
+
+        .category-header .timer-label {
+            color: #2d3436;
+            font-weight: 800;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .game-step p {
-            color: #555;
+            color: #636e72;
             line-height: 1.5;
             margin: 10px 0;
         }
 
         .game-step.active {
-            border: 2px solid #333;
+            border: none;
             background: #fff;
         }
 
         .game-step.game-over {
-            border: 2px solid #333;
+            border: none;
             background: #fff;
         }
 
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 12px;
             margin: 15px 0;
-            padding: 10px;
-            background: #f9f9f9;
-            border: 1px solid #ddd;
+            padding: 15px;
+            background: transparent;
+            border: none;
             border-radius: 0;
         }
 
         .option-btn {
-            padding: 12px;
-            background: #f0f0f0;
-            color: #333;
-            border: 1px solid #999;
-            border-radius: 0;
-            font-weight: 600;
-            font-size: 0.95em;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 50px;
+            padding: 16px 22px;
+            cursor: default;
             text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            min-height: 45px;
+            font-size: 1em;
+            font-weight: 700;
+            color: #2d3436;
+            transition: none;
+            min-height: auto;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-family: inherit;
+            user-select: none;
+            pointer-events: none;
         }
 
         .option-btn:hover {
-            background: #e0e0e0;
-            border-color: #555;
+            background: #f8f9fa;
+            border-color: #e9ecef;
         }
 
         .option-btn.correct {
-            background: #90EE90;
-            border-color: #333;
-            font-weight: bold;
+            background: #00b894;
+            border-color: transparent;
+            color: #fff;
+            font-weight: 800;
+            box-shadow: 0 4px 15px rgba(0,184,148,0.3);
         }
 
         .timer-box {
-            background: #f5f5f5;
-            color: #333;
-            border: 2px solid #333;
-            border-radius: 0;
+            background: #f8f9fa;
+            color: #2d3436;
+            border: none;
+            border-radius: 16px;
             padding: 20px;
             text-align: center;
             margin: 15px 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
         }
 
         .timer-box h4 {
             margin: 0 0 12px 0;
             font-size: 1em;
-            font-weight: 600;
-            color: #333;
+            font-weight: 700;
+            color: #636e72;
         }
 
         #timer {
             font-size: 3em;
-            font-weight: bold;
+            font-weight: 800;
             font-variant-numeric: tabular-nums;
             letter-spacing: 0.1em;
-            color: #333;
+            color: #2d3436;
         }
 
         .button-group {
@@ -224,11 +254,11 @@ if ($room['has_winner'] ?? false) {
         .btn-main {
             flex: 1;
             min-width: 200px;
-            padding: 12px 20px;
+            padding: 14px 24px;
             font-size: 1em;
-            font-weight: 600;
-            border: 2px solid #333;
-            border-radius: 0;
+            font-weight: 700;
+            border: none;
+            border-radius: 50px;
             cursor: pointer;
             transition: all 0.2s ease;
             text-align: center;
@@ -236,58 +266,67 @@ if ($room['has_winner'] ?? false) {
             align-items: center;
             justify-content: center;
             gap: 8px;
-            background: #fff;
-            color: #333;
+            background: #74b9ff;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(116,185,255,0.3);
         }
 
         .btn-main:hover:not(:disabled) {
-            background: #333;
+            background: #0984e3;
             color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(116,185,255,0.4);
         }
 
         .btn-success-custom {
-            background: #fff;
-            color: #333;
-            border: 2px solid #333;
+            background: #00b894;
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,184,148,0.3);
         }
 
         .btn-success-custom:hover:not(:disabled) {
-            background: #333;
+            background: #00a381;
             color: #fff;
+            box-shadow: 0 6px 20px rgba(0,184,148,0.4);
         }
 
         .btn-primary-custom {
-            background: #fff;
-            color: #333;
-            border: 2px solid #333;
+            background: #74b9ff;
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 15px rgba(116,185,255,0.3);
         }
 
         .btn-primary-custom:hover:not(:disabled) {
-            background: #333;
+            background: #0984e3;
             color: #fff;
+            box-shadow: 0 6px 20px rgba(116,185,255,0.4);
         }
 
         .btn-main:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            background: #f0f0f0;
+            background: #dfe6e9;
+            box-shadow: none;
         }
 
         .leaderboard-item {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 12px;
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 0;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border: none;
+            border-radius: 14px;
             margin-bottom: 8px;
-            border-left: 3px solid #333;
+            border-left: 4px solid #74b9ff;
             transition: all 0.2s ease;
         }
 
         .leaderboard-item:hover {
-            background: #f0f0f0;
+            background: #f0f2f5;
+            transform: translateX(3px);
         }
 
         .medal {
@@ -300,30 +339,30 @@ if ($room['has_winner'] ?? false) {
         }
 
         .leaderboard-name {
-            font-weight: 600;
-            color: #333;
+            font-weight: 700;
+            color: #2d3436;
             font-size: 0.95em;
         }
 
         .leaderboard-time {
             font-size: 0.8em;
-            color: #666;
+            color: #636e72;
             margin-top: 2px;
         }
 
         .sidebar-title {
             font-size: 1.1em;
-            font-weight: 600;
+            font-weight: 800;
             margin-bottom: 15px;
-            color: #333;
+            color: #2d3436;
             padding-bottom: 10px;
-            border-bottom: 2px solid #333;
+            border-bottom: none;
         }
 
         .empty-state {
             text-align: center;
             padding: 20px 15px;
-            color: #999;
+            color: #b2bec3;
             font-size: 0.95em;
         }
 
@@ -332,15 +371,18 @@ if ($room['has_winner'] ?? false) {
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #333;
+            padding: 20px 25px;
+            background: #fff;
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
         }
 
         .header h1 {
             margin: 0;
-            font-size: 1.5em;
-            color: #333;
-            font-weight: 600;
+            font-size: 1.4em;
+            color: #2d3436;
+            font-weight: 800;
         }
 
         @media (max-width: 1024px) {
@@ -412,13 +454,12 @@ if ($room['has_winner'] ?? false) {
                         </div>
                     </div>
                 <?php elseif ($activeRound): ?>
-                    <?php $catColor = $activeRound['category_color'] ?? '#333'; $catName = $activeRound['category_name'] ?? ''; ?>
-                    <div class="game-step active" style="border: 5px solid <?php echo htmlspecialchars($catColor); ?>;">
-                        <h3>📋 Domanda #<?php echo $counter; ?>
-                            <?php if ($catName): ?>
-                                <span class="category-badge" style="background-color: <?php echo htmlspecialchars($catColor); ?>;"><?php echo htmlspecialchars($catName); ?></span>
-                            <?php endif; ?>
-                        </h3>
+                    <?php $catColor = $activeRound['category_color'] ?? '#74b9ff'; $catName = $activeRound['category_name'] ?? ''; ?>
+                    <div class="game-step active">
+                        <div class="category-header" style="background: <?php echo htmlspecialchars($catColor); ?>;">
+                            <span class="round-label">Domanda #<?php echo $counter; ?> — <?php echo htmlspecialchars($catName); ?></span>
+                            <span class="timer-label">⏱️ <span id="timer"><?php echo $activeRound['timer'] ?? 30; ?></span></span>
+                        </div>
                         <p><?php echo htmlspecialchars($activeRound['question']); ?></p>
 
                         <?php if ($activeRound['round_type'] !== 'clickfirst'): ?>
@@ -446,11 +487,6 @@ if ($room['has_winner'] ?? false) {
                             <p style="color: #ffc107; font-weight: bold; text-align: center; font-size: 1.1em; padding: 20px; background: #fffbf0; border-radius: 8px;">⚡ Chi clicca primo vince!</p>
                         <?php endif; ?>
 
-                        <div class="timer-box">
-                            <h4>⏱️ Timer Rimanente</h4>
-                            <span id="timer"><?php echo $activeRound['timer'] ?? 30; ?></span>
-                        </div>
-
                         <div class="button-group">
                             <button
                                 class="btn-main btn-success-custom"
@@ -463,13 +499,11 @@ if ($room['has_winner'] ?? false) {
                         </div>
                     </div>
                 <?php else: ?>
-                    <?php $catColor = $question['category_color'] ?? '#333'; $catName = $question['category_name'] ?? ''; ?>
-                    <div class="game-step" style="border: 5px solid <?php echo htmlspecialchars($catColor); ?>;">
-                        <h3>📋 Domanda #<?php echo $counter; ?>
-                            <?php if ($catName): ?>
-                                <span class="category-badge" style="background-color: <?php echo htmlspecialchars($catColor); ?>;"><?php echo htmlspecialchars($catName); ?></span>
-                            <?php endif; ?>
-                        </h3>
+                    <?php $catColor = $question['category_color'] ?? '#74b9ff'; $catName = $question['category_name'] ?? ''; ?>
+                    <div class="game-step">
+                        <div class="category-header" style="background: <?php echo htmlspecialchars($catColor); ?>;">
+                            <span class="round-label">Domanda #<?php echo $counter; ?> — <?php echo htmlspecialchars($catName); ?></span>
+                        </div>
                         <p><?php echo htmlspecialchars($question['question']); ?></p>
 
                         <?php if ($question['round_type'] !== 'clickfirst'): ?>
