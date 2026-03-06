@@ -417,8 +417,19 @@ requirePlayer();
                 <div id="final-result-screen" class="final-result-screen">
                     <div id="final-result-content">
                         <div class="final-result-emoji" id="final-emoji">🏆</div>
-                        <h1 id="final-title">Ho Vinto!</h1>
+                        <h1 id="final-title">Hai Vinto!</h1>
                         <p id="final-message">Complimenti! Sei il vincitore di questa partita!</p>
+
+                        <div class="social-links" style="margin-top: 30px; display: flex; justify-content: center; gap: 15px;">
+                            <a href="https://facebook.com/tuapagina" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 25px; background: rgba(255,255,255,0.3); color: #fff; text-decoration: none; font-weight: 600; font-size: 0.95em; border: 2px solid rgba(255,255,255,0.5); transition: background 0.2s;">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="#fff"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/></svg>
+                                Facebook
+                            </a>
+                            <a href="https://instagram.com/tuapagina" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 25px; background: rgba(255,255,255,0.3); color: #fff; text-decoration: none; font-weight: 600; font-size: 0.95em; border: 2px solid rgba(255,255,255,0.5); transition: background 0.2s;">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="#fff"><path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5A4.25 4.25 0 0 0 7.75 20.5h8.5A4.25 4.25 0 0 0 20.5 16.25v-8.5A4.25 4.25 0 0 0 16.25 3.5h-8.5zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 1.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm5.25-2.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
+                                Instagram
+                            </a>
+                        </div>
                     </div>
                 </div>
 
@@ -660,6 +671,7 @@ requirePlayer();
             .then(() => {
                 currentRoundCounter++;
 
+                document.getElementById('result-content').innerHTML = '<h2>✅ Risposta registrata!</h2><p style="margin-top: 15px;">In attesa del prossimo round...</p>';
                 document.getElementById('game-screen').style.display = 'none';
                 document.getElementById('result-screen').style.display = 'block';
 
@@ -775,13 +787,13 @@ requirePlayer();
                 finalScreen.classList.remove('loser');
                 finalScreen.classList.add('winner');
                 emoji.textContent = '🏆';
-                title.textContent = 'Ho Vinto!';
+                title.textContent = 'Hai Vinto!';
                 message.textContent = 'Complimenti! Sei il vincitore di questa partita! 🎉';
             } else {
                 finalScreen.classList.remove('winner');
                 finalScreen.classList.add('loser');
                 emoji.textContent = '😢';
-                title.textContent = 'Ho Perso!';
+                title.textContent = 'Hai Perso!';
                 message.textContent = 'Buona fortuna nella prossima partita!';
             }
         }
