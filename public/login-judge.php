@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Giudice - Mvquiz</title>
+    <title>Login Giudice - MVquiz</title>
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/login.css">
 </head>
 <body>
     <div class="container">
         <div class="login-box">
-            <h1>⚖️ Mvquiz</h1>
+            <h1>⚖️ MVquiz</h1>
             <h2>Login Giudice</h2>
 
             <div id="error-message" class="error hidden"></div>

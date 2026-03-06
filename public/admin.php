@@ -47,7 +47,7 @@ extract($tabData);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Mvquiz</title>
+    <title>Admin - MVquiz</title>
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
     <link rel="stylesheet" href="../assets/css/tab.css">
@@ -60,7 +60,7 @@ extract($tabData);
         <div class="header">
             <div class="header-brand">
                 <div class="header-logo"></div>
-                <h1>Mvquiz Admin</h1>
+                <h1>MVquiz Admin</h1>
             </div>
             <div class="user-info">
                 <a href="logout.php?role=admin" class="btn btn-secondary">Logout</a>

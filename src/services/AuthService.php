@@ -35,6 +35,9 @@ class AuthService {
             'username' => $user['username'],
         ];
 
+        // Reset tab attiva → Domande dopo login
+        $_SESSION['admin_tab'] = 'sets';
+
         return 'admin';
     }
 

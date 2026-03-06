@@ -26,9 +26,9 @@ class PDFGenerator {
 
     private function initializePDF() {
         $this->pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
-        $this->pdf->SetCreator('Mvquiz');
-        $this->pdf->SetAuthor('Mvquiz Admin');
-        $this->pdf->SetTitle('Mvquiz - QR Codes');
+        $this->pdf->SetCreator('MVquiz');
+        $this->pdf->SetAuthor('MVquiz Admin');
+        $this->pdf->SetTitle('MVquiz - QR Codes');
         $this->pdf->setPrintHeader(false);
         $this->pdf->setPrintFooter(false);
     }
@@ -82,8 +82,8 @@ class PDFGenerator {
     }
 
     public function generate() {
-        $this->addPage('Mvquiz - Giocatore', $this->codePlayer, $this->svgPlayer, 'Il Giocatore');
-        $this->addPage('Mvquiz - Giudice', $this->codeJudge, $this->svgJudge, 'Il Giudice');
+        $this->addPage('MVquiz - Giocatore', $this->codePlayer, $this->svgPlayer, 'Il Giocatore');
+        $this->addPage('MVquiz - Giudice', $this->codeJudge, $this->svgJudge, 'Il Giudice');
     }
 
     public function getPDF() {

@@ -72,16 +72,18 @@
 @media (max-width: 767px) {
   .admin-nav {
     flex-direction: column;
+    border-radius: 14px;
   }
 
   .nav-item {
-    border-bottom: 3px solid #e0e0e0;
-    padding: 10px 15px;
+    border-bottom: 2px solid #f0f2f5;
+    padding: 12px 15px;
     font-size: 0.9em;
   }
 
   .nav-item.active {
-    border-bottom-color: #333;
+    border-bottom-color: #74b9ff;
+    background: #f0f7ff;
   }
 
   .tab-header,

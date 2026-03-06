@@ -754,7 +754,7 @@ function handleGeneratePDF() {
         respond([
             'success'  => true,
             'pdf_data' => 'data:application/pdf;base64,' . base64_encode($pdf->getPDF()),
-            'filename' => 'Mvquiz-stanza-' . $codePlayer . '-' . $codeJudge . '.pdf'
+            'filename' => 'MVquiz-stanza-' . $codePlayer . '-' . $codeJudge . '.pdf'
         ]);
     } catch (Exception $e) {
         respondError($e->getMessage(), 500);
