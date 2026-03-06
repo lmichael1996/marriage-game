@@ -120,6 +120,17 @@ if ($room['has_winner'] ?? false) {
             font-weight: 600;
             border-bottom: 2px solid #333;
             padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .category-badge {
+            font-size: 0.7em;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 12px;
+            color: #333;
         }
 
         .game-step p {
@@ -401,8 +412,13 @@ if ($room['has_winner'] ?? false) {
                         </div>
                     </div>
                 <?php elseif ($activeRound): ?>
-                    <div class="game-step active">
-                        <h3>📋 Domanda #<?php echo $counter; ?></h3>
+                    <?php $catColor = $activeRound['category_color'] ?? '#333'; $catName = $activeRound['category_name'] ?? ''; ?>
+                    <div class="game-step active" style="border: 5px solid <?php echo htmlspecialchars($catColor); ?>;">
+                        <h3>📋 Domanda #<?php echo $counter; ?>
+                            <?php if ($catName): ?>
+                                <span class="category-badge" style="background-color: <?php echo htmlspecialchars($catColor); ?>;"><?php echo htmlspecialchars($catName); ?></span>
+                            <?php endif; ?>
+                        </h3>
                         <p><?php echo htmlspecialchars($activeRound['question']); ?></p>
 
                         <?php if ($activeRound['round_type'] !== 'clickfirst'): ?>
@@ -447,8 +463,13 @@ if ($room['has_winner'] ?? false) {
                         </div>
                     </div>
                 <?php else: ?>
-                    <div class="game-step">
-                        <h3>📋 Domanda #<?php echo $counter; ?></h3>
+                    <?php $catColor = $question['category_color'] ?? '#333'; $catName = $question['category_name'] ?? ''; ?>
+                    <div class="game-step" style="border: 5px solid <?php echo htmlspecialchars($catColor); ?>;">
+                        <h3>📋 Domanda #<?php echo $counter; ?>
+                            <?php if ($catName): ?>
+                                <span class="category-badge" style="background-color: <?php echo htmlspecialchars($catColor); ?>;"><?php echo htmlspecialchars($catName); ?></span>
+                            <?php endif; ?>
+                        </h3>
                         <p><?php echo htmlspecialchars($question['question']); ?></p>
 
                         <?php if ($question['round_type'] !== 'clickfirst'): ?>

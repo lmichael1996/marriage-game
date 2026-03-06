@@ -323,7 +323,10 @@ $judge = authJudge();
                 <div id="game-screen" style="display: none;">
                     <div class="round-info">
                         <span class="round-type-badge" id="round-type-badge"></span>
-                        <h2>Round <span id="round-number">-</span></h2>
+                        <h2 style="display: flex; justify-content: space-between; align-items: center;">
+                            Round <span id="round-number">-</span>
+                            <span id="category-badge" style="font-size: 0.55em; font-weight: 600; padding: 3px 10px; border-radius: 12px; display: none;"></span>
+                        </h2>
                         <p id="question-text"></p>
                     </div>
 
@@ -438,6 +441,23 @@ $judge = authJudge();
             currentRoundId = round.id;
             currentCorrectAnswer = round.correct_answer || null;
             currentRoundType = round.round_type || 'multiple';
+
+            // Bordo colorato categoria
+            const catColor = round.category_color || '#333';
+            const catName = round.category_name || '';
+            const el = document.querySelector('.judge-main');
+            if (el) el.style.border = '5px solid ' + catColor;
+
+            // Badge categoria
+            const badge = document.getElementById('category-badge');
+            if (badge && catName) {
+                badge.textContent = catName;
+                badge.style.backgroundColor = catColor;
+                badge.style.color = '#333';
+                badge.style.display = 'inline-block';
+            } else if (badge) {
+                badge.style.display = 'none';
+            }
 
             document.getElementById('round-number').textContent = round.round_number;
             document.getElementById('question-text').textContent = round.question || '';

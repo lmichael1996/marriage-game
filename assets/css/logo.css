@@ -1,0 +1,12 @@
+.header-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.header-logo {
+  width: 75px;
+  height: 75px;
+  background: url("../image/logo.jpeg") no-repeat center / contain;
+}

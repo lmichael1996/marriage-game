@@ -434,9 +434,11 @@ class SetRepo {
     public function getQuestionByCounter($qsetId, $counter) {
         $offset = max(0, $counter - 1);
         $stmt = $this->conn->prepare("
-            SELECT qq.id as qset_question_id, qq.question_id, q.*
+            SELECT qq.id as qset_question_id, qq.question_id, q.*,
+                   qc.category_name, qc.color as category_color
             FROM qset_questions qq
             JOIN questions q ON qq.question_id = q.id
+            LEFT JOIN question_categories qc ON q.category_id = qc.id
             WHERE qq.qset_id = ?
             ORDER BY qq.order_in_set ASC
             LIMIT 1 OFFSET ?
