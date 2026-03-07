@@ -12,305 +12,7 @@ $judge = authJudge();
     <title>Giudice - Marriage Game</title>
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
-    <style>
-        .judge-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-auto-rows: max-content;
-            gap: 20px;
-            max-width: 1300px;
-            margin: 20px auto;
-            padding: 0 20px;
-            align-items: start;
-        }
-
-        .judge-main {
-            background: #fff;
-            border: none;
-            border-radius: 20px;
-            padding: 0;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-            overflow: hidden;
-        }
-
-        .judge-sidebar {
-            background: #fff;
-            border: none;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-            height: fit-content;
-        }
-
-        .sidebar-title {
-            font-size: 1.1em;
-            font-weight: 800;
-            margin-bottom: 15px;
-            color: #2d3436;
-            padding-bottom: 10px;
-            border-bottom: none;
-        }
-
-        .waiting-screen {
-            text-align: center;
-            padding: 60px 25px;
-        }
-
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid #f0f2f5;
-            border-top: 4px solid #74b9ff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 30px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .waiting-screen h2 {
-            font-size: 1.4em;
-            font-weight: 800;
-            margin-bottom: 15px;
-            color: #2d3436;
-        }
-
-        .waiting-screen p {
-            font-size: 0.95em;
-            color: #636e72;
-        }
-
-        /* ===== CATEGORY HEADER BAR (colored, edge-to-edge) ===== */
-        .category-header {
-            padding: 18px 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: 0;
-            margin-bottom: 0;
-        }
-
-        .category-header .round-label {
-            color: #2d3436;
-            font-weight: 800;
-            font-size: 1.1em;
-        }
-
-        .category-header .timer-label {
-            color: #2d3436;
-            font-weight: 800;
-            font-size: 1.3em;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        #question-text {
-            font-size: 1.35em;
-            color: #2d3436;
-            font-weight: 800;
-            line-height: 1.4;
-            text-align: center;
-            margin: 0;
-            padding: 35px 25px;
-        }
-
-        #timer-value {
-            font-size: inherit;
-            font-weight: 800;
-            color: #2d3436;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin: 0;
-            padding: 0 25px 25px;
-            background: transparent;
-            border: none;
-            border-radius: 0;
-        }
-
-        .option-btn {
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 50px;
-            padding: 16px 22px;
-            color: #2d3436;
-            font-weight: 700;
-            font-size: 1em;
-            text-align: center;
-            min-height: 45px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            cursor: default;
-        }
-
-        .option-btn.correct {
-            background: #00b894;
-            color: #fff;
-            border-color: #00b894;
-            font-weight: 800;
-        }
-
-        .btn-judge-confirm {
-            width: calc(100% - 50px);
-            padding: 14px 24px;
-            margin: 0 25px 25px;
-            font-size: 1em;
-            font-weight: 700;
-            background: #74b9ff;
-            color: #fff;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(116,185,255,0.3);
-        }
-
-        .btn-judge-confirm:hover:not(:disabled) {
-            background: #0984e3;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(116,185,255,0.4);
-        }
-
-        .btn-judge-confirm:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: #b2bec3;
-            box-shadow: none;
-        }
-
-        .judge-waiting-msg {
-            text-align: center;
-            padding: 15px;
-            color: #636e72;
-            font-style: italic;
-        }
-
-        .leaderboard-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px;
-            background: #f8f9fa;
-            border: none;
-            border-radius: 14px;
-            margin-bottom: 8px;
-            border-left: 4px solid #74b9ff;
-            transition: all 0.2s ease;
-        }
-
-        .leaderboard-item:hover {
-            background: #f0f2f5;
-            transform: translateX(2px);
-        }
-
-        .medal {
-            font-size: 1.3em;
-            min-width: 30px;
-            text-align: center;
-        }
-
-        .leaderboard-info {
-            flex: 1;
-        }
-
-        .leaderboard-name {
-            font-weight: 700;
-            color: #2d3436;
-            font-size: 0.95em;
-        }
-
-        .leaderboard-time {
-            font-size: 0.85em;
-            color: #636e72;
-        }
-
-        .empty-state {
-            color: #b2bec3;
-            font-size: 0.9em;
-            padding: 15px;
-            text-align: center;
-        }
-
-        .final-result-screen {
-            text-align: center;
-            padding: 40px 20px;
-            display: none;
-        }
-
-        .final-result-screen h2 {
-            font-size: 1.5em;
-            font-weight: 800;
-            color: #2d3436;
-            margin-bottom: 20px;
-        }
-
-        .final-leaderboard {
-            max-width: 500px;
-            margin: 20px auto;
-            text-align: left;
-        }
-
-        .final-leaderboard .leaderboard-item {
-            border-left-width: 4px;
-        }
-
-        .game-cancelled-screen {
-            text-align: center;
-            padding: 60px 20px;
-            display: none;
-            background: linear-gradient(135deg, #b2bec3 0%, #636e72 100%);
-            border-radius: 20px;
-        }
-
-        .game-cancelled-screen h1 {
-            font-size: 2em;
-            font-weight: 800;
-            color: #fff;
-            margin-bottom: 15px;
-        }
-
-        .game-cancelled-screen p {
-            font-size: 1.1em;
-            color: #fff;
-        }
-
-        .game-cancelled-emoji {
-            font-size: 4em;
-            margin-bottom: 20px;
-        }
-
-        @media (max-width: 1024px) {
-            .judge-container {
-                grid-template-columns: 1fr;
-            }
-
-            .options-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .judge-sidebar { padding: 15px; }
-            .judge-container { margin: 15px auto; padding: 0 10px; }
-            #question-text { font-size: 1.15em; padding: 25px 18px; }
-            .category-header { padding: 14px 18px; }
-            .category-header .round-label { font-size: 1em; }
-            .category-header .timer-label { font-size: 1.1em; }
-            .options-grid { padding: 0 18px 18px; }
-            .btn-judge-confirm { width: calc(100% - 36px); margin: 0 18px 18px; }
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/css/game.css">
 </head>
 <body>
     <div class="container">
@@ -319,8 +21,8 @@ $judge = authJudge();
             <a href="logout.php?role=judge" class="btn btn-secondary">Logout</a>
         </div>
 
-        <div class="judge-container">
-            <div class="judge-main">
+        <div class="game-grid">
+            <div class="game-card">
                 <!-- Waiting -->
                 <div id="waiting-screen" class="waiting-screen">
                     <div class="spinner"></div>
@@ -360,7 +62,7 @@ $judge = authJudge();
                 </div>
             </div>
 
-            <div class="judge-sidebar">
+            <div class="game-sidebar">
                 <div class="sidebar-title">🏆 Classifica</div>
                 <div id="sidebar-leaderboard">
                     <div class="empty-state">Nessun dato</div>
@@ -660,9 +362,9 @@ $judge = authJudge();
         function showFinalLeaderboard() {
             hideAll();
             document.getElementById('final-result-screen').style.display = 'block';
-            document.querySelector('.judge-sidebar').style.display = 'none';
-            document.querySelector('.judge-container').style.gridTemplateColumns = '1fr';
-            document.querySelector('.judge-container').style.maxWidth = '800px';
+            document.querySelector('.game-sidebar').style.display = 'none';
+            document.querySelector('.game-grid').style.gridTemplateColumns = '1fr';
+            document.querySelector('.game-grid').style.maxWidth = '800px';
 
             fetch('../src/api/api.php?endpoint=final_leaderboard&room_id=<?php echo $judge['room_id'] ?? 0; ?>')
                 .then(r => r.json())
@@ -694,9 +396,9 @@ $judge = authJudge();
         function showGameCancelled() {
             hideAll();
             document.getElementById('game-cancelled-screen').style.display = 'block';
-            document.querySelector('.judge-sidebar').style.display = 'none';
-            document.querySelector('.judge-container').style.gridTemplateColumns = '1fr';
-            document.querySelector('.judge-container').style.maxWidth = '800px';
+            document.querySelector('.game-sidebar').style.display = 'none';
+            document.querySelector('.game-grid').style.gridTemplateColumns = '1fr';
+            document.querySelector('.game-grid').style.maxWidth = '800px';
         }
 
         function hideAll() {
