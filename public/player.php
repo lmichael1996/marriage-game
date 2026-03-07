@@ -29,7 +29,7 @@ requirePlayer();
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎮 Giocatore <?php echo htmlspecialchars(authUsername() ?? 'Giocatore'); ?></h1>
+            <h1>🎮 Giocatore <?php echo htmlspecialchars($_SESSION['auth_player']['username'] ?? 'Giocatore'); ?></h1>
             <a href="logout.php?role=player" class="btn btn-secondary">Logout</a>
         </div>
 
