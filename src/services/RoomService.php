@@ -174,47 +174,57 @@ class RoomService {
     }
 
     /**
-     * Mark the winner of a room (highest score)
+     * Mark the winner of a room (highest score from ranking JSON)
      */
     public function markWinner($roomId) {
-        // Get the room details
         $room = $this->roomRepo->getRoomById($roomId);
         if (!$room) {
             return false;
         }
 
-        // Get all players and their scores
-        $players = $this->playerRepo->getPlayersByRoomId($roomId);
-        if (!$players || count($players) === 0) {
-            return false;
+        // Already has a winner? Skip
+        if ($room['winner_id'] ?? null) {
+            return true;
         }
 
-        // Calculate scores for each player
-        $scores = [];
-        foreach ($players as $player) {
-            $correctAnswers = $this->roomRepo->countCorrectAnswersByPlayer($roomId, $player['id']);
-            $scores[$player['id']] = [
-                'username' => $player['username'],
-                'score' => $correctAnswers
-            ];
-        }
+        // Sum points from ranking JSON (same logic as getFinalLeaderboard)
+        $allRounds = $this->roundRepo->getRoundsByRoom($roomId);
 
-        // Find winner (highest score)
-        $winnerId = null;
-        $maxScore = -1;
-        foreach ($scores as $playerId => $data) {
-            if ($data['score'] > $maxScore) {
-                $maxScore = $data['score'];
-                $winnerId = $playerId;
+        // Keep only the latest round per question
+        $latestRounds = [];
+        foreach ($allRounds as $round) {
+            $qid = $round['question_id'];
+            if (!isset($latestRounds[$qid]) || $round['id'] > $latestRounds[$qid]['id']) {
+                $latestRounds[$qid] = $round;
             }
         }
 
-        if (!$winnerId) {
+        $playerScores = [];
+        foreach ($latestRounds as $round) {
+            $ranking = json_decode($round['ranking'] ?? '[]', true);
+            if (!is_array($ranking)) continue;
+            foreach ($ranking as $entry) {
+                $username = $entry['username'] ?? null;
+                $points   = $entry['points'] ?? 0;
+                if ($username) {
+                    $playerScores[$username] = ($playerScores[$username] ?? 0) + $points;
+                }
+            }
+        }
+
+        if (empty($playerScores)) {
             return false;
         }
 
-        // Insert winner record
-        return $this->roomRepo->setWinner($roomId, $winnerId);
+        arsort($playerScores);
+        $winnerUsername = array_key_first($playerScores);
+
+        $player = $this->playerRepo->getPlayerByRoomAndUsername($roomId, $winnerUsername);
+        if (!$player) {
+            return false;
+        }
+
+        return $this->roomRepo->setWinner($roomId, $player['id']);
     }
 
     /**
