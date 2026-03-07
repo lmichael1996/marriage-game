@@ -15,10 +15,10 @@ $judge = authJudge();
     <style>
         .judge-container {
             display: grid;
-            grid-template-columns: 1fr 350px;
+            grid-template-columns: 1fr 1fr;
             grid-auto-rows: max-content;
             gap: 20px;
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 20px auto;
             padding: 0 20px;
             align-items: start;
@@ -28,8 +28,9 @@ $judge = authJudge();
             background: #fff;
             border: none;
             border-radius: 20px;
-            padding: 25px;
+            padding: 0;
             box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            overflow: hidden;
         }
 
         .judge-sidebar {
@@ -52,7 +53,7 @@ $judge = authJudge();
 
         .waiting-screen {
             text-align: center;
-            padding: 40px 20px;
+            padding: 60px 25px;
         }
 
         .spinner {
@@ -82,14 +83,14 @@ $judge = authJudge();
             color: #636e72;
         }
 
-        /* ===== CATEGORY HEADER BAR (colored) ===== */
+        /* ===== CATEGORY HEADER BAR (colored, edge-to-edge) ===== */
         .category-header {
-            padding: 16px 22px;
+            padding: 18px 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-radius: 16px;
-            margin-bottom: 15px;
+            border-radius: 0;
+            margin-bottom: 0;
         }
 
         .category-header .round-label {
@@ -107,20 +108,14 @@ $judge = authJudge();
             gap: 6px;
         }
 
-        .round-info {
-            text-align: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: none;
-        }
-
         #question-text {
             font-size: 1.35em;
             color: #2d3436;
-            margin: 15px 0;
             font-weight: 800;
             line-height: 1.4;
             text-align: center;
+            margin: 0;
+            padding: 35px 25px;
         }
 
         #timer-value {
@@ -130,24 +125,12 @@ $judge = authJudge();
             font-variant-numeric: tabular-nums;
         }
 
-        .round-type-badge {
-            display: inline-block;
-            padding: 6px 16px;
-            font-size: 0.85em;
-            font-weight: 700;
-            border: none;
-            background: #f0f2f5;
-            border-radius: 50px;
-            color: #636e72;
-            margin-bottom: 10px;
-        }
-
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
-            margin: 15px 0;
-            padding: 15px;
+            margin: 0;
+            padding: 0 25px 25px;
             background: transparent;
             border: none;
             border-radius: 0;
@@ -178,9 +161,9 @@ $judge = authJudge();
         }
 
         .btn-judge-confirm {
-            width: 100%;
+            width: calc(100% - 50px);
             padding: 14px 24px;
-            margin-top: 15px;
+            margin: 0 25px 25px;
             font-size: 1em;
             font-weight: 700;
             background: #74b9ff;
@@ -318,13 +301,14 @@ $judge = authJudge();
         }
 
         @media (max-width: 640px) {
-            .judge-main { padding: 15px; }
             .judge-sidebar { padding: 15px; }
             .judge-container { margin: 15px auto; padding: 0 10px; }
-            #question-text { font-size: 1.15em; }
-            .category-header { padding: 12px 16px; }
+            #question-text { font-size: 1.15em; padding: 25px 18px; }
+            .category-header { padding: 14px 18px; }
             .category-header .round-label { font-size: 1em; }
             .category-header .timer-label { font-size: 1.1em; }
+            .options-grid { padding: 0 18px 18px; }
+            .btn-judge-confirm { width: calc(100% - 36px); margin: 0 18px 18px; }
         }
     </style>
 </head>
@@ -350,16 +334,11 @@ $judge = authJudge();
                 <!-- Round in corso -->
                 <div id="game-screen" style="display: none;">
                     <div class="category-header" id="category-header-bar" style="background: #f0f2f5;">
-                        <span class="round-label">
-                            <span id="round-type-badge" class="round-type-badge"></span>
-                            Round <span id="round-number">-</span>
-                        </span>
+                        <span class="round-label">Domanda <span id="round-number">-</span> — <span id="category-name"></span></span>
                         <span class="timer-label">⏱️ <span id="timer-value">-</span></span>
                     </div>
 
-                    <div class="round-info">
-                        <p id="question-text"></p>
-                    </div>
+                    <p id="question-text"></p>
 
                     <div id="options-container" class="options-grid" style="display: none;"></div>
 
@@ -475,14 +454,8 @@ $judge = authJudge();
             if (headerBar) headerBar.style.backgroundColor = catColor;
 
             document.getElementById('round-number').textContent = round.round_number;
+            document.getElementById('category-name').textContent = catName;
             document.getElementById('question-text').textContent = round.question || '';
-
-            const typeLabels = {
-                'multiple': '📝 Scelta Multipla',
-                'truefalse': '✅ Vero/Falso',
-                'clickfirst': '⚡ Clicca per Primo'
-            };
-            document.getElementById('round-type-badge').textContent = typeLabels[round.round_type] || round.round_type;
 
             // Mostra le opzioni di risposta
             const optionsContainer = document.getElementById('options-container');
@@ -526,8 +499,8 @@ $judge = authJudge();
                 const timerEl = document.getElementById('timer-value');
                 timerEl.textContent = timeLeft;
 
-                if (timeLeft <= 5) timerEl.style.color = '#e17055';
-                else if (timeLeft <= 10) timerEl.style.color = '#fdcb6e';
+                if (timeLeft <= 5) timerEl.style.color = '#dc143c';
+                else if (timeLeft <= 10) timerEl.style.color = '#ffc107';
                 else timerEl.style.color = '#2d3436';
 
                 if (timeLeft <= 0) {

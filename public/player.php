@@ -667,10 +667,16 @@ requirePlayer();
 
             timerInterval = setInterval(() => {
                 timeLeft--;
-                if (headerTimer) headerTimer.textContent = timeLeft;
+                if (headerTimer) {
+                    headerTimer.textContent = timeLeft;
+                    if (timeLeft <= 5) headerTimer.style.color = '#dc143c';
+                    else if (timeLeft <= 10) headerTimer.style.color = '#ffc107';
+                    else headerTimer.style.color = '#2d3436';
+                }
 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
+                    if (headerTimer) headerTimer.style.color = '#2d3436';
                     if (!hasAnswered) timeExpired();
                 }
             }, 1000);

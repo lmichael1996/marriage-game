@@ -41,10 +41,10 @@ if ($room['has_winner'] ?? false) {
     <style>
         .game-container {
             display: grid;
-            grid-template-columns: 1fr 350px;
+            grid-template-columns: 1fr 1fr;
             grid-auto-rows: max-content;
             gap: 20px;
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 20px auto;
             padding: 0 20px;
             align-items: start;
@@ -55,12 +55,19 @@ if ($room['has_winner'] ?? false) {
             max-width: 800px;
         }
 
+        .game-main-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
         .game-main {
             background: #fff;
             border: none;
             border-radius: 20px;
-            padding: 25px;
+            padding: 0;
             box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            overflow: hidden;
         }
 
         .game-sidebar {
@@ -75,11 +82,12 @@ if ($room['has_winner'] ?? false) {
         }
 
         .info-box {
-            background: #f8f9fa;
+            background: #fff;
             border: none;
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 18px;
-            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            margin-bottom: 0;
         }
 
         .info-box p {
@@ -107,9 +115,9 @@ if ($room['has_winner'] ?? false) {
         .game-step {
             background: #fff;
             border: none;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 15px;
+            border-radius: 0;
+            padding: 0;
+            margin-bottom: 0;
         }
 
         .game-step h3 {
@@ -119,7 +127,7 @@ if ($room['has_winner'] ?? false) {
             font-size: 1.2em;
             font-weight: 800;
             border-bottom: none;
-            padding-bottom: 10px;
+            padding: 25px 25px 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -133,14 +141,14 @@ if ($room['has_winner'] ?? false) {
             color: #2d3436;
         }
 
-        /* ===== CATEGORY HEADER BAR (colored) ===== */
+        /* ===== CATEGORY HEADER BAR (colored, edge-to-edge) ===== */
         .category-header {
-            padding: 16px 22px;
+            padding: 18px 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-radius: 16px;
-            margin-bottom: 15px;
+            border-radius: 0;
+            margin-bottom: 0;
         }
 
         .category-header .round-label {
@@ -164,7 +172,8 @@ if ($room['has_winner'] ?? false) {
             font-weight: 800;
             line-height: 1.4;
             text-align: center;
-            margin: 10px 0;
+            margin: 0;
+            padding: 35px 25px;
         }
 
         .game-step.active {
@@ -175,14 +184,15 @@ if ($room['has_winner'] ?? false) {
         .game-step.game-over {
             border: none;
             background: #fff;
+            padding: 25px;
         }
 
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
-            margin: 15px 0;
-            padding: 15px;
+            margin: 0;
+            padding: 0 25px 25px;
             background: transparent;
             border: none;
             border-radius: 0;
@@ -250,7 +260,8 @@ if ($room['has_winner'] ?? false) {
         .button-group {
             display: flex;
             gap: 10px;
-            margin-top: 15px;
+            padding: 0 25px 25px;
+            margin-top: 0;
             flex-wrap: wrap;
         }
 
@@ -403,10 +414,6 @@ if ($room['has_winner'] ?? false) {
         }
 
         @media (max-width: 640px) {
-            .game-main {
-                padding: 15px;
-            }
-
             .game-sidebar {
                 padding: 15px;
             }
@@ -415,8 +422,15 @@ if ($room['has_winner'] ?? false) {
                 padding: 12px;
             }
 
+            .category-header { padding: 14px 18px; }
+
+            .game-step p { padding: 25px 18px; }
+
+            .options-grid { padding: 0 18px 18px; }
+
             .button-group {
                 flex-direction: column;
+                padding: 0 18px 18px;
             }
 
             .btn-main {
@@ -442,12 +456,14 @@ if ($room['has_winner'] ?? false) {
         </div>
 
         <div class="game-container<?php if ($gameOver): ?> game-over-layout<?php endif; ?>">
-            <div class="game-main">
+            <div class="game-main-wrapper">
                 <div class="info-box">
                     <p><span>👥 Giocatori:</span> <strong><?php echo $roomInfo['num_players']; ?></strong></p>
                     <p><span>🎯 Room Code:</span> <code><?php echo htmlspecialchars($room['code_player']); ?></code></p>
                     <p><span>📊 Domande:</span> <strong><?php echo $roomInfo['total_questions']; ?></strong></p>
                 </div>
+
+                <div class="game-main">
 
                 <?php if ($gameOver): ?>
                     <div class="game-step game-over">
@@ -541,6 +557,7 @@ if ($room['has_winner'] ?? false) {
                         </div>
                     </div>
                 <?php endif; ?>
+                </div>
             </div>
 
             <?php if (!$gameOver): ?>
