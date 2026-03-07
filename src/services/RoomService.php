@@ -85,6 +85,11 @@ class RoomService {
 
         $success = $this->roomRepo->startRoom($room['id']);
 
+        // Se il giudice non è connesso, azzera code_judge e qr_uri_judge
+        if ($success && !$this->judgeRepo->isJudgeConnected($room['id'])) {
+            $this->roomRepo->clearJudgeData($room['id']);
+        }
+
         return [
             'success' => $success,
             'message' => $success ? 'Stanza avviata' : 'Errore nell\'avvio',

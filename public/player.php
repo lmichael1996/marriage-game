@@ -408,7 +408,7 @@ requirePlayer();
                         <p id="final-message">Complimenti! Sei il vincitore di questa partita!</p>
 
                         <div class="social-links" style="margin-top: 30px; display: flex; justify-content: center; gap: 15px;">
-                            <a href="https://instagram.com/tuapagina" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 25px; background: rgba(255,255,255,0.3); color: #fff; text-decoration: none; font-weight: 600; font-size: 0.95em; border: 2px solid rgba(255,255,255,0.5);">
+                            <a href="https://www.instagram.com/mvmusicaeventi/?hl=it" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 25px; background: rgba(255,255,255,0.3); color: #fff; text-decoration: none; font-weight: 600; font-size: 0.95em; border: 2px solid rgba(255,255,255,0.5);">
                                 <svg viewBox="0 0 24 24" width="20" height="20" fill="#fff"><path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5A4.25 4.25 0 0 0 7.75 20.5h8.5A4.25 4.25 0 0 0 20.5 16.25v-8.5A4.25 4.25 0 0 0 16.25 3.5h-8.5zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 1.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm5.25-2.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
                                 Instagram
                             </a>

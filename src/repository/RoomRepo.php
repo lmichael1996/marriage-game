@@ -102,6 +102,22 @@ class RoomRepo {
     }
 
     /**
+     * Clear judge code and QR when no judge is connected
+     */
+    public function clearJudgeData($roomId) {
+        $stmt = $this->conn->prepare("
+            UPDATE rooms
+            SET code_judge = NULL, qr_uri_judge = NULL
+            WHERE id = ?
+        ");
+        $stmt->bind_param("i", $roomId);
+        $success = $stmt->execute();
+        $stmt->close();
+
+        return $success;
+    }
+
+    /**
      * Close room when game finishes (update status to 'closed')
      */
     public function closeRoom($roomId) {

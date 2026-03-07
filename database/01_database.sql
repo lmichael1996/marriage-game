@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS players (
 CREATE TABLE IF NOT EXISTS rooms (
     id INT AUTO_INCREMENT PRIMARY KEY,
     code_player VARCHAR(10) UNIQUE NOT NULL,
-    code_judge VARCHAR(10) UNIQUE NOT NULL,
+    code_judge VARCHAR(10) UNIQUE DEFAULT NULL,
     qset_id INT DEFAULT NULL,
     -- Store QR code as data URI (base64 encoded image)
     qr_uri_player LONGTEXT DEFAULT NULL,

@@ -506,7 +506,7 @@ $judge = authJudge();
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     timerEl.style.color = '#2d3436';
-                    onRoundEnd();
+                    setTimeout(() => onRoundEnd(), 2000);
                 }
             }, 1000);
         }
@@ -523,10 +523,8 @@ $judge = authJudge();
                 }
             }
 
-            // Attendi 2 secondi (come room-admin), poi carica classifica round
-            setTimeout(() => {
-                loadRoundLeaderboard(currentRoundId);
-            }, 2000);
+            // Carica classifica round (delay già applicato prima di onRoundEnd)
+            loadRoundLeaderboard(currentRoundId);
         }
 
         function loadRoundLeaderboard(roundId) {
