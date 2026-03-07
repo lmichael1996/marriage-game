@@ -459,8 +459,11 @@ if ($room['has_winner'] ?? false) {
             <div class="game-main-wrapper">
                 <div class="info-box">
                     <p><span>👥 Giocatori:</span> <strong><?php echo $roomInfo['num_players']; ?></strong></p>
-                    <p><span>🎯 Room Code:</span> <code><?php echo htmlspecialchars($room['code_player']); ?></code></p>
-                    <p><span>📊 Domande:</span> <strong><?php echo $roomInfo['total_questions']; ?></strong></p>
+                    <p><span>❓ Domande:</span> <strong><?php echo $roomInfo['total_questions']; ?></strong></p>
+                    <p><span>🎮 Code player:</span> <code><?php echo htmlspecialchars($room['code_player']); ?></code></p>
+                    <?php if (svc('room')->isJudgeConnected($room['id'])): ?>
+                        <p><span>⚖️ Code giudice:</span> <code><?php echo htmlspecialchars($room['code_judge']); ?></code></p>
+                    <?php endif; ?>
                 </div>
 
                 <div class="game-main">
