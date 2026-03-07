@@ -26,26 +26,28 @@ $judge = authJudge();
 
         .judge-main {
             background: #fff;
-            border: 2px solid #333;
+            border: none;
+            border-radius: 20px;
             padding: 25px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
         }
 
         .judge-sidebar {
             background: #fff;
-            border: 2px solid #333;
+            border: none;
+            border-radius: 20px;
             padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
             height: fit-content;
         }
 
         .sidebar-title {
             font-size: 1.1em;
-            font-weight: 600;
+            font-weight: 800;
             margin-bottom: 15px;
-            color: #333;
+            color: #2d3436;
             padding-bottom: 10px;
-            border-bottom: 2px solid #333;
+            border-bottom: none;
         }
 
         .waiting-screen {
@@ -56,8 +58,8 @@ $judge = authJudge();
         .spinner {
             width: 60px;
             height: 60px;
-            border: 4px solid #f0f0f0;
-            border-top: 4px solid #333;
+            border: 4px solid #f0f2f5;
+            border-top: 4px solid #74b9ff;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 30px;
@@ -70,132 +72,144 @@ $judge = authJudge();
 
         .waiting-screen h2 {
             font-size: 1.4em;
-            font-weight: 600;
+            font-weight: 800;
             margin-bottom: 15px;
-            color: #333;
+            color: #2d3436;
         }
 
         .waiting-screen p {
             font-size: 0.95em;
-            color: #666;
+            color: #636e72;
+        }
+
+        /* ===== CATEGORY HEADER BAR (colored) ===== */
+        .category-header {
+            padding: 16px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 16px;
+            margin-bottom: 15px;
+        }
+
+        .category-header .round-label {
+            color: #2d3436;
+            font-weight: 800;
+            font-size: 1.1em;
+        }
+
+        .category-header .timer-label {
+            color: #2d3436;
+            font-weight: 800;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .round-info {
             text-align: center;
             margin-bottom: 20px;
             padding-bottom: 15px;
-            border-bottom: 2px solid #333;
-        }
-
-        .round-info h2 {
-            font-size: 1.3em;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #333;
+            border-bottom: none;
         }
 
         #question-text {
-            font-size: 1.2em;
-            color: #333;
+            font-size: 1.35em;
+            color: #2d3436;
             margin: 15px 0;
-            font-weight: 600;
-            line-height: 1.6;
-        }
-
-        .timer-box {
-            background: #f5f5f5;
-            color: #333;
-            border: 2px solid #333;
-            padding: 20px;
+            font-weight: 800;
+            line-height: 1.4;
             text-align: center;
-            margin: 20px 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .timer-box h4 {
-            margin: 0 0 12px 0;
-            font-size: 1em;
-            font-weight: 600;
-            color: #333;
         }
 
         #timer-value {
-            font-size: 3em;
-            font-weight: bold;
-            color: #333;
+            font-size: inherit;
+            font-weight: 800;
+            color: #2d3436;
             font-variant-numeric: tabular-nums;
         }
 
         .round-type-badge {
             display: inline-block;
-            padding: 4px 12px;
+            padding: 6px 16px;
             font-size: 0.85em;
-            font-weight: 600;
-            border: 1px solid #333;
+            font-weight: 700;
+            border: none;
+            background: #f0f2f5;
+            border-radius: 50px;
+            color: #636e72;
             margin-bottom: 10px;
         }
 
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 12px;
             margin: 15px 0;
-            padding: 10px;
-            background: #f9f9f9;
-            border: 1px solid #ddd;
+            padding: 15px;
+            background: transparent;
+            border: none;
+            border-radius: 0;
         }
 
         .option-btn {
-            padding: 12px;
-            background: #f0f0f0;
-            color: #333;
-            border: 1px solid #999;
-            font-weight: 600;
-            font-size: 0.95em;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 50px;
+            padding: 16px 22px;
+            color: #2d3436;
+            font-weight: 700;
+            font-size: 1em;
             text-align: center;
             min-height: 45px;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
+            cursor: default;
         }
 
         .option-btn.correct {
-            background: #4caf50;
+            background: #00b894;
             color: #fff;
-            border-color: #333;
-            font-weight: bold;
+            border-color: #00b894;
+            font-weight: 800;
         }
 
         .btn-judge-confirm {
             width: 100%;
-            padding: 12px 20px;
+            padding: 14px 24px;
             margin-top: 15px;
             font-size: 1em;
-            font-weight: 600;
-            background: #fff;
-            color: #333;
-            border: 2px solid #333;
+            font-weight: 700;
+            background: #74b9ff;
+            color: #fff;
+            border: none;
+            border-radius: 50px;
             cursor: pointer;
             transition: all 0.2s ease;
             text-align: center;
+            box-shadow: 0 4px 15px rgba(116,185,255,0.3);
         }
 
         .btn-judge-confirm:hover:not(:disabled) {
-            background: #333;
-            color: #fff;
+            background: #0984e3;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(116,185,255,0.4);
         }
 
         .btn-judge-confirm:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            background: #f0f0f0;
+            background: #b2bec3;
+            box-shadow: none;
         }
 
         .judge-waiting-msg {
             text-align: center;
             padding: 15px;
-            color: #666;
+            color: #636e72;
             font-style: italic;
         }
 
@@ -204,15 +218,17 @@ $judge = authJudge();
             align-items: center;
             gap: 10px;
             padding: 12px;
-            background: #f9f9f9;
-            border: 1px solid #ddd;
+            background: #f8f9fa;
+            border: none;
+            border-radius: 14px;
             margin-bottom: 8px;
-            border-left: 3px solid #333;
+            border-left: 4px solid #74b9ff;
             transition: all 0.2s ease;
         }
 
         .leaderboard-item:hover {
-            background: #f0f0f0;
+            background: #f0f2f5;
+            transform: translateX(2px);
         }
 
         .medal {
@@ -226,18 +242,18 @@ $judge = authJudge();
         }
 
         .leaderboard-name {
-            font-weight: 600;
-            color: #333;
+            font-weight: 700;
+            color: #2d3436;
             font-size: 0.95em;
         }
 
         .leaderboard-time {
             font-size: 0.85em;
-            color: #666;
+            color: #636e72;
         }
 
         .empty-state {
-            color: #999;
+            color: #b2bec3;
             font-size: 0.9em;
             padding: 15px;
             text-align: center;
@@ -247,6 +263,13 @@ $judge = authJudge();
             text-align: center;
             padding: 40px 20px;
             display: none;
+        }
+
+        .final-result-screen h2 {
+            font-size: 1.5em;
+            font-weight: 800;
+            color: #2d3436;
+            margin-bottom: 20px;
         }
 
         .final-leaderboard {
@@ -263,11 +286,13 @@ $judge = authJudge();
             text-align: center;
             padding: 60px 20px;
             display: none;
-            background: linear-gradient(135deg, #9E9E9E 0%, #757575 100%);
+            background: linear-gradient(135deg, #b2bec3 0%, #636e72 100%);
+            border-radius: 20px;
         }
 
         .game-cancelled-screen h1 {
             font-size: 2em;
+            font-weight: 800;
             color: #fff;
             margin-bottom: 15px;
         }
@@ -296,7 +321,10 @@ $judge = authJudge();
             .judge-main { padding: 15px; }
             .judge-sidebar { padding: 15px; }
             .judge-container { margin: 15px auto; padding: 0 10px; }
-            #timer-value { font-size: 2.5em; }
+            #question-text { font-size: 1.15em; }
+            .category-header { padding: 12px 16px; }
+            .category-header .round-label { font-size: 1em; }
+            .category-header .timer-label { font-size: 1.1em; }
         }
     </style>
 </head>
@@ -321,21 +349,19 @@ $judge = authJudge();
 
                 <!-- Round in corso -->
                 <div id="game-screen" style="display: none;">
-                    <div class="round-info">
-                        <span class="round-type-badge" id="round-type-badge"></span>
-                        <h2 style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="category-header" id="category-header-bar" style="background: #f0f2f5;">
+                        <span class="round-label">
+                            <span id="round-type-badge" class="round-type-badge"></span>
                             Round <span id="round-number">-</span>
-                            <span id="category-badge" style="font-size: 0.55em; font-weight: 600; padding: 3px 10px; border-radius: 12px; display: none;"></span>
-                        </h2>
+                        </span>
+                        <span class="timer-label">⏱️ <span id="timer-value">-</span></span>
+                    </div>
+
+                    <div class="round-info">
                         <p id="question-text"></p>
                     </div>
 
                     <div id="options-container" class="options-grid" style="display: none;"></div>
-
-                    <div class="timer-box">
-                        <h4>⏱️ Timer Rimanente</h4>
-                        <span id="timer-value">-</span>
-                    </div>
 
                     <button id="judge-confirm-btn" class="btn-judge-confirm" disabled onclick="judgeNextRound()">
                         ➡️ Prossima Domanda
@@ -442,22 +468,11 @@ $judge = authJudge();
             currentCorrectAnswer = round.correct_answer || null;
             currentRoundType = round.round_type || 'multiple';
 
-            // Bordo colorato categoria
-            const catColor = round.category_color || '#333';
+            // Colora la category-header bar
+            const catColor = round.category_color || '#f0f2f5';
             const catName = round.category_name || '';
-            const el = document.querySelector('.judge-main');
-            if (el) el.style.border = '5px solid ' + catColor;
-
-            // Badge categoria
-            const badge = document.getElementById('category-badge');
-            if (badge && catName) {
-                badge.textContent = catName;
-                badge.style.backgroundColor = catColor;
-                badge.style.color = '#333';
-                badge.style.display = 'inline-block';
-            } else if (badge) {
-                badge.style.display = 'none';
-            }
+            const headerBar = document.getElementById('category-header-bar');
+            if (headerBar) headerBar.style.backgroundColor = catColor;
 
             document.getElementById('round-number').textContent = round.round_number;
             document.getElementById('question-text').textContent = round.question || '';
@@ -511,13 +526,13 @@ $judge = authJudge();
                 const timerEl = document.getElementById('timer-value');
                 timerEl.textContent = timeLeft;
 
-                if (timeLeft <= 5) timerEl.style.color = '#dc143c';
-                else if (timeLeft <= 10) timerEl.style.color = '#ffc107';
-                else timerEl.style.color = '#333';
+                if (timeLeft <= 5) timerEl.style.color = '#e17055';
+                else if (timeLeft <= 10) timerEl.style.color = '#fdcb6e';
+                else timerEl.style.color = '#2d3436';
 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    timerEl.style.color = '#333';
+                    timerEl.style.color = '#2d3436';
                     onRoundEnd();
                 }
             }, 1000);
@@ -690,7 +705,7 @@ $judge = authJudge();
                                 <div class="medal">${p.medal}</div>
                                 <div class="leaderboard-info">
                                     <div class="leaderboard-name">${p.username}</div>
-                                    <div class="leaderboard-time" style="color: #333; font-weight: 600;">${p.score} punti</div>
+                                    <div class="leaderboard-time" style="color: #2d3436; font-weight: 700;">${p.score} punti</div>
                                 </div>
                             </div>`;
                         });

@@ -159,8 +159,11 @@ if ($room['has_winner'] ?? false) {
         }
 
         .game-step p {
-            color: #636e72;
-            line-height: 1.5;
+            font-size: 1.35em;
+            color: #2d3436;
+            font-weight: 800;
+            line-height: 1.4;
+            text-align: center;
             margin: 10px 0;
         }
 
@@ -237,10 +240,10 @@ if ($room['has_winner'] ?? false) {
         }
 
         #timer {
-            font-size: 3em;
+            font-size: inherit;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.05em;
             color: #2d3436;
         }
 
