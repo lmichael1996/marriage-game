@@ -9,13 +9,13 @@ $tableData = $tableService->getAllTablesData();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tutte le Tabelle - Marriage Game</title>
-    <link rel="stylesheet" href="../../assets/css/all_tables.css">
+    <title>Database - MVquiz</title>
+    <link rel="stylesheet" href="../../assets/css/database.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Database Marriage Game</h1>
+            <h1>Database MVquiz</h1>
             <p>Contenuto di tutte le tabelle</p>
         </div>
 
