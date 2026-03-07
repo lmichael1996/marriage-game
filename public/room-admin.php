@@ -184,7 +184,25 @@ if ($room['has_winner'] ?? false) {
         .game-step.game-over {
             border: none;
             background: #fff;
-            padding: 25px;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .game-step.game-over h2 {
+            font-size: 1.5em;
+            font-weight: 800;
+            color: #2d3436;
+            margin-bottom: 20px;
+        }
+
+        .final-leaderboard {
+            max-width: 500px;
+            margin: 20px auto;
+            text-align: left;
+        }
+
+        .final-leaderboard .leaderboard-item {
+            border-left-width: 4px;
         }
 
         .options-grid {
@@ -225,8 +243,8 @@ if ($room['has_winner'] ?? false) {
 
         .option-btn.correct {
             background: #00b894;
-            border-color: transparent;
             color: #fff;
+            border-color: #00b894;
             font-weight: 800;
             box-shadow: 0 4px 15px rgba(0,184,148,0.3);
         }
@@ -329,7 +347,7 @@ if ($room['has_winner'] ?? false) {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 12px 16px;
+            padding: 12px;
             background: #f8f9fa;
             border: none;
             border-radius: 14px;
@@ -340,12 +358,13 @@ if ($room['has_winner'] ?? false) {
 
         .leaderboard-item:hover {
             background: #f0f2f5;
-            transform: translateX(3px);
+            transform: translateX(2px);
         }
 
         .medal {
-            font-size: 1.6em;
+            font-size: 1.3em;
             min-width: 30px;
+            text-align: center;
         }
 
         .leaderboard-info {
@@ -359,9 +378,8 @@ if ($room['has_winner'] ?? false) {
         }
 
         .leaderboard-time {
-            font-size: 0.8em;
+            font-size: 0.85em;
             color: #636e72;
-            margin-top: 2px;
         }
 
         .sidebar-title {
@@ -375,9 +393,9 @@ if ($room['has_winner'] ?? false) {
 
         .empty-state {
             text-align: center;
-            padding: 20px 15px;
+            padding: 15px;
             color: #b2bec3;
-            font-size: 0.95em;
+            font-size: 0.9em;
         }
 
         .header {
@@ -457,6 +475,7 @@ if ($room['has_winner'] ?? false) {
 
         <div class="game-container<?php if ($gameOver): ?> game-over-layout<?php endif; ?>">
             <div class="game-main-wrapper">
+                <?php if (!$gameOver): ?>
                 <div class="info-box">
                     <p><span>👥 Giocatori:</span> <strong><?php echo $roomInfo['num_players']; ?></strong></p>
                     <p><span>❓ Domande:</span> <strong><?php echo $roomInfo['total_questions']; ?></strong></p>
@@ -465,26 +484,27 @@ if ($room['has_winner'] ?? false) {
                         <p><span>⚖️ Codice giudice:</span> <code><?php echo htmlspecialchars($room['code_judge']); ?></code></p>
                     <?php endif; ?>
                 </div>
+                <?php endif; ?>
 
                 <div class="game-main">
 
                 <?php if ($gameOver): ?>
                     <div class="game-step game-over">
-                        <h3>🎉 Partita Terminata!</h3>
-                        <div id="final-leaderboard" style="margin-top: 20px;">
-                            <p class="empty-state">Caricamento classifica...</p>
+                        <h2>🏆 Classifica Finale</h2>
+                        <div id="final-leaderboard" class="final-leaderboard">
+                            <div class="empty-state">Caricamento...</div>
                         </div>
                     </div>
                 <?php elseif ($activeRound): ?>
-                    <?php $catColor = $activeRound['category_color'] ?? '#74b9ff'; $catName = $activeRound['category_name'] ?? ''; ?>
+                    <?php $catColor = $activeRound['category_color'] ?? '#74b9ff'; $catName = $activeRound['category_name'] ?? ''; $isClickFirst = $activeRound['round_type'] === 'clickfirst'; ?>
                     <div class="game-step active">
                         <div class="category-header" style="background: <?php echo htmlspecialchars($catColor); ?>;">
-                            <span class="round-label">Domanda #<?php echo $counter; ?> — <?php echo htmlspecialchars($catName); ?></span>
+                            <span class="round-label">Domanda #<?php echo $counter; ?> — <?php if ($isClickFirst): ?>⚡ <?php endif; ?><?php echo htmlspecialchars($catName); ?></span>
                             <span class="timer-label">⏱️ <span id="timer"><?php echo $activeRound['timer'] ?? 30; ?></span></span>
                         </div>
                         <p><?php echo htmlspecialchars($activeRound['question']); ?></p>
 
-                        <?php if ($activeRound['round_type'] !== 'clickfirst'): ?>
+                        <?php if (!$isClickFirst): ?>
                             <?php
                                 $opt1 = $activeRound['round_type'] === 'truefalse' ? 'Vero' : $activeRound['option1'];
                                 $opt2 = $activeRound['round_type'] === 'truefalse' ? 'Falso' : $activeRound['option2'];
@@ -505,8 +525,6 @@ if ($room['has_winner'] ?? false) {
                                     </div>
                                 <?php endif; ?>
                             </div>
-                        <?php else: ?>
-                            <p style="color: #ffc107; font-weight: bold; text-align: center; font-size: 1.1em; padding: 20px; background: #fffbf0; border-radius: 8px;">⚡ Chi clicca primo vince!</p>
                         <?php endif; ?>
 
                         <div class="button-group">
@@ -521,14 +539,14 @@ if ($room['has_winner'] ?? false) {
                         </div>
                     </div>
                 <?php else: ?>
-                    <?php $catColor = $question['category_color'] ?? '#74b9ff'; $catName = $question['category_name'] ?? ''; ?>
+                    <?php $catColor = $question['category_color'] ?? '#74b9ff'; $catName = $question['category_name'] ?? ''; $isClickFirst = $question['round_type'] === 'clickfirst'; ?>
                     <div class="game-step">
                         <div class="category-header" style="background: <?php echo htmlspecialchars($catColor); ?>;">
-                            <span class="round-label">Domanda #<?php echo $counter; ?> — <?php echo htmlspecialchars($catName); ?></span>
+                            <span class="round-label">Domanda #<?php echo $counter; ?> — <?php if ($isClickFirst): ?>⚡ <?php endif; ?><?php echo htmlspecialchars($catName); ?></span>
                         </div>
                         <p><?php echo htmlspecialchars($question['question']); ?></p>
 
-                        <?php if ($question['round_type'] !== 'clickfirst'): ?>
+                        <?php if (!$isClickFirst): ?>
                             <?php
                                 $qOpt1 = $question['round_type'] === 'truefalse' ? 'Vero' : $question['option1'];
                                 $qOpt2 = $question['round_type'] === 'truefalse' ? 'Falso' : $question['option2'];
@@ -549,8 +567,6 @@ if ($room['has_winner'] ?? false) {
                                     </div>
                                 <?php endif; ?>
                             </div>
-                        <?php else: ?>
-                            <p style="color: #ffc107; font-weight: bold; text-align: center; font-size: 1.1em; padding: 20px; background: #fffbf0; border-radius: 8px;">⚡ Chi clicca primo vince!</p>
                         <?php endif; ?>
 
                         <div class="button-group">
@@ -620,7 +636,7 @@ if ($room['has_winner'] ?? false) {
                                 '#option-' + correctAnswer
                             );
                             if (correctOption) {
-                                correctOption.style.background = '#4caf50';
+                                correctOption.classList.add('correct');
                             }
                         }
 
@@ -708,19 +724,18 @@ if ($room['has_winner'] ?? false) {
                 .then((data) => {
                     if (data.success && data.leaderboard?.length > 0) {
                         let html = '';
-
                         data.leaderboard.forEach((p) => {
                             html += `<div class="leaderboard-item">
                                 <div class="medal">${p.medal}</div>
                                 <div class="leaderboard-info">
                                     <div class="leaderboard-name">${p.username}</div>
-                                    <div class="leaderboard-time" style="color: #333; font-weight: 600;">${p.score} punti</div>
+                                    <div class="leaderboard-time" style="color: #2d3436; font-weight: 700;">${p.score} punti</div>
                                 </div>
                             </div>`;
                         });
-
                         document.getElementById('final-leaderboard').innerHTML = html;
-                        document.getElementById('leaderboard').innerHTML = html;
+                    } else {
+                        document.getElementById('final-leaderboard').innerHTML = '<div class="empty-state">Nessun risultato disponibile</div>';
                     }
                 });
         }
@@ -743,16 +758,14 @@ if ($room['has_winner'] ?? false) {
                 .then((r) => r.json())
                 .then((data) => {
                     if (data.success && data.top_answers?.length > 0) {
+                        const medals = ['🥇', '🥈', '🥉'];
                         let html = '';
 
                         data.top_answers.forEach((answer, i) => {
-                            const medals = ['🥇', '🥈', '🥉'];
                             const medal = isClickFirst
                                 ? `<input type="radio" name="clickfirst-winner" value="${i}">`
-                                : (medals[i] || i + 1 + '.');
-                            const time = parseFloat(
-                                answer.answer_time
-                            ).toFixed(2) + 's';
+                                : (medals[i] || (i + 1 + '.'));
+                            const time = parseFloat(answer.answer_time).toFixed(2) + 's';
 
                             html += `<div class="leaderboard-item">
                                 <div class="medal">${medal}</div>
@@ -779,11 +792,14 @@ if ($room['has_winner'] ?? false) {
                         }
                     } else if (isClickFirst) {
                         // Nessuna risposta nel clickfirst: abilita prossima domanda
+                        document.getElementById('leaderboard').innerHTML = '<div class="empty-state">Nessuna risposta</div>';
                         const nextBtn = document.getElementById('next-btn');
                         if (nextBtn) {
                             nextBtn.disabled = false;
                             nextBtn.style.animation = 'pulse 1s infinite';
                         }
+                    } else {
+                        document.getElementById('leaderboard').innerHTML = '<div class="empty-state">Nessuna risposta</div>';
                     }
                 });
         }

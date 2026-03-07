@@ -316,10 +316,7 @@ $judge = authJudge();
     <div class="container">
         <div class="header">
             <h1>⚖️ Giudice</h1>
-            <div class="user-info">
-                <span>Stanza: <?php echo htmlspecialchars($judge['room_code'] ?? ''); ?></span>
-                <a href="logout.php?role=judge" class="btn btn-secondary">Logout</a>
-            </div>
+            <a href="logout.php?role=judge" class="btn btn-secondary">Logout</a>
         </div>
 
         <div class="judge-container">
@@ -454,7 +451,8 @@ $judge = authJudge();
             if (headerBar) headerBar.style.backgroundColor = catColor;
 
             document.getElementById('round-number').textContent = round.round_number;
-            document.getElementById('category-name').textContent = catName;
+            const isClickFirst = currentRoundType === 'clickfirst';
+            document.getElementById('category-name').textContent = (isClickFirst ? '⚡ ' : '') + catName;
             document.getElementById('question-text').textContent = round.question || '';
 
             // Mostra le opzioni di risposta
