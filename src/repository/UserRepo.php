@@ -49,11 +49,5 @@ class UserRepo {
         $stmt->close();
         return $success;
     }
-
-    public function __destruct() {
-        if ($this->conn) {
-            $this->conn->close();
-        }
-    }
 }
 ?>

@@ -66,10 +66,4 @@ class SettingsRepo {
 
         return $success;
     }
-
-    public function __destruct() {
-        if ($this->conn) {
-            $this->conn->close();
-        }
-    }
 }

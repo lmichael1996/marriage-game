@@ -1,48 +1,56 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
 
+/**
+ * Repository for the players table.
+ *
+ * Each player belongs to a room (room_id) and has a unique username within that room.
+ * UNIQUE constraint on (username, room_id) enforced at DB level.
+ */
 class PlayerRepo {
-    private $conn;
+    private mysqli $conn;
+    // 1062 = MySQL duplicate entry error
+    private const int DUPLICATE_ENTRY_ERROR_CODE = 1062;
 
     public function __construct() {
         $this->conn = getDBConnection();
     }
 
     /**
-     * Create a new player associated with a room
+     * Create a new player associated with a room.
+     * Relies on UNIQUE(username, room_id) constraint to prevent duplicates.
+     *
+     * @param string $username Player display name
+     * @param int    $roomId   The room ID
+     * @return int The newly created player ID
+     * @throws Exception If username already taken in this room or DB error
      */
-    public function createPlayer($username, $roomId) {
-        // Check if player with this username already exists in this room
-        $stmtCheck = $this->conn->prepare("SELECT id FROM players WHERE username = ? AND room_id = ?");
-        $stmtCheck->bind_param("si", $username, $roomId);
-        $stmtCheck->execute();
-        $existingResult = $stmtCheck->get_result();
-        $existingPlayer = $existingResult->fetch_assoc();
-        $stmtCheck->close();
-
-        if ($existingPlayer) {
-            throw new Exception('Un giocatore con questo nome è già nella stanza. Usa un nome diverso.');
-        }
-
+    public function createPlayer(string $username, int $roomId): int {
         $stmt = $this->conn->prepare("INSERT INTO players (username, room_id) VALUES (?, ?)");
         $stmt->bind_param("si", $username, $roomId);
 
-        if ($stmt->execute()) {
-            $playerId = $this->conn->insert_id;
+        if (!$stmt->execute()) {
+            $errno = $stmt->errno;
             $stmt->close();
-            return $playerId;
-        } else {
-            // Catch other database errors
-            $errorMsg = $stmt->error;
-            $stmt->close();
-            throw new Exception('Errore durante la creazione del giocatore: ' . $errorMsg);
+
+            if ($errno === self::DUPLICATE_ENTRY_ERROR_CODE) {
+                throw new Exception('Un giocatore con questo nome è già nella stanza. Usa un nome diverso.');
+            }
+            throw new Exception('Errore durante la creazione del giocatore.');
         }
+
+        $playerId = $this->conn->insert_id;
+        $stmt->close();
+        return (int)$playerId;
     }
 
     /**
-     * Get all players for a specific room by room ID
+     * Get all players in a room, ordered by join order.
+     *
+     * @param int $roomId The room ID
+     * @return array List of players with id, username, connected_at
      */
-    public function getPlayersByRoomId($roomId) {
+    public function getPlayersByRoomId(int $roomId): array {
         $stmt = $this->conn->prepare("
             SELECT id, username, connected_at
             FROM players
@@ -60,9 +68,15 @@ class PlayerRepo {
     }
 
     /**
-     * Get player by room ID and username
+     * Find a player by room and username.
+     *
+     * Used by markWinner and player reconnection to resolve username → player ID.
+     *
+     * @param int    $roomId   The room ID
+     * @param string $username The player's display name
+     * @return array|null Player row with 'id', or null if not found
      */
-    public function getPlayerByRoomAndUsername($roomId, $username) {
+    public function getPlayerByRoomAndUsername(int $roomId, string $username): ?array {
         $stmt = $this->conn->prepare("
             SELECT id FROM players
             WHERE room_id = ? AND username = ?
@@ -74,11 +88,5 @@ class PlayerRepo {
         $stmt->close();
 
         return $player;
-    }
-
-    public function __destruct() {
-        if ($this->conn) {
-            $this->conn->close();
-        }
     }
 }

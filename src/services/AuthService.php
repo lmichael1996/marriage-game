@@ -78,6 +78,7 @@ class AuthService {
             'player_id' => (int)$playerId,
             'username'  => $username,
             'room_code' => $roomCode,
+            'room_id'   => (int)$roomExists['id'],
         ];
 
         return 'player';

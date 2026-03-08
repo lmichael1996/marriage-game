@@ -81,7 +81,7 @@ class QuestionService {
             return null;
         }
 
-        $set['questions'] = $this->roundRepo->getRoundsByQuestionSet($setId);
+        $set['questions'] = $this->setRepo->getQuestions($setId);
         $set['question_count'] = count($set['questions']);
 
         return $set;

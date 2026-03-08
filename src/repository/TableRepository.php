@@ -66,10 +66,4 @@ class TableRepository {
             'totalCount' => $totalCount
         ];
     }
-
-    public function __destruct() {
-        if ($this->conn) {
-            $this->conn->close();
-        }
-    }
 }

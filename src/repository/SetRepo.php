@@ -469,10 +469,4 @@ class SetRepo {
 
         return $row['total'] ?? 0;
     }
-
-    public function __destruct() {
-        if ($this->conn) {
-            $this->conn->close();
-        }
-    }
 }

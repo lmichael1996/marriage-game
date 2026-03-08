@@ -244,8 +244,9 @@ function handleCreateRoom() {
         if ($result['success']) {
             $_SESSION['active_room_code']  = $result['code_player'];
             $_SESSION['active_judge_code'] = $result['code_judge'];
+            $_SESSION['room_id']           = $result['room_id'];
 
-            $roomData = $room->getRoomDetails($result['code_player']);
+            $roomData = $room->getRoomDetails($result['room_id']);
             if ($roomData) {
                 if (!empty($roomData['qr_uri_player'])) $result['qr_uri_player'] = 'data:image/svg+xml;base64,' . $roomData['qr_uri_player'];
                 if (!empty($roomData['qr_uri_judge']))  $result['qr_uri_judge']  = 'data:image/svg+xml;base64,' . $roomData['qr_uri_judge'];
@@ -260,9 +261,9 @@ function handleCreateRoom() {
 function handleStartRoom() {
     requireLoginJson();
     try {
-        $roomCode = input()['code_player'] ?? $_SESSION['active_room_code'] ?? null;
-        if (!$roomCode) throw new Exception('Nessuna stanza attiva nella sessione');
-        respond(svc('room')->startRoom($roomCode));
+        $roomId = authRoomId();
+        if (!$roomId) throw new Exception('Nessuna stanza attiva nella sessione');
+        respond(svc('room')->startRoom($roomId));
     } catch (Exception $e) {
         respondError($e->getMessage(), 500);
     }
@@ -271,10 +272,10 @@ function handleStartRoom() {
 function handleCheckRoomStatus() {
     requireLoginJson();
     try {
-        $roomCode = authRoomCode();
-        if (!$roomCode) respond(['room_open' => false, 'status' => 'unknown', 'message' => 'Nessuna stanza associata']);
+        $roomId = authRoomId();
+        if (!$roomId) respond(['room_open' => false, 'status' => 'unknown', 'message' => 'Nessuna stanza associata']);
 
-        $roomData = svc('room')->getRoomDetails($roomCode);
+        $roomData = svc('room')->getRoomDetails($roomId);
         if (!$roomData) respond(['room_open' => false, 'status' => 'unknown', 'message' => 'Stanza non trovata']);
 
         $status = $roomData['status_room'] ?? 'unknown';
@@ -291,11 +292,11 @@ function handleCheckRoomStatus() {
 function handleDeleteRoom() {
     requireAdminJson();
     try {
-        $codePlayer = $_SESSION['active_room_code'] ?? $_GET['code_player'] ?? null;
-        if (!$codePlayer) throw new Exception('Codice stanza mancante');
+        $roomId = authRoomId();
+        if (!$roomId) throw new Exception('Nessuna stanza attiva');
 
-        $result = svc('room')->cancelRoom($codePlayer);
-        if ($result['success']) { unset($_SESSION['active_room_code'], $_SESSION['active_judge_code']); }
+        $result = svc('room')->cancelRoom($roomId);
+        if ($result['success']) { unset($_SESSION['active_room_code'], $_SESSION['active_judge_code'], $_SESSION['room_id']); }
         respond($result);
     } catch (Exception $e) {
         respondError($e->getMessage(), 500);
@@ -304,10 +305,10 @@ function handleDeleteRoom() {
 
 function handleConnectedDevices() {
     try {
-        $codePlayer = $_SESSION['active_room_code'] ?? $_GET['code_player'] ?? null;
-        if (!$codePlayer) respond(['success' => true, 'devices' => [], 'count' => 0]);
+        $roomId = authRoomId();
+        if (!$roomId) respond(['success' => true, 'devices' => [], 'count' => 0]);
 
-        $result = svc('room')->getConnectedDevices($codePlayer);
+        $result = svc('room')->getConnectedDevices($roomId);
         respond(['success' => true, 'devices' => $result['devices'], 'count' => $result['count'], 'judge_connected' => $result['judge_connected'] ?? false]);
     } catch (Exception $e) {
         respondError($e->getMessage(), 500);
@@ -327,18 +328,17 @@ function handleGame($action) {
         'judge_advance'  => handleJudgeAdvance(),
         'check_judge_decision' => handleCheckJudgeDecision(),
         'check_winner'   => handleCheckWinner(),
-        'reset_game'     => handleResetGame(),
         default          => respondError('Azione non valida'),
     };
 }
 
 function handleGetGameState() {
     try {
-        $roomCode = authRoomCode();
-        if (!$roomCode) respond(['success' => false]);
+        $roomId = authRoomId();
+        if (!$roomId) respond(['success' => false]);
 
         $room = svc('room');
-        $roomData = $room->getRoomDetails($roomCode);
+        $roomData = $room->getRoomDetails($roomId);
         if (!$roomData) respond(['success' => false]);
 
         $statusRoom = $roomData['status_room'] ?? null;
@@ -348,7 +348,7 @@ function handleGetGameState() {
             // Se non c'è ancora un vincitore, marcalo ora
             if (!($roomData['has_winner'] ?? false)) {
                 $room->markWinner($roomData['id']);
-                $roomData = $room->getRoomDetails($roomCode);
+                $roomData = $room->getRoomDetails($roomId);
             }
 
             $isWinner = false;
@@ -400,10 +400,10 @@ function handleStartRound() {
     if (!$questionId && $_SERVER['REQUEST_METHOD'] === 'POST') $questionId = input()['question_id'] ?? 0;
     if (!$questionId) respondError('Question ID required');
 
-    $roomCode = authRoomCode();
-    if (!$roomCode) respondError('Room code not found');
+    $roomId = authRoomId();
+    if (!$roomId) respondError('Room ID not found');
 
-    try { respond(svc('game')->startRound($questionId, $roomCode)); }
+    try { respond(svc('game')->startRound($questionId, $roomId)); }
     catch (Exception $e) { respondError('Server error: ' . $e->getMessage(), 500); }
 }
 
@@ -450,19 +450,19 @@ function handleCheckJudgeDecision() {
 
 function handleCheckWinner() {
     try {
-        $roomCode = authRoomCode();
+        $roomId = authRoomId();
         $fail = ['success' => false, 'is_winner' => false];
-        if (!$roomCode) respond($fail);
+        if (!$roomId) respond($fail);
 
         $room = svc('room');
-        $roomData = $room->getRoomDetails($roomCode);
+        $roomData = $room->getRoomDetails($roomId);
         if (!$roomData) respond($fail);
 
         // Se la room è chiusa/closed ma non c'è ancora un vincitore, marcalo ora
         if (!($roomData['has_winner'] ?? false) && ($roomData['status_room'] ?? '') === 'closed') {
             $room->markWinner($roomData['id']);
             // Ricarica per avere il vincitore aggiornato
-            $roomData = $room->getRoomDetails($roomCode);
+            $roomData = $room->getRoomDetails($roomId);
         }
 
         $playerId = authPlayerId();
@@ -479,22 +479,9 @@ function handleCheckWinner() {
     }
 }
 
-function handleResetGame() {
-    requireAdminJson();
-    $questionSetId = input()['question_set_id'] ?? 0;
-    if (!$questionSetId) respondError('Question Set ID required');
-
-    try {
-        svc('game')->resetGameByQuestionSet($questionSetId);
-        respond(['success' => true, 'message' => 'Game reset']);
-    } catch (Exception $e) {
-        respondError($e->getMessage(), 500);
-    }
-}
-
 function handleLeaderboard() {
     requireLoginJson();
-    respond(svc('game')->getLeaderboard(authRoomCode() ?? $_GET['room_code'] ?? null));
+    respond(svc('game')->getLeaderboard());
 }
 
 function handleRoundAnswers() {
@@ -506,10 +493,9 @@ function handleRoundAnswers() {
 
 function handleFinalLeaderboard() {
     requireLoginJson();
-    $roomId   = $_GET['room_id'] ?? null;
-    $roomCode = $_GET['room_code'] ?? authRoomCode();
-    if (!$roomId && !$roomCode) respond(['success' => false, 'leaderboard' => []]);
-    respond(svc('game')->getFinalLeaderboard($roomCode, $roomId));
+    $roomId = isset($_GET['room_id']) ? (int)$_GET['room_id'] : authRoomId();
+    if (!$roomId) respond(['success' => false, 'leaderboard' => []]);
+    respond(svc('game')->getFinalLeaderboard($roomId));
 }
 
 // ── Questions ────────────────────────────────────────────────────────────
@@ -731,13 +717,12 @@ function handleMoveQuestionDown() {
 // ── Misc ─────────────────────────────────────────────────────────────────
 
 function handleGeneratePDF() {
-    $data     = input();
-    $roomCode = $data['room_code'] ?? $_POST['room_code'] ?? '';
-    if (!$roomCode) respondError('Room code required');
+    $roomId = authRoomId();
+    if (!$roomId) respondError('Room ID not found');
 
     try {
         $room = svc('room');
-        $roomResult = $room->getRoomDetails($roomCode);
+        $roomResult = $room->getRoomDetails($roomId);
         if (!$roomResult) respondError('Room not found', 404);
 
         $codePlayer = $roomResult['code_player'] ?? null;

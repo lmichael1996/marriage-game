@@ -68,6 +68,15 @@ function authRoomCode(): ?string {
     return $_SESSION['active_room_code'] ?? null;
 }
 
+function authRoomId(): ?int {
+    $player = svc('auth')->getPlayer();
+    if ($player) return (int)$player['room_id'];
+    $judge = svc('auth')->getJudge();
+    if ($judge) return (int)$judge['room_id'];
+    // Admin: room_id salvato in loadRoomAdmin()
+    return isset($_SESSION['room_id']) ? (int)$_SESSION['room_id'] : null;
+}
+
 function authUsername(): ?string {
     $user = svc('auth')->getAnyUser();
     return $user['username'] ?? null;

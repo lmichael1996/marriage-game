@@ -1,85 +1,46 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
 
+/**
+ * Repository for the `rounds` table.
+ *
+ * Handles round creation, lookup (by ID / room / position),
+ * ranking persistence, and judge decision tracking.
+ */
 class RoundRepo {
-    private $conn;
+    private mysqli $conn;
 
     public function __construct() {
         $this->conn = getDBConnection();
     }
 
     /**
-     * Create a new round for a room (insert into rounds table)
-     * Stores: room_id, question_id
-     * Rankings are computed on-demand from player_answers table
+     * Create a new round for a room.
+     *
+     * @param int $room_id      Room ID
+     * @param int $question_id  Question ID
+     * @return int|false        New round ID on success, false on failure
      */
-    public function createRound($room_id, $question_id) {
-        $stmt = $this->conn->prepare("
-            INSERT INTO rounds (room_id, question_id)
-            VALUES (?, ?)
-        ");
-
-        // Support both integer and null for question_id
-        if ($question_id === null) {
-            $stmt->bind_param("is", $room_id, $question_id);
-        } else {
-            $stmt->bind_param("ii", $room_id, $question_id);
-        }
-
-        if ($stmt->execute()) {
-            $roundId = $this->conn->insert_id;
-            $stmt->close();
-            return $roundId;
-        }
-
-        $stmt->close();
-        return false;
-    }
-
-    /**
-     * Get rounds by question set
-     */
-    public function getRoundsByQuestionSet($questionSetId) {
-        $stmt = $this->conn->prepare("
-            SELECT q.*, qsq.order_in_set as round_number FROM questions q
-            JOIN qset_questions qsq ON q.id = qsq.question_id
-            WHERE qsq.qset_id = ?
-            ORDER BY qsq.order_in_set ASC
-        ");
-        $stmt->bind_param("i", $questionSetId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $rounds = $result->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
-
-        return $rounds;
-    }
-
-    /**
-     * Reset all rounds for a question set (removes associated rounds from rooms)
-     */
-    public function resetRoundsBySetId($question_set_id) {
-        // Delete all rounds that are associated with rooms that use this question set
-        $stmt = $this->conn->prepare("
-            DELETE r FROM rounds r
-            JOIN rooms ro ON r.room_id = ro.id
-            WHERE ro.qset_id = ?
-        ");
-        $stmt->bind_param("i", $question_set_id);
+    public function createRound(int $room_id, int $question_id): int|false {
+        $stmt = $this->conn->prepare("INSERT INTO rounds (room_id, question_id) VALUES (?, ?)");
+        $stmt->bind_param("ii", $room_id, $question_id);
         $success = $stmt->execute();
+        $id = $success ? $this->conn->insert_id : false;
         $stmt->close();
 
-        return $success;
+        return $id;
     }
 
     /**
-     * Get round by ID
+     * Get a round by its primary key (with question details).
+     *
+     * @param int $round_id  Round ID
+     * @return array|null    Round row or null if not found
      */
-    public function getRoundById($round_id) {
+    public function getRoundById(int $round_id): ?array {
         $stmt = $this->conn->prepare("
-            SELECT r.id, r.room_id, r.ranking,
-                   q.id as question_id, q.round_type,
-                   q.question, q.option1, q.option2, q.option3, q.option4,
+            SELECT r.*, q.round_type, q.question,
+                   q.option1, q.option2, q.option3, q.option4,
                    q.correct_answer, q.timer
             FROM rounds r
             JOIN questions q ON r.question_id = q.id
@@ -94,13 +55,15 @@ class RoundRepo {
     }
 
     /**
-     * Get all rounds for a specific room with full question details
+     * Get all rounds for a room with question details.
+     *
+     * @param int $room_id  Room ID
+     * @return array        List of round rows ordered by creation
      */
-    public function getRoundsByRoom($room_id) {
+    public function getRoundsByRoom(int $room_id): array {
         $stmt = $this->conn->prepare("
-            SELECT r.id, r.room_id, r.question_id, r.ranking,
-                   q.id as question_id, q.round_type,
-                   q.question, q.option1, q.option2, q.option3, q.option4,
+            SELECT r.*, q.round_type, q.question,
+                   q.option1, q.option2, q.option3, q.option4,
                    q.correct_answer, q.timer
             FROM rounds r
             JOIN questions q ON r.question_id = q.id
@@ -116,10 +79,13 @@ class RoundRepo {
     }
 
     /**
-     * Get active round for a room (the most recent one created)
-     * This is the round currently being played
+     * Get the active (most recent) round for a room.
+     * Includes question details, category info, and computed round_number.
+     *
+     * @param int $room_id  Room ID
+     * @return array|null   Active round row or null if no rounds exist
      */
-    public function getActiveRound($room_id) {
+    public function getActiveRound(int $room_id): ?array {
         $stmt = $this->conn->prepare("
             SELECT r.id, r.room_id, r.question_id,
                    q.id as q_id, q.round_type,
@@ -148,10 +114,15 @@ class RoundRepo {
     }
 
     /**
-     * Get round by position for a room (for player polling)
+     * Get a round by its position in a room (for player polling).
      * Position 1 = first round, 2 = second round, etc.
+     * Also fills in truefalse options and includes room status.
+     *
+     * @param int $room_id   Room ID
+     * @param int $position  1-based round position
+     * @return array|null    Round row or null if position is out of range
      */
-    public function getRoundByPosition($room_id, $position) {
+    public function getRoundByPosition(int $room_id, int $position): ?array {
         $offset = max(0, $position - 1);
         $stmt = $this->conn->prepare("
             SELECT r.id, r.room_id, r.question_id,
@@ -178,7 +149,7 @@ class RoundRepo {
             // Add round_number (position)
             $round['round_number'] = $position;
 
-            // Truefalse: opzioni fisse "Vero"/"Falso" (nel DB sono vuote)
+            // Truefalse: fixed options "Vero"/"Falso" (empty in DB)
             if (($round['round_type'] ?? '') === 'truefalse') {
                 $round['option1'] = 'Vero';
                 $round['option2'] = 'Falso';
@@ -189,9 +160,13 @@ class RoundRepo {
     }
 
     /**
-     * Save the ranking JSON for a round
+     * Save the ranking JSON for a round.
+     *
+     * @param int   $roundId  Round ID
+     * @param array $ranking  Ranking data to encode as JSON
+     * @return bool           True on success
      */
-    public function saveRanking($roundId, array $ranking) {
+    public function saveRanking(int $roundId, array $ranking): bool {
         $json = json_encode($ranking, JSON_UNESCAPED_UNICODE);
         $stmt = $this->conn->prepare("UPDATE rounds SET ranking = ? WHERE id = ?");
         $stmt->bind_param("si", $json, $roundId);
@@ -200,26 +175,31 @@ class RoundRepo {
         return $result;
     }
 
-    public function setJudgeDecided($roundId) {
+    /**
+     * Mark a round as decided by the judge.
+     *
+     * @param int $roundId  Round ID
+     */
+    public function setJudgeDecided(int $roundId): void {
         $stmt = $this->conn->prepare("UPDATE rounds SET judge_decided = 1 WHERE id = ?");
         $stmt->bind_param("i", $roundId);
         $stmt->execute();
         $stmt->close();
     }
 
-    public function isJudgeDecided($roundId) {
+    /**
+     * Check whether the judge has decided for a round.
+     *
+     * @param int $roundId  Round ID
+     * @return bool         True if the judge has decided
+     */
+    public function isJudgeDecided(int $roundId): bool {
         $stmt = $this->conn->prepare("SELECT judge_decided FROM rounds WHERE id = ?");
         $stmt->bind_param("i", $roundId);
         $stmt->execute();
         $result = $stmt->get_result()->fetch_assoc();
         $stmt->close();
         return $result ? (bool)$result['judge_decided'] : false;
-    }
-
-    public function __destruct() {
-        if ($this->conn) {
-            $this->conn->close();
-        }
     }
 }
 ?>

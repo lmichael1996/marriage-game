@@ -12,16 +12,15 @@ $admin = new AdminService();
 $questionService = new QuestionService();
 
 // Get room info
-$roomCode = authRoomCode();
+$roomId = authRoomId();
 $questionSetId = null;
 
-if ($roomCode) {
-    // Get room details to find question set
+if ($roomId) {
     require_once __DIR__ . '/../src/repository/RoomRepo.php';
     $roomRepo = new RoomRepo();
-    $room = $roomRepo->getRoomByCode($roomCode);
+    $room = $roomRepo->getRoomById($roomId);
     if ($room) {
-        $questionSetId = $room['question_set_id'];
+        $questionSetId = $room['qset_id'] ?? null;
     }
 }
 

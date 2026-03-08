@@ -29,9 +29,9 @@ class GameService {
     /**
      * Avvia un nuovo round
      */
-    public function startRound($questionId, $roomCode) {
+    public function startRound($questionId, $roomId) {
         try {
-            if (!$roomCode) {
+            if (!$roomId) {
                 return ['success' => false, 'error' => 'Nessuna stanza attiva'];
             }
 
@@ -40,12 +40,7 @@ class GameService {
                 return ['success' => false, 'error' => 'Domanda non trovata'];
             }
 
-            $room = $this->roomRepo->getRoomByCode($roomCode);
-            if (!$room) {
-                return ['success' => false, 'error' => 'Stanza non trovata'];
-            }
-
-            $roundId = $this->roundRepo->createRound($room['id'], $questionId);
+            $roundId = $this->roundRepo->createRound($roomId, $questionId);
             if (!$roundId) {
                 return ['success' => false, 'error' => 'Errore nella creazione del round'];
             }
@@ -176,10 +171,23 @@ class GameService {
     }
 
     /**
-     * Ottieni la classifica generale (usata dal judge in game.php)
+     * Get the leaderboard for a room.
+     * Resolves room code to room ID, then delegates to AnswerRepo.
+     *
+     * @param string|null $roomCode The player/judge room code, or null for session room
+     * @return array {success: bool, leaderboard: array}
      */
-    public function getLeaderboard($roomCode = null) {
-        return $this->answerRepo->getLeaderboard($roomCode);
+    public function getLeaderboard(?int $roomId = null): array {
+        $roomId = $roomId ?? authRoomId();
+
+        if (!$roomId) {
+            return ['success' => false, 'leaderboard' => []];
+        }
+
+        return [
+            'success' => true,
+            'leaderboard' => $this->answerRepo->getLeaderboard($roomId)
+        ];
     }
 
     /**
@@ -227,18 +235,14 @@ class GameService {
     /**
      * Get final leaderboard for a room
      */
-    public function getFinalLeaderboard($roomCode = null, $roomId = null) {
+    public function getFinalLeaderboard(?int $roomId = null) {
+        $roomId = $roomId ?? authRoomId();
+
         if (!$roomId) {
-            if (!$roomCode) {
-                $roomCode = authRoomCode();
-            }
-            if (!$roomCode) {
-                return ['success' => false, 'leaderboard' => []];
-            }
-            $room = $this->roomRepo->getRoomByCode($roomCode);
-        } else {
-            $room = $this->roomRepo->getRoomById($roomId);
+            return ['success' => false, 'leaderboard' => []];
         }
+
+        $room = $this->roomRepo->getRoomById($roomId);
 
         try {
             if (!$room) {
@@ -299,10 +303,4 @@ class GameService {
         }
     }
 
-    /**
-     * Reset all rounds for a question set
-     */
-    public function resetGameByQuestionSet($questionSetId) {
-        return $this->roundRepo->resetRoundsBySetId($questionSetId);
-    }
 }

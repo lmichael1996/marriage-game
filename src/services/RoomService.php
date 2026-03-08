@@ -66,8 +66,8 @@ class RoomService {
     /**
      * Avvia una stanza
      */
-    public function startRoom($roomCode) {
-        $room = $this->roomRepo->getRoomByCode($roomCode);
+    public function startRoom(int $roomId) {
+        $room = $this->roomRepo->getRoomById($roomId);
 
         if (!$room) {
             return [
@@ -76,24 +76,13 @@ class RoomService {
             ];
         }
 
-        // Reset all rounds to pending status before starting
-        // Support both 'qset_id' (DB column) and legacy 'question_set_id' key
-        $qsetId = $room['qset_id'] ?? $room['question_set_id'] ?? null;
-        if ($qsetId) {
-            $this->roundRepo->resetRoundsBySetId($qsetId);
-        }
-
-        $success = $this->roomRepo->startRoom($room['id']);
-
-        // Se il giudice non è connesso, azzera code_judge e qr_uri_judge
-        if ($success && !$this->judgeRepo->isJudgeConnected($room['id'])) {
-            $this->roomRepo->clearJudgeData($room['id']);
-        }
+        $clearJudge = !$this->judgeRepo->isJudgeConnected($roomId);
+        $success = $this->roomRepo->startRoom($roomId, $clearJudge);
 
         return [
             'success' => $success,
             'message' => $success ? 'Stanza avviata' : 'Errore nell\'avvio',
-            'room_id' => $room['id']
+            'room_id' => $roomId
         ];
     }
 
@@ -116,16 +105,9 @@ class RoomService {
     /**
      * Cancel room (admin manually closes room)
      */
-    public function cancelRoom($roomCode) {
+    public function cancelRoom(int $roomId) {
         try {
-            $room = $this->roomRepo->getRoomByCode($roomCode);
-            if (!$room) {
-                return [
-                    'success' => false,
-                    'message' => 'Stanza non trovata'
-                ];
-            }
-            $result = $this->roomRepo->cancelRoom($room['id']);
+            $result = $this->roomRepo->cancelRoom($roomId);
             return $result;
         } catch (Exception $e) {
             error_log("cancelRoom exception: " . $e->getMessage());
@@ -139,8 +121,8 @@ class RoomService {
     /**
      * Ottieni dettagli completi di una stanza
      */
-    public function getRoomDetails($roomCode) {
-        $room = $this->roomRepo->getRoomByCode($roomCode);
+    public function getRoomDetails(int $roomId) {
+        $room = $this->roomRepo->getRoomById($roomId);
 
         if (!$room) {
             return null;
@@ -149,7 +131,7 @@ class RoomService {
         // Controlla se la stanza ha già un vincitore (partita finita)
         $room['has_winner'] = $room['winner_id'] !== null;
 
-        $room['players'] = $this->playerRepo->getPlayersByRoomId($room['id']);
+        $room['players'] = $this->playerRepo->getPlayersByRoomId($roomId);
         $room['player_count'] = count($room['players'] ?? []);
 
         if ($room['qset_id'] ?? null) {
@@ -236,16 +218,13 @@ class RoomService {
     }
 
     /**
-     * Get connected devices (players) for a room by code
+     * Get connected devices (players) for a room
      */
-    public function getConnectedDevices($codePlayer) {
-        $roomData = $this->getRoomDetails($codePlayer);
-        if (!$roomData) return ['devices' => [], 'count' => 0, 'judge_connected' => false];
-
-        $devices = $this->playerRepo->getPlayersByRoomId($roomData['id']);
+    public function getConnectedDevices(int $roomId) {
+        $devices = $this->playerRepo->getPlayersByRoomId($roomId);
         $devices = is_array($devices) ? $devices : [];
 
-        $judgeConnected = $this->judgeRepo->isJudgeConnected($roomData['id']);
+        $judgeConnected = $this->judgeRepo->isJudgeConnected($roomId);
 
         return ['devices' => $devices, 'count' => count($devices), 'judge_connected' => $judgeConnected];
     }
