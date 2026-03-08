@@ -41,25 +41,12 @@
     <div class="settings-group">
         <h3>🎮 Impostazioni Punteggi</h3>
 
-        <!-- Popup Risultato -->
-        <div id="settings-result-popup">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <p id="settings-result-message"></p>
-                    <div class="modal-actions-center">
-                        <button type="button" class="btn btn-primary" onclick="closeSettingsPopup()">OK</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <form id="settings-form" onsubmit="saveSettingsWithAjax(event)">
             <input type="hidden" name="action" value="save_settings">
 
             <!-- Scoring Settings -->
             <div class="form-section">
                 <h3>Punteggi - Risposte Multiple</h3>
-                <p><strong>Sistema punteggi stile Formula 1</strong>: i punti vengono assegnati in base alla posizione in classifica (primi 10).</p>
 
                 <table class="points-table">
                     <thead>
@@ -107,7 +94,6 @@
 
             <div class="form-section">
                 <h3>Punteggi - Vero o Falso</h3>
-                <p><strong>Primi 10 classificati</strong> (più facile, punteggi ridotti).</p>
 
                 <table class="points-table">
                     <thead>
@@ -121,33 +107,33 @@
                     <tbody>
                         <tr>
                             <td><label for="points_tf_1st">1° Posto</label></td>
-                            <td><input type="number" id="points_tf_1st" name="points_tf_1st" min="1" max="1000" value="<?php echo $gameSettings['points_tf_1st'] ?? 20; ?>" required></td>
+                            <td><input type="number" id="points_tf_1st" name="points_tf_1st" min="1" max="100" value="<?php echo $gameSettings['points_tf_1st'] ?? 20; ?>" required></td>
                             <td><label for="points_tf_6th">6° Posto</label></td>
-                            <td><input type="number" id="points_tf_6th" name="points_tf_6th" min="1" max="1000" value="<?php echo $gameSettings['points_tf_6th'] ?? 6; ?>" required></td>
+                            <td><input type="number" id="points_tf_6th" name="points_tf_6th" min="1" max="100" value="<?php echo $gameSettings['points_tf_6th'] ?? 6; ?>" required></td>
                         </tr>
                         <tr>
                             <td><label for="points_tf_2nd">2° Posto</label></td>
-                            <td><input type="number" id="points_tf_2nd" name="points_tf_2nd" min="1" max="1000" value="<?php echo $gameSettings['points_tf_2nd'] ?? 15; ?>" required></td>
+                            <td><input type="number" id="points_tf_2nd" name="points_tf_2nd" min="1" max="100" value="<?php echo $gameSettings['points_tf_2nd'] ?? 15; ?>" required></td>
                             <td><label for="points_tf_7th">7° Posto</label></td>
-                            <td><input type="number" id="points_tf_7th" name="points_tf_7th" min="1" max="1000" value="<?php echo $gameSettings['points_tf_7th'] ?? 5; ?>" required></td>
+                            <td><input type="number" id="points_tf_7th" name="points_tf_7th" min="1" max="100" value="<?php echo $gameSettings['points_tf_7th'] ?? 5; ?>" required></td>
                         </tr>
                         <tr>
                             <td><label for="points_tf_3rd">3° Posto</label></td>
-                            <td><input type="number" id="points_tf_3rd" name="points_tf_3rd" min="1" max="1000" value="<?php echo $gameSettings['points_tf_3rd'] ?? 12; ?>" required></td>
+                            <td><input type="number" id="points_tf_3rd" name="points_tf_3rd" min="1" max="100" value="<?php echo $gameSettings['points_tf_3rd'] ?? 12; ?>" required></td>
                             <td><label for="points_tf_8th">8° Posto</label></td>
-                            <td><input type="number" id="points_tf_8th" name="points_tf_8th" min="1" max="1000" value="<?php echo $gameSettings['points_tf_8th'] ?? 3; ?>" required></td>
+                            <td><input type="number" id="points_tf_8th" name="points_tf_8th" min="1" max="100" value="<?php echo $gameSettings['points_tf_8th'] ?? 3; ?>" required></td>
                         </tr>
                         <tr>
                             <td><label for="points_tf_4th">4° Posto</label></td>
-                            <td><input type="number" id="points_tf_4th" name="points_tf_4th" min="1" max="1000" value="<?php echo $gameSettings['points_tf_4th'] ?? 10; ?>" required></td>
+                            <td><input type="number" id="points_tf_4th" name="points_tf_4th" min="1" max="100" value="<?php echo $gameSettings['points_tf_4th'] ?? 10; ?>" required></td>
                             <td><label for="points_tf_9th">9° Posto</label></td>
-                            <td><input type="number" id="points_tf_9th" name="points_tf_9th" min="1" max="1000" value="<?php echo $gameSettings['points_tf_9th'] ?? 2; ?>" required></td>
+                            <td><input type="number" id="points_tf_9th" name="points_tf_9th" min="1" max="100" value="<?php echo $gameSettings['points_tf_9th'] ?? 2; ?>" required></td>
                         </tr>
                         <tr>
                             <td><label for="points_tf_5th">5° Posto</label></td>
-                            <td><input type="number" id="points_tf_5th" name="points_tf_5th" min="1" max="1000" value="<?php echo $gameSettings['points_tf_5th'] ?? 8; ?>" required></td>
+                            <td><input type="number" id="points_tf_5th" name="points_tf_5th" min="1" max="100" value="<?php echo $gameSettings['points_tf_5th'] ?? 8; ?>" required></td>
                             <td><label for="points_tf_10th">10° Posto</label></td>
-                            <td><input type="number" id="points_tf_10th" name="points_tf_10th" min="1" max="1000" value="<?php echo $gameSettings['points_tf_10th'] ?? 1; ?>" required></td>
+                            <td><input type="number" id="points_tf_10th" name="points_tf_10th" min="1" max="100" value="<?php echo $gameSettings['points_tf_10th'] ?? 1; ?>" required></td>
                         </tr>
                     </tbody>
                 </table>
@@ -155,19 +141,19 @@
 
             <div class="form-section">
                 <h3>Punteggi - Tocca per Primo</h3>
-                <p><strong>Solo il primo che clicca ottiene punti</strong>, tutti gli altri: 0 punti.</p>
 
                 <div class="form-group">
-                    <label for="points_clickfirst">Punti per il primo giocatore:</label>
                     <input type="number" id="points_clickfirst" name="points_clickfirst"
                            min="1" max="1000" value="<?php echo $gameSettings['points_clickfirst'] ?? 50; ?>" required class="input-narrow">
-                    <small>Il primo giocatore che clicca ottiene questi punti (gli altri: 0 punti)</small>
+                    <small>Solo il primo che ha risposto correttamente ottiene punti; tutti gli altri ottengono 0 punti.</small>
                 </div>
             </div>
 
             <div class="button-container">
                 <button type="submit" class="btn btn-primary">Salva Impostazioni</button>
             </div>
+
+            <div id="settings-message" class="credentials-message"></div>
         </form>
     </div>
 
@@ -256,54 +242,26 @@
             return response.json();
         })
         .then(data => {
+            const msg = document.getElementById('settings-message');
             if (data.success) {
-                // Mostra popup di successo
-                showSettingsResultPopup('✅ Impostazioni aggiornate con successo!', true);
+                msg.innerHTML = '<div class="alert-success">✓ Impostazioni aggiornate con successo!</div>';
+                setTimeout(() => msg.innerHTML = '', 3000);
 
                 // Aggiorna i valori del form con le nuove impostazioni
                 updateFormValues(data.settings);
             } else {
-                // Mostra errore
-                showSettingsResultPopup('❌ Errore nel salvataggio: ' + (data.message || 'Errore sconosciuto'), false);
+                msg.innerHTML = '<div class="alert-error">✗ Errore: ' + (data.message || 'Errore sconosciuto') + '</div>';
+                setTimeout(() => msg.innerHTML = '', 3000);
             }
         })
         .catch(error => {
             console.error('Errore:', error);
-            showSettingsResultPopup('❌ Errore di comunicazione con il server: ' + error.message, false);
+            const msg = document.getElementById('settings-message');
+            msg.innerHTML = '<div class="alert-error">✗ Errore di comunicazione con il server</div>';
+            setTimeout(() => msg.innerHTML = '', 3000);
         });
 
         return false;
-    }
-
-    /**
-     * Mostra il popup con il risultato del salvataggio
-     */
-    function showSettingsResultPopup(message, isSuccess) {
-        const popup = document.getElementById('settings-result-popup');
-        const messageElement = document.getElementById('settings-result-message');
-
-        messageElement.textContent = message;
-        messageElement.style.color = isSuccess ? '#27ae60' : '#e74c3c';
-        messageElement.style.fontWeight = 'bold';
-
-        popup.style.display = 'flex';
-        popup.style.alignItems = 'center';
-        popup.style.justifyContent = 'center';
-
-        // Chiudi automaticamente dopo 3 secondi SOLO se c'è errore
-        if (!isSuccess) {
-            setTimeout(() => {
-                closeSettingsPopup();
-            }, 3000);
-        }
-    }
-
-    /**
-     * Chiude il popup dei risultati
-     */
-    function closeSettingsPopup() {
-        const popup = document.getElementById('settings-result-popup');
-        popup.style.display = 'none';
     }
 
     /**

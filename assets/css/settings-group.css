@@ -32,6 +32,12 @@
   color: #333;
 }
 
+.form-section h3 {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 5px;
+}
+
 /* Form Settings - Contenitore domande associate */
 .form-settings {
   background: #f9f9f9;
