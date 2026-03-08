@@ -30,7 +30,7 @@
             </form>
 
             <div class="login-nav">
-                <p><a href="../index.html" class="login-nav-link">← Torna in Home</a></p>
+                <p><a href="../index.html" class="login-nav-link">← Torna alla Home</a></p>
             </div>
         </div>
     </div>
@@ -68,7 +68,7 @@
                 if (result.success) {
                     window.location.href = result.redirect;
                 } else {
-                    errorDiv.textContent = result.error;
+                    errorDiv.textContent = result.error || 'Errore nel login';
                     errorDiv.classList.remove('hidden');
                 }
             } catch (error) {

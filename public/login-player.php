@@ -23,7 +23,7 @@
 
                 <div class="form-group">
                     <label for="room_code">🔑 Codice Stanza:</label>
-                    <input type="text" id="room_code" name="room_code" class="uppercase" required maxlength="6" autofocus placeholder="Esempio: ABC123">
+                    <input type="text" id="room_code" name="room_code" class="uppercase" required maxlength="6" placeholder="Esempio: ABC123">
                     <small class="form-helper-text">Chiedi il codice all'amministratore</small>
                 </div>
 
@@ -31,7 +31,7 @@
             </form>
 
             <div class="login-nav">
-                <p><a href="../index.html" class="login-nav-link">← Torna in Home</a></p>
+                <p><a href="../index.html" class="login-nav-link">← Torna alla Home</a></p>
             </div>
         </div>
     </div>
@@ -84,7 +84,7 @@
                 if (result.success) {
                     window.location.href = result.redirect;
                 } else {
-                    errorDiv.textContent = result.error;
+                    errorDiv.textContent = result.error || 'Errore nel login';
                     errorDiv.classList.remove('hidden');
                 }
             } catch (error) {

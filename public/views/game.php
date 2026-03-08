@@ -953,27 +953,27 @@ function loadSetQuestions(setId) {
                 }
 
                 filteredQuestions.forEach((q, index) => {
-                    const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
+                    const categoryBadge = q.category_name ? `<span class="badge-category" style="background-color: ${q.color || '#6c757d'}; border-color: ${q.color || '#6c757d'};">${q.category_name}</span>` : '';
 
                     const typeMap = {
                         'multiple': '📋 Scelta multipla',
                         'truefalse': '✔️ Vero/Falso',
                         'clickfirst': '⚡ Clicca per primo'
                     };
-                    const typeBadge = q.round_type ? `<span style="display: inline-block; background-color: #e9ecef; color: #333; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; font-weight: 600; border: 1px solid #dee2e6;">${typeMap[q.round_type] || q.round_type}</span>` : '';
+                    const typeBadge = q.round_type ? `<span class="badge-type">${typeMap[q.round_type] || q.round_type}</span>` : '';
 
                     html += `
-                        <div class="question-item" data-question-id="${q.id}" data-set-id="${setId}" draggable="true" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 15px; background-color: #fff; cursor: move;">
-                            <div style="flex: 2; min-width: 0; word-wrap: break-word; overflow-wrap: break-word;">
+                        <div class="question-item" data-question-id="${q.id}" data-set-id="${setId}" draggable="true">
+                            <div class="question-item-content">
                                 ${q.question}
                             </div>
-                            <div style="flex: 1; text-align: center; flex-shrink: 0;">
+                            <div class="question-item-center">
                                 ${categoryBadge}
                             </div>
-                            <div style="flex: 1; text-align: center; flex-shrink: 0;">
+                            <div class="question-item-center">
                                 ${typeBadge}
                             </div>
-                            <div style="display: flex; gap: 5px; flex-shrink: 0;">
+                            <div class="question-item-actions">
                                 <button type="button" class="btn btn-danger btn-sm" onclick="removeQuestionFromSet(${setId}, ${q.id})">
                                     Elimina
                                 </button>
@@ -1023,27 +1023,27 @@ function loadGameQuestions() {
                 let html = '<div class="questions-associated" id="game-questions-list">';
 
                 associatedQuestions.forEach((q, index) => {
-                    const categoryBadge = q.category_name ? `<span style="display: inline-block; background-color: ${q.color || '#6c757d'}; color: black; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; font-weight: 600; border: 2px solid ${q.color || '#6c757d'}; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">${q.category_name}</span>` : '';
+                    const categoryBadge = q.category_name ? `<span class="badge-category" style="background-color: ${q.color || '#6c757d'}; border-color: ${q.color || '#6c757d'};">${q.category_name}</span>` : '';
 
                     const typeMap = {
                         'multiple': '📋 Scelta multipla',
                         'truefalse': '✔️ Vero/Falso',
                         'clickfirst': '⚡ Clicca per primo'
                     };
-                    const typeBadge = q.round_type ? `<span style="display: inline-block; background-color: #e9ecef; color: #333; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; font-weight: 600; border: 1px solid #dee2e6;">${typeMap[q.round_type] || q.round_type}</span>` : '';
+                    const typeBadge = q.round_type ? `<span class="badge-type">${typeMap[q.round_type] || q.round_type}</span>` : '';
 
                     html += `
-                        <div class="question-item" data-question-id="${q.id}" draggable="true" style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 15px; background-color: #fff; cursor: move;">
-                            <div style="flex: 2; min-width: 0; word-wrap: break-word; overflow-wrap: break-word;">
+                        <div class="question-item" data-question-id="${q.id}" draggable="true">
+                            <div class="question-item-content">
                                 ${q.question}
                             </div>
-                            <div style="flex: 1; text-align: center; flex-shrink: 0;">
+                            <div class="question-item-center">
                                 ${categoryBadge}
                             </div>
-                            <div style="flex: 1; text-align: center; flex-shrink: 0;">
+                            <div class="question-item-center">
                                 ${typeBadge}
                             </div>
-                            <div style="display: flex; gap: 5px; flex-shrink: 0;">
+                            <div class="question-item-actions">
                                 <button type="button" class="btn btn-danger btn-sm" onclick="removeGameQuestion(${q.id})">
                                     Elimina
                                 </button>

@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/../utils/auth.php';
 require_once __DIR__ . '/../utils/PDFGenerator.php';
-require_once __DIR__ . '/../utils/QRGenerator.php';
 require_once __DIR__ . '/../services/ServiceLoader.php';
 
 header('Content-Type: application/json');
