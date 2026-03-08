@@ -15,6 +15,7 @@ class AuthService {
     private JudgeRepo $judgeRepo;
 
     private const int MIN_PASSWORD_LENGTH = 6;
+    private const int ADMIN_SESSION_LIFETIME = 86400; // 24 hours
 
     public function __construct() {
         $this->userRepo = new UserRepo();
@@ -45,6 +46,14 @@ class AuthService {
         ];
 
         $_SESSION['admin_tab'] = 'sets';
+
+        // Extend session cookie to 24h so admin survives browser close
+        setcookie(session_name(), session_id(), [
+            'expires'  => time() + self::ADMIN_SESSION_LIFETIME,
+            'path'     => '/',
+            'httponly'  => true,
+            'samesite' => 'Lax',
+        ]);
     }
 
     /**
@@ -117,6 +126,13 @@ class AuthService {
             unset($_SESSION['auth_' . $role]);
             if ($role === 'admin') {
                 unset($_SESSION['active_room_code'], $_SESSION['active_judge_code'], $_SESSION['room_id']);
+                // Reset cookie to session-only (dies on browser close)
+                setcookie(session_name(), session_id(), [
+                    'expires'  => 0,
+                    'path'     => '/',
+                    'httponly'  => true,
+                    'samesite' => 'Lax',
+                ]);
             }
         } else {
             session_destroy();
