@@ -41,7 +41,7 @@ class PDFGenerator {
 
         if (file_exists(self::LOGO_PATH)) {
             $this->pdf->setAlpha(0.2);
-            // Logo in basso a destra con aspect ratio corretto (1181x835 → ~120x85mm)
+            // Logo at the bottom-right with correct aspect ratio (1181x835 → ~120x85mm)
             $logoW = 120;
             $logoH = 85;
             $logoX = $this->pdf->GetPageWidth() - $logoW - 2;
@@ -50,7 +50,7 @@ class PDFGenerator {
             $this->pdf->setAlpha(1);
         }
 
-        // Titolo
+        // Title
         $this->pdf->SetFillColor(128, 128, 128);
         $this->pdf->SetFont(self::FONT, 'B', 24);
         $this->pdf->SetTextColor(255, 255, 255);
@@ -68,7 +68,7 @@ class PDFGenerator {
         $qrSize = 70;
         $xPosition = ($this->pdf->GetPageWidth() - $qrSize) / 2;
 
-        // Sfondo bianco dietro il QR
+        // White background behind the QR
         $this->pdf->SetFillColor(255, 255, 255);
         $this->pdf->Rect($xPosition, $this->pdf->GetY(), $qrSize, $qrSize, 'F');
 
@@ -76,30 +76,30 @@ class PDFGenerator {
         @unlink($tempFile);
         $this->pdf->Ln($qrSize + 15);
 
-        // Oppure connettiti tramite sito web
+        // Or connect via website
         $this->pdf->SetFont(self::FONT, '', 12);
         $this->pdf->Cell(0, 8, 'Oppure connettiti a questo sito web:', 0, 1, 'C');
         $this->pdf->Ln(2);
 
-        // Sito web
+        // Website
         $this->pdf->SetFont(self::FONT, 'B', 13);
         $this->pdf->SetTextColor(45, 52, 54);
         $this->pdf->Cell(0, 8, self::URL, 0, 1, 'C', false, self::URL);
         $this->pdf->Ln(8);
 
-        // Oppure connettiti con codice
+        // Or connect with room code
         $this->pdf->SetFont(self::FONT, '', 12);
         $this->pdf->SetTextColor(0, 0, 0);
         $this->pdf->Cell(0, 8, 'Con questo codice stanza:', 0, 1, 'C');
 
-        // Codice stanza
+        // Room code
         $this->pdf->SetFont(self::FONT, 'B', 32);
         $this->pdf->Cell(0, 16, $code, 0, 1, 'C');
     }
 
     public function generate(): void {
-        $this->addPage('MVquiz - Giocatore', $this->codePlayer, $this->svgPlayer, 'Il Giocatore');
-        $this->addPage('MVquiz - Giudice', $this->codeJudge, $this->svgJudge, 'Il Giudice');
+        $this->addPage('MVquiz - Giocatore', $this->codePlayer, $this->svgPlayer, 'Giocatore');
+        $this->addPage('MVquiz - Giudice', $this->codeJudge, $this->svgJudge, 'Giudice');
     }
 
     public function getPDF(): string {

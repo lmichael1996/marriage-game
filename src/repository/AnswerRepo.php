@@ -77,9 +77,29 @@ class AnswerRepo {
             $stmt->close();
             return $answers;
         } catch (Exception $e) {
-            // Table doesn't exist or query error - return empty array
             return [];
         }
     }
+
+    /**
+     * Count how many rounds a player has answered in a given room.
+     *
+     * @param int $playerId Player ID
+     * @param int $roomId   Room ID
+     * @return int Number of answered rounds
+     */
+    public function countAnsweredRounds(int $playerId, int $roomId): int {
+        $stmt = $this->conn->prepare("
+            SELECT COUNT(*) AS cnt
+            FROM player_answers pa
+            INNER JOIN rounds r ON r.id = pa.round_id
+            WHERE pa.player_id = ? AND r.room_id = ?
+        ");
+        $stmt->bind_param("ii", $playerId, $roomId);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        return (int)($row['cnt'] ?? 0);
+    }
 }
-?>

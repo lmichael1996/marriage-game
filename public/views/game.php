@@ -516,7 +516,7 @@ function saveSetMetadata(setId, currentName, currentDescription, messageDiv) {
     }
 
     // Poi salva i metadati via API
-    fetch('/src/api/api.php?endpoint=update_questionset_metadata', {
+    fetch('/src/api/api.php?endpoint=update_questionset', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

@@ -7,14 +7,17 @@ require_once __DIR__ . '/../repository/JudgeRepo.php';
 require_once __DIR__ . '/../utils/QRGenerator.php';
 
 /**
- * RoomService - Gestisce la logica di business delle stanze
+ * Handles room business logic (creation, start, close, details).
  */
 class RoomService {
-    private $roomRepo;
-    private $playerRepo;
-    private $roundRepo;
-    private $setRepo;
-    private $judgeRepo;
+    private RoomRepo $roomRepo;
+    private PlayerRepo $playerRepo;
+    private RoundRepo $roundRepo;
+    private SetRepo $setRepo;
+    private JudgeRepo $judgeRepo;
+
+    private const LOGIN_PLAYER_URL = 'login-player.php';
+    private const LOGIN_JUDGE_URL  = 'login-judge.php';
 
     public function __construct() {
         $this->roomRepo = new RoomRepo();
@@ -25,55 +28,51 @@ class RoomService {
     }
 
     /**
-     * Crea una nuova stanza e salva il QR code come data URI nel DB.
-     * Non salviamo file su disco: solo data URI (base64 encoded).
+     * Create a new room with QR codes for player and judge.
+     *
+     * @param int $questionSetId  Question set to assign
+     * @return array  Result with room_id and codes on success
      */
-    public function createRoom($questionSetId = null) {
-        // Istanzia due oggetti QRGenerator con nome pagina login
-        $qrGeneratorPlayer = new QRGenerator('login-player.php');
-        $qrGeneratorJudge  = new QRGenerator('login-judge.php');
+    public function createRoom(int $questionSetId): array {
+        $qrPlayer = new QRGenerator(self::LOGIN_PLAYER_URL);
+        $qrJudge  = new QRGenerator(self::LOGIN_JUDGE_URL);
 
-        // Genera codice e SVG QR per player
-        $playerPair = $qrGeneratorPlayer->generate();
-        $codePlayer = $playerPair['code'];
+        $playerPair = $qrPlayer->generate();
+        $judgePair  = $qrJudge->generate();
 
-        // Genera codice e SVG QR per judge
-        $judgePair = $qrGeneratorJudge->generate();
-        $codeJudge = $judgePair['code'];
+        $qrPlayerBase64 = $playerPair['svg'] ? base64_encode($playerPair['svg']) : null;
+        $qrJudgeBase64  = $judgePair['svg']  ? base64_encode($judgePair['svg'])  : null;
 
-        // Salva SVG come base64 nel DB
-        $qrPlayerBase64 = !empty($playerPair['svg']) ? base64_encode($playerPair['svg']) : null;
-        $qrJudgeBase64  = !empty($judgePair['svg'])  ? base64_encode($judgePair['svg'])  : null;
+        $roomId = $this->roomRepo->createRoom(
+            $playerPair['code'], $judgePair['code'],
+            $questionSetId, $qrPlayerBase64, $qrJudgeBase64
+        );
 
-        // Salva la stanza con entrambi i codici e QR
-        $roomId = $this->roomRepo->createRoom($codePlayer, $codeJudge, $questionSetId, $qrPlayerBase64, $qrJudgeBase64);
-
-        if ($roomId) {
+        if (!$roomId) {
             return [
-                'success' => true,
-                'room_id' => $roomId,
-                'code_player' => $codePlayer,
-                'code_judge' => $codeJudge
+                'success' => false,
+                'error' => 'Failed to create room'
             ];
         }
 
         return [
-            'success' => false,
-            'error' => 'Errore nella creazione della stanza'
+            'success'     => true,
+            'room_id'     => $roomId,
+            'code_player' => $playerPair['code'],
+            'code_judge'  => $judgePair['code']
         ];
     }
 
     /**
-     * Avvia una stanza
+     * Start a room (set status to active).
+     *
+     * @param int $roomId  Room ID
+     * @return array  Result
      */
-    public function startRoom(int $roomId) {
+    public function startRoom(int $roomId): array {
         $room = $this->roomRepo->getRoomById($roomId);
-
         if (!$room) {
-            return [
-                'success' => false,
-                'error' => 'Stanza non trovata'
-            ];
+            return ['success' => false, 'error' => 'Room not found'];
         }
 
         $clearJudge = !$this->judgeRepo->isJudgeConnected($roomId);
@@ -81,60 +80,48 @@ class RoomService {
 
         return [
             'success' => $success,
-            'message' => $success ? 'Stanza avviata' : 'Errore nell\'avvio',
+            'message' => $success ? 'Room started' : 'Failed to start room',
             'room_id' => $roomId
         ];
     }
 
     /**
-     * Finish game - update room status to 'closed' when all rounds are completed
+     * Finish game — close the room when all rounds are completed.
+     *
+     * @param int $roomId  Room ID
+     * @return array  Result
      */
-    public function finishGame($roomId) {
-        try {
-            $result = $this->roomRepo->closeRoom($roomId);
-            return $result;
-        } catch (Exception $e) {
-            error_log("finishGame exception: " . $e->getMessage());
-            return [
-                'success' => false,
-                'message' => 'Errore: ' . $e->getMessage()
-            ];
-        }
+    public function finishGame(int $roomId): array {
+        return $this->roomRepo->closeRoom($roomId);
     }
 
     /**
-     * Cancel room (admin manually closes room)
+     * Cancel a room (admin manually closes it).
+     *
+     * @param int $roomId  Room ID
+     * @return array  Result
      */
-    public function cancelRoom(int $roomId) {
-        try {
-            $result = $this->roomRepo->cancelRoom($roomId);
-            return $result;
-        } catch (Exception $e) {
-            error_log("cancelRoom exception: " . $e->getMessage());
-            return [
-                'success' => false,
-                'message' => 'Errore: ' . $e->getMessage()
-            ];
-        }
+    public function cancelRoom(int $roomId): array {
+        return $this->roomRepo->cancelRoom($roomId);
     }
 
     /**
-     * Ottieni dettagli completi di una stanza
+     * Get full room details including players and question set.
+     *
+     * @param int $roomId  Room ID
+     * @return array|null  Room details or null if not found
      */
-    public function getRoomDetails(int $roomId) {
+    public function getRoomDetails(int $roomId): ?array {
         $room = $this->roomRepo->getRoomById($roomId);
-
         if (!$room) {
             return null;
         }
 
-        // Controlla se la stanza ha già un vincitore (partita finita)
-        $room['has_winner'] = $room['winner_id'] !== null;
+        $room['has_winner']   = $room['winner_id'] !== null;
+        $room['players']      = $this->playerRepo->getPlayersByRoomId($roomId);
+        $room['player_count'] = count($room['players']);
 
-        $room['players'] = $this->playerRepo->getPlayersByRoomId($roomId);
-        $room['player_count'] = count($room['players'] ?? []);
-
-        if ($room['qset_id'] ?? null) {
+        if ($room['qset_id']) {
             $room['question_set'] = $this->setRepo->getSetById($room['qset_id']);
         }
 
@@ -142,108 +129,93 @@ class RoomService {
     }
 
     /**
-     * Get active round for a room (reads from DB, not session)
+     * Get the active (current) round for a room.
+     *
+     * @param int $roomId  Room ID
+     * @return array|null  Active round or null
      */
-    public function getActiveRound($roomId) {
+    public function getActiveRound(int $roomId): ?array {
         return $this->roundRepo->getActiveRound($roomId);
     }
 
     /**
-     * Get round by position for player polling
+     * Get a round by its position (round_number) within a room.
+     *
+     * @param int $roomId    Room ID
+     * @param int $position  Round number (1-based)
+     * @return array|null  Round data or null
      */
-    public function getRoundByPosition($roomId, $position) {
+    public function getRoundByPosition(int $roomId, int $position): ?array {
         return $this->roundRepo->getRoundByPosition($roomId, $position);
     }
 
     /**
-     * Mark the winner of a room (highest score from ranking JSON)
+     * Determine and save the room winner based on all round rankings.
+     * Uses the same scoring logic as GameService::getFinalLeaderboard.
+     *
+     * @param int $roomId  Room ID
+     * @return bool  true if winner was set
      */
-    public function markWinner($roomId) {
-        $room = $this->roomRepo->getRoomById($roomId);
-        if (!$room) {
-            return false;
-        }
-
-        // Already has a winner? Skip
-        if ($room['winner_id'] ?? null) {
-            return true;
-        }
-
-        // Sum points from ranking JSON (same logic as getFinalLeaderboard)
-        $allRounds = $this->roundRepo->getRoundsByRoom($roomId);
-
-        // Keep only the latest round per question
-        $latestRounds = [];
-        foreach ($allRounds as $round) {
-            $qid = $round['question_id'];
-            if (!isset($latestRounds[$qid]) || $round['id'] > $latestRounds[$qid]['id']) {
-                $latestRounds[$qid] = $round;
-            }
-        }
-
-        $playerScores = [];
-        foreach ($latestRounds as $round) {
-            $ranking = json_decode($round['ranking'] ?? '[]', true);
-            if (!is_array($ranking)) continue;
-            foreach ($ranking as $entry) {
-                $playerId = $entry['player_id'] ?? null;
-                $points   = $entry['points'] ?? 0;
-                if ($playerId) {
-                    $playerScores[$playerId] = ($playerScores[$playerId] ?? 0) + $points;
-                }
-            }
-        }
-
-        if (empty($playerScores)) {
-            return false;
-        }
-
-        arsort($playerScores);
-        $winnerId = array_key_first($playerScores);
-
-        return $this->roomRepo->setWinner($roomId, $winnerId);
+    public function markWinner(int $roomId): bool {
+        $leaderboard = svc('game')->getFinalLeaderboard($roomId);
+        return $leaderboard['success'] && !empty($leaderboard['leaderboard']);
     }
 
     /**
-     * Check if a player is the winner
+     * Check if a player is the winner of a room.
+     *
+     * @param int $roomId    Room ID
+     * @param int $playerId  Player ID
+     * @return bool
      */
-    public function isWinner($roomId, $playerId) {
+    public function isWinner(int $roomId, int $playerId): bool {
         $winnerId = $this->roomRepo->getWinnerId($roomId);
         return $winnerId !== null && $winnerId == $playerId;
     }
 
     /**
-     * Get connected devices (players) for a room
+     * Get connected devices (players + judge status) for a room.
+     *
+     * @param int $roomId  Room ID
+     * @return array  ['devices' => [...], 'count' => int, 'judge_connected' => bool]
      */
-    public function getConnectedDevices(int $roomId) {
+    public function getConnectedDevices(int $roomId): array {
         $devices = $this->playerRepo->getPlayersByRoomId($roomId);
-        $devices = is_array($devices) ? $devices : [];
 
-        $judgeConnected = $this->judgeRepo->isJudgeConnected($roomId);
-
-        return ['devices' => $devices, 'count' => count($devices), 'judge_connected' => $judgeConnected];
+        return [
+            'devices'         => $devices,
+            'count'           => count($devices),
+            'judge_connected' => $this->isJudgeConnected($roomId)
+        ];
     }
 
     /**
-     * Get room by ID
+     * Get a room by ID.
+     *
+     * @param int $roomId  Room ID
+     * @return array|null  Room data or null
      */
     public function getRoomById(int $roomId): ?array {
-        return $this->roomRepo->getRoomById($roomId) ?: null;
+        return $this->roomRepo->getRoomById($roomId);
     }
 
     /**
-     * Get count of players connected to a room
+     * Get the number of players in a room.
+     *
+     * @param int $roomId  Room ID
+     * @return int  Player count
      */
     public function getPlayerCount(int $roomId): int {
-        $players = $this->playerRepo->getPlayersByRoomId($roomId);
-        return count($players ?? []);
+        return count($this->playerRepo->getPlayersByRoomId($roomId));
     }
 
     /**
-     * Controlla se il giudice è connesso alla stanza
+     * Check if a judge is connected to the room.
+     *
+     * @param int $roomId  Room ID
+     * @return bool
      */
     public function isJudgeConnected(int $roomId): bool {
         return $this->judgeRepo->isJudgeConnected($roomId);
     }
 }
-

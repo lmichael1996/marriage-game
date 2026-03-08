@@ -28,13 +28,12 @@ function redirect(string $tab, ?string $success = null, ?string $error = null): 
 function handleCredentials(): void {
     $tab = isset($_POST['admin_new_password']) ? 'general' : 'settings';
     try {
-        $result = svc('admin')->updateCredentials(
+        $result = svc('auth')->updateCredentials(
             authUserId(),
-            $_POST['new_username'] ?? $_POST['admin_username'] ?? '',
-            $_POST['new_password'] ?? $_POST['admin_new_password'] ?? null,
-            $_POST['confirm_password'] ?? $_POST['admin_confirm_password'] ?? null
+            $_POST['admin_username'] ?? '',
+            $_POST['admin_new_password'] ?? null,
+            $_POST['admin_confirm_password'] ?? null
         );
-        // Aggiorna la sessione admin con il nuovo username
         svc('auth')->updateAdminSession(authUserId(), $result['username']);
         redirect($tab, 'credentials_updated');
     } catch (Exception $e) {
@@ -44,10 +43,14 @@ function handleCredentials(): void {
 
 function handleSettings(): void {
     try {
-        svc('admin')->saveSettings($_POST);
+        svc('settings')->saveSettings($_POST);
         if (isAjax()) {
-            $settings = svc('admin')->getAllSettings();
-            jsonResponse(['success' => true, 'message' => 'Impostazioni salvate', 'settings' => $settings['settings'] ?? []]);
+            $settings = svc('settings')->getAllSettings();
+            jsonResponse([
+                'success' => true,
+                'message' => 'Settings saved',
+                'settings' => $settings['settings']
+            ]);
         }
         redirect('settings', 'settings_saved');
     } catch (Exception $e) {
@@ -60,7 +63,7 @@ function handleRound(string $action): void {
     $method = $action === 'start_round' ? 'startRound' : 'closeRound';
     $result = svc('game')->$method((int)($_POST['round_id'] ?? 0));
     $ok     = $result['success'] ?? false;
-    redirect('sets', $ok ? 'round_updated' : null, $ok ? null : ($result['error'] ?? 'Errore operazione round'));
+    redirect('sets', $ok ? 'round_updated' : null, $ok ? null : ($result['error'] ?? 'Round operation error'));
 }
 
 function handleQuestion(bool $isUpdate): void {
@@ -71,10 +74,10 @@ function handleQuestion(bool $isUpdate): void {
             : svc('question')->addQuestion($data);
 
         if (!($result['success'] ?? false)) {
-            throw new Exception($result['error'] ?? 'Errore operazione');
+            throw new Exception($result['error'] ?? 'Operation error');
         }
 
-        $msg = $isUpdate ? 'Domanda aggiornata' : 'Domanda aggiunta';
+        $msg = $isUpdate ? 'Question updated' : 'Question added';
         if (isAjax()) jsonResponse(['success' => true, 'message' => $msg, 'question_id' => $result['question_id'] ?? null]);
         redirect('sets', $isUpdate ? 'question_updated' : 'question_added');
     } catch (Exception $e) {
@@ -86,8 +89,8 @@ function handleQuestion(bool $isUpdate): void {
 function handleDeleteQuestion(): void {
     $qId = (int)($_POST['question_id'] ?? $_GET['q_id'] ?? 0);
     if (!$qId) {
-        if (isAjax()) jsonResponse(['success' => false, 'error' => 'ID invalido'], 400);
-        redirect('sets', null, 'ID domanda invalido');
+        if (isAjax()) jsonResponse(['success' => false, 'error' => 'Invalid ID'], 400);
+        redirect('sets', null, 'Invalid question ID');
     }
 
     $result = svc('question')->deleteQuestion($qId);
@@ -98,25 +101,25 @@ function handleDeleteQuestion(): void {
 
 function handleQuestionSet(string $action): void {
     try {
-        $qs   = svc('question');
+        $qs   = svc('set');
         $id   = (int)($_POST['set_id'] ?? 0);
         $name = trim($_POST['set_name'] ?? '');
         $desc = $_POST['set_description'] ?? '';
 
         match ($action) {
             'add_questionset' => (function () use ($qs, $name, $desc) {
-                if (!$name) throw new Exception('Nome set obbligatorio');
-                $setId = $qs->add($name, $desc);
-                jsonResponse(['success' => true, 'setId' => $setId, 'message' => 'Set creato']);
+                if (!$name) throw new Exception('Set name is required');
+                $setId = $qs->addSet($name, $desc);
+                jsonResponse(['success' => true, 'setId' => $setId, 'message' => 'Set created']);
             })(),
             'update_questionset' => (function () use ($qs, $id, $name, $desc) {
-                if (!$id || !$name) throw new Exception('Set ID e nome obbligatori');
-                $qs->update($id, $name, $desc);
-                jsonResponse(['success' => true, 'message' => 'Set aggiornato']);
+                if (!$id || !$name) throw new Exception('Set ID and name are required');
+                $qs->updateSet($id, $name, $desc);
+                jsonResponse(['success' => true, 'message' => 'Set updated']);
             })(),
             'delete_questionset' => (function () use ($qs, $id) {
-                if (!$id) throw new Exception('Set ID obbligatorio');
-                $qs->delete($id);
+                if (!$id) throw new Exception('Set ID is required');
+                $qs->deleteSet($id);
                 redirect('settings', 'set_deleted');
             })(),
         };
@@ -135,12 +138,12 @@ function buildQuestionData(): array {
         'category_id' => (int)($_POST['category_id'] ?? 1),
         'timer'       => (int)($_POST['timer'] ?? 30),
     ];
-    if (!$data['question'])   throw new Exception('Domanda obbligatoria');
-    if (!$data['round_type']) throw new Exception('Tipo domanda obbligatorio');
+    if (!$data['question'])   throw new Exception('Question is required');
+    if (!$data['round_type']) throw new Exception('Question type is required');
 
     if (isset($_POST['question_id'])) {
         $data['id'] = (int)$_POST['question_id'];
-        if (!$data['id']) throw new Exception('ID domanda mancante');
+        if (!$data['id']) throw new Exception('Question ID is missing');
     }
 
     if (in_array($data['round_type'], ['truefalse', 'multiple'], true)) {
@@ -161,7 +164,7 @@ function loadQuestionsTab(): array {
         $_SESSION['questions_page'] = (int)$_POST['questions_page'];
     }
 
-    $all    = svc('question')->getAllQuestions(1, 1000)['questions'] ?? [];
+    $all    = svc('question')->getAllQuestions(1, 1000)['questions'];
     $cat    = $_POST['category'] ?? '';
     $search = strtolower(trim($_POST['search_query'] ?? ''));
     $type   = $_POST['search_type'] ?? 'contains';
@@ -202,30 +205,26 @@ function loadSetsTab(): array {
 
     $search   = $_POST['set_search_query'] ?? '';
     $setsData = $search
-        ? svc('question')->search($search, $_POST['set_search_type'] ?? 'contains', $_SESSION['sets_page'])
-        : svc('question')->getAll($_SESSION['sets_page']);
+        ? svc('set')->searchSets($search, $_POST['set_search_type'] ?? 'contains', $_SESSION['sets_page'])
+        : svc('set')->getAllQuestionSets($_SESSION['sets_page']);
 
     return [
-        'questionSets' => $setsData['sets'] ?? [],
+        'questionSets' => $setsData['sets'],
         'pagination'   => $setsData,
     ];
 }
 
 function loadGeneralTab(): array {
-    $result = svc('admin')->getAllSettings();
-    return ['gameSettings' => $result['success'] ? $result['settings'] : []];
+    return ['gameSettings' => svc('settings')->getAllSettings()['settings']];
 }
 
 function loadGameRoom(): array {
-    $settings     = svc('admin')->getAllSettings();
-    $gameSettings = $settings['settings'] ?? [];
-
-    $setsResult   = svc('question')->getAllQuestionSets(1, 100);
-    $questionSets = $setsResult['sets'] ?? [];
+    $gameSettings = svc('settings')->getAllSettings()['settings'];
+    $questionSets = svc('set')->getAllQuestionSets(1, 100)['sets'];
 
     $selectedSetId = isset($_GET['set_id']) ? (int)$_GET['set_id'] : null;
     $selectedSet   = $selectedSetId
-        ? svc('question')->getQuestionSetById($selectedSetId)
+        ? svc('set')->getQuestionSetById($selectedSetId)
         : null;
 
     return compact('gameSettings', 'questionSets', 'selectedSetId', 'selectedSet');
@@ -233,12 +232,7 @@ function loadGameRoom(): array {
 
 function loadRoomAdmin(): array {
     $roomId = (int)($_GET['room_id'] ?? $_SESSION['room_id'] ?? 0);
-    if (!$roomId) {
-        header('Location: admin.php');
-        exit;
-    }
-
-    $room = svc('room')->getRoomById($roomId);
+    $room   = $roomId ? svc('room')->getRoomById($roomId) : null;
     if (!$room) {
         header('Location: admin.php');
         exit;
@@ -247,12 +241,12 @@ function loadRoomAdmin(): array {
     $_SESSION['room_id'] = $roomId;
     $_SESSION['active_room_code'] = $room['code_player'];
 
-    // Counter: incrementa ogni volta che l'admin clicca "Prossima Domanda"
+    // Counter: increments every time the admin clicks "Next Question"
     $counterKey = 'round_counter_' . $roomId;
     $counter    = $_SESSION[$counterKey] ?? 1;
 
-    // Domanda corrente e round attivo
-    $question    = svc('question')->getQuestionByCounter($room['qset_id'], $counter);
+    // Current question and active round
+    $question    = svc('set')->getQuestionByCounter($room['qset_id'], $counter);
     $activeRound = null;
     if ($question) {
         $round = svc('room')->getActiveRound($room['id']);
@@ -263,19 +257,19 @@ function loadRoomAdmin(): array {
 
     $gameOver = !$question;
 
-    // Se non ci sono più domande e la stanza è ancora 'running', chiudila
-    if ($gameOver && ($room['status_room'] ?? '') === 'running') {
+    // If no more questions and the room is still 'running', close it
+    if ($gameOver && $room['status_room'] === 'running') {
         svc('room')->finishGame($roomId);
-        // Aggiorna il dato locale per coerenza
+        // Update local data for consistency
         $room['status_room'] = 'closed';
     }
 
-    // Info stanza (cached in sessione)
+    // Room info (cached in session)
     $roomInfoKey = 'room_info_' . $roomId;
     if (!isset($_SESSION[$roomInfoKey])) {
         $_SESSION[$roomInfoKey] = [
             'num_players'     => svc('room')->getPlayerCount($roomId),
-            'total_questions' => svc('question')->getQuestionCountByQset($room['qset_id']),
+            'total_questions' => svc('set')->getQuestionCountByQset($room['qset_id']),
         ];
     }
     $roomInfo = $_SESSION[$roomInfoKey];

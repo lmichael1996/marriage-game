@@ -5,7 +5,7 @@ require_once __DIR__ . '/../config/database.php';
  * Repository for the `game_settings` table.
  */
 class SettingsRepo {
-    private $conn;
+    private mysqli $conn;
 
     public function __construct() {
         $this->conn = getDBConnection();

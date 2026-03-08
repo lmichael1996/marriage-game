@@ -34,9 +34,9 @@ class PlayerRepo {
             $stmt->close();
 
             if ($errno === self::DUPLICATE_ENTRY_ERROR_CODE) {
-                throw new Exception('Un giocatore con questo nome è già nella stanza. Usa un nome diverso.');
+                throw new Exception('A player with this name is already in the room. Use a different name.');
             }
-            throw new Exception('Errore durante la creazione del giocatore.');
+            throw new Exception('Error creating the player.');
         }
 
         $playerId = $this->conn->insert_id;

@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../config/database.php';
 
 class SetRepo {
-    private $conn;
+    private mysqli $conn;
     private const TEMPORARY_SET_PREFIX = '#Temporary set';
 
     public function __construct() {
@@ -169,10 +169,15 @@ class SetRepo {
     }
 
     /**
-     * Add question to set at a specific position (sposta le altre avanti)
+     * Add question to set at a specific position (shifts others forward).
+     *
+     * @param int $setId       Set ID
+     * @param int $questionId  Question ID
+     * @param int $position    Target position
+     * @return bool True on success
      */
-    public function insertQuestionAt($setId, $questionId, $position) {
-        // Incrementa l'ordine di tutte le domande dalla posizione specificata in poi
+    public function insertQuestionAt(int $setId, int $questionId, int $position): bool {
+        // Increment order of all questions from the specified position onward
         $stmt = $this->conn->prepare("
             UPDATE qset_questions
             SET order_in_set = order_in_set + 1
@@ -182,7 +187,7 @@ class SetRepo {
         $stmt->execute();
         $stmt->close();
 
-        // Aggiungi la nuova domanda alla posizione specificata
+        // Insert the new question at the specified position
         $stmt = $this->conn->prepare("
             INSERT INTO qset_questions (qset_id, question_id, order_in_set)
             VALUES (?, ?, ?)
@@ -195,9 +200,13 @@ class SetRepo {
     }
 
     /**
-     * Remove question from set
+     * Remove question from set.
+     *
+     * @param int $setId       Set ID
+     * @param int $questionId  Question ID
+     * @return bool True on success
      */
-    public function removeQuestionFromSet($setId, $questionId) {
+    public function removeQuestionFromSet(int $setId, int $questionId): bool {
         $stmt = $this->conn->prepare("
             DELETE FROM qset_questions
             WHERE qset_id = ? AND question_id = ?
@@ -210,9 +219,13 @@ class SetRepo {
     }
 
     /**
-     * Update questions order (for drag & drop)
+     * Update questions order (for drag & drop).
+     *
+     * @param int   $setId      Set ID
+     * @param array $questions  Array of ['question_id' => int, 'order' => int]
+     * @return bool True on success
      */
-    public function reorderQuestions($setId, $questions) {
+    public function reorderQuestions(int $setId, array $questions): bool {
         try {
             foreach ($questions as $item) {
                 $questionId = $item['question_id'];
@@ -236,8 +249,15 @@ class SetRepo {
         }
     }
 
-    public function moveQuestionUp($setId, $questionId) {
-        // Recupera l'ordine attuale della domanda
+    /**
+     * Move a question one position up in the set.
+     *
+     * @param int $setId       Set ID
+     * @param int $questionId  Question ID
+     * @return bool True on success, false if already first
+     */
+    public function moveQuestionUp(int $setId, int $questionId): bool {
+        // Get the current order of the question
         $stmt = $this->conn->prepare("
             SELECT order_in_set FROM qset_questions
             WHERE qset_id = ? AND question_id = ?
@@ -249,13 +269,13 @@ class SetRepo {
         $stmt->close();
 
         if (!$row || $row['order_in_set'] <= 1) {
-            return false; // È già la prima domanda
+            return false; // Already the first question
         }
 
         $currentOrder = $row['order_in_set'];
         $newOrder = $currentOrder - 1;
 
-        // Sposta la domanda precedente giù
+        // Move the previous question down
         $stmt = $this->conn->prepare("
             UPDATE qset_questions
             SET order_in_set = ?
@@ -265,7 +285,7 @@ class SetRepo {
         $stmt->execute();
         $stmt->close();
 
-        // Sposta la domanda attuale su
+        // Move the current question up
         $stmt = $this->conn->prepare("
             UPDATE qset_questions
             SET order_in_set = ?
@@ -278,8 +298,15 @@ class SetRepo {
         return $success;
     }
 
-    public function moveQuestionDown($setId, $questionId) {
-        // Recupera l'ordine attuale della domanda e il totale
+    /**
+     * Move a question one position down in the set.
+     *
+     * @param int $setId       Set ID
+     * @param int $questionId  Question ID
+     * @return bool True on success, false if already last
+     */
+    public function moveQuestionDown(int $setId, int $questionId): bool {
+        // Get the current order of the question
         $stmt = $this->conn->prepare("
             SELECT order_in_set FROM qset_questions
             WHERE qset_id = ? AND question_id = ?
@@ -296,7 +323,7 @@ class SetRepo {
 
         $currentOrder = $row['order_in_set'];
 
-        // Recupera il totale di domande nel set
+        // Get the total number of questions in the set
         $stmt = $this->conn->prepare("
             SELECT MAX(order_in_set) as max_order FROM qset_questions
             WHERE qset_id = ?
@@ -310,12 +337,12 @@ class SetRepo {
         $maxOrder = $row['max_order'] ?? 0;
 
         if ($currentOrder >= $maxOrder) {
-            return false; // È già l'ultima domanda
+            return false; // Already the last question
         }
 
         $newOrder = $currentOrder + 1;
 
-        // Sposta la domanda successiva su
+        // Move the next question up
         $stmt = $this->conn->prepare("
             UPDATE qset_questions
             SET order_in_set = ?
@@ -325,7 +352,7 @@ class SetRepo {
         $stmt->execute();
         $stmt->close();
 
-        // Sposta la domanda attuale giù
+        // Move the current question down
         $stmt = $this->conn->prepare("
             UPDATE qset_questions
             SET order_in_set = ?
@@ -339,9 +366,13 @@ class SetRepo {
     }
 
     /**
-     * Get question by counter (order_in_set) for a specific question set
+     * Get question by counter (order_in_set) for a specific question set.
+     *
+     * @param int $qsetId   Set ID
+     * @param int $counter  1-based position in the set
+     * @return array|null Question data or null if not found
      */
-    public function getQuestionAtPosition($qsetId, $counter) {
+    public function getQuestionAtPosition(int $qsetId, int $counter): ?array {
         $offset = max(0, $counter - 1);
         $stmt = $this->conn->prepare("
             SELECT qq.id as qset_question_id, qq.question_id, q.*,
@@ -363,9 +394,12 @@ class SetRepo {
     }
 
     /**
-     * Get total count of questions in a specific question set
+     * Get total count of questions in a specific question set.
+     *
+     * @param int $qsetId  Set ID
+     * @return int Number of questions
      */
-    public function countQuestions($qsetId) {
+    public function countQuestions(int $qsetId): int {
         $stmt = $this->conn->prepare("
             SELECT COUNT(*) as total
             FROM qset_questions

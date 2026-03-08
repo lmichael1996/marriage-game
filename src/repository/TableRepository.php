@@ -5,7 +5,7 @@ require_once __DIR__ . '/../config/database.php';
  * Repository for generic table access (admin database viewer)
  */
 class TableRepository {
-    private $conn;
+    private mysqli $conn;
 
     public function __construct() {
         $this->conn = getDBConnection();

@@ -8,11 +8,11 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/../services/ServiceLoader.php';
 
 /**
- * Auth guard e helper — Autenticazione via sessione PHP.
- * Questo file avvia la sessione automaticamente al require.
+ * Auth guards and helpers — PHP session authentication.
+ * This file starts the session automatically on require.
  */
 
-// ── Guards (redirect se non autenticato) ─────────────────────────────────
+// ── Guards (redirect if not authenticated) ───────────────────────────────
 
 function requireAdmin(): void {
     if (!svc('auth')->getAdmin()) {
@@ -35,12 +35,15 @@ function requireJudge(): void {
     }
 }
 
-// ── API guards (JSON error se non autenticato) ──────────────────────────
+// ── API guards (JSON error if not authenticated) ─────────────────────────
 
 function requireLoginJson(): void {
     if (!svc('auth')->getAnyUser()) {
         http_response_code(401);
-        echo json_encode(['success' => false, 'error' => 'Autenticazione richiesta']);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Authentication required'
+        ]);
         exit();
     }
 }
@@ -48,7 +51,10 @@ function requireLoginJson(): void {
 function requireAdminJson(): void {
     if (!svc('auth')->getAdmin()) {
         http_response_code(403);
-        echo json_encode(['success' => false, 'error' => 'Accesso riservato agli amministratori']);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Admin access required'
+        ]);
         exit();
     }
 }
@@ -59,40 +65,22 @@ function authJudge(): ?array {
     return svc('auth')->getJudge();
 }
 
-function authRoomCode(): ?string {
-    $player = svc('auth')->getPlayer();
-    if ($player) return $player['room_code'];
-    $judge = svc('auth')->getJudge();
-    if ($judge) return $judge['room_code'];
-    // Admin: room code salvato quando crea/avvia la stanza
-    return $_SESSION['active_room_code'] ?? null;
-}
-
 function authRoomId(): ?int {
-    $player = svc('auth')->getPlayer();
-    if ($player) return (int)$player['room_id'];
-    $judge = svc('auth')->getJudge();
-    if ($judge) return (int)$judge['room_id'];
-    // Admin: room_id salvato in loadRoomAdmin()
-    return isset($_SESSION['room_id']) ? (int)$_SESSION['room_id'] : null;
+    $auth = svc('auth');
+    $session = $auth->getPlayer() ?? $auth->getJudge();
+    return $session
+        ? (int)$session['room_id']
+        : (isset($_SESSION['room_id']) ? (int)$_SESSION['room_id'] : null);
 }
 
 function authUsername(): ?string {
-    $user = svc('auth')->getAnyUser();
-    return $user['username'] ?? null;
+    return svc('auth')->getAnyUser()['username'] ?? null;
 }
 
 function authPlayerId(): ?int {
-    $player = svc('auth')->getPlayer();
-    return $player ? (int)$player['player_id'] : null;
+    return ($p = svc('auth')->getPlayer()) ? (int)$p['player_id'] : null;
 }
 
 function authUserId(): ?int {
-    $admin = svc('auth')->getAdmin();
-    return $admin ? (int)$admin['user_id'] : null;
-}
-
-function authJudgeId(): ?int {
-    $judge = svc('auth')->getJudge();
-    return $judge ? (int)$judge['judge_id'] : null;
+    return ($a = svc('auth')->getAdmin()) ? (int)$a['user_id'] : null;
 }

@@ -17,13 +17,16 @@ function respond($data)
 function respondError($msg, $code = 400)
 {
     http_response_code($code);
-    respond(['success' => false, 'error' => $msg]);
+    respond([
+        'success' => false,
+        'error' => $msg
+    ]);
 }
 
 function requirePost()
 {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST')
-        respondError('Metodo non consentito', 405);
+        respondError('Method not allowed', 405);
 }
 
 function input()
@@ -94,24 +97,16 @@ switch ($endpoint) {
         handleFinalLeaderboard();
         break;
 
+    case 'player_progress':
+        handlePlayerProgress();
+        break;
+
     case 'get_question':
         handleGetQuestion();
         break;
 
     case 'get_questions':
         handleGetQuestions();
-        break;
-
-    case 'add_category':
-        handleAddCategory();
-        break;
-
-    case 'update_category':
-        handleUpdateCategory();
-        break;
-
-    case 'delete_category':
-        handleDeleteCategory();
         break;
 
     case 'get_categories':
@@ -134,16 +129,8 @@ switch ($endpoint) {
         handleUpdateQuestionSet();
         break;
 
-    case 'update_questionset_metadata':
-        handleUpdateQuestionSetMetadata();
-        break;
-
     case 'delete_questionset':
         handleDeleteQuestionSet();
-        break;
-
-    case 'get_questionsets':
-        handleGetQuestionSets();
         break;
 
     case 'get_set_questions':
@@ -166,16 +153,8 @@ switch ($endpoint) {
         handleUpdateQuestionOrder();
         break;
 
-    case 'move_question_up':
-        handleMoveQuestionUp();
-        break;
-
-    case 'move_question_down':
-        handleMoveQuestionDown();
-        break;
-
     default:
-        respondError('Endpoint non trovato', 404);
+        respondError('Endpoint not found', 404);
 }
 
 // ── Auth ─────────────────────────────────────────────────────────────────
@@ -185,7 +164,10 @@ function handlePlayerLogin() {
     $data = input();
     try {
         svc('auth')->playerLogin($data['username'] ?? '', $data['room_code'] ?? '');
-        respond(['success' => true, 'redirect' => '../public/player.php']);
+        respond([
+            'success' => true,
+            'redirect' => '../public/player.php'
+        ]);
     } catch (Exception $e) {
         respondError($e->getMessage(), 401);
     }
@@ -196,7 +178,10 @@ function handleAdminLogin() {
     $data = input();
     try {
         svc('auth')->adminLogin($data['username'] ?? '', $data['password'] ?? '');
-        respond(['success' => true, 'redirect' => '../public/admin.php']);
+        respond([
+            'success' => true,
+            'redirect' => '../public/admin.php'
+        ]);
     } catch (Exception $e) {
         respondError($e->getMessage(), 401);
     }
@@ -207,7 +192,10 @@ function handleJudgeLogin() {
     $data = input();
     try {
         svc('auth')->judgeLogin($data['room_code'] ?? '');
-        respond(['success' => true, 'redirect' => '../public/judge.php']);
+        respond([
+            'success' => true,
+            'redirect' => '../public/judge.php'
+        ]);
     } catch (Exception $e) {
         respondError($e->getMessage(), 401);
     }
@@ -220,8 +208,8 @@ function handleAnswer() {
     requirePost();
     $data = input();
 
-    if (!($data['round_id'] ?? 0))      respondError('Round ID mancante');
-    if (($data['answer'] ?? '') === '')  respondError('Risposta mancante');
+    if (!($data['round_id'] ?? 0))      respondError('Round ID required');
+    if (($data['answer'] ?? '') === '')  respondError('Answer required');
 
     try {
         respond(svc('game')->submitAnswerByRoundId($data['round_id'], $data['answer'], $data['time_taken'] ?? 0));
@@ -235,7 +223,7 @@ function handleAnswer() {
 function handleCreateRoom() {
     try {
         $room   = svc('room');
-        $result = $room->createRoom(input()['question_set_id'] ?? null);
+        $result = $room->createRoom((int)(input()['question_set_id'] ?? 0));
 
         if ($result['success']) {
             $_SESSION['active_room_code']  = $result['code_player'];
@@ -258,7 +246,7 @@ function handleStartRoom() {
     requireLoginJson();
     try {
         $roomId = authRoomId();
-        if (!$roomId) throw new Exception('Nessuna stanza attiva nella sessione');
+        if (!$roomId) throw new Exception('No active room in session');
         respond(svc('room')->startRoom($roomId));
     } catch (Exception $e) {
         respondError($e->getMessage(), 500);
@@ -269,10 +257,18 @@ function handleCheckRoomStatus() {
     requireLoginJson();
     try {
         $roomId = authRoomId();
-        if (!$roomId) respond(['room_open' => false, 'status' => 'unknown', 'message' => 'Nessuna stanza associata']);
+        if (!$roomId) respond([
+            'room_open' => false,
+            'status' => 'unknown',
+            'message' => 'No room associated'
+        ]);
 
         $roomData = svc('room')->getRoomDetails($roomId);
-        if (!$roomData) respond(['room_open' => false, 'status' => 'unknown', 'message' => 'Stanza non trovata']);
+        if (!$roomData) respond([
+            'room_open' => false,
+            'status' => 'unknown',
+            'message' => 'Room not found'
+        ]);
 
         $status = $roomData['status_room'] ?? 'unknown';
         respond([
@@ -289,10 +285,12 @@ function handleDeleteRoom() {
     requireAdminJson();
     try {
         $roomId = authRoomId();
-        if (!$roomId) throw new Exception('Nessuna stanza attiva');
+        if (!$roomId) throw new Exception('No active room');
 
         $result = svc('room')->cancelRoom($roomId);
-        if ($result['success']) { unset($_SESSION['active_room_code'], $_SESSION['active_judge_code'], $_SESSION['room_id']); }
+        if ($result['success']) {
+            unset($_SESSION['active_room_code'], $_SESSION['active_judge_code'], $_SESSION['room_id']);
+         }
         respond($result);
     } catch (Exception $e) {
         respondError($e->getMessage(), 500);
@@ -305,7 +303,12 @@ function handleConnectedDevices() {
         if (!$roomId) respond(['success' => true, 'devices' => [], 'count' => 0]);
 
         $result = svc('room')->getConnectedDevices($roomId);
-        respond(['success' => true, 'devices' => $result['devices'], 'count' => $result['count'], 'judge_connected' => $result['judge_connected'] ?? false]);
+        respond([
+            'success' => true,
+            'devices' => $result['devices'],
+            'count' => $result['count'],
+            'judge_connected' => $result['judge_connected'] ?? false
+        ]);
     } catch (Exception $e) {
         respondError($e->getMessage(), 500);
     }
@@ -317,14 +320,13 @@ function handleGame($action) {
     requireLoginJson();
     match ($action) {
         'get_game_state' => handleGetGameState(),
-        'get_set'        => handleGetSet(),
         'start_round'    => handleStartRound(),
         'close_round'    => handleCloseRound(),
         'set_clickfirst_winner' => handleSetClickfirstWinner(),
         'judge_advance'  => handleJudgeAdvance(),
         'check_judge_decision' => handleCheckJudgeDecision(),
         'check_winner'   => handleCheckWinner(),
-        default          => respondError('Azione non valida'),
+        default          => respondError('Invalid action'),
     };
 }
 
@@ -339,9 +341,9 @@ function handleGetGameState() {
 
         $statusRoom = $roomData['status_room'] ?? null;
 
-        // Se la room è chiusa o cancellata, comunicalo subito al player con is_winner
+        // If the room is closed or has a winner, notify the player immediately
         if ($statusRoom === 'closed' || ($roomData['has_winner'] ?? false)) {
-            // Se non c'è ancora un vincitore, marcalo ora
+            // If there's no winner yet, mark one now
             if (!($roomData['has_winner'] ?? false)) {
                 $room->markWinner($roomData['id']);
                 $roomData = $room->getRoomDetails($roomId);
@@ -373,22 +375,14 @@ function handleGetGameState() {
         $result  = $room->getRoundByPosition($roomData['id'], $counter);
         $response = $result
             ? array_merge($result, ['success' => true, 'status_room' => $statusRoom])
-            : ['success' => false, 'status_room' => $statusRoom];
+            : [
+                'success' => false,
+                'status_room' => $statusRoom
+            ];
         respond($response);
     } catch (Exception $e) {
         respondError($e->getMessage(), 500);
     }
-}
-
-function handleGetSet() {
-    $setId = $_GET['set_id'] ?? 0;
-    if (!$setId) respondError('Set ID mancante');
-
-    $result = svc('question')->getSetQuestions($setId);
-    respond($result['success']
-        ? ['success' => true, 'set' => $result['questions'], 'questions' => $result['questions']['questions'] ?? []]
-        : ['success' => false, 'message' => $result['error'] ?? 'Set non trovato']
-    );
 }
 
 function handleStartRound() {
@@ -399,65 +393,87 @@ function handleStartRound() {
     $roomId = authRoomId();
     if (!$roomId) respondError('Room ID not found');
 
-    try { respond(svc('game')->startRound($questionId, $roomId)); }
-    catch (Exception $e) { respondError('Server error: ' . $e->getMessage(), 500); }
+    try {
+        respond(svc('game')->startRound($questionId, $roomId));
+    } catch (Exception $e) {
+        respondError('Server error: ' . $e->getMessage(), 500);
+    }
 }
 
 function handleCloseRound() {
     $roundId = $_GET['round_id'] ?? 0;
     if (!$roundId && $_SERVER['REQUEST_METHOD'] === 'POST') $roundId = input()['round_id'] ?? 0;
-    if (!$roundId) respondError('Round ID mancante');
+    if (!$roundId) respondError('Round ID required');
 
-    try { respond(svc('game')->closeRound($roundId)); }
-    catch (Exception $e) { respondError($e->getMessage(), 500); }
+    try {
+        respond(svc('game')->closeRound($roundId));
+    } catch (Exception $e) {
+        respondError($e->getMessage(), 500);
+    }
 }
 
 function handleSetClickfirstWinner() {
     $data = input();
     $roundId = $data['round_id'] ?? 0;
     $winnerIndex = $data['winner_index'] ?? null;
-    if (!$roundId) respondError('Round ID mancante');
-    if ($winnerIndex === null) respondError('Indice vincitore mancante');
+    if (!$roundId) respondError('Round ID required');
+    if ($winnerIndex === null) respondError('Winner index required');
 
-    try { respond(svc('game')->setClickfirstWinner($roundId, (int)$winnerIndex)); }
-    catch (Exception $e) { respondError($e->getMessage(), 500); }
+    try {
+        respond(svc('game')->setClickfirstWinner($roundId, (int)$winnerIndex));
+    } catch (Exception $e) {
+        respondError($e->getMessage(), 500);
+    }
 }
 
 function handleJudgeAdvance() {
     $data = input();
     $roundId = $data['round_id'] ?? 0;
-    if (!$roundId) respondError('Round ID mancante');
+    if (!$roundId) respondError('Round ID required');
 
     try {
         svc('game')->markJudgeDecided($roundId);
-        respond(['success' => true, 'message' => 'Judge advance segnalato']);
-    } catch (Exception $e) { respondError($e->getMessage(), 500); }
+        respond([
+            'success' => true,
+            'message' => 'Judge advance signaled'
+        ]);
+    } catch (Exception $e) {
+        respondError($e->getMessage(), 500);
+    }
 }
 
 function handleCheckJudgeDecision() {
     $roundId = $_GET['round_id'] ?? 0;
-    if (!$roundId) respondError('Round ID mancante');
+    if (!$roundId) respondError('Round ID required');
 
     try {
         $decided = svc('game')->isJudgeDecided($roundId);
-        respond(['success' => true, 'judge_decided' => $decided]);
-    } catch (Exception $e) { respondError($e->getMessage(), 500); }
+        respond([
+            'success' => true,
+            'judge_decided' => $decided
+        ]);
+    } catch (Exception $e) {
+        respondError($e->getMessage(), 500);
+    }
 }
 
 function handleCheckWinner() {
     try {
         $roomId = authRoomId();
-        $fail = ['success' => false, 'is_winner' => false];
+        $fail = [
+            'success' => false,
+            'is_winner' => false
+        ];
         if (!$roomId) respond($fail);
 
         $room = svc('room');
         $roomData = $room->getRoomDetails($roomId);
         if (!$roomData) respond($fail);
 
-        // Se la room è chiusa/closed ma non c'è ancora un vincitore, marcalo ora
+        // If the room is closed but there's no winner yet, mark it now
         if (!($roomData['has_winner'] ?? false) && ($roomData['status_room'] ?? '') === 'closed') {
             $room->markWinner($roomData['id']);
-            // Ricarica per avere il vincitore aggiornato
+            // Reload to get the updated winner
             $roomData = $room->getRoomDetails($roomId);
         }
 
@@ -467,9 +483,17 @@ function handleCheckWinner() {
         $isWinner = $room->isWinner($roomData['id'], $playerId);
 
         if ($roomData['has_winner'] ?? false) {
-            respond(['success' => true, 'game_finished' => true, 'is_winner' => $isWinner, 'winner_id' => $roomData['winner_id'] ?? null]);
+            respond([
+                'success' => true,
+                'game_finished' => true,
+                'is_winner' => $isWinner,
+                'winner_id' => $roomData['winner_id'] ?? null
+            ]);
         }
-        respond(['success' => true, 'is_winner' => $isWinner]);
+        respond([
+            'success' => true,
+            'is_winner' => $isWinner
+        ]);
     } catch (Exception $e) {
         respondError($e->getMessage(), 500);
     }
@@ -478,15 +502,43 @@ function handleCheckWinner() {
 function handleRoundAnswers() {
     requireLoginJson();
     $roundId = $_GET['round_id'] ?? 0;
-    if (!$roundId) respond(['success' => false, 'top_answers' => [], 'message' => 'Round ID required']);
-    respond(['success' => true, 'top_answers' => svc('game')->getTopAnswers($roundId, 10)]);
+    if (!$roundId)
+    {
+        respond([
+            'success' => false,
+            'top_answers' => [],
+            'message' => 'Round ID required'
+        ]);
+    }
+    respond([
+        'success' => true,
+        'top_answers' => svc('game')->getTopAnswers($roundId, 10)
+    ]);
 }
 
 function handleFinalLeaderboard() {
     requireLoginJson();
     $roomId = isset($_GET['room_id']) ? (int)$_GET['room_id'] : authRoomId();
-    if (!$roomId) respond(['success' => false, 'leaderboard' => []]);
+    if (!$roomId) {
+        respond([
+            'success' => false,
+            'leaderboard' => []
+        ]);
+    }
     respond(svc('game')->getFinalLeaderboard($roomId));
+}
+
+function handlePlayerProgress() {
+    requireLoginJson();
+    try {
+        $answered = svc('game')->getPlayerProgress();
+        respond([
+            'success' => true,
+            'answered' => $answered
+        ]);
+    } catch (Exception $e) {
+        respondError($e->getMessage(), 500);
+    }
 }
 
 // ── Questions ────────────────────────────────────────────────────────────
@@ -497,56 +549,33 @@ function handleGetQuestion() {
     try {
         $result = svc('question')->getQuestionById($id);
         if (!$result) respondError('Question not found', 404);
-        respond(['success' => true, 'question' => $result]);
+        respond([
+            'success' => true,
+            'question' => $result
+        ]);
     } catch (Exception $e) { respondError($e->getMessage(), 500); }
 }
 
 function handleGetQuestions() {
     try {
-        respond(['success' => true, 'questions' => svc('question')->getAllQuestions(1, 1000)['questions']]);
+        respond([
+            'success' => true,
+            'questions' => svc('question')->getAllQuestions(1, 1000)['questions']
+        ]);
     } catch (Exception $e) { respondError($e->getMessage(), 500); }
 }
 
 // ── Categories ───────────────────────────────────────────────────────────
 
-function handleAddCategory() {
-    requirePost();
-    $data = input();
-    if (!($data['name'] ?? null) || !($data['color'] ?? null)) respondError('Nome e colore obbligatori');
-    try {
-        $result = svc('question')->addCategory($data['name'], $data['color']);
-        if (!$result) respondError('Errore nell\'aggiunta della categoria', 500);
-        respond(['success' => true, 'message' => 'Categoria aggiunta con successo', 'categoryId' => $result]);
-    } catch (Exception $e) { respondError($e->getMessage(), 500); }
-}
-
-function handleUpdateCategory() {
-    requirePost();
-    $data = input();
-    if (!($data['id'] ?? null) || !($data['name'] ?? null) || !($data['color'] ?? null)) respondError('ID, nome e colore obbligatori');
-    try {
-        $result = svc('question')->updateCategory($data['id'], $data['name'], $data['color']);
-        if (!$result) respondError('Errore nell\'aggiornamento della categoria', 500);
-        respond(['success' => true, 'message' => 'Categoria aggiornata con successo']);
-    } catch (Exception $e) { respondError($e->getMessage(), 500); }
-}
-
-function handleDeleteCategory() {
-    requirePost();
-    $data = input();
-    if (!($data['id'] ?? null)) respondError('ID obbligatorio');
-    try {
-        $result = svc('question')->deleteCategory($data['id']);
-        respond($result
-            ? ['success' => true, 'message' => 'Categoria eliminata con successo. Le domande associate sono state spostate alla categoria Generale.']
-            : ['success' => false, 'message' => 'Non puoi eliminare la categoria Generale.']
-        );
-    } catch (Exception $e) { respondError($e->getMessage(), 500); }
-}
-
 function handleGetCategories() {
-    try { respond(['success' => true, 'categories' => svc('question')->getAllCategories()]); }
-    catch (Exception $e) { respondError($e->getMessage(), 500); }
+    try {
+        respond([
+            'success' => true,
+            'categories' => svc('question')->getAllCategories()
+        ]);
+    } catch (Exception $e) {
+        respondError($e->getMessage(), 500);
+    }
 }
 
 function handleSaveCategories() {
@@ -554,11 +583,26 @@ function handleSaveCategories() {
     $data = input();
     $q = svc('question');
     try {
-        foreach ($data['deleted'] ?? [] as $id)  $q->deleteCategory($id);
-        foreach ($data['updated'] ?? [] as $cat) { if (isset($cat['id'], $cat['name'], $cat['color'])) $q->updateCategory($cat['id'], $cat['name'], $cat['color']); }
-        foreach ($data['added']   ?? [] as $cat) { if (isset($cat['name'], $cat['color'])) $q->addCategory($cat['name'], $cat['color']); }
-        respond(['success' => true, 'message' => 'Tutte le modifiche sono state salvate con successo']);
-    } catch (Exception $e) { respondError($e->getMessage(), 500); }
+        foreach ($data['deleted'] ?? [] as $id) {
+            $q->deleteCategory($id);
+        }
+        foreach ($data['updated'] ?? [] as $cat) {
+            if (isset($cat['id'], $cat['name'], $cat['color'])) {
+                $q->updateCategory($cat['id'], $cat['name'], $cat['color']);
+            }
+        }
+        foreach ($data['added'] ?? [] as $cat) {
+            if (isset($cat['name'], $cat['color'])) {
+                $q->addCategory($cat['name'], $cat['color']);
+            }
+        }
+        respond([
+            'success' => true,
+            'message' => 'All changes saved successfully'
+        ]);
+    } catch (Exception $e) {
+        respondError($e->getMessage(), 500);
+    }
 }
 
 // ── Question Sets ────────────────────────────────────────────────────────
@@ -567,72 +611,75 @@ function handleGetQuestionSet() {
     $setId = $_GET['id'] ?? null;
     if (!$setId) respondError('Set ID is required');
     try {
-        $set = svc('question')->getById($setId);
+        $set = svc('set')->getQuestionSetById($setId);
         if (!$set) respondError('Question set not found', 404);
-        respond(['success' => true, 'set' => $set]);
-    } catch (Exception $e) { respondError($e->getMessage(), 500); }
+        respond([
+            'success' => true,
+            'set' => $set
+        ]);
+    } catch (Exception $e) {
+        respondError($e->getMessage(), 500);
+    }
 }
 
 function handleAddQuestionSet() {
     requirePost();
     $data    = input();
-    $setName = $data['set_name'] ?? $_POST['set_name'] ?? '';
+    $setName = $data['set_name'] ?? '';
     if (!$setName) respondError('Set name is required');
     try {
-        $setId = svc('question')->add($setName, $data['set_description'] ?? $_POST['set_description'] ?? '');
-        respond(['success' => true, 'set_id' => $setId, 'message' => 'Question set created successfully']);
-    } catch (Exception $e) { respondError($e->getMessage()); }
+        $setId = svc('set')->addSet($setName, $data['set_description'] ?? '');
+        respond([
+            'success' => true,
+            'set_id' => $setId,
+            'message' => 'Question set created successfully'
+        ]);
+    } catch (Exception $e) {
+        respondError($e->getMessage());
+    }
 }
 
 function handleUpdateQuestionSet() {
     requirePost();
-    $setId   = $_POST['set_id'] ?? null;
-    $setName = $_POST['set_name'] ?? '';
-    if (!$setId || !$setName) respondError('Set ID and name are required');
-    try {
-        svc('question')->update($setId, $setName, $_POST['set_description'] ?? '');
-        respond(['success' => true, 'message' => 'Question set updated successfully']);
-    } catch (Exception $e) { respondError($e->getMessage()); }
-}
-
-function handleUpdateQuestionSetMetadata() {
-    requirePost();
     $data = input();
     if (!($data['set_id'] ?? null) || !($data['set_name'] ?? '')) respondError('Set ID and name are required');
     try {
-        $q = svc('question');
-        $q->update($data['set_id'], $data['set_name'], $data['set_description'] ?? '');
-        respond(['success' => true, 'message' => 'Question set metadata updated successfully']);
-    } catch (Exception $e) { respondError($e->getMessage()); }
+        svc('set')->updateSet($data['set_id'], $data['set_name'], $data['set_description'] ?? '');
+        respond([
+            'success' => true,
+            'message' => 'Question set updated successfully'
+        ]);
+    } catch (Exception $e) {
+        respondError($e->getMessage());
+    }
 }
 
 function handleDeleteQuestionSet() {
     requirePost();
-    $setId = $_POST['set_id'] ?? null;
-    if (!$setId) respondError('Set ID is required');
+    $data = input();
+    if (!($data['set_id'] ?? null)) respondError('Set ID is required');
     try {
-        svc('question')->delete($setId);
-        respond(['success' => true, 'message' => 'Question set deleted successfully']);
-    } catch (Exception $e) { respondError($e->getMessage(), 500); }
-}
-
-function handleGetQuestionSets() {
-    $page   = $_GET['page'] ?? 1;
-    $search = $_GET['search'] ?? '';
-    try {
-        $data = $search
-            ? svc('question')->search($search, $_GET['search_type'] ?? 'contains', $page)
-            : svc('question')->getAll($page);
-        respond(['success' => true, 'sets' => $data['sets'], 'total' => $data['total'], 'page' => $data['page'], 'totalPages' => $data['totalPages']]);
-    } catch (Exception $e) { respondError($e->getMessage(), 500); }
+        svc('set')->deleteSet($data['set_id']);
+        respond([
+            'success' => true,
+            'message' => 'Question set deleted successfully'
+        ]);
+    } catch (Exception $e) {
+        respondError($e->getMessage(), 500);
+    }
 }
 
 function handleGetSetQuestions() {
     $setId = $_GET['set_id'] ?? null;
     if (!$setId) respondError('Set ID is required');
     try {
-        respond(['success' => true, 'questions' => svc('question')->getQuestions($setId)]);
-    } catch (Exception $e) { respondError($e->getMessage(), 500); }
+        respond([
+            'success' => true,
+            'questions' => svc('set')->getSetQuestions($setId)
+        ]);
+    } catch (Exception $e) {
+        respondError($e->getMessage(), 500);
+    }
 }
 
 function handleAddQuestionToSet() {
@@ -640,16 +687,21 @@ function handleAddQuestionToSet() {
     $data = input();
     if (!($data['set_id'] ?? null) || !($data['question_id'] ?? null)) respondError('Set ID and Question ID are required');
     try {
-        $q = svc('question');
-        $questions = $q->getQuestions($data['set_id']);
+        $q = svc('set');
+        $questions = $q->getSetQuestions($data['set_id']);
         $maxOrder = 0;
         foreach ($questions as $qItem) {
             if ($qItem['order_in_set'] > $maxOrder) $maxOrder = $qItem['order_in_set'];
             if ($qItem['id'] == $data['question_id']) respondError('Question already in set');
         }
         if (!$q->addQuestionToSet($data['set_id'], $data['question_id'], $maxOrder + 1)) respondError('Question already in set or unable to add');
-        respond(['success' => true, 'message' => 'Question added successfully']);
-    } catch (Exception $e) { respondError($e->getMessage(), 500); }
+        respond([
+            'success' => true,
+            'message' => 'Question added successfully'
+        ]);
+    } catch (Exception $e) {
+        respondError($e->getMessage(), 500);
+    }
 }
 
 function handleAddQuestionToSetAtPosition() {
@@ -659,9 +711,14 @@ function handleAddQuestionToSetAtPosition() {
         respondError('Set ID, Question ID and position are required');
     }
     try {
-        if (!svc('question')->addQuestionAtPosition($data['set_id'], $data['question_id'], $data['position'])) respondError('Question already in set or unable to add');
-        respond(['success' => true, 'message' => 'Question added successfully']);
-    } catch (Exception $e) { respondError($e->getMessage(), 500); }
+        if (!svc('set')->addQuestionAtPosition($data['set_id'], $data['question_id'], $data['position'])) respondError('Question already in set or unable to add');
+        respond([
+            'success' => true,
+            'message' => 'Question added successfully'
+        ]);
+    } catch (Exception $e) {
+        respondError($e->getMessage(), 500);
+    }
 }
 
 function handleRemoveQuestionFromSet() {
@@ -669,8 +726,11 @@ function handleRemoveQuestionFromSet() {
     $data = input();
     if (!($data['set_id'] ?? null) || !($data['question_id'] ?? null)) respondError('Set ID and Question ID are required');
     try {
-        svc('question')->removeQuestion($data['set_id'], $data['question_id']);
-        respond(['success' => true, 'message' => 'Question removed successfully']);
+        svc('set')->removeQuestion($data['set_id'], $data['question_id']);
+        respond([
+            'success' => true,
+            'message' => 'Question removed successfully'
+        ]);
     } catch (Exception $e) { respondError($e->getMessage(), 500); }
 }
 
@@ -679,29 +739,14 @@ function handleUpdateQuestionOrder() {
     $data = input();
     if (!($data['set_id'] ?? null) || empty($data['questions'])) respondError('Set ID and questions are required');
     try {
-        if (!svc('question')->updateQuestionsOrder($data['set_id'], $data['questions'])) respondError('Unable to update order');
-        respond(['success' => true, 'message' => 'Order updated successfully']);
-    } catch (Exception $e) { respondError($e->getMessage(), 500); }
-}
-
-function handleMoveQuestionUp() {
-    requirePost();
-    $data = input();
-    if (!($data['set_id'] ?? null) || !($data['question_id'] ?? null)) respondError('Set ID and Question ID are required');
-    try {
-        svc('question')->moveQuestionUp($data['set_id'], $data['question_id']);
-        respond(['success' => true, 'message' => 'Question moved up successfully']);
-    } catch (Exception $e) { respondError($e->getMessage(), 500); }
-}
-
-function handleMoveQuestionDown() {
-    requirePost();
-    $data = input();
-    if (!($data['set_id'] ?? null) || !($data['question_id'] ?? null)) respondError('Set ID and Question ID are required');
-    try {
-        svc('question')->moveQuestionDown($data['set_id'], $data['question_id']);
-        respond(['success' => true, 'message' => 'Question moved down successfully']);
-    } catch (Exception $e) { respondError($e->getMessage(), 500); }
+        if (!svc('set')->updateQuestionsOrder($data['set_id'], $data['questions'])) respondError('Unable to update order');
+        respond([
+            'success' => true,
+            'message' => 'Order updated successfully'
+        ]);
+    } catch (Exception $e) {
+        respondError($e->getMessage(), 500);
+    }
 }
 
 // ── Misc ─────────────────────────────────────────────────────────────────
@@ -719,7 +764,7 @@ function handleGeneratePDF() {
         $codeJudge  = $roomResult['code_judge'] ?? null;
         if (!$codePlayer || !$codeJudge) respondError('Both room codes are required');
 
-        // Recupera SVG QR dal DB (base64) e decodifica
+        // Retrieve base64-encoded QR SVGs from DB and decode
         $svgPlayer = !empty($roomResult['qr_uri_player']) ? base64_decode($roomResult['qr_uri_player']) : null;
         $svgJudge  = !empty($roomResult['qr_uri_judge'])  ? base64_decode($roomResult['qr_uri_judge'])  : null;
         if (!$svgPlayer || !$svgJudge) respondError('QR codes not found for this room', 500);
@@ -729,7 +774,7 @@ function handleGeneratePDF() {
         respond([
             'success'  => true,
             'pdf_data' => 'data:application/pdf;base64,' . base64_encode($pdf->getPDF()),
-            'filename' => 'MVquiz-stanza-' . $codePlayer . '-' . $codeJudge . '.pdf'
+            'filename' => 'MVquiz-room-' . $codePlayer . '-' . $codeJudge . '.pdf'
         ]);
     } catch (Exception $e) {
         respondError($e->getMessage(), 500);
