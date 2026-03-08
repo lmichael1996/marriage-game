@@ -463,7 +463,11 @@ extract(loadGameRoom());
                 return;
             }
 
-            if (confirm(`Avviare la partita "${selectedGameSetName}" con ${connectedCount} giocatori?`)) {
+            const alertQuestion = selectedGameSetName.startsWith('#Temporary set')
+                ? `Avviare la partita con ${connectedCount} giocatori?`
+                : `Avviare la partita "${selectedGameSetName}" con ${connectedCount} giocatori?`;
+
+            if (confirm(alertQuestion)) {
                 fetch('/src/api/api.php?endpoint=start_room', {
                     method: 'POST',
                     headers: {

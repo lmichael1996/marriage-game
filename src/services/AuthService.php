@@ -101,6 +101,11 @@ class AuthService {
             throw new Exception($statusMessage);
         }
 
+        // Controlla se un giudice è già connesso alla stanza
+        if ($this->judgeRepo->isJudgeConnected($room['id'])) {
+            throw new Exception('Un giudice è già connesso a questa stanza');
+        }
+
         $judgeId = $this->judgeRepo->createJudge($room['id']);
 
         if (!$judgeId) throw new Exception('Errore durante la creazione del giudice');

@@ -20,9 +20,18 @@ class QRGenerator {
     /**
      * Costruisce il base URL dal server corrente (no link hardcoded)
      */
-    private static function getBaseUrl() {
+    private static function getBaseUrl(): string {
         $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+
+        // Se l'host è localhost, prova a ottenere l'IP pubblico
+        if (str_starts_with($host, 'localhost') || str_starts_with($host, '127.0.0.1')) {
+            $ip = trim((string) @shell_exec('curl -s --max-time 3 https://api.ipify.org'));
+            if (!empty($ip)) {
+                $host = $ip . ':9000';
+            }
+        }
+
         return $scheme . '://' . $host . '/public/';
     }
 

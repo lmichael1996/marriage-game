@@ -108,9 +108,21 @@ requirePlayer();
         let checkRoomStatusInterval = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            checkRoomStatusInterval = setInterval(checkRoomStatus, 1000);
-            checkGameStateInterval = setInterval(checkGameState, 1000);
-            checkGameState();
+            // Recupera il progresso del player prima di avviare il polling
+            fetch('../src/api/api.php?endpoint=player_progress')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success && data.answered > 0) {
+                        currentRoundCounter = data.answered + 1;
+                        console.log("Resumed at round counter:", currentRoundCounter);
+                    }
+                })
+                .catch(() => {})
+                .finally(() => {
+                    checkRoomStatusInterval = setInterval(checkRoomStatus, 1000);
+                    checkGameStateInterval = setInterval(checkGameState, 1000);
+                    checkGameState();
+                });
         });
 
         function checkRoomStatus() {
