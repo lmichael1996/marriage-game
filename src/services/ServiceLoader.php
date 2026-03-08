@@ -4,6 +4,7 @@ require_once __DIR__ . '/GameService.php';
 require_once __DIR__ . '/RoomService.php';
 require_once __DIR__ . '/AdminService.php';
 require_once __DIR__ . '/QuestionService.php';
+require_once __DIR__ . '/TableService.php';
 
 $services = [];
 
@@ -15,6 +16,7 @@ function svc(string $name) {
         'room'     => new RoomService(),
         'admin'    => new AdminService(),
         'question' => new QuestionService(),
+        'table'    => new TableService(),
         default    => throw new Exception("Servizio '$name' non trovato"),
     };
 }

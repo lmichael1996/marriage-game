@@ -284,3 +284,7 @@ function loadRoomAdmin(): array {
 
     return compact('roomId', 'room', 'counter', 'question', 'activeRound', 'gameOver', 'roomInfo', 'judgeConnected');
 }
+
+function getTableData(): array {
+    return svc('table')->getAllTablesData();
+}

@@ -1,8 +1,7 @@
 <?php
-require_once __DIR__ . '/../../src/services/TableService.php';
+require_once __DIR__ . '/../../src/utils/helper.php';
 
-$tableService = new TableService();
-$tableData = $tableService->getAllTablesData();
+$tableData = getTableData();
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -59,7 +58,7 @@ $tableData = $tableService->getAllTablesData();
                                                     <?php
                                                         $value = $row[$col];
                                                         $type = $data['columnTypes'][$col] ?? '';
-                                                        echo $tableService->formatCellValue($value, $type, $col);
+                                                        echo svc('table')->formatCellValue($value, $type, $col);
                                                     ?>
                                                 </td>
                                             <?php endforeach; ?>
