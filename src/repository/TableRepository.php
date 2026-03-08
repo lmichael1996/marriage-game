@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../config/database.php';
 
 /**
- * TableRepository - Gestisce l'accesso ai dati di tutte le tabelle
+ * Repository for generic table access (admin database viewer)
  */
 class TableRepository {
     private $conn;
@@ -12,8 +12,9 @@ class TableRepository {
     }
 
     /**
-     * Ottiene la lista di tutte le tabelle
-     * @return array Lista dei nomi delle tabelle
+     * Get all table names in the database
+     *
+     * @return array  List of table names
      */
     public function getAllTables() {
         $result = $this->conn->query("SHOW TABLES");
@@ -25,45 +26,32 @@ class TableRepository {
     }
 
     /**
-     * Ottiene tutti i dati di una tabella
-     * @param string $table Nome della tabella
-     * @return array Dati della tabella con colonne, tipi e righe
+     * Get all data from a table
+     *
+     * @param string $table  Table name
+     * @return array         Columns, types and rows
      */
-    public function getTableData($table) {
-        $result = $this->conn->query("SELECT * FROM $table");
+    public function getTableData(string $table) {
+        $result = $this->conn->query("SELECT * FROM `$table`");
+
+        if (!$result || $result->num_rows === 0) {
+            return ['columns' => [], 'columnTypes' => [], 'rows' => [], 'totalCount' => 0];
+        }
 
         $columns = [];
         $columnTypes = [];
-        $rows = [];
-        $totalCount = 0;
-
-        // Ottieni il numero totale di righe
-        $countResult = $this->conn->query("SELECT COUNT(*) as total FROM $table");
-        if ($countRow = $countResult->fetch_assoc()) {
-            $totalCount = $countRow['total'];
+        foreach ($result->fetch_fields() as $field) {
+            $columns[] = $field->name;
+            $columnTypes[$field->name] = $field->type;
         }
 
-        if ($result && $result->num_rows > 0) {
-            // Ottieni nomi colonne e i loro tipi
-            $fields = $result->fetch_fields();
-            foreach ($fields as $field) {
-                $columns[] = $field->name;
-                $columnTypes[$field->name] = $field->type;
-            }
-
-            // Ottieni TUTTI i dati
-            $result->data_seek(0);
-            while ($row = $result->fetch_assoc()) {
-                $rows[] = $row;
-            }
-        }
+        $rows = $result->fetch_all(MYSQLI_ASSOC);
 
         return [
             'columns' => $columns,
             'columnTypes' => $columnTypes,
             'rows' => $rows,
-            'count' => count($rows),
-            'totalCount' => $totalCount
+            'totalCount' => count($rows)
         ];
     }
 }

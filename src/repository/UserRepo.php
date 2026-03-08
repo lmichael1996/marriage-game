@@ -37,7 +37,7 @@ class UserRepo {
 
     public function updateCredentials($userId, $newUsername, $newPassword = null) {
         if ($newPassword) {
-            $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+            $hashedPassword = password_hash($newPassword, PASSWORD_ARGON2ID);
             $stmt = $this->conn->prepare("UPDATE users SET username = ?, user_password = ? WHERE id = ?");
             $stmt->bind_param("ssi", $newUsername, $hashedPassword, $userId);
         } else {

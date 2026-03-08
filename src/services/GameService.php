@@ -2,7 +2,6 @@
 require_once __DIR__ . '/../repository/RoundRepo.php';
 require_once __DIR__ . '/../repository/AnswerRepo.php';
 require_once __DIR__ . '/../repository/SettingsRepo.php';
-require_once __DIR__ . '/../repository/PlayerRepo.php';
 require_once __DIR__ . '/../repository/RoomRepo.php';
 require_once __DIR__ . '/../utils/auth.php';
 
@@ -13,7 +12,6 @@ class GameService {
     private $roundRepo;
     private $answerRepo;
     private $settingsRepo;
-    private $playerRepo;
     private $roomRepo;
     private $questionService;
 
@@ -21,7 +19,6 @@ class GameService {
         $this->roundRepo = new RoundRepo();
         $this->answerRepo = new AnswerRepo();
         $this->settingsRepo = new SettingsRepo();
-        $this->playerRepo = new PlayerRepo();
         $this->roomRepo = new RoomRepo();
         $this->questionService = new QuestionService();
     }
@@ -54,18 +51,6 @@ class GameService {
         } catch (Exception $e) {
             return ['success' => false, 'error' => $e->getMessage()];
         }
-    }
-
-    /**
-     * Get active round from session
-     */
-    public function getActiveRound($questionSetId = null) {
-        $roomCode = authRoomCode();
-        if (!$roomCode) {
-            return null;
-        }
-
-        return $_SESSION['active_round_data_' . $roomCode] ?? null;
     }
 
     /**
@@ -171,26 +156,6 @@ class GameService {
     }
 
     /**
-     * Get the leaderboard for a room.
-     * Resolves room code to room ID, then delegates to AnswerRepo.
-     *
-     * @param string|null $roomCode The player/judge room code, or null for session room
-     * @return array {success: bool, leaderboard: array}
-     */
-    public function getLeaderboard(?int $roomId = null): array {
-        $roomId = $roomId ?? authRoomId();
-
-        if (!$roomId) {
-            return ['success' => false, 'leaderboard' => []];
-        }
-
-        return [
-            'success' => true,
-            'leaderboard' => $this->answerRepo->getLeaderboard($roomId)
-        ];
-    }
-
-    /**
      * Submit answer using round_id directly
      */
     public function submitAnswerByRoundId($roundId, $answer, $timeTaken) {
@@ -261,15 +226,17 @@ class GameService {
             }
 
             // Sum points from saved ranking JSON
-            $playerScores = [];
+            $playerScores = [];    // player_id => total points
+            $playerNames  = [];    // player_id => username
             foreach ($latestRounds as $round) {
                 $ranking = json_decode($round['ranking'] ?? '[]', true);
                 if (!is_array($ranking)) continue;
                 foreach ($ranking as $entry) {
-                    $username = $entry['username'] ?? null;
+                    $playerId = $entry['player_id'] ?? null;
                     $points   = $entry['points'] ?? 0;
-                    if ($username) {
-                        $playerScores[$username] = ($playerScores[$username] ?? 0) + $points;
+                    if ($playerId) {
+                        $playerScores[$playerId] = ($playerScores[$playerId] ?? 0) + $points;
+                        $playerNames[$playerId]  = $entry['username'] ?? '';
                     }
                 }
             }
@@ -280,19 +247,16 @@ class GameService {
             $leaderboard = [];
             $first = true;
 
-            foreach ($playerScores as $username => $score) {
+            foreach ($playerScores as $playerId => $score) {
                 $index = count($leaderboard);
                 $leaderboard[] = [
-                    'username' => $username,
+                    'username' => $playerNames[$playerId],
                     'score'    => $score,
                     'medal'    => $medals[$index] ?? ''
                 ];
 
                 if ($first) {
-                    $player = $this->playerRepo->getPlayerByRoomAndUsername($room['id'], $username);
-                    if ($player) {
-                        $this->roomRepo->setWinner($room['id'], $player['id']);
-                    }
+                    $this->roomRepo->setWinner($room['id'], $playerId);
                     $first = false;
                 }
             }

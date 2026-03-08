@@ -86,10 +86,6 @@ switch ($endpoint) {
         handleGame($action);
         break;
 
-    case 'leaderboard':
-        handleLeaderboard();
-        break;
-
     case 'round_answers':
         handleRoundAnswers();
         break;
@@ -479,11 +475,6 @@ function handleCheckWinner() {
     }
 }
 
-function handleLeaderboard() {
-    requireLoginJson();
-    respond(svc('game')->getLeaderboard());
-}
-
 function handleRoundAnswers() {
     requireLoginJson();
     $roundId = $_GET['round_id'] ?? 0;
@@ -611,7 +602,6 @@ function handleUpdateQuestionSetMetadata() {
     try {
         $q = svc('question');
         $q->update($data['set_id'], $data['set_name'], $data['set_description'] ?? '');
-        if (($data['is_saved'] ?? null) !== null) $q->setSaved($data['set_id'], $data['is_saved']);
         respond(['success' => true, 'message' => 'Question set metadata updated successfully']);
     } catch (Exception $e) { respondError($e->getMessage()); }
 }

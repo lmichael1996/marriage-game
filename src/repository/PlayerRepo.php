@@ -66,27 +66,4 @@ class PlayerRepo {
 
         return $players;
     }
-
-    /**
-     * Find a player by room and username.
-     *
-     * Used by markWinner and player reconnection to resolve username → player ID.
-     *
-     * @param int    $roomId   The room ID
-     * @param string $username The player's display name
-     * @return array|null Player row with 'id', or null if not found
-     */
-    public function getPlayerByRoomAndUsername(int $roomId, string $username): ?array {
-        $stmt = $this->conn->prepare("
-            SELECT id FROM players
-            WHERE room_id = ? AND username = ?
-        ");
-        $stmt->bind_param("is", $roomId, $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $player = $result->fetch_assoc();
-        $stmt->close();
-
-        return $player;
-    }
 }

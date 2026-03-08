@@ -48,25 +48,15 @@ class AuthService {
         if (empty($username)) throw new Exception('Nome giocatore obbligatorio');
         if (empty($roomCode)) throw new Exception('Codice stanza obbligatorio');
 
-        $roomExists = $this->roomRepo->getRoomByCode($roomCode);
-        if (!$roomExists) throw new Exception('Codice stanza non valido');
+        $room = $this->roomRepo->getOpenRoomByPlayerCode($roomCode);
+        if (!$room) throw new Exception('Codice stanza non valido o stanza non disponibile');
 
-        if ($roomExists['status_room'] !== 'open') {
-            $statusMessage = match($roomExists['status_room']) {
-                'running'   => 'La partita è già iniziata, non puoi unirti',
-                'cancelled' => 'La stanza è stata cancellata',
-                'closed'    => 'La stanza è stata chiusa',
-                default     => 'Lo stato della stanza non consente l\'ingresso'
-            };
-            throw new Exception($statusMessage);
-        }
-
-        if ($roomExists['winner_id'] !== null) {
+        if ($room['winner_id'] !== null) {
             throw new Exception('La partita in questa stanza è già terminata');
         }
 
         try {
-            $playerId = $this->playerRepo->createPlayer($username, $roomExists['id']);
+            $playerId = $this->playerRepo->createPlayer($username, $room['id']);
         } catch (Exception $e) {
             throw new Exception($e->getMessage());
         }
@@ -78,7 +68,7 @@ class AuthService {
             'player_id' => (int)$playerId,
             'username'  => $username,
             'room_code' => $roomCode,
-            'room_id'   => (int)$roomExists['id'],
+            'room_id'   => (int)$room['id'],
         ];
 
         return 'player';
@@ -88,18 +78,9 @@ class AuthService {
         $roomCode = strtoupper(trim($roomCode));
         if (empty($roomCode)) throw new Exception('Codice stanza obbligatorio');
 
-        $room = $this->roomRepo->getRoomByCode($roomCode);
-        if (!$room || $room['code_judge'] !== $roomCode) {
-            throw new Exception('Codice giudice non valido');
-        }
-
-        if (!in_array($room['status_room'], ['open', 'running'])) {
-            $statusMessage = match($room['status_room']) {
-                'cancelled' => 'La stanza è stata cancellata',
-                'closed'    => 'La stanza è stata chiusa',
-                default     => 'Lo stato della stanza non consente l\'ingresso'
-            };
-            throw new Exception($statusMessage);
+        $room = $this->roomRepo->getRoomByJudgeCode($roomCode);
+        if (!$room) {
+            throw new Exception('Codice giudice non valido o stanza non disponibile');
         }
 
         // Controlla se un giudice è già connesso alla stanza

@@ -52,19 +52,41 @@ class RoomRepo {
     }
 
     /**
-     * Find a room by access code (searches both player and judge codes).
+     * Find an open room by player code.
      *
-     * @param string $code  Room code to look up (case-insensitive)
-     * @return array|null   Room row or null if not found
+     * @param string $code  Player room code (case-insensitive)
+     * @return array|null   Room row or null if not found/not open
      */
-    public function getRoomByCode(string $code): ?array {
+    public function getOpenRoomByPlayerCode(string $code): ?array {
         $stmt = $this->conn->prepare("
             SELECT *
             FROM rooms
-            WHERE code_player = ? OR code_judge = ?
+            WHERE code_player = ? AND status_room = 'open'
         ");
         $codeUpper = strtoupper($code);
-        $stmt->bind_param("ss", $codeUpper, $codeUpper);
+        $stmt->bind_param("s", $codeUpper);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $room = $result->fetch_assoc();
+        $stmt->close();
+
+        return $room;
+    }
+
+    /**
+     * Find an open room by judge code.
+     *
+     * @param string $code  Judge room code (case-insensitive)
+     * @return array|null   Room row or null if not found/not open
+     */
+    public function getRoomByJudgeCode(string $code): ?array {
+        $stmt = $this->conn->prepare("
+            SELECT *
+            FROM rooms
+            WHERE code_judge = ? AND status_room = 'open'
+        ");
+        $codeUpper = strtoupper($code);
+        $stmt->bind_param("s", $codeUpper);
         $stmt->execute();
         $result = $stmt->get_result();
         $room = $result->fetch_assoc();

@@ -133,7 +133,6 @@ extract(loadGameRoom());
     <script>
         let selectedGameSetId = null;
         let selectedGameSetName = '';
-        let selectedGameSetIsSaved = true;
         let roomActive = false;
         let codePlayer = '';
         let codeJudge = '';
@@ -145,7 +144,6 @@ extract(loadGameRoom());
         (function() {
             selectedGameSetId = <?php echo (int)$selectedSet['id']; ?>;
             selectedGameSetName = <?php echo json_encode($selectedSet['set_name']); ?>;
-            selectedGameSetIsSaved = <?php echo (int)($selectedSet['is_saved'] ?? 1); ?> === 1;
         })();
         <?php endif; ?>
 
@@ -240,7 +238,6 @@ extract(loadGameRoom());
                 if (selectedSet) {
                     selectedGameSetId = setId;
                     selectedGameSetName = selectedSet.set_name;
-                    selectedGameSetIsSaved = selectedSet.is_saved === 1;
 
                     // Trigger confirmation automatically
                     confirmSelection();

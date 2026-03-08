@@ -81,40 +81,5 @@ class AnswerRepo {
             return [];
         }
     }
-
-    /**
-     * Get the leaderboard for a room (top 10 players by total answers).
-     *
-     * @param int $roomId The room ID
-     * @return array Leaderboard rows with username and total_answers
-     */
-    public function getLeaderboard(int $roomId): array {
-        try {
-            $stmt = $this->conn->prepare("
-                SELECT
-                    p.username,
-                    COUNT(pa.id) as total_answers
-                FROM players p
-                LEFT JOIN player_answers pa ON pa.player_id = p.id
-                WHERE p.room_id = ?
-                GROUP BY p.id
-                ORDER BY total_answers DESC
-                LIMIT 10
-            ");
-            $stmt->bind_param("i", $roomId);
-            $stmt->execute();
-            $result = $stmt->get_result();
-
-            $leaderboard = [];
-            while ($row = $result->fetch_assoc()) {
-                $leaderboard[] = $row;
-            }
-
-            $stmt->close();
-            return $leaderboard;
-        } catch (Exception $e) {
-            return [];
-        }
-    }
 }
 ?>

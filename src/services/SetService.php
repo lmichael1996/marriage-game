@@ -15,25 +15,34 @@ class SetService {
     }
 
     /**
-     * Get all question sets
+     * Get all question sets (paginated)
      */
     public function getAll($page = 1, $limit = 10) {
-        return $this->setRepo->getAll($limit, ($page - 1) * $limit);
+        $all = $this->setRepo->getAllSets();
+        $total = count($all);
+
+        return [
+            'sets' => array_slice($all, ($page - 1) * $limit, $limit),
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+            'pages' => ceil($total / $limit)
+        ];
     }
 
     /**
-     * Search question sets
+     * Search question sets (paginated)
      */
     public function search($searchTerm, $searchType = 'contains', $page = 1, $limit = 10) {
-        $sets = $this->setRepo->search($searchTerm, $searchType, $limit, ($page - 1) * $limit);
-        $count = $this->setRepo->countSearch($searchTerm, $searchType);
+        $all = $this->setRepo->searchSets($searchTerm, $searchType);
+        $total = count($all);
 
         return [
-            'sets' => $sets,
-            'total' => $count,
+            'sets' => array_slice($all, ($page - 1) * $limit, $limit),
+            'total' => $total,
             'page' => $page,
             'limit' => $limit,
-            'pages' => ceil($count / $limit)
+            'pages' => ceil($total / $limit)
         ];
     }
 
@@ -41,7 +50,7 @@ class SetService {
      * Get question set by ID
      */
     public function getById($setId) {
-        return $this->setRepo->getById($setId);
+        return $this->setRepo->getSetById($setId);
     }
 
     /**
@@ -52,7 +61,7 @@ class SetService {
             throw new Exception("Set name is required");
         }
 
-        $setId = $this->setRepo->add($setName, $setDescription);
+        $setId = $this->setRepo->createSet($setName, $setDescription);
         if (!$setId) {
             throw new Exception("Failed to create question set");
         }
@@ -68,7 +77,7 @@ class SetService {
             throw new Exception("Set ID and name are required");
         }
 
-        $success = $this->setRepo->update($setId, $setName, $setDescription);
+        $success = $this->setRepo->updateSet($setId, $setName, $setDescription);
         if (!$success) {
             throw new Exception("Failed to update question set");
         }
@@ -84,7 +93,7 @@ class SetService {
             throw new Exception("Set ID is required");
         }
 
-        $success = $this->setRepo->delete($setId);
+        $success = $this->setRepo->deleteSet($setId);
         if (!$success) {
             throw new Exception("Failed to delete question set");
         }
@@ -107,7 +116,7 @@ class SetService {
             throw new Exception("Set ID and question ID are required");
         }
 
-        return $this->setRepo->addQuestion($setId, $questionId, $orderInSet);
+        return $this->setRepo->addQuestionToSet($setId, $questionId, $orderInSet);
     }
 
     /**
@@ -118,7 +127,7 @@ class SetService {
             throw new Exception("Set ID, question ID, and position are required");
         }
 
-        return $this->setRepo->addQuestionAtPosition($setId, $questionId, $position);
+        return $this->setRepo->insertQuestionAt($setId, $questionId, $position);
     }
 
     /**
@@ -129,7 +138,7 @@ class SetService {
             throw new Exception("Set ID and questions are required");
         }
 
-        return $this->setRepo->updateQuestionsOrder($setId, $questions);
+        return $this->setRepo->reorderQuestions($setId, $questions);
     }
 
     /**
@@ -140,7 +149,7 @@ class SetService {
             throw new Exception("Set ID and question ID are required");
         }
 
-        return $this->setRepo->removeQuestion($setId, $questionId);
+        return $this->setRepo->removeQuestionFromSet($setId, $questionId);
     }
 
     /**

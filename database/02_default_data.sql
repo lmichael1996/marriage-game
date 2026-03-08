@@ -9,7 +9,7 @@ INSERT INTO
 VALUES
     (
         'admin',
-        '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'
+        '$argon2id$v=19$m=65536,t=4,p=1$ZFpvc25WeG9DampMRjR4NQ$+Ah56vOpAE6/R2pOXqqqdfOWY+4IhhZuxqSWKz49e2I'
     );
 
 -- Insert default question categories

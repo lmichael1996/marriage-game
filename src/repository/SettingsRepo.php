@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
 
+/**
+ * Repository for the `game_settings` table.
+ */
 class SettingsRepo {
     private $conn;
 
@@ -9,9 +12,12 @@ class SettingsRepo {
     }
 
     /**
-     * Get a single setting value
+     * Get a single setting value by key. Returns null if not found.
+     *
+     * @param string $key  Setting key
+     * @return string|null Setting value or null
      */
-    public function getSetting($key) {
+    public function getSetting(string $key): ?string {
         $stmt = $this->conn->prepare("SELECT setting_value FROM game_settings WHERE setting_key = ?");
         $stmt->bind_param("s", $key);
         $stmt->execute();
@@ -23,9 +29,11 @@ class SettingsRepo {
     }
 
     /**
-     * Get all settings as key-value array
+     * Get all settings as associative array [setting_key => setting_value]
+     *
+     * @return array<string, string>  All settings
      */
-    public function getAllSettings() {
+    public function getAllSettings(): array {
         $result = $this->conn->query("SELECT setting_key, setting_value FROM game_settings");
         $settings = [];
 
@@ -37,9 +45,13 @@ class SettingsRepo {
     }
 
     /**
-     * Save or update a setting
+     * Insert or update a single setting (UPSERT)
+     *
+     * @param string $key    Setting key
+     * @param string $value  Setting value
+     * @return bool          true on success
      */
-    public function saveSetting($key, $value) {
+    public function saveSetting(string $key, string $value): bool {
         $stmt = $this->conn->prepare("
             INSERT INTO game_settings (setting_key, setting_value)
             VALUES (?, ?)
@@ -53,14 +65,21 @@ class SettingsRepo {
     }
 
     /**
-     * Save multiple settings at once
+     * Insert or update only the settings that actually changed
+     *
+     * @param array<string, string> $settings  [setting_key => setting_value]
+     * @return bool                             false if any upsert failed
      */
-    public function saveSettings($settings) {
+    public function saveSettings(array $settings): bool {
+        // Get current settings to compare and avoid unnecessary updates
+        $current = $this->getAllSettings();
         $success = true;
 
         foreach ($settings as $key => $value) {
-            if (!$this->saveSetting($key, $value)) {
-                $success = false;
+            if (($current[$key] ?? null) !== $value) {
+                if (!$this->saveSetting($key, $value)) {
+                    $success = false;
+                }
             }
         }
 

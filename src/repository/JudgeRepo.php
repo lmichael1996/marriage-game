@@ -14,16 +14,31 @@ class JudgeRepo {
         $this->conn = getDBConnection();
     }
 
+    // 1062 = MySQL duplicate entry error
+    private const int DUPLICATE_ENTRY_ERROR_CODE = 1062;
+
     /**
      * Create a new judge record for a room.
+     * Relies on UNIQUE(room_id) constraint to prevent duplicates.
      *
      * @param int $roomId The room to assign the judge to
      * @return int The newly created judge ID
+     * @throws Exception If a judge already exists for this room or DB error
      */
     public function createJudge(int $roomId): int {
         $stmt = $this->conn->prepare("INSERT INTO judges (room_id) VALUES (?)");
         $stmt->bind_param('i', $roomId);
-        $stmt->execute();
+
+        if (!$stmt->execute()) {
+            $errno = $stmt->errno;
+            $stmt->close();
+
+            if ($errno === self::DUPLICATE_ENTRY_ERROR_CODE) {
+                throw new Exception('Un giudice è già connesso a questa stanza.');
+            }
+            throw new Exception('Errore durante la creazione del giudice.');
+        }
+
         $judgeId = $this->conn->insert_id;
         $stmt->close();
         return (int)$judgeId;

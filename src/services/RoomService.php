@@ -135,7 +135,7 @@ class RoomService {
         $room['player_count'] = count($room['players'] ?? []);
 
         if ($room['qset_id'] ?? null) {
-            $room['question_set'] = $this->setRepo->getById($room['qset_id']);
+            $room['question_set'] = $this->setRepo->getSetById($room['qset_id']);
         }
 
         return $room;
@@ -186,10 +186,10 @@ class RoomService {
             $ranking = json_decode($round['ranking'] ?? '[]', true);
             if (!is_array($ranking)) continue;
             foreach ($ranking as $entry) {
-                $username = $entry['username'] ?? null;
+                $playerId = $entry['player_id'] ?? null;
                 $points   = $entry['points'] ?? 0;
-                if ($username) {
-                    $playerScores[$username] = ($playerScores[$username] ?? 0) + $points;
+                if ($playerId) {
+                    $playerScores[$playerId] = ($playerScores[$playerId] ?? 0) + $points;
                 }
             }
         }
@@ -199,14 +199,9 @@ class RoomService {
         }
 
         arsort($playerScores);
-        $winnerUsername = array_key_first($playerScores);
+        $winnerId = array_key_first($playerScores);
 
-        $player = $this->playerRepo->getPlayerByRoomAndUsername($roomId, $winnerUsername);
-        if (!$player) {
-            return false;
-        }
-
-        return $this->roomRepo->setWinner($roomId, $player['id']);
+        return $this->roomRepo->setWinner($roomId, $winnerId);
     }
 
     /**
@@ -227,13 +222,6 @@ class RoomService {
         $judgeConnected = $this->judgeRepo->isJudgeConnected($roomId);
 
         return ['devices' => $devices, 'count' => count($devices), 'judge_connected' => $judgeConnected];
-    }
-
-    /**
-     * Get a player by room ID and username
-     */
-    public function getPlayerByRoomAndUsername($roomId, $username) {
-        return $this->playerRepo->getPlayerByRoomAndUsername($roomId, $username);
     }
 
     /**
