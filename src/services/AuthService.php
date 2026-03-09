@@ -80,6 +80,14 @@ class AuthService {
             'error' => 'La stanza non è più disponibile'
         ];
 
+        // One-time session: block re-login if this player already logged out
+        if ($this->playerRepo->isPlayerLoggedOut($username, $room['id'])) {
+            return [
+                'success' => false,
+                'error' => 'Sei già uscito da questa stanza, non puoi rientrare'
+            ];
+        }
+
         $result = $this->playerRepo->createPlayer($username, $room['id']);
         if (is_array($result)) return $result;
 
@@ -130,6 +138,14 @@ class AuthService {
             ];
         }
 
+        // One-time session: block re-login if the judge already logged out
+        if ($this->judgeRepo->isJudgeLoggedOut($room['id'])) {
+            return [
+                'success' => false,
+                'error' => 'Il giudice è già uscito da questa stanza, non può rientrare'
+            ];
+        }
+
         $result = $this->judgeRepo->createJudge($room['id']);
         if (is_array($result)) return $result;
 
@@ -153,11 +169,26 @@ class AuthService {
      */
     public function logout(?string $role = null): bool {
         if ($role) {
+            // Mark player/judge as logged out in DB (one-time session)
+            if ($role === 'player' && isset($_SESSION['auth_player']['player_id'])) {
+                $this->playerRepo->markLoggedOut($_SESSION['auth_player']['player_id']);
+            }
+            if ($role === 'judge' && isset($_SESSION['auth_judge']['judge_id'])) {
+                $this->judgeRepo->markLoggedOut($_SESSION['auth_judge']['judge_id']);
+            }
+
             unset($_SESSION['auth_' . $role]);
             if ($role === 'admin') {
                 unset($_SESSION['active_room_code'], $_SESSION['active_judge_code'], $_SESSION['room_id']);
             }
         } else {
+            // Full destroy — mark any active player/judge first
+            if (isset($_SESSION['auth_player']['player_id'])) {
+                $this->playerRepo->markLoggedOut($_SESSION['auth_player']['player_id']);
+            }
+            if (isset($_SESSION['auth_judge']['judge_id'])) {
+                $this->judgeRepo->markLoggedOut($_SESSION['auth_judge']['judge_id']);
+            }
             session_destroy();
         }
         return true;

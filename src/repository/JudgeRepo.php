@@ -63,4 +63,34 @@ class JudgeRepo {
         $stmt->close();
         return $exists;
     }
+
+    /**
+     * Check if the judge for this room was already logged out.
+     *
+     * @param int $roomId Room ID
+     * @return bool True if the judge exists and has logged_out = 1
+     */
+    public function isJudgeLoggedOut(int $roomId): bool {
+        $stmt = $this->conn->prepare(
+            "SELECT logged_out FROM judges WHERE room_id = ? LIMIT 1"
+        );
+        $stmt->bind_param("i", $roomId);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        return $row && (int)$row['logged_out'] === 1;
+    }
+
+    /**
+     * Mark the judge as logged out (one-time session).
+     *
+     * @param int $judgeId Judge ID
+     */
+    public function markLoggedOut(int $judgeId): void {
+        $stmt = $this->conn->prepare("UPDATE judges SET logged_out = 1 WHERE id = ?");
+        $stmt->bind_param("i", $judgeId);
+        $stmt->execute();
+        $stmt->close();
+    }
 }
