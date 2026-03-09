@@ -1,15 +1,13 @@
 <?php
-require_once __DIR__ . '/../repository/QuestionRepo.php';
 
 /**
  * Handles business logic for questions and categories.
  */
 class QuestionService {
-    private QuestionRepo $questionRepo;
 
-    public function __construct() {
-        $this->questionRepo = new QuestionRepo();
-    }
+    public function __construct(
+        private QuestionRepo $questionRepo
+    ) {}
 
     // ── Questions ────────────────────────────────────────────────────────
 
@@ -52,7 +50,10 @@ class QuestionService {
     public function addQuestion(array $questionData): array {
         $questionId = $this->questionRepo->insertQuestion($questionData);
         if (!$questionId) {
-            return ['success' => false, 'error' => 'Impossibile aggiungere la domanda'];
+            return [
+                'success' => false,
+                'error' => 'Impossibile aggiungere la domanda'
+            ];
         }
 
         return [

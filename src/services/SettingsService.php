@@ -1,12 +1,9 @@
 <?php
-require_once __DIR__ . '/../repository/SettingsRepo.php';
 
 /**
  * Service for game settings management (points configuration).
  */
 class SettingsService {
-    private SettingsRepo $settingsRepo;
-
     private const array DEFAULT_POINTS = [
         // Multiple Choice points
         'points_mult_1st'  => 25,
@@ -36,9 +33,9 @@ class SettingsService {
         'points_clickfirst' => 50
     ];
 
-    public function __construct() {
-        $this->settingsRepo = new SettingsRepo();
-    }
+    public function __construct(
+        private SettingsRepo $settingsRepo
+    ) {}
 
     /**
      * Get a single setting value by key.
@@ -78,7 +75,10 @@ class SettingsService {
         $success = $this->settingsRepo->saveSettings($settings);
 
         if (!$success) {
-            return ['success' => false, 'error' => 'Impossibile salvare le impostazioni'];
+            return [
+                'success' => false,
+                'error' => 'Impossibile salvare le impostazioni'
+            ];
         }
 
         return ['success' => true];

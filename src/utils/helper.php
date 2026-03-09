@@ -27,7 +27,7 @@ function redirect(string $tab, ?string $success = null, ?string $error = null): 
 
 function handleCredentials(): void {
     $tab = isset($_POST['admin_new_password']) ? 'general' : 'settings';
-    $result = svc('auth')->updateCredentials(
+    $result = Container::auth()->updateCredentials(
         authUserId(),
         $_POST['admin_username'] ?? '',
         $_POST['admin_new_password'] ?? null,
@@ -37,12 +37,12 @@ function handleCredentials(): void {
         redirect($tab, null, $result['error'] ?? 'Impossibile aggiornare le credenziali');
         return;
     }
-    svc('auth')->updateAdminSession(authUserId(), $result['username']);
+    Container::auth()->updateAdminSession(authUserId(), $result['username']);
     redirect($tab, 'credentials_updated');
 }
 
 function handleSettings(): void {
-    $result = svc('settings')->saveSettings($_POST);
+    $result = Container::settings()->saveSettings($_POST);
     if (!($result['success'] ?? false)) {
         $error = $result['error'] ?? 'Impossibile salvare le impostazioni';
         if (isAjax()) jsonResponse(['success' => false, 'error' => $error], 400);
@@ -50,7 +50,7 @@ function handleSettings(): void {
         return;
     }
     if (isAjax()) {
-        $settings = svc('settings')->getAllSettings();
+        $settings = Container::settings()->getAllSettings();
         jsonResponse([
             'success' => true,
             'message' => 'Impostazioni salvate',
@@ -62,7 +62,7 @@ function handleSettings(): void {
 
 function handleRound(string $action): void {
     $method = $action === 'start_round' ? 'startRound' : 'closeRound';
-    $result = svc('game')->$method((int)($_POST['round_id'] ?? 0));
+    $result = Container::game()->$method((int)($_POST['round_id'] ?? 0));
     $ok     = $result['success'] ?? false;
     redirect('sets', $ok ? 'round_updated' : null, $ok ? null : ($result['error'] ?? 'Errore operazione round'));
 }
@@ -77,8 +77,8 @@ function handleQuestion(bool $isUpdate): void {
     }
 
     $result = $isUpdate
-        ? svc('question')->updateQuestion($data)
-        : svc('question')->addQuestion($data);
+        ? Container::question()->updateQuestion($data)
+        : Container::question()->addQuestion($data);
 
     if (!($result['success'] ?? false)) {
         $error = $result['error'] ?? 'Errore durante l\'operazione';
@@ -99,14 +99,14 @@ function handleDeleteQuestion(): void {
         redirect('sets', null, 'ID domanda non valido');
     }
 
-    $result = svc('question')->deleteQuestion($qId);
+    $result = Container::question()->deleteQuestion($qId);
     $ok     = $result['success'] ?? false;
     if (isAjax()) jsonResponse($result);
     redirect('sets', $ok ? 'question_deleted' : null, $ok ? null : ($result['error'] ?? null));
 }
 
 function handleQuestionSet(string $action): void {
-    $qs   = svc('set');
+    $qs   = Container::set();
     $id   = (int)($_POST['set_id'] ?? 0);
     $name = trim($_POST['set_name'] ?? '');
     $desc = $_POST['set_description'] ?? '';
@@ -186,7 +186,7 @@ function loadQuestionsTab(): array {
         $_SESSION['questions_page'] = (int)$_POST['questions_page'];
     }
 
-    $all    = svc('question')->getAllQuestions(1, 1000)['questions'];
+    $all    = Container::question()->getAllQuestions(1, 1000)['questions'];
     $cat    = $_POST['category'] ?? '';
     $search = strtolower(trim($_POST['search_query'] ?? ''));
     $type   = $_POST['search_type'] ?? 'contains';
@@ -202,7 +202,7 @@ function loadQuestionsTab(): array {
 
     return [
         'questions'  => array_slice($all, ($page - 1) * $perPage, $perPage),
-        'categories' => svc('question')->getAllCategories(),
+        'categories' => Container::question()->getAllCategories(),
         'pagination' => compact('total', 'page', 'perPage') + ['totalPages' => (int)ceil($total / $perPage)],
     ];
 }
@@ -227,8 +227,8 @@ function loadSetsTab(): array {
 
     $search   = $_POST['set_search_query'] ?? '';
     $setsData = $search
-        ? svc('set')->searchSets($search, $_POST['set_search_type'] ?? 'contains', $_SESSION['sets_page'])
-        : svc('set')->getAllQuestionSets($_SESSION['sets_page']);
+        ? Container::set()->searchSets($search, $_POST['set_search_type'] ?? 'contains', $_SESSION['sets_page'])
+        : Container::set()->getAllQuestionSets($_SESSION['sets_page']);
 
     return [
         'questionSets' => $setsData['sets'],
@@ -237,16 +237,16 @@ function loadSetsTab(): array {
 }
 
 function loadGeneralTab(): array {
-    return ['gameSettings' => svc('settings')->getAllSettings()['settings']];
+    return ['gameSettings' => Container::settings()->getAllSettings()['settings']];
 }
 
 function loadGameRoom(): array {
-    $gameSettings = svc('settings')->getAllSettings()['settings'];
-    $questionSets = svc('set')->getAllQuestionSets(1, 100)['sets'];
+    $gameSettings = Container::settings()->getAllSettings()['settings'];
+    $questionSets = Container::set()->getAllQuestionSets(1, 100)['sets'];
 
     $selectedSetId = isset($_GET['set_id']) ? (int)$_GET['set_id'] : null;
     $selectedSet   = $selectedSetId
-        ? svc('set')->getQuestionSetById($selectedSetId)
+        ? Container::set()->getQuestionSetById($selectedSetId)
         : null;
 
     return compact('gameSettings', 'questionSets', 'selectedSetId', 'selectedSet');
@@ -254,7 +254,7 @@ function loadGameRoom(): array {
 
 function loadRoomAdmin(): array {
     $roomId = (int)($_GET['room_id'] ?? $_SESSION['room_id'] ?? 0);
-    $room   = $roomId ? svc('room')->getRoomById($roomId) : null;
+    $room   = $roomId ? Container::room()->getRoomById($roomId) : null;
     if (!$room) {
         header('Location: admin.php');
         exit;
@@ -268,10 +268,10 @@ function loadRoomAdmin(): array {
     $counter    = $_SESSION[$counterKey] ?? 1;
 
     // Current question and active round
-    $question    = svc('set')->getQuestionByCounter($room['qset_id'], $counter);
+    $question    = Container::set()->getQuestionByCounter($room['qset_id'], $counter);
     $activeRound = null;
     if ($question) {
-        $round = svc('room')->getActiveRound($room['id']);
+        $round = Container::room()->getActiveRound($room['id']);
         if ($round && $round['question_id'] == $question['id']) {
             $activeRound = $round;
         }
@@ -281,7 +281,7 @@ function loadRoomAdmin(): array {
 
     // If no more questions and the room is still 'running', close it
     if ($gameOver && $room['status_room'] === 'running') {
-        svc('room')->finishGame($roomId);
+        Container::room()->finishGame($roomId);
         // Update local data for consistency
         $room['status_room'] = 'closed';
     }
@@ -290,17 +290,17 @@ function loadRoomAdmin(): array {
     $roomInfoKey = 'room_info_' . $roomId;
     if (!isset($_SESSION[$roomInfoKey])) {
         $_SESSION[$roomInfoKey] = [
-            'num_players'     => svc('room')->getPlayerCount($roomId),
-            'total_questions' => svc('set')->getQuestionCountByQset($room['qset_id']),
+            'num_players'     => Container::room()->getPlayerCount($roomId),
+            'total_questions' => Container::set()->getQuestionCountByQset($room['qset_id']),
         ];
     }
     $roomInfo = $_SESSION[$roomInfoKey];
 
-    $judgeConnected = svc('room')->isJudgeConnected($roomId);
+    $judgeConnected = Container::room()->isJudgeConnected($roomId);
 
     return compact('roomId', 'room', 'counter', 'question', 'activeRound', 'gameOver', 'roomInfo', 'judgeConnected');
 }
 
 function getTableData(): array {
-    return svc('table')->getAllTablesData();
+    return Container::table()->getAllTablesData();
 }

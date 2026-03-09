@@ -1,33 +1,21 @@
 <?php
-require_once __DIR__ . '/../repository/RoomRepo.php';
-require_once __DIR__ . '/../repository/PlayerRepo.php';
-require_once __DIR__ . '/../repository/RoundRepo.php';
-require_once __DIR__ . '/../repository/SetRepo.php';
-require_once __DIR__ . '/../repository/JudgeRepo.php';
-require_once __DIR__ . '/../utils/QRGenerator.php';
 
 /**
  * Handles room business logic (creation, start, close, details).
  */
 class RoomService {
-    private RoomRepo $roomRepo;
-    private PlayerRepo $playerRepo;
-    private RoundRepo $roundRepo;
-    private SetRepo $setRepo;
-    private JudgeRepo $judgeRepo;
-
     private const LOGIN_PLAYER_PAGE = 'login-player.php';
     private const LOGIN_JUDGE_PAGE  = 'login-judge.php';
     private const EXTERNAL_API_TIMEOUT = 3;
     private const EXTERNAL_PORT = 9000;
 
-    public function __construct() {
-        $this->roomRepo = new RoomRepo();
-        $this->playerRepo = new PlayerRepo();
-        $this->roundRepo = new RoundRepo();
-        $this->setRepo = new SetRepo();
-        $this->judgeRepo = new JudgeRepo();
-    }
+    public function __construct(
+        private RoomRepo $roomRepo,
+        private PlayerRepo $playerRepo,
+        private RoundRepo $roundRepo,
+        private SetRepo $setRepo,
+        private JudgeRepo $judgeRepo
+    ) {}
 
     /**
      * Build the base URL from the current server.
@@ -92,7 +80,10 @@ class RoomService {
     public function startRoom(int $roomId): array {
         $room = $this->roomRepo->getRoomById($roomId);
         if (!$room) {
-            return ['success' => false, 'error' => 'Stanza non trovata'];
+            return [
+                'success' => false,
+                'error' => 'Stanza non trovata'
+            ];
         }
 
         $clearJudge = !$this->judgeRepo->isJudgeConnected($roomId);
@@ -177,7 +168,7 @@ class RoomService {
      * @return bool  true if ranking was saved
      */
     public function markFinalRanking(int $roomId): bool {
-        $leaderboard = svc('game')->getFinalLeaderboard($roomId);
+        $leaderboard = Container::game()->getFinalLeaderboard($roomId);
         return $leaderboard['success'] && !empty($leaderboard['leaderboard']);
     }
 

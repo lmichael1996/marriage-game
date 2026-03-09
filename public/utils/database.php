@@ -58,7 +58,7 @@ $tableData = getTableData();
                                                     <?php
                                                         $value = $row[$col];
                                                         $type = $data['columnTypes'][$col] ?? '';
-                                                        echo svc('table')->formatCellValue($value, $type, $col);
+                                                        echo Container::table()->formatCellValue($value, $type, $col);
                                                     ?>
                                                 </td>
                                             <?php endforeach; ?>

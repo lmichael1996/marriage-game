@@ -36,6 +36,8 @@
     </div>
 
     <script>
+        const returnUrl = new URLSearchParams(window.location.search).get('return') || '';
+
         document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -59,7 +61,8 @@
                     },
                     body: JSON.stringify({
                         username: username,
-                        password: password
+                        password: password,
+                        return: returnUrl
                     })
                 });
 

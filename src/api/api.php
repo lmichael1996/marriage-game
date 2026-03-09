@@ -161,7 +161,7 @@ switch ($endpoint) {
 function handlePlayerLogin() {
     requirePost();
     $data = input();
-    $result = svc('auth')->playerLogin($data['username'] ?? '', $data['room_code'] ?? '');
+    $result = Container::auth()->playerLogin($data['username'] ?? '', $data['room_code'] ?? '');
     if (!($result['success'] ?? false)) {
         respondError($result['error'] ?? 'Login fallito', 401);
     }
@@ -174,7 +174,7 @@ function handlePlayerLogin() {
 function handleAdminLogin() {
     requirePost();
     $data = input();
-    $result = svc('auth')->adminLogin($data['username'] ?? '', $data['password'] ?? '');
+    $result = Container::auth()->adminLogin($data['username'] ?? '', $data['password'] ?? '');
     if (!($result['success'] ?? false)) {
         respondError($result['error'] ?? 'Login fallito', 401);
     }
@@ -187,7 +187,7 @@ function handleAdminLogin() {
 function handleJudgeLogin() {
     requirePost();
     $data = input();
-    $result = svc('auth')->judgeLogin($data['room_code'] ?? '');
+    $result = Container::auth()->judgeLogin($data['room_code'] ?? '');
     if (!($result['success'] ?? false)) {
         respondError($result['error'] ?? 'Login fallito', 401);
     }
@@ -207,7 +207,7 @@ function handleAnswer() {
     if (!($data['round_id'] ?? 0))      respondError('ID round obbligatorio');
     if (($data['answer'] ?? '') === '')  respondError('Risposta obbligatoria');
 
-    $result = svc('game')->submitAnswerByRoundId($data['round_id'], $data['answer'], $data['time_taken'] ?? 0);
+    $result = Container::game()->submitAnswerByRoundId($data['round_id'], $data['answer'], $data['time_taken'] ?? 0);
     if (!($result['success'] ?? true)) {
         respondError($result['error'] ?? 'Impossibile inviare la risposta', 500);
     }
@@ -217,7 +217,7 @@ function handleAnswer() {
 // ── Room ─────────────────────────────────────────────────────────────────
 
 function handleCreateRoom() {
-    $room   = svc('room');
+    $room   = Container::room();
     $result = $room->createRoom((int)(input()['question_set_id'] ?? 0));
 
     if ($result['success']) {
@@ -238,7 +238,7 @@ function handleStartRoom() {
     requireLoginJson();
     $roomId = authRoomId();
     if (!$roomId) respondError('Nessuna stanza attiva in sessione');
-    respond(svc('room')->startRoom($roomId));
+    respond(Container::room()->startRoom($roomId));
 }
 
 function handleCheckRoomStatus() {
@@ -250,7 +250,7 @@ function handleCheckRoomStatus() {
         'message' => 'Nessuna stanza associata'
     ]);
 
-    $roomData = svc('room')->getRoomDetails($roomId);
+    $roomData = Container::room()->getRoomDetails($roomId);
     if (!$roomData) respond([
         'room_open' => false,
         'status' => 'unknown',
@@ -270,7 +270,7 @@ function handleDeleteRoom() {
     $roomId = authRoomId();
     if (!$roomId) respondError('Nessuna stanza attiva');
 
-    $result = svc('room')->cancelRoom($roomId);
+    $result = Container::room()->cancelRoom($roomId);
     if ($result['success']) {
         unset($_SESSION['active_room_code'], $_SESSION['active_judge_code'], $_SESSION['room_id']);
      }
@@ -281,7 +281,7 @@ function handleConnectedDevices() {
     $roomId = authRoomId();
     if (!$roomId) respond(['success' => true, 'devices' => [], 'count' => 0]);
 
-    $result = svc('room')->getConnectedDevices($roomId);
+    $result = Container::room()->getConnectedDevices($roomId);
     respond([
         'success' => true,
         'devices' => $result['devices'],
@@ -310,7 +310,7 @@ function handleGetGameState() {
     $roomId = authRoomId();
     if (!$roomId) respond(['success' => false]);
 
-    $room = svc('room');
+    $room = Container::room();
     $roomData = $room->getRoomDetails($roomId);
     if (!$roomData) respond(['success' => false]);
 
@@ -363,7 +363,7 @@ function handleStartRound() {
     $roomId = authRoomId();
     if (!$roomId) respondError('ID stanza non trovato');
 
-    $result = svc('game')->startRound($questionId, $roomId);
+    $result = Container::game()->startRound($questionId, $roomId);
     if (!($result['success'] ?? true)) {
         respondError($result['error'] ?? 'Impossibile avviare il round', 500);
     }
@@ -375,7 +375,7 @@ function handleCloseRound() {
     if (!$roundId && $_SERVER['REQUEST_METHOD'] === 'POST') $roundId = input()['round_id'] ?? 0;
     if (!$roundId) respondError('ID round obbligatorio');
 
-    $result = svc('game')->closeRound($roundId);
+    $result = Container::game()->closeRound($roundId);
     if (!($result['success'] ?? true)) {
         respondError($result['error'] ?? 'Impossibile chiudere il round', 500);
     }
@@ -389,7 +389,7 @@ function handleSetClickfirstWinner() {
     if (!$roundId) respondError('ID round obbligatorio');
     if ($winnerIndex === null) respondError('Indice vincitore obbligatorio');
 
-    $result = svc('game')->setClickfirstWinner($roundId, (int)$winnerIndex);
+    $result = Container::game()->setClickfirstWinner($roundId, (int)$winnerIndex);
     if (!($result['success'] ?? true)) {
         respondError($result['error'] ?? 'Impossibile impostare il vincitore', 500);
     }
@@ -401,7 +401,7 @@ function handleJudgeAdvance() {
     $roundId = $data['round_id'] ?? 0;
     if (!$roundId) respondError('ID round obbligatorio');
 
-    svc('game')->markJudgeDecided($roundId);
+    Container::game()->markJudgeDecided($roundId);
     respond([
         'success' => true,
         'message' => 'Avanzamento giudice segnalato'
@@ -412,7 +412,7 @@ function handleCheckJudgeDecision() {
     $roundId = $_GET['round_id'] ?? 0;
     if (!$roundId) respondError('ID round obbligatorio');
 
-    $decided = svc('game')->isJudgeDecided($roundId);
+    $decided = Container::game()->isJudgeDecided($roundId);
     respond([
         'success' => true,
         'judge_decided' => $decided
@@ -427,7 +427,7 @@ function handleCheckWinner() {
     ];
     if (!$roomId) respond($fail);
 
-    $room = svc('room');
+    $room = Container::room();
     $roomData = $room->getRoomDetails($roomId);
     if (!$roomData) respond($fail);
 
@@ -467,7 +467,7 @@ function handleRoundAnswers() {
     }
     respond([
         'success' => true,
-        'top_answers' => svc('game')->getTopAnswers($roundId, 10)
+        'top_answers' => Container::game()->getTopAnswers($roundId, 10)
     ]);
 }
 
@@ -480,12 +480,12 @@ function handleFinalLeaderboard() {
             'leaderboard' => []
         ]);
     }
-    respond(svc('game')->getFinalLeaderboard($roomId));
+    respond(Container::game()->getFinalLeaderboard($roomId));
 }
 
 function handlePlayerProgress() {
     requireLoginJson();
-    $result = svc('game')->getPlayerProgress();
+    $result = Container::game()->getPlayerProgress();
     if (is_array($result)) {
         respondError($result['error'] ?? 'Impossibile ottenere il progresso', 500);
     }
@@ -500,7 +500,7 @@ function handlePlayerProgress() {
 function handleGetQuestion() {
     $id = $_GET['id'] ?? null;
     if (!$id) respondError('ID domanda obbligatorio');
-    $result = svc('question')->getQuestionById($id);
+    $result = Container::question()->getQuestionById($id);
     if (!$result) respondError('Domanda non trovata', 404);
     respond([
         'success' => true,
@@ -511,7 +511,7 @@ function handleGetQuestion() {
 function handleGetQuestions() {
     respond([
         'success' => true,
-        'questions' => svc('question')->getAllQuestions(1, 1000)['questions']
+        'questions' => Container::question()->getAllQuestions(1, 1000)['questions']
     ]);
 }
 
@@ -520,14 +520,14 @@ function handleGetQuestions() {
 function handleGetCategories() {
     respond([
         'success' => true,
-        'categories' => svc('question')->getAllCategories()
+        'categories' => Container::question()->getAllCategories()
     ]);
 }
 
 function handleSaveCategories() {
     requirePost();
     $data = input();
-    $q = svc('question');
+    $q = Container::question();
 
     foreach ($data['deleted'] ?? [] as $id) {
         $q->deleteCategory($id);
@@ -553,7 +553,7 @@ function handleSaveCategories() {
 function handleGetQuestionSet() {
     $setId = $_GET['id'] ?? null;
     if (!$setId) respondError('ID set obbligatorio');
-    $set = svc('set')->getQuestionSetById($setId);
+    $set = Container::set()->getQuestionSetById($setId);
     if (!$set) respondError('Set di domande non trovato', 404);
     respond([
         'success' => true,
@@ -566,7 +566,7 @@ function handleAddQuestionSet() {
     $data    = input();
     $setName = $data['set_name'] ?? '';
     if (!$setName) respondError('Nome set obbligatorio');
-    $result = svc('set')->addSet($setName, $data['set_description'] ?? '');
+    $result = Container::set()->addSet($setName, $data['set_description'] ?? '');
     if (is_array($result)) {
         respondError($result['error'] ?? 'Impossibile creare il set');
     }
@@ -581,7 +581,7 @@ function handleUpdateQuestionSet() {
     requirePost();
     $data = input();
     if (!($data['set_id'] ?? null) || !($data['set_name'] ?? '')) respondError('ID set e nome obbligatori');
-    $result = svc('set')->updateSet($data['set_id'], $data['set_name'], $data['set_description'] ?? '');
+    $result = Container::set()->updateSet($data['set_id'], $data['set_name'], $data['set_description'] ?? '');
     if (!($result['success'] ?? false)) {
         respondError($result['error'] ?? 'Impossibile aggiornare il set');
     }
@@ -595,7 +595,7 @@ function handleDeleteQuestionSet() {
     requirePost();
     $data = input();
     if (!($data['set_id'] ?? null)) respondError('ID set obbligatorio');
-    $result = svc('set')->deleteSet($data['set_id']);
+    $result = Container::set()->deleteSet($data['set_id']);
     if (!($result['success'] ?? false)) {
         respondError($result['error'] ?? 'Impossibile eliminare il set', 500);
     }
@@ -610,7 +610,7 @@ function handleGetSetQuestions() {
     if (!$setId) respondError('ID set obbligatorio');
     respond([
         'success' => true,
-        'questions' => svc('set')->getSetQuestions($setId)
+        'questions' => Container::set()->getSetQuestions($setId)
     ]);
 }
 
@@ -618,7 +618,7 @@ function handleAddQuestionToSet() {
     requirePost();
     $data = input();
     if (!($data['set_id'] ?? null) || !($data['question_id'] ?? null)) respondError('ID set e ID domanda obbligatori');
-    $q = svc('set');
+    $q = Container::set();
     $questions = $q->getSetQuestions($data['set_id']);
     $maxOrder = 0;
     foreach ($questions as $qItem) {
@@ -638,7 +638,7 @@ function handleAddQuestionToSetAtPosition() {
     if (!($data['set_id'] ?? null) || !($data['question_id'] ?? null) || ($data['position'] ?? null) === null) {
         respondError('ID set, ID domanda e posizione obbligatori');
     }
-    if (!svc('set')->addQuestionAtPosition($data['set_id'], $data['question_id'], $data['position'])) respondError('Domanda già presente nel set o impossibile aggiungerla');
+    if (!Container::set()->addQuestionAtPosition($data['set_id'], $data['question_id'], $data['position'])) respondError('Domanda già presente nel set o impossibile aggiungerla');
     respond([
         'success' => true,
         'message' => 'Domanda aggiunta'
@@ -649,7 +649,7 @@ function handleRemoveQuestionFromSet() {
     requirePost();
     $data = input();
     if (!($data['set_id'] ?? null) || !($data['question_id'] ?? null)) respondError('ID set e ID domanda obbligatori');
-    svc('set')->removeQuestion($data['set_id'], $data['question_id']);
+    Container::set()->removeQuestion($data['set_id'], $data['question_id']);
     respond([
         'success' => true,
         'message' => 'Domanda rimossa'
@@ -660,7 +660,7 @@ function handleUpdateQuestionOrder() {
     requirePost();
     $data = input();
     if (!($data['set_id'] ?? null) || empty($data['questions'])) respondError('ID set e domande obbligatori');
-    if (!svc('set')->updateQuestionsOrder($data['set_id'], $data['questions'])) respondError('Impossibile aggiornare l\'ordine');
+    if (!Container::set()->updateQuestionsOrder($data['set_id'], $data['questions'])) respondError('Impossibile aggiornare l\'ordine');
     respond([
         'success' => true,
         'message' => 'Ordine aggiornato'
@@ -675,10 +675,10 @@ function handleGeneratePDF() {
 
     // Resolve room: prefer room_code from request, fall back to session
     if ($roomCode) {
-        $roomResult = svc('room')->getRoomByPlayerCode($roomCode);
+        $roomResult = Container::room()->getRoomByPlayerCode($roomCode);
     } else {
         $roomId = authRoomId();
-        $roomResult = $roomId ? svc('room')->getRoomDetails($roomId) : null;
+        $roomResult = $roomId ? Container::room()->getRoomDetails($roomId) : null;
     }
     if (!$roomResult) respondError('Stanza non trovata', 404);
 
@@ -693,6 +693,7 @@ function handleGeneratePDF() {
 
     $url = $roomResult['base_url'] ?? '';
     if (!$url) respondError('URL base non trovato per questa stanza', 500);
+
     // Normalize: strip trailing /public/ or /public from old records
     $url = rtrim($url, '/');
     $url = preg_replace('#/public$#', '', $url);

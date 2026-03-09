@@ -1,18 +1,15 @@
 <?php
-require_once __DIR__ . '/../repository/TableRepository.php';
 
 /**
  * Handles business logic for displaying database tables (debug/admin view).
  */
 class TableService {
-    private TableRepository $tableRepo;
-
     private const PASSWORD_KEYWORDS = ['password', 'pwd', 'pass', 'secret'];
     private const JSON_COLUMN_NAMES = ['ranking', 'metadata', 'data', 'config'];
 
-    public function __construct() {
-        $this->tableRepo = new TableRepository();
-    }
+    public function __construct(
+        private TableRepository $tableRepo
+    ) {}
 
     /**
      * Get all data from all tables.

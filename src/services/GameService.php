@@ -1,26 +1,17 @@
 <?php
-require_once __DIR__ . '/../repository/RoundRepo.php';
-require_once __DIR__ . '/../repository/AnswerRepo.php';
-require_once __DIR__ . '/../repository/RoomRepo.php';
-require_once __DIR__ . '/../utils/auth.php';
 
 /**
  * Handles game business logic (rounds, answers, leaderboard).
  */
 class GameService {
-    private RoundRepo $roundRepo;
-    private AnswerRepo $answerRepo;
-    private RoomRepo $roomRepo;
-    private QuestionService $questionService;
-    private SettingsService $settingsService;
 
-    public function __construct() {
-        $this->roundRepo = new RoundRepo();
-        $this->answerRepo = new AnswerRepo();
-        $this->roomRepo = new RoomRepo();
-        $this->questionService = new QuestionService();
-        $this->settingsService = new SettingsService();
-    }
+    public function __construct(
+        private RoundRepo $roundRepo,
+        private AnswerRepo $answerRepo,
+        private RoomRepo $roomRepo,
+        private QuestionService $questionService,
+        private SettingsService $settingsService
+    ) {}
 
     /**
      * Start a new round for a given question and room.
@@ -167,15 +158,21 @@ class GameService {
      * @return array  Result with is_correct flag, or error array
      */
     public function submitAnswerByRoundId(int $roundId, mixed $answer, float $timeTaken): array {
-        $player = svc('auth')->getPlayer();
+        $player = Container::auth()->getPlayer();
         $playerId = $player['player_id'] ?? null;
         if (!$playerId) {
-            return ['success' => false, 'error' => 'Giocatore non autenticato'];
+            return [
+                'success' => false,
+                'error' => 'Giocatore non autenticato'
+            ];
         }
 
         $round = $this->roundRepo->getRoundById($roundId);
         if (!$round) {
-            return ['success' => false, 'error' => 'Round non trovato'];
+            return [
+                'success' => false,
+                'error' => 'Round non trovato'
+            ];
         }
 
         if ($round['question_type'] === 'clickfirst') {
@@ -222,7 +219,10 @@ class GameService {
         $room = $this->roomRepo->getRoomById($roomId);
 
         if (!$room) {
-            return ['success' => false, 'leaderboard' => []];
+            return [
+                'success' => false,
+                'leaderboard' => []
+            ];
         }
 
         $allRounds = $this->roundRepo->getRoundsByRoom($room['id']);
@@ -286,7 +286,7 @@ class GameService {
      * @return int|array Number of answered rounds, or error array
      */
     public function getPlayerProgress(): int|array {
-        $player = svc('auth')->getPlayer();
+        $player = Container::auth()->getPlayer();
         $playerId = $player['player_id'] ?? null;
         $roomId   = $player['room_id'] ?? null;
         if (!$playerId || !$roomId) {

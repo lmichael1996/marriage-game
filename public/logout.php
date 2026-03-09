@@ -5,7 +5,7 @@ $role = $_GET['role'] ?? null;
 
 if ($role && in_array($role, ['admin', 'player', 'judge'])) {
     // Logout singolo ruolo
-    svc('auth')->logout($role);
+    Container::auth()->logout($role);
 
     $redirect = match ($role) {
         'admin'  => 'login-admin.php',
@@ -14,7 +14,7 @@ if ($role && in_array($role, ['admin', 'player', 'judge'])) {
     };
 } else {
     // Logout totale (distrugge sessione)
-    svc('auth')->logout();
+    Container::auth()->logout();
     $redirect = '../index.html';
 }
 

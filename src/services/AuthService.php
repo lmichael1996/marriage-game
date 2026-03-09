@@ -1,28 +1,18 @@
 <?php
-require_once __DIR__ . '/../repository/UserRepo.php';
-require_once __DIR__ . '/../repository/PlayerRepo.php';
-require_once __DIR__ . '/../repository/RoomRepo.php';
-require_once __DIR__ . '/../repository/JudgeRepo.php';
 
 /**
  * Authentication and admin credentials service.
  * Session is started centrally by auth.php.
  */
 class AuthService {
-    private UserRepo $userRepo;
-    private PlayerRepo $playerRepo;
-    private RoomRepo $roomRepo;
-    private JudgeRepo $judgeRepo;
-
     private const int MIN_PASSWORD_LENGTH = 6;
-    private const int ADMIN_SESSION_LIFETIME = 86400; // 24 hours
 
-    public function __construct() {
-        $this->userRepo = new UserRepo();
-        $this->playerRepo = new PlayerRepo();
-        $this->roomRepo = new RoomRepo();
-        $this->judgeRepo = new JudgeRepo();
-    }
+    public function __construct(
+        private UserRepo $userRepo,
+        private PlayerRepo $playerRepo,
+        private RoomRepo $roomRepo,
+        private JudgeRepo $judgeRepo
+    ) {}
 
     // ── Login ────────────────────────────────────────────────────────────
 
@@ -49,14 +39,6 @@ class AuthService {
         ];
 
         $_SESSION['admin_tab'] = 'sets';
-
-        // Extend session cookie to 24h so admin survives browser close
-        setcookie(session_name(), session_id(), [
-            'expires'  => time() + self::ADMIN_SESSION_LIFETIME,
-            'path'     => '/',
-            'httponly'  => true,
-            'samesite' => 'Lax',
-        ]);
 
         return ['success' => true];
     }
@@ -174,13 +156,6 @@ class AuthService {
             unset($_SESSION['auth_' . $role]);
             if ($role === 'admin') {
                 unset($_SESSION['active_room_code'], $_SESSION['active_judge_code'], $_SESSION['room_id']);
-                // Reset cookie to session-only (dies on browser close)
-                setcookie(session_name(), session_id(), [
-                    'expires'  => 0,
-                    'path'     => '/',
-                    'httponly'  => true,
-                    'samesite' => 'Lax',
-                ]);
             }
         } else {
             session_destroy();

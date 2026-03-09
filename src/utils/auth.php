@@ -1,8 +1,30 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
-    ini_set('session.gc_maxlifetime', 86400);
-    session_set_cookie_params(['lifetime' => 0, 'path' => '/']);
+    // Dedicated save path so other apps' GC won't purge our sessions
+    $savePath = dirname(__DIR__, 2) . '/storage/sessions';
+    if (!is_dir($savePath)) {
+        mkdir($savePath, 0700, true);
+    }
+    ini_set('session.save_path', $savePath);
+    ini_set('session.gc_maxlifetime', 86400);   // 24 h server-side
+    ini_set('session.gc_probability', 1);
+    ini_set('session.gc_divisor', 100);
+
+    session_set_cookie_params([
+        'lifetime' => 86400,  // 24 h cookie (survives browser close)
+        'path'     => '/',
+        'httponly'  => true,
+        'samesite' => 'Lax',
+    ]);
     session_start();
+
+    // Refresh cookie expiry on every request so it never goes stale
+    setcookie(session_name(), session_id(), [
+        'expires'  => time() + 86400,
+        'path'     => '/',
+        'httponly'  => true,
+        'samesite' => 'Lax',
+    ]);
 }
 
 require_once __DIR__ . '/../services/ServiceLoader.php';
@@ -15,21 +37,21 @@ require_once __DIR__ . '/../services/ServiceLoader.php';
 // ── Guards (redirect if not authenticated) ───────────────────────────────
 
 function requireAdmin(): void {
-    if (!svc('auth')->getAdmin()) {
+    if (!Container::auth()->getAdmin()) {
         header('Location: login-admin.php');
         exit();
     }
 }
 
 function requirePlayer(): void {
-    if (!svc('auth')->getPlayer()) {
+    if (!Container::auth()->getPlayer()) {
         header('Location: login-player.php');
         exit();
     }
 }
 
 function requireJudge(): void {
-    if (!svc('auth')->getJudge()) {
+    if (!Container::auth()->getJudge()) {
         header('Location: login-judge.php');
         exit();
     }
@@ -38,7 +60,7 @@ function requireJudge(): void {
 // ── API guards (JSON error if not authenticated) ─────────────────────────
 
 function requireLoginJson(): void {
-    if (!svc('auth')->getAnyUser()) {
+    if (!Container::auth()->getAnyUser()) {
         http_response_code(401);
         echo json_encode([
             'success' => false,
@@ -49,7 +71,7 @@ function requireLoginJson(): void {
 }
 
 function requireAdminJson(): void {
-    if (!svc('auth')->getAdmin()) {
+    if (!Container::auth()->getAdmin()) {
         http_response_code(403);
         echo json_encode([
             'success' => false,
@@ -62,11 +84,11 @@ function requireAdminJson(): void {
 // ── Convenience getters ──────────────────────────────────────────────────
 
 function authJudge(): ?array {
-    return svc('auth')->getJudge();
+    return Container::auth()->getJudge();
 }
 
 function authRoomId(): ?int {
-    $auth = svc('auth');
+    $auth = Container::auth();
     $session = $auth->getPlayer() ?? $auth->getJudge();
     return $session
         ? (int)$session['room_id']
@@ -74,13 +96,13 @@ function authRoomId(): ?int {
 }
 
 function authUsername(): ?string {
-    return svc('auth')->getAnyUser()['username'] ?? null;
+    return Container::auth()->getAnyUser()['username'] ?? null;
 }
 
 function authPlayerId(): ?int {
-    return ($p = svc('auth')->getPlayer()) ? (int)$p['player_id'] : null;
+    return ($p = Container::auth()->getPlayer()) ? (int)$p['player_id'] : null;
 }
 
 function authUserId(): ?int {
-    return ($a = svc('auth')->getAdmin()) ? (int)$a['user_id'] : null;
+    return ($a = Container::auth()->getAdmin()) ? (int)$a['user_id'] : null;
 }

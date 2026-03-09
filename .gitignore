@@ -17,3 +17,6 @@ Thumbs.db
 # Composer
 vendor/
 composer.lock
+
+# Sessions
+storage/sessions/
