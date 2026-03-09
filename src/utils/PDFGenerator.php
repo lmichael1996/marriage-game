@@ -3,30 +3,13 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 class PDFGenerator {
     private TCPDF $pdf;
-    private string $codePlayer;
-    private string $codeJudge;
-    private string $svgPlayer;
-    private string $svgJudge;
+    private string $url;
 
     private const LOGO_PATH = __DIR__ . '/../../assets/image/logo.jpeg';
     private const FONT = 'dejavusans';
-    private const URL = 'https://www.mvmusicaeventi.it/';
 
-    public function __construct(string $codePlayer, string $codeJudge, string $svgPlayer, string $svgJudge) {
-        if (empty($codePlayer) || empty($codeJudge)) {
-            throw new Exception('Both room codes are required');
-        }
-        if (empty($svgPlayer) || empty($svgJudge)) {
-            throw new Exception('Both QR SVGs are required');
-        }
-        $this->codePlayer = $codePlayer;
-        $this->codeJudge = $codeJudge;
-        $this->svgPlayer = $svgPlayer;
-        $this->svgJudge = $svgJudge;
-        $this->initializePDF();
-    }
-
-    private function initializePDF(): void {
+    public function __construct(string $url) {
+        $this->url = $url;
         $this->pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
         $this->pdf->SetCreator('MVquiz');
         $this->pdf->SetAuthor('MVquiz Admin');
@@ -36,7 +19,7 @@ class PDFGenerator {
         $this->pdf->SetAutoPageBreak(false);
     }
 
-    private function addPage(string $title, string $code, string $svgMarkup, string $footerRole): void {
+    public function addPage(string $title, string $code, string $svgMarkup): void {
         $this->pdf->AddPage();
 
         if (file_exists(self::LOGO_PATH)) {
@@ -84,7 +67,7 @@ class PDFGenerator {
         // Website
         $this->pdf->SetFont(self::FONT, 'B', 13);
         $this->pdf->SetTextColor(45, 52, 54);
-        $this->pdf->Cell(0, 8, self::URL, 0, 1, 'C', false, self::URL);
+        $this->pdf->Cell(0, 8, $this->url, 0, 1, 'C', false, $this->url);
         $this->pdf->Ln(8);
 
         // Or connect with room code
@@ -95,11 +78,6 @@ class PDFGenerator {
         // Room code
         $this->pdf->SetFont(self::FONT, 'B', 32);
         $this->pdf->Cell(0, 16, $code, 0, 1, 'C');
-    }
-
-    public function generate(): void {
-        $this->addPage('MVquiz - Giocatore', $this->codePlayer, $this->svgPlayer, 'Giocatore');
-        $this->addPage('MVquiz - Giudice', $this->codeJudge, $this->svgJudge, 'Giudice');
     }
 
     public function getPDF(): string {

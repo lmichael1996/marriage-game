@@ -22,10 +22,9 @@ class PlayerRepo {
      *
      * @param string $username Player display name
      * @param int    $roomId   The room ID
-     * @return int The newly created player ID
-     * @throws Exception If username already taken in this room or DB error
+     * @return int|array The newly created player ID, or error array on failure
      */
-    public function createPlayer(string $username, int $roomId): int {
+    public function createPlayer(string $username, int $roomId): int|array {
         $stmt = $this->conn->prepare("INSERT INTO players (username, room_id) VALUES (?, ?)");
         $stmt->bind_param("si", $username, $roomId);
 
@@ -34,9 +33,9 @@ class PlayerRepo {
             $stmt->close();
 
             if ($errno === self::DUPLICATE_ENTRY_ERROR_CODE) {
-                throw new Exception('A player with this name is already in the room. Use a different name.');
+                return ['success' => false, 'error' => 'A player with this name is already in the room. Use a different name.'];
             }
-            throw new Exception('Error creating the player.');
+            return ['success' => false, 'error' => 'Error creating the player.'];
         }
 
         $playerId = $this->conn->insert_id;

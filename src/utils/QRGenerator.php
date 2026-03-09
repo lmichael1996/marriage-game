@@ -7,48 +7,19 @@ require_once __DIR__ . '/../../vendor/tecnickcom/tcpdf/tcpdf_barcodes_2d.php';
  */
 class QRGenerator {
 
-    private string $loginPage;
-    private const EXTERNAL_API_TIMEOUT = 3;
-    private const CURL_IPIFY = 'curl -s --max-time ' . self::EXTERNAL_API_TIMEOUT . ' https://api.ipify.org';
-    private const EXTERNAL_PORT = 9000;
-
-    /**
-     * @param string $loginPage  Relative login page (e.g. 'login-player.php')
-     */
-    public function __construct(string $loginPage) {
-        $this->loginPage = $loginPage;
-    }
-
-    /**
-     * Build the base URL from the current server (no hardcoded links).
-     */
-    private static function getBaseUrl(): string {
-        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-
-        // If running on localhost, try to get the public IP
-        if (str_starts_with($host, 'localhost') || str_starts_with($host, '127.0.0.1')) {
-            $ip = trim((string) @shell_exec(self::CURL_IPIFY));
-            if (!empty($ip)) {
-                $host = $ip . ':' . self::EXTERNAL_PORT;
-            }
-        }
-
-        return $scheme . '://' . $host . '/public/';
-    }
-
     /**
      * Generate a unique code and its QR SVG.
      *
+     * @param string $url  Full login URL without code param (e.g. 'http://host/public/login-player.php')
      * @return array{code: string, svg: string|null}
      */
-    public function generate(): array {
+    public function generate(string $url): array {
         $code = strtoupper(substr(md5(uniqid(rand(), true)), 0, 6));
-        $url = self::getBaseUrl() . $this->loginPage . '?code=' . urlencode($code);
+        $fullUrl = $url . '?code=' . urlencode($code);
 
         return [
             'code' => $code,
-            'svg'  => $this->generateSVG($url)
+            'svg'  => $this->generateSVG($fullUrl)
         ];
     }
 

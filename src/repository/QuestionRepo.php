@@ -49,12 +49,12 @@ class QuestionRepo {
     /**
      * Insert a new question.
      *
-     * Normalizes fields based on round_type:
+     * Normalizes fields based on question_type:
      * - multiple:   keeps all 4 options, correct_answer = 1-4
      * - truefalse:  clears options, correct_answer = 1 (true) or 2 (false)
      * - clickfirst: clears options, correct_answer = NULL
      *
-     * @param array $questionData Associative array with question, round_type, answer1-4, correct_answer, timer, category_id
+     * @param array $questionData Associative array with question, question_type, answer1-4, correct_answer, timer, category_id
      * @return int|false The new question ID on success, false on failure
      */
     public function insertQuestion(array $questionData): int|false {
@@ -65,7 +65,7 @@ class QuestionRepo {
         }
 
         // Default values and normalization
-        $roundType = $questionData['round_type'] ?? 'multiple';
+        $roundType = $questionData['question_type'] ?? 'multiple';
 
         if ($roundType === 'multiple') {
             $answer1 = $questionData['answer1'] ?? '';
@@ -84,7 +84,7 @@ class QuestionRepo {
         $categoryId = intval($questionData['category_id'] ?? 1);
 
         $stmt = $this->conn->prepare("
-            INSERT INTO questions (round_type, question, option1, option2, option3, option4, correct_answer, timer, category_id)
+            INSERT INTO questions (question_type, question, option1, option2, option3, option4, correct_answer, timer, category_id)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
@@ -111,13 +111,13 @@ class QuestionRepo {
     /**
      * Update an existing question.
      *
-     * Normalizes fields based on round_type (same logic as insertQuestion).
+     * Normalizes fields based on question_type (same logic as insertQuestion).
      *
-     * @param array $data Associative array with id, question, round_type, answer1-4, correct_answer, timer, category_id
+     * @param array $data Associative array with id, question, question_type, answer1-4, correct_answer, timer, category_id
      * @return bool True on success
      */
     public function updateQuestion(array $data): bool {
-        $type = $data['round_type'] ?? 'multiple';
+        $type = $data['question_type'] ?? 'multiple';
 
         if ($type === 'multiple') {
             $option1 = $data['answer1'] ?? '';
@@ -132,7 +132,7 @@ class QuestionRepo {
 
         $stmt = $this->conn->prepare("
             UPDATE questions
-            SET question = ?, round_type = ?, option1 = ?, option2 = ?, option3 = ?, option4 = ?,
+            SET question = ?, question_type = ?, option1 = ?, option2 = ?, option3 = ?, option4 = ?,
                 correct_answer = ?, timer = ?, category_id = ?
             WHERE id = ?
         ");

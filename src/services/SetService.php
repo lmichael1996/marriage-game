@@ -89,13 +89,12 @@ class SetService {
      *
      * @param string $name         Set name
      * @param string $description  Set description
-     * @return int  New set ID
-     * @throws Exception on failure
+     * @return int|array  New set ID, or error array
      */
-    public function addSet(string $name, string $description = ''): int {
+    public function addSet(string $name, string $description = ''): int|array {
         $setId = $this->setRepo->createSet($name, $description);
         if (!$setId) {
-            throw new Exception('Failed to create question set');
+            return ['success' => false, 'error' => 'Failed to create question set'];
         }
 
         return $setId;
@@ -107,32 +106,30 @@ class SetService {
      * @param int    $setId        Set ID
      * @param string $name         Set name
      * @param string $description  Set description
-     * @return bool
-     * @throws Exception on failure
+     * @return array  Result array
      */
-    public function updateSet(int $setId, string $name, string $description = ''): bool {
+    public function updateSet(int $setId, string $name, string $description = ''): array {
         $success = $this->setRepo->updateSet($setId, $name, $description);
         if (!$success) {
-            throw new Exception('Failed to update question set');
+            return ['success' => false, 'error' => 'Failed to update question set'];
         }
 
-        return true;
+        return ['success' => true];
     }
 
     /**
      * Delete a question set.
      *
      * @param int $setId  Set ID
-     * @return bool
-     * @throws Exception on failure
+     * @return array  Result array
      */
-    public function deleteSet(int $setId): bool {
+    public function deleteSet(int $setId): array {
         $success = $this->setRepo->deleteSet($setId);
         if (!$success) {
-            throw new Exception('Failed to delete question set');
+            return ['success' => false, 'error' => 'Failed to delete question set'];
         }
 
-        return true;
+        return ['success' => true];
     }
 
     /**

@@ -31,12 +31,12 @@ class AuthService {
      *
      * @param string $username  Admin username
      * @param string $password  Plain text password
-     * @throws Exception on invalid credentials
+     * @return array  ['success' => true] or ['success' => false, 'error' => '...']
      */
-    public function adminLogin(string $username, string $password): void {
+    public function adminLogin(string $username, string $password): array {
         $userId = $this->userRepo->authenticate($username, $password);
         if (!$userId) {
-            throw new Exception('Invalid username or password');
+            return ['success' => false, 'error' => 'Invalid username or password'];
         }
 
         $_SESSION['auth_admin'] = [
@@ -54,6 +54,8 @@ class AuthService {
             'httponly'  => true,
             'samesite' => 'Lax',
         ]);
+
+        return ['success' => true];
     }
 
     /**
@@ -62,28 +64,30 @@ class AuthService {
      *
      * @param string $username  Player display name
      * @param string $roomCode  Room player code
-     * @throws Exception on invalid input, room not found, or duplicate username
+     * @return array  ['success' => true] or ['success' => false, 'error' => '...']
      */
-    public function playerLogin(string $username, string $roomCode): void {
+    public function playerLogin(string $username, string $roomCode): array {
         $username = trim($username);
         $roomCode = strtoupper(trim($roomCode));
 
-        if (empty($username)) throw new Exception('Player name is required');
-        if (empty($roomCode)) throw new Exception('Room code is required');
+        if (empty($username)) return ['success' => false, 'error' => 'Player name is required'];
+        if (empty($roomCode)) return ['success' => false, 'error' => 'Room code is required'];
 
         $room = $this->roomRepo->getOpenRoomByPlayerCode($roomCode);
-        if (!$room) throw new Exception('Invalid room code or room not available');
+        if (!$room) return ['success' => false, 'error' => 'Invalid room code or room not available'];
 
-        $playerId = $this->playerRepo->createPlayer($username, $room['id']);
-        if (!$playerId) throw new Exception('Failed to create player');
+        $result = $this->playerRepo->createPlayer($username, $room['id']);
+        if (is_array($result)) return $result;
 
         $_SESSION['auth_player'] = [
             'role'      => 'player',
-            'player_id' => (int)$playerId,
+            'player_id' => (int)$result,
             'username'  => $username,
             'room_code' => $roomCode,
             'room_id'   => (int)$room['id'],
         ];
+
+        return ['success' => true];
     }
 
     /**
@@ -91,26 +95,28 @@ class AuthService {
      * Creates a new judge record for the room (one per room).
      *
      * @param string $roomCode  Room judge code
-     * @throws Exception on invalid code, room not found, or judge already connected
+     * @return array  ['success' => true] or ['success' => false, 'error' => '...']
      */
-    public function judgeLogin(string $roomCode): void {
+    public function judgeLogin(string $roomCode): array {
         $roomCode = strtoupper(trim($roomCode));
-        if (empty($roomCode)) throw new Exception('Room code is required');
+        if (empty($roomCode)) return ['success' => false, 'error' => 'Room code is required'];
 
         $room = $this->roomRepo->getRoomByJudgeCode($roomCode);
         if (!$room) {
-            throw new Exception('Invalid judge code or room not available');
+            return ['success' => false, 'error' => 'Invalid judge code or room not available'];
         }
 
-        $judgeId = $this->judgeRepo->createJudge($room['id']);
-        if (!$judgeId) throw new Exception('Failed to create judge');
+        $result = $this->judgeRepo->createJudge($room['id']);
+        if (is_array($result)) return $result;
 
         $_SESSION['auth_judge'] = [
             'role'      => 'judge',
-            'judge_id'  => (int)$judgeId,
+            'judge_id'  => (int)$result,
             'room_code' => $roomCode,
             'room_id'   => (int)$room['id'],
         ];
+
+        return ['success' => true];
     }
 
     // ── Logout ───────────────────────────────────────────────────────────
@@ -167,33 +173,32 @@ class AuthService {
      * @param string      $newUsername      New username (empty = keep current)
      * @param string|null $newPassword      New password (null = keep current)
      * @param string|null $confirmPassword  Password confirmation
-     * @return array  ['username' => string]
-     * @throws Exception on validation or update failure
+     * @return array  ['success' => true, 'username' => string] or ['success' => false, 'error' => '...']
      */
     public function updateCredentials(int $userId, string $newUsername, ?string $newPassword = null, ?string $confirmPassword = null): array {
         if (empty($newUsername)) {
             $currentUser = $this->userRepo->getUserById($userId);
             if (!$currentUser) {
-                throw new Exception('User not found');
+                return ['success' => false, 'error' => 'User not found'];
             }
             $newUsername = $currentUser['username'];
         }
 
         if (!empty($newPassword)) {
             if ($newPassword !== $confirmPassword) {
-                throw new Exception('Passwords do not match');
+                return ['success' => false, 'error' => 'Passwords do not match'];
             }
             if (strlen($newPassword) < self::MIN_PASSWORD_LENGTH) {
-                throw new Exception('Password must be at least ' . self::MIN_PASSWORD_LENGTH . ' characters');
+                return ['success' => false, 'error' => 'Password must be at least ' . self::MIN_PASSWORD_LENGTH . ' characters'];
             }
         }
 
         $success = $this->userRepo->updateCredentials($userId, $newUsername, $newPassword);
         if (!$success) {
-            throw new Exception('Failed to update credentials');
+            return ['success' => false, 'error' => 'Failed to update credentials'];
         }
 
-        return ['username' => $newUsername];
+        return ['success' => true, 'username' => $newUsername];
     }
 
     /**

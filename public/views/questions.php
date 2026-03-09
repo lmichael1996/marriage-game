@@ -88,7 +88,7 @@
                             'truefalse' => '✔️ Vero/Falso',
                             'clickfirst' => '⚡ Clicca per primo'
                         ];
-                        echo $typeMap[$q['round_type']] ?? ucfirst($q['round_type']);
+                        echo $typeMap[$q['question_type']] ?? ucfirst($q['question_type']);
                     ?></span></td>
                     <td><?php echo $q['timer']; ?>s</td>
                     <td>
@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Popola i campi del form
                         document.getElementById('edit-question-id').value = q.id;
                         document.getElementById('edit-question').value = q.question;
-                        document.getElementById('edit-type').value = q.round_type;
+                        document.getElementById('edit-type').value = q.question_type;
                         document.getElementById('edit-category').value = q.category_id;
                         document.getElementById('edit-timer').value = q.timer;
 
@@ -180,11 +180,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('edit-type').dispatchEvent(new Event('change'));
 
                         // Popola le risposte in base al tipo
-                        if (q.round_type === 'truefalse') {
+                        if (q.question_type === 'truefalse') {
                             if (q.option1) document.getElementById('edit-answer1').value = q.option1;
                             if (q.option2) document.getElementById('edit-answer2').value = q.option2;
                             if (q.correct_answer) document.getElementById('edit-correct').value = q.correct_answer;
-                        } else if (q.round_type === 'multiple') {
+                        } else if (q.question_type === 'multiple') {
                             if (q.option1) document.getElementById('edit-answer1').value = q.option1;
                             if (q.option2) document.getElementById('edit-answer2').value = q.option2;
                             if (q.option3) document.getElementById('edit-answer3').value = q.option3;
@@ -858,7 +858,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="form-row">
                 <div class="form-group">
                     <label for="new-type">Tipo</label>
-                    <select id="new-type" name="round_type" required>
+                    <select id="new-type" name="question_type" required>
                         <option value="multiple">📋 Scelta multipla</option>
                         <option value="truefalse">✔️ Vero/Falso</option>
                         <option value="clickfirst">⚡ Clicca per primo</option>
@@ -936,7 +936,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="form-row">
                 <div class="form-group">
                     <label for="edit-type">Tipo</label>
-                    <select id="edit-type" name="round_type" required>
+                    <select id="edit-type" name="question_type" required>
                         <option value="multiple">📋 Scelta multipla</option>
                         <option value="truefalse">✔️ Vero/Falso</option>
                         <option value="clickfirst">⚡ Clicca per primo</option>

@@ -15,7 +15,7 @@ VALUES
 -- Insert sample questions (25 questions across all categories and types)
 INSERT INTO
     questions (
-        round_type,
+        question_type,
         question,
         option1,
         option2,

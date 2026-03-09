@@ -17,28 +17,30 @@ class RoomRepo {
     /**
      * Create a new room with separate codes and QR URIs for player and judge.
      *
-     * @param string $codePlayer     Room code for players (auto-uppercased)
-     * @param string $codeJudge      Room code for the judge (auto-uppercased)
-     * @param int    $questionSetId  ID of the question set to use
-     * @param string $qrUriPlayer    QR image URI for the player code
-     * @param string $qrUriJudge     QR image URI for the judge code
-     * @return int|false             The new room ID on success, false on failure
+     * @param string      $codePlayer     Room code for players (auto-uppercased)
+     * @param string      $codeJudge      Room code for the judge (auto-uppercased)
+     * @param int         $questionSetId  ID of the question set to use
+     * @param string      $qrUriPlayer    QR image URI for the player code
+     * @param string      $qrUriJudge     QR image URI for the judge code
+     * @param string      $baseUrl        Base URL used to generate QR codes
+     * @return int|false                  The new room ID on success, false on failure
      */
-    public function createRoom(string $codePlayer, string $codeJudge, int $questionSetId, string $qrUriPlayer, string $qrUriJudge): int|false {
+    public function createRoom(string $codePlayer, string $codeJudge, int $questionSetId, string $qrUriPlayer, string $qrUriJudge, string $baseUrl): int|false {
         $codePlayerUpper = strtoupper($codePlayer);
         $codeJudgeUpper = strtoupper($codeJudge);
 
         $stmt = $this->conn->prepare(
-            "INSERT INTO rooms (code_player, code_judge, qset_id, qr_uri_player, qr_uri_judge)
-             VALUES (?, ?, ?, ?, ?)"
+            "INSERT INTO rooms (code_player, code_judge, qset_id, qr_uri_player, qr_uri_judge, base_url)
+             VALUES (?, ?, ?, ?, ?, ?)"
         );
         $stmt->bind_param(
-            "ssiss",
+            "ssisss",
             $codePlayerUpper,
             $codeJudgeUpper,
             $questionSetId,
             $qrUriPlayer,
-            $qrUriJudge
+            $qrUriJudge,
+            $baseUrl
         );
 
         if ($stmt->execute()) {
@@ -181,14 +183,14 @@ class RoomRepo {
     }
 
     /**
-     * Get the winner player ID for a room.
+     * Get the final ranking JSON for a room.
      *
      * @param int $roomId  Room ID
-     * @return int|null    Winner's player ID, or null if no winner set
+     * @return array       Decoded ranking array, empty if not set
      */
-    public function getWinnerId(int $roomId): ?int {
+    public function getFinalRanking(int $roomId): array {
         $stmt = $this->conn->prepare("
-            SELECT winner_id FROM rooms WHERE id = ?
+            SELECT final_ranking FROM rooms WHERE id = ?
         ");
         $stmt->bind_param("i", $roomId);
         $stmt->execute();
@@ -196,21 +198,22 @@ class RoomRepo {
         $room = $result->fetch_assoc();
         $stmt->close();
 
-        return $room ? $room['winner_id'] : null;
+        return $room ? json_decode($room['final_ranking'] ?? '[]', true) : [];
     }
 
     /**
-     * Set the winner of a room.
+     * Save the final ranking JSON for a room.
      *
-     * @param int $roomId    Room ID
-     * @param int $playerId  Winning player's ID
-     * @return bool          True on success
+     * @param int   $roomId   Room ID
+     * @param array $ranking  Array of [{player_id, username, score}, ...]
+     * @return bool           True on success
      */
-    public function setWinner(int $roomId, int $playerId): bool {
+    public function setFinalRanking(int $roomId, array $ranking): bool {
+        $json = json_encode($ranking);
         $stmt = $this->conn->prepare("
-            UPDATE rooms SET winner_id = ? WHERE id = ?
+            UPDATE rooms SET final_ranking = ? WHERE id = ?
         ");
-        $stmt->bind_param("ii", $playerId, $roomId);
+        $stmt->bind_param("si", $json, $roomId);
         $success = $stmt->execute();
         $stmt->close();
 

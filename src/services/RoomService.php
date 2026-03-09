@@ -16,8 +16,10 @@ class RoomService {
     private SetRepo $setRepo;
     private JudgeRepo $judgeRepo;
 
-    private const LOGIN_PLAYER_URL = 'login-player.php';
-    private const LOGIN_JUDGE_URL  = 'login-judge.php';
+    private const LOGIN_PLAYER_PAGE = 'login-player.php';
+    private const LOGIN_JUDGE_PAGE  = 'login-judge.php';
+    private const EXTERNAL_API_TIMEOUT = 3;
+    private const EXTERNAL_PORT = 9000;
 
     public function __construct() {
         $this->roomRepo = new RoomRepo();
@@ -28,24 +30,42 @@ class RoomService {
     }
 
     /**
+     * Build the base URL from the current server.
+     */
+    private static function getBaseUrl(): string {
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+
+        if (str_starts_with($host, 'localhost') || str_starts_with($host, '127.0.0.1')) {
+            $cmd = 'curl -s --max-time ' . self::EXTERNAL_API_TIMEOUT . ' https://api.ipify.org';
+            $ip = trim((string) @shell_exec($cmd));
+            if (!empty($ip)) {
+                $host = $ip . ':' . self::EXTERNAL_PORT;
+            }
+        }
+
+        return $scheme . '://' . $host . '/public/';
+    }
+
+    /**
      * Create a new room with QR codes for player and judge.
      *
      * @param int $questionSetId  Question set to assign
      * @return array  Result with room_id and codes on success
      */
     public function createRoom(int $questionSetId): array {
-        $qrPlayer = new QRGenerator(self::LOGIN_PLAYER_URL);
-        $qrJudge  = new QRGenerator(self::LOGIN_JUDGE_URL);
+        $baseUrl = self::getBaseUrl();
+        $qr = new QRGenerator();
 
-        $playerPair = $qrPlayer->generate();
-        $judgePair  = $qrJudge->generate();
+        $playerPair = $qr->generate($baseUrl . self::LOGIN_PLAYER_PAGE);
+        $judgePair  = $qr->generate($baseUrl . self::LOGIN_JUDGE_PAGE);
 
         $qrPlayerBase64 = $playerPair['svg'] ? base64_encode($playerPair['svg']) : null;
         $qrJudgeBase64  = $judgePair['svg']  ? base64_encode($judgePair['svg'])  : null;
 
         $roomId = $this->roomRepo->createRoom(
             $playerPair['code'], $judgePair['code'],
-            $questionSetId, $qrPlayerBase64, $qrJudgeBase64
+            $questionSetId, $qrPlayerBase64, $qrJudgeBase64, $baseUrl
         );
 
         if (!$roomId) {
@@ -117,7 +137,7 @@ class RoomService {
             return null;
         }
 
-        $room['has_winner']   = $room['winner_id'] !== null;
+        $room['has_ranking']  = $room['final_ranking'] !== null;
         $room['players']      = $this->playerRepo->getPlayersByRoomId($roomId);
         $room['player_count'] = count($room['players']);
 
@@ -150,27 +170,32 @@ class RoomService {
     }
 
     /**
-     * Determine and save the room winner based on all round rankings.
+     * Determine and save the final ranking based on all round rankings.
      * Uses the same scoring logic as GameService::getFinalLeaderboard.
      *
      * @param int $roomId  Room ID
-     * @return bool  true if winner was set
+     * @return bool  true if ranking was saved
      */
-    public function markWinner(int $roomId): bool {
+    public function markFinalRanking(int $roomId): bool {
         $leaderboard = svc('game')->getFinalLeaderboard($roomId);
         return $leaderboard['success'] && !empty($leaderboard['leaderboard']);
     }
 
     /**
-     * Check if a player is the winner of a room.
+     * Get a player's placement (1st, 2nd, 3rd, or 0) from the final ranking.
      *
      * @param int $roomId    Room ID
      * @param int $playerId  Player ID
-     * @return bool
+     * @return int  Position (1, 2, 3, 4, …); 0 if not found in ranking
      */
-    public function isWinner(int $roomId, int $playerId): bool {
-        $winnerId = $this->roomRepo->getWinnerId($roomId);
-        return $winnerId !== null && $winnerId == $playerId;
+    public function getPlacement(int $roomId, int $playerId): int {
+        $ranking = $this->roomRepo->getFinalRanking($roomId);
+        foreach ($ranking as $i => $entry) {
+            if (($entry['player_id'] ?? null) == $playerId) {
+                return $i + 1; // 1-based position
+            }
+        }
+        return 0;
     }
 
     /**

@@ -47,13 +47,12 @@ class QuestionService {
      * Add a single question.
      *
      * @param array $questionData  Question data (must include 'question' key)
-     * @return array  ['success' => true, 'question_id' => int]
-     * @throws Exception on insert failure
+     * @return array  ['success' => true, 'question_id' => int] or error array
      */
     public function addQuestion(array $questionData): array {
         $questionId = $this->questionRepo->insertQuestion($questionData);
         if (!$questionId) {
-            throw new Exception('Failed to add question');
+            return ['success' => false, 'error' => 'Failed to add question'];
         }
 
         return [

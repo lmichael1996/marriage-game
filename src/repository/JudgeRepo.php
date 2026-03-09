@@ -22,10 +22,9 @@ class JudgeRepo {
      * Relies on UNIQUE(room_id) constraint to prevent duplicates.
      *
      * @param int $roomId The room to assign the judge to
-     * @return int The newly created judge ID
-     * @throws Exception If a judge already exists for this room or DB error
+     * @return int|array The newly created judge ID, or error array on failure
      */
-    public function createJudge(int $roomId): int {
+    public function createJudge(int $roomId): int|array {
         $stmt = $this->conn->prepare("INSERT INTO judges (room_id) VALUES (?)");
         $stmt->bind_param('i', $roomId);
 
@@ -34,9 +33,9 @@ class JudgeRepo {
             $stmt->close();
 
             if ($errno === self::DUPLICATE_ENTRY_ERROR_CODE) {
-                throw new Exception('A judge is already connected to this room.');
+                return ['success' => false, 'error' => 'A judge is already connected to this room.'];
             }
-            throw new Exception('Error creating the judge.');
+            return ['success' => false, 'error' => 'Error creating the judge.'];
         }
 
         $judgeId = $this->conn->insert_id;

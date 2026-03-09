@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS questions (
         AND 4
     ),
     timer INT DEFAULT 10,
-    round_type ENUM('multiple', 'truefalse', 'clickfirst') DEFAULT 'multiple'
+    question_type ENUM('multiple', 'truefalse', 'clickfirst') DEFAULT 'multiple'
 );
 
 -- Question Sets table
@@ -60,14 +60,6 @@ CREATE TABLE IF NOT EXISTS qset_questions (
     UNIQUE (qset_id, question_id)
 );
 
--- Players table (for game participants associated with a room)
-CREATE TABLE IF NOT EXISTS players (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL,
-    room_id INT NOT NULL,
-    connected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 -- Rooms table (stores active game rooms)
 CREATE TABLE IF NOT EXISTS rooms (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -78,21 +70,21 @@ CREATE TABLE IF NOT EXISTS rooms (
     qr_uri_player LONGTEXT DEFAULT NULL,
     qr_uri_judge LONGTEXT DEFAULT NULL,
     status_room ENUM('open', 'running', 'closed', 'cancelled') DEFAULT 'open',
+    base_url VARCHAR(255) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    winner_id INT DEFAULT NULL,
-    FOREIGN KEY (qset_id) REFERENCES qsets(id) ON DELETE CASCADE,
-    FOREIGN KEY (winner_id) REFERENCES players(id) ON DELETE
-    SET
-        NULL
+    final_ranking JSON DEFAULT NULL,
+    FOREIGN KEY (qset_id) REFERENCES qsets(id) ON DELETE CASCADE
 );
 
--- FK e UNIQUE aggiunti dopo rooms per risolvere dipendenza circolare
-ALTER TABLE
-    players
-ADD
+-- Players table (for game participants associated with a room)
+CREATE TABLE IF NOT EXISTS players (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    room_id INT NOT NULL,
+    connected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
-ADD
-    UNIQUE (username, room_id);
+    UNIQUE (username, room_id)
+);
 
 CREATE TABLE IF NOT EXISTS judges (
     id INT AUTO_INCREMENT PRIMARY KEY,

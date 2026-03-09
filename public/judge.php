@@ -144,7 +144,7 @@ $judge = authJudge();
             roundEnded = false;
             currentRoundId = round.id;
             currentCorrectAnswer = round.correct_answer || null;
-            currentRoundType = round.round_type || 'multiple';
+            currentRoundType = round.question_type || 'multiple';
 
             // Colora la category-header bar
             const catColor = round.category_color || '#f0f2f5';
@@ -159,15 +159,15 @@ $judge = authJudge();
 
             // Mostra le opzioni di risposta
             const optionsContainer = document.getElementById('options-container');
-            if (round.round_type === 'clickfirst') {
+            if (round.question_type === 'clickfirst') {
                 optionsContainer.style.display = 'none';
                 optionsContainer.innerHTML = '';
             } else {
                 let optionsHtml = '';
-                const maxOptions = round.round_type === 'truefalse' ? 2 : 4;
+                const maxOptions = round.question_type === 'truefalse' ? 2 : 4;
                 const tfLabels = { 1: 'Vero', 2: 'Falso' };
                 for (let i = 1; i <= maxOptions; i++) {
-                    const text = round.round_type === 'truefalse'
+                    const text = round.question_type === 'truefalse'
                         ? tfLabels[i]
                         : (round['option' + i] || '');
                     if (text) {

@@ -131,17 +131,16 @@ requirePlayer();
             fetch('../src/api/api.php?endpoint=check_room_status')
                 .then(response => response.json())
                 .then(data => {
-                    // Se la room è chiusa (partita finita), chiedi is_winner via get_game_state
+                    // Se la room è chiusa (partita finita), chiedi placement via get_game_state
                     if (data.status === 'closed') {
                         gameEnded = true;
                         clearInterval(checkGameStateInterval);
                         clearInterval(checkRoomStatusInterval);
-                        // Usa get_game_state che ritorna is_winner direttamente
                         fetch('../src/api/api.php?endpoint=game&action=get_game_state&counter=' + currentRoundCounter)
                             .then(r => r.json())
                             .then(d => {
-                                if (d.is_winner !== undefined) {
-                                    showFinalResult(d.is_winner);
+                                if (d.placement !== undefined) {
+                                    showFinalResult(d.placement);
                                 } else {
                                     checkWinnerStatus();
                                 }
@@ -168,14 +167,14 @@ requirePlayer();
                 .then(data => {
                     console.log("checkGameState response:", data);
 
-                    // Verifica se la partita è terminata (room closed o vincitore)
+                    // Verifica se la partita è terminata (room closed o classifica)
                     if (data.game_finished || data.status_room === 'closed') {
-                        console.log("Game finished detected, is_winner:", data.is_winner);
+                        console.log("Game finished detected, placement:", data.placement);
                         gameEnded = true;
                         clearInterval(checkGameStateInterval);
                         clearInterval(checkRoomStatusInterval);
-                        if (data.is_winner !== undefined) {
-                            showFinalResult(data.is_winner);
+                        if (data.placement !== undefined) {
+                            showFinalResult(data.placement);
                         } else {
                             checkWinnerStatus();
                         }
@@ -238,11 +237,11 @@ requirePlayer();
             const answerGrid = document.getElementById('answer-grid');
             const clickFirstScreen = document.getElementById('click-first-screen');
 
-            if (round.round_type === 'clickfirst') {
+            if (round.question_type === 'clickfirst') {
                 answerGrid.style.display = 'none';
                 clickFirstScreen.style.display = 'block';
                 document.getElementById('click-first-btn').disabled = false;
-            } else if (round.round_type === 'truefalse') {
+            } else if (round.question_type === 'truefalse') {
                 setupRound(round, 2);
             } else {
                 setupRound(round, 4);
@@ -262,7 +261,7 @@ requirePlayer();
                 const btn = document.getElementById('btn-' + i);
                 if (i <= numOptions) {
                     btn.style.display = 'flex';
-                    btn.textContent = round.round_type === 'truefalse'
+                    btn.textContent = round.question_type === 'truefalse'
                         ? tfLabels[i]
                         : (round['option' + i] || 'Opzione ' + i);
                 } else {
@@ -398,8 +397,7 @@ requirePlayer();
         }
 
         function checkWinnerStatus() {
-            console.log("checkWinnerStatus called - polling for winner");
-            // Poll for winner check, retrying until we get a result
+            console.log("checkWinnerStatus called - polling for ranking");
             const maxAttempts = 20;
             let attempts = 0;
 
@@ -407,10 +405,10 @@ requirePlayer();
                 fetch('../src/api/api.php?endpoint=game&action=check_winner')
                     .then(response => response.json())
                     .then(data => {
-                        console.log("Winner check attempt", attempts + 1, ":", data);
+                        console.log("Ranking check attempt", attempts + 1, ":", data);
                         if (data.success) {
-                            console.log("Winner check result - is_winner:", data.is_winner);
-                            showFinalResult(data.is_winner);
+                            console.log("Ranking check result - placement:", data.placement);
+                            showFinalResult(data.placement);
                         } else {
                             console.log("Winner check failed:", data.error);
                             attempts++;
@@ -437,7 +435,7 @@ requirePlayer();
             tryCheckWinner();
         }
 
-        function showFinalResult(isWinner) {
+        function showFinalResult(placement) {
             // Hide all other screens
             document.getElementById('waiting-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'none';
@@ -454,17 +452,24 @@ requirePlayer();
             const title = document.getElementById('final-title');
             const message = document.getElementById('final-message');
 
-            if (isWinner) {
-                finalScreen.classList.remove('loser');
-                finalScreen.classList.add('winner');
-                emoji.textContent = '🏆';
-                title.textContent = 'Hai Vinto!';
-                message.textContent = 'Complimenti! Sei il vincitore di questa partita! 🎉';
+            const podium = {
+                1: { emoji: '🥇', title: '1° Posto!', message: 'Complimenti! Sei il vincitore di questa partita! 🎉', cls: 'winner' },
+                2: { emoji: '🥈', title: '2° Posto!', message: 'Ottimo risultato! Sei arrivato secondo! 👏', cls: 'winner' },
+                3: { emoji: '🥉', title: '3° Posto!', message: 'Bel lavoro! Sei sul podio! 💪', cls: 'winner' },
+            };
+
+            const info = podium[placement];
+            finalScreen.classList.remove('winner', 'loser');
+
+            if (info) {
+                finalScreen.classList.add(info.cls);
+                emoji.textContent = info.emoji;
+                title.textContent = info.title;
+                message.textContent = info.message;
             } else {
-                finalScreen.classList.remove('winner');
                 finalScreen.classList.add('loser');
-                emoji.textContent = '😢';
-                title.textContent = 'Hai Perso!';
+                emoji.textContent = placement > 0 ? '🏁' : '😢';
+                title.textContent = placement > 0 ? `${placement}° Posto` : 'Partita terminata';
                 message.textContent = 'Buona fortuna nella prossima partita!';
             }
         }

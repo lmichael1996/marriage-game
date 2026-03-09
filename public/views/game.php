@@ -960,7 +960,7 @@ function loadSetQuestions(setId) {
                         'truefalse': '✔️ Vero/Falso',
                         'clickfirst': '⚡ Clicca per primo'
                     };
-                    const typeBadge = q.round_type ? `<span class="badge-type">${typeMap[q.round_type] || q.round_type}</span>` : '';
+                    const typeBadge = q.question_type ? `<span class="badge-type">${typeMap[q.question_type] || q.question_type}</span>` : '';
 
                     html += `
                         <div class="question-item" data-question-id="${q.id}" data-set-id="${setId}" draggable="true">
@@ -1030,7 +1030,7 @@ function loadGameQuestions() {
                         'truefalse': '✔️ Vero/Falso',
                         'clickfirst': '⚡ Clicca per primo'
                     };
-                    const typeBadge = q.round_type ? `<span class="badge-type">${typeMap[q.round_type] || q.round_type}</span>` : '';
+                    const typeBadge = q.question_type ? `<span class="badge-type">${typeMap[q.question_type] || q.question_type}</span>` : '';
 
                     html += `
                         <div class="question-item" data-question-id="${q.id}" draggable="true">
@@ -1671,7 +1671,7 @@ function searchAvailableQuestions() {
                             'truefalse': '✔️ Vero/Falso',
                             'clickfirst': '⚡ Clicca per primo'
                         };
-                        const typeBadge = q.round_type ? `<span style="display: inline-block; background-color: #e9ecef; color: #333; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 10px; font-weight: 600; border: 1px solid #dee2e6;">${typeMap[q.round_type] || q.round_type}</span>` : '';
+                        const typeBadge = q.question_type ? `<span style="display: inline-block; background-color: #e9ecef; color: #333; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 10px; font-weight: 600; border: 1px solid #dee2e6;">${typeMap[q.question_type] || q.question_type}</span>` : '';
 
                         let questionText = q.question;
                         if (searchTerm && pattern) {
@@ -1727,7 +1727,7 @@ function searchAvailableQuestions() {
                                 'truefalse': '✔️ Vero/Falso',
                                 'clickfirst': '⚡ Clicca per primo'
                             };
-                            const typeBadge = q.round_type ? `<span style="display: inline-block; background-color: #e9ecef; color: #333; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 10px; font-weight: 600; border: 1px solid #dee2e6;">${typeMap[q.round_type] || q.round_type}</span>` : '';
+                            const typeBadge = q.question_type ? `<span style="display: inline-block; background-color: #e9ecef; color: #333; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 10px; font-weight: 600; border: 1px solid #dee2e6;">${typeMap[q.question_type] || q.question_type}</span>` : '';
 
                             // Evidenzia il testo della ricerca nella domanda
                             let questionText = q.question;
@@ -1825,7 +1825,7 @@ function searchAvailableQuestionsForNewSet() {
                         'truefalse': '✔️ Vero/Falso',
                         'clickfirst': '⚡ Clicca per primo'
                     };
-                    const typeBadge = q.round_type ? `<span style="display: inline-block; background-color: #e9ecef; color: #333; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 10px; font-weight: 600; border: 1px solid #dee2e6;">${typeMap[q.round_type] || q.round_type}</span>` : '';
+                    const typeBadge = q.question_type ? `<span style="display: inline-block; background-color: #e9ecef; color: #333; padding: 4px 12px; border-radius: 12px; font-size: 0.85em; margin-left: 10px; font-weight: 600; border: 1px solid #dee2e6;">${typeMap[q.question_type] || q.question_type}</span>` : '';
 
                     // Evidenzia il testo della ricerca nella domanda
                     let questionText = q.question;

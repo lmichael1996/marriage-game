@@ -67,10 +67,9 @@ class SettingsService {
      * Save game settings (points for each question type and position).
      *
      * @param array $settingsData  Raw settings data (e.g. from POST)
-     * @return bool  true on success
-     * @throws Exception on failure
+     * @return array  Result array
      */
-    public function saveSettings(array $settingsData): bool {
+    public function saveSettings(array $settingsData): array {
         $settings = [];
         foreach (self::DEFAULT_POINTS as $key => $default) {
             $settings[$key] = intval($settingsData[$key] ?? $default);
@@ -79,10 +78,10 @@ class SettingsService {
         $success = $this->settingsRepo->saveSettings($settings);
 
         if (!$success) {
-            throw new Exception('Failed to save settings');
+            return ['success' => false, 'error' => 'Failed to save settings'];
         }
 
-        return true;
+        return ['success' => true];
     }
 
     /**

@@ -70,7 +70,7 @@ class GameService {
         }
 
         $topAnswers = $this->answerRepo->getTopFastestAnswers($roundId, 10);
-        $roundType = $round['round_type'] ?? 'multiple';
+        $roundType = $round['question_type'] ?? 'multiple';
         $isClickfirst = $roundType === 'clickfirst';
 
         // Pre-load all points for the round type in a single pass
@@ -78,15 +78,13 @@ class GameService {
 
         $ranking = [];
         foreach ($topAnswers as $i => $answer) {
-            $position = $i + 1;
             $ranking[] = [
-                'position'    => $position,
                 'username'    => $answer['username'],
                 'player_id'   => (int)$answer['player_id'],
                 'answer_time' => (float)$answer['answer_time'],
                 'points'      => $isClickfirst
                     ? 0  // Points assigned later by the judge via setClickfirstWinner()
-                    : ($pointsMap[$position] ?? 0)
+                    : ($pointsMap[$i + 1] ?? 0)
             ];
         }
         $this->roundRepo->saveRanking($roundId, $ranking);
@@ -127,7 +125,6 @@ class GameService {
         $points = $this->settingsService->getClickfirstPoints();
 
         $newRanking = [[
-            'position'    => 1,
             'username'    => $winner['username'],
             'player_id'   => (int)$winner['player_id'],
             'answer_time' => (float)$winner['answer_time'],
@@ -167,22 +164,21 @@ class GameService {
      * @param int        $roundId    Round ID
      * @param string|int $answer     Player's answer
      * @param float      $timeTaken  Time taken in seconds
-     * @return array  Result with is_correct flag
-     * @throws Exception if player not authenticated or round not found
+     * @return array  Result with is_correct flag, or error array
      */
     public function submitAnswerByRoundId(int $roundId, mixed $answer, float $timeTaken): array {
         $player = svc('auth')->getPlayer();
         $playerId = $player['player_id'] ?? null;
         if (!$playerId) {
-            throw new Exception('Player not authenticated');
+            return ['success' => false, 'error' => 'Player not authenticated'];
         }
 
         $round = $this->roundRepo->getRoundById($roundId);
         if (!$round) {
-            throw new Exception('Round not found');
+            return ['success' => false, 'error' => 'Round not found'];
         }
 
-        if ($round['round_type'] === 'clickfirst') {
+        if ($round['question_type'] === 'clickfirst') {
             $this->answerRepo->submitAnswer($roundId, $playerId, $timeTaken);
             return [
                 'success' => true,
@@ -257,24 +253,26 @@ class GameService {
 
         arsort($playerScores);
 
-        // Set the winner (highest score)
-        $winnerId = array_key_first($playerScores);
-        if ($winnerId) {
-            $this->roomRepo->setWinner($room['id'], $winnerId);
-        }
-
-        // Build leaderboard with medals
-        $medals = ['🥇', '🥈', '🥉'];
         $leaderboard = [];
-        $index = 0;
-
         foreach ($playerScores as $playerId => $score) {
             $leaderboard[] = [
-                'username' => $playerNames[$playerId],
-                'score'    => $score,
-                'medal'    => $medals[$index++] ?? ''
+                'player_id' => $playerId,
+                'username'  => $playerNames[$playerId],
+                'score'     => $score,
             ];
         }
+
+        // Save the ranking JSON (without display fields like medals)
+        if (!empty($leaderboard)) {
+            $this->roomRepo->setFinalRanking($room['id'], $leaderboard);
+        }
+
+        // Add medals for API response only
+        $medals = ['🥇', '🥈', '🥉'];
+        foreach ($leaderboard as $i => &$entry) {
+            $entry['medal'] = $medals[$i] ?? '';
+        }
+        unset($entry);
 
         return [
             'success' => true,
@@ -285,15 +283,14 @@ class GameService {
     /**
      * Get the number of rounds the current player has answered in their room.
      *
-     * @return int Number of answered rounds
-     * @throws Exception if player not authenticated
+     * @return int|array Number of answered rounds, or error array
      */
-    public function getPlayerProgress(): int {
+    public function getPlayerProgress(): int|array {
         $player = svc('auth')->getPlayer();
         $playerId = $player['player_id'] ?? null;
         $roomId   = $player['room_id'] ?? null;
         if (!$playerId || !$roomId) {
-            throw new Exception('Player not authenticated');
+            return ['success' => false, 'error' => 'Player not authenticated'];
         }
 
         return $this->answerRepo->countAnsweredRounds($playerId, $roomId);

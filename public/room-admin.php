@@ -19,10 +19,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'incre
 
 extract(loadRoomAdmin());
 
-if ($room['has_winner'] ?? false) {
+if ($room['has_ranking'] ?? false) {
     echo "<div class='alert alert-error'>
             <h2>Partita Terminata</h2>
-            <p>Questa stanza ha già un vincitore. Accesso negato.</p>
+            <p>Questa stanza ha già una classifica finale. Accesso negato.</p>
             <a href='admin.php'>Torna alla Dashboard</a>
           </div>";
     exit;
@@ -83,7 +83,7 @@ if ($room['has_winner'] ?? false) {
                         </div>
                     </div>
                 <?php elseif ($activeRound): ?>
-                    <?php $catColor = $activeRound['category_color'] ?? '#74b9ff'; $catName = $activeRound['category_name'] ?? ''; $isClickFirst = $activeRound['round_type'] === 'clickfirst'; ?>
+                    <?php $catColor = $activeRound['category_color'] ?? '#74b9ff'; $catName = $activeRound['category_name'] ?? ''; $isClickFirst = $activeRound['question_type'] === 'clickfirst'; ?>
                     <div class="game-step active">
                         <div class="category-header" style="background: <?php echo htmlspecialchars($catColor); ?>;">
                             <span class="round-label">Domanda #<?php echo $counter; ?> — <?php if ($isClickFirst): ?>⚡ <?php endif; ?><?php echo htmlspecialchars($catName); ?></span>
@@ -93,8 +93,8 @@ if ($room['has_winner'] ?? false) {
 
                         <?php if (!$isClickFirst): ?>
                             <?php
-                                $opt1 = $activeRound['round_type'] === 'truefalse' ? 'Vero' : $activeRound['option1'];
-                                $opt2 = $activeRound['round_type'] === 'truefalse' ? 'Falso' : $activeRound['option2'];
+                                $opt1 = $activeRound['question_type'] === 'truefalse' ? 'Vero' : $activeRound['option1'];
+                                $opt2 = $activeRound['question_type'] === 'truefalse' ? 'Falso' : $activeRound['option2'];
                             ?>
                             <div class="options-grid">
                                 <div id="option-1" class="option-btn">
@@ -103,7 +103,7 @@ if ($room['has_winner'] ?? false) {
                                 <div id="option-2" class="option-btn">
                                     <?php echo htmlspecialchars($opt2); ?>
                                 </div>
-                                <?php if ($activeRound['round_type'] === 'multiple'): ?>
+                                <?php if ($activeRound['question_type'] === 'multiple'): ?>
                                     <div id="option-3" class="option-btn">
                                         <?php echo htmlspecialchars($activeRound['option3']); ?>
                                     </div>
@@ -126,7 +126,7 @@ if ($room['has_winner'] ?? false) {
                         </div>
                     </div>
                 <?php else: ?>
-                    <?php $catColor = $question['category_color'] ?? '#74b9ff'; $catName = $question['category_name'] ?? ''; $isClickFirst = $question['round_type'] === 'clickfirst'; ?>
+                    <?php $catColor = $question['category_color'] ?? '#74b9ff'; $catName = $question['category_name'] ?? ''; $isClickFirst = $question['question_type'] === 'clickfirst'; ?>
                     <div class="game-step">
                         <div class="category-header" style="background: <?php echo htmlspecialchars($catColor); ?>;">
                             <span class="round-label">Domanda #<?php echo $counter; ?> — <?php if ($isClickFirst): ?>⚡ <?php endif; ?><?php echo htmlspecialchars($catName); ?></span>
@@ -135,8 +135,8 @@ if ($room['has_winner'] ?? false) {
 
                         <?php if (!$isClickFirst): ?>
                             <?php
-                                $qOpt1 = $question['round_type'] === 'truefalse' ? 'Vero' : $question['option1'];
-                                $qOpt2 = $question['round_type'] === 'truefalse' ? 'Falso' : $question['option2'];
+                                $qOpt1 = $question['question_type'] === 'truefalse' ? 'Vero' : $question['option1'];
+                                $qOpt2 = $question['question_type'] === 'truefalse' ? 'Falso' : $question['option2'];
                             ?>
                             <div class="options-grid">
                                 <div class="option-btn">
@@ -145,7 +145,7 @@ if ($room['has_winner'] ?? false) {
                                 <div class="option-btn">
                                     <?php echo htmlspecialchars($qOpt2); ?>
                                 </div>
-                                <?php if ($question['round_type'] === 'multiple'): ?>
+                                <?php if ($question['question_type'] === 'multiple'): ?>
                                     <div class="option-btn">
                                         <?php echo htmlspecialchars($question['option3']); ?>
                                     </div>
@@ -187,7 +187,7 @@ if ($room['has_winner'] ?? false) {
 
         document.addEventListener('DOMContentLoaded', () => {
             <?php if ($activeRound): ?>
-            currentRoundType = '<?php echo $activeRound['round_type'] ?? ''; ?>';
+            currentRoundType = '<?php echo $activeRound['question_type'] ?? ''; ?>';
             startCountdown(<?php echo $activeRound['timer'] ?? 30; ?>);
             <?php endif; ?>
 
@@ -215,7 +215,7 @@ if ($room['has_winner'] ?? false) {
                     setTimeout(() => {
                         const correctAnswer = <?php echo isset($activeRound['correct_answer']) ? $activeRound['correct_answer'] : 'null'; ?>;
                         const isClickFirst =
-                            '<?php echo isset($activeRound['round_type']) ? $activeRound['round_type'] : ''; ?>' ===
+                            '<?php echo isset($activeRound['question_type']) ? $activeRound['question_type'] : ''; ?>' ===
                             'clickfirst';
 
                         if (!isClickFirst && correctAnswer) {

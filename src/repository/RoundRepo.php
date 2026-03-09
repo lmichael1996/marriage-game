@@ -39,7 +39,7 @@ class RoundRepo {
      */
     public function getRoundById(int $round_id): ?array {
         $stmt = $this->conn->prepare("
-            SELECT r.*, q.round_type, q.question,
+            SELECT r.*, q.question_type, q.question,
                    q.option1, q.option2, q.option3, q.option4,
                    q.correct_answer, q.timer
             FROM rounds r
@@ -62,7 +62,7 @@ class RoundRepo {
      */
     public function getRoundsByRoom(int $room_id): array {
         $stmt = $this->conn->prepare("
-            SELECT r.*, q.round_type, q.question,
+            SELECT r.*, q.question_type, q.question,
                    q.option1, q.option2, q.option3, q.option4,
                    q.correct_answer, q.timer
             FROM rounds r
@@ -88,7 +88,7 @@ class RoundRepo {
     public function getActiveRound(int $room_id): ?array {
         $stmt = $this->conn->prepare("
             SELECT r.id, r.room_id, r.question_id,
-                   q.id as q_id, q.round_type,
+                   q.id as q_id, q.question_type,
                    q.question, q.option1, q.option2, q.option3, q.option4,
                    q.correct_answer, q.timer,
                    qc.category_name, qc.color as category_color,
@@ -126,7 +126,7 @@ class RoundRepo {
         $offset = max(0, $position - 1);
         $stmt = $this->conn->prepare("
             SELECT r.id, r.room_id, r.question_id,
-                   q.id as q_id, q.round_type,
+                   q.id as q_id, q.question_type,
                    q.question, q.option1, q.option2, q.option3, q.option4,
                    q.correct_answer, q.timer,
                    qc.category_name, qc.color as category_color,
@@ -150,7 +150,7 @@ class RoundRepo {
             $round['round_number'] = $position;
 
             // Truefalse: fixed options "Vero"/"Falso" (empty in DB)
-            if (($round['round_type'] ?? '') === 'truefalse') {
+            if (($round['question_type'] ?? '') === 'truefalse') {
                 $round['option1'] = 'Vero';
                 $round['option2'] = 'Falso';
             }
