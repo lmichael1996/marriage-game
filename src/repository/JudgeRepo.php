@@ -33,9 +33,15 @@ class JudgeRepo {
             $stmt->close();
 
             if ($errno === self::DUPLICATE_ENTRY_ERROR_CODE) {
-                return ['success' => false, 'error' => 'A judge is already connected to this room.'];
+                return [
+                    'success' => false,
+                    'error' => 'Il giudice è già connesso a questa stanza.'
+                ];
             }
-            return ['success' => false, 'error' => 'Error creating the judge.'];
+            return [
+                'success' => false,
+                'error' => 'Errore durante la creazione del giudice.'
+            ];
         }
 
         $judgeId = $this->conn->insert_id;

@@ -44,7 +44,7 @@ class RoomService {
             }
         }
 
-        return $scheme . '://' . $host . '/public/';
+        return $scheme . '://' . $host;
     }
 
     /**
@@ -57,8 +57,8 @@ class RoomService {
         $baseUrl = self::getBaseUrl();
         $qr = new QRGenerator();
 
-        $playerPair = $qr->generate($baseUrl . self::LOGIN_PLAYER_PAGE);
-        $judgePair  = $qr->generate($baseUrl . self::LOGIN_JUDGE_PAGE);
+        $playerPair = $qr->generate($baseUrl . '/public/' . self::LOGIN_PLAYER_PAGE);
+        $judgePair  = $qr->generate($baseUrl . '/public/' . self::LOGIN_JUDGE_PAGE);
 
         $qrPlayerBase64 = $playerPair['svg'] ? base64_encode($playerPair['svg']) : null;
         $qrJudgeBase64  = $judgePair['svg']  ? base64_encode($judgePair['svg'])  : null;
@@ -71,7 +71,7 @@ class RoomService {
         if (!$roomId) {
             return [
                 'success' => false,
-                'error' => 'Failed to create room'
+                'error' => 'Impossibile creare la stanza'
             ];
         }
 
@@ -92,7 +92,7 @@ class RoomService {
     public function startRoom(int $roomId): array {
         $room = $this->roomRepo->getRoomById($roomId);
         if (!$room) {
-            return ['success' => false, 'error' => 'Room not found'];
+            return ['success' => false, 'error' => 'Stanza non trovata'];
         }
 
         $clearJudge = !$this->judgeRepo->isJudgeConnected($roomId);
@@ -100,7 +100,7 @@ class RoomService {
 
         return [
             'success' => $success,
-            'message' => $success ? 'Room started' : 'Failed to start room',
+            'message' => $success ? 'Stanza avviata' : 'Impossibile avviare la stanza',
             'room_id' => $roomId
         ];
     }
@@ -222,6 +222,16 @@ class RoomService {
      */
     public function getRoomById(int $roomId): ?array {
         return $this->roomRepo->getRoomById($roomId);
+    }
+
+    /**
+     * Get a room by its player code.
+     *
+     * @param string $code  Player room code
+     * @return array|null   Room data or null
+     */
+    public function getRoomByPlayerCode(string $code): ?array {
+        return $this->roomRepo->getRoomByPlayerCode($code);
     }
 
     /**

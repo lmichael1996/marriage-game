@@ -52,7 +52,7 @@ class QuestionService {
     public function addQuestion(array $questionData): array {
         $questionId = $this->questionRepo->insertQuestion($questionData);
         if (!$questionId) {
-            return ['success' => false, 'error' => 'Failed to add question'];
+            return ['success' => false, 'error' => 'Impossibile aggiungere la domanda'];
         }
 
         return [
@@ -71,7 +71,7 @@ class QuestionService {
         if (!isset($questionData['id'])) {
             return [
                 'success' => false,
-                'error' => 'Question ID is required'
+                'error' => 'ID domanda obbligatorio'
             ];
         }
 
@@ -79,7 +79,7 @@ class QuestionService {
         if (!$success) {
             return [
                 'success' => false,
-                'error' => 'Failed to update question'
+                'error' => 'Impossibile aggiornare la domanda'
             ];
         }
 
@@ -97,7 +97,7 @@ class QuestionService {
         if (!$success) {
             return [
                 'success' => false,
-                'error' => 'Failed to delete question'
+                'error' => 'Impossibile eliminare la domanda'
             ];
         }
 

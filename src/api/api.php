@@ -25,7 +25,7 @@ function respondError($msg, $code = 400)
 function requirePost()
 {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST')
-        respondError('Method not allowed', 405);
+        respondError('Metodo non consentito', 405);
 }
 
 function input()
@@ -153,7 +153,7 @@ switch ($endpoint) {
         break;
 
     default:
-        respondError('Endpoint not found', 404);
+        respondError('Endpoint non trovato', 404);
 }
 
 // ── Auth ─────────────────────────────────────────────────────────────────
@@ -163,7 +163,7 @@ function handlePlayerLogin() {
     $data = input();
     $result = svc('auth')->playerLogin($data['username'] ?? '', $data['room_code'] ?? '');
     if (!($result['success'] ?? false)) {
-        respondError($result['error'] ?? 'Login failed', 401);
+        respondError($result['error'] ?? 'Login fallito', 401);
     }
     respond([
         'success' => true,
@@ -176,7 +176,7 @@ function handleAdminLogin() {
     $data = input();
     $result = svc('auth')->adminLogin($data['username'] ?? '', $data['password'] ?? '');
     if (!($result['success'] ?? false)) {
-        respondError($result['error'] ?? 'Login failed', 401);
+        respondError($result['error'] ?? 'Login fallito', 401);
     }
     respond([
         'success' => true,
@@ -189,7 +189,7 @@ function handleJudgeLogin() {
     $data = input();
     $result = svc('auth')->judgeLogin($data['room_code'] ?? '');
     if (!($result['success'] ?? false)) {
-        respondError($result['error'] ?? 'Login failed', 401);
+        respondError($result['error'] ?? 'Login fallito', 401);
     }
     respond([
         'success' => true,
@@ -204,12 +204,12 @@ function handleAnswer() {
     requirePost();
     $data = input();
 
-    if (!($data['round_id'] ?? 0))      respondError('Round ID required');
-    if (($data['answer'] ?? '') === '')  respondError('Answer required');
+    if (!($data['round_id'] ?? 0))      respondError('ID round obbligatorio');
+    if (($data['answer'] ?? '') === '')  respondError('Risposta obbligatoria');
 
     $result = svc('game')->submitAnswerByRoundId($data['round_id'], $data['answer'], $data['time_taken'] ?? 0);
     if (!($result['success'] ?? true)) {
-        respondError($result['error'] ?? 'Failed to submit answer', 500);
+        respondError($result['error'] ?? 'Impossibile inviare la risposta', 500);
     }
     respond($result);
 }
@@ -237,7 +237,7 @@ function handleCreateRoom() {
 function handleStartRoom() {
     requireLoginJson();
     $roomId = authRoomId();
-    if (!$roomId) respondError('No active room in session');
+    if (!$roomId) respondError('Nessuna stanza attiva in sessione');
     respond(svc('room')->startRoom($roomId));
 }
 
@@ -247,14 +247,14 @@ function handleCheckRoomStatus() {
     if (!$roomId) respond([
         'room_open' => false,
         'status' => 'unknown',
-        'message' => 'No room associated'
+        'message' => 'Nessuna stanza associata'
     ]);
 
     $roomData = svc('room')->getRoomDetails($roomId);
     if (!$roomData) respond([
         'room_open' => false,
         'status' => 'unknown',
-        'message' => 'Room not found'
+        'message' => 'Stanza non trovata'
     ]);
 
     $status = $roomData['status_room'] ?? 'unknown';
@@ -268,7 +268,7 @@ function handleCheckRoomStatus() {
 function handleDeleteRoom() {
     requireAdminJson();
     $roomId = authRoomId();
-    if (!$roomId) respondError('No active room');
+    if (!$roomId) respondError('Nessuna stanza attiva');
 
     $result = svc('room')->cancelRoom($roomId);
     if ($result['success']) {
@@ -302,7 +302,7 @@ function handleGame($action) {
         'judge_advance'  => handleJudgeAdvance(),
         'check_judge_decision' => handleCheckJudgeDecision(),
         'check_winner'   => handleCheckWinner(),
-        default          => respondError('Invalid action'),
+        default          => respondError('Azione non valida'),
     };
 }
 
@@ -358,14 +358,14 @@ function handleGetGameState() {
 function handleStartRound() {
     $questionId = $_GET['question_id'] ?? 0;
     if (!$questionId && $_SERVER['REQUEST_METHOD'] === 'POST') $questionId = input()['question_id'] ?? 0;
-    if (!$questionId) respondError('Question ID required');
+    if (!$questionId) respondError('ID domanda obbligatorio');
 
     $roomId = authRoomId();
-    if (!$roomId) respondError('Room ID not found');
+    if (!$roomId) respondError('ID stanza non trovato');
 
     $result = svc('game')->startRound($questionId, $roomId);
     if (!($result['success'] ?? true)) {
-        respondError($result['error'] ?? 'Failed to start round', 500);
+        respondError($result['error'] ?? 'Impossibile avviare il round', 500);
     }
     respond($result);
 }
@@ -373,11 +373,11 @@ function handleStartRound() {
 function handleCloseRound() {
     $roundId = $_GET['round_id'] ?? 0;
     if (!$roundId && $_SERVER['REQUEST_METHOD'] === 'POST') $roundId = input()['round_id'] ?? 0;
-    if (!$roundId) respondError('Round ID required');
+    if (!$roundId) respondError('ID round obbligatorio');
 
     $result = svc('game')->closeRound($roundId);
     if (!($result['success'] ?? true)) {
-        respondError($result['error'] ?? 'Failed to close round', 500);
+        respondError($result['error'] ?? 'Impossibile chiudere il round', 500);
     }
     respond($result);
 }
@@ -386,12 +386,12 @@ function handleSetClickfirstWinner() {
     $data = input();
     $roundId = $data['round_id'] ?? 0;
     $winnerIndex = $data['winner_index'] ?? null;
-    if (!$roundId) respondError('Round ID required');
-    if ($winnerIndex === null) respondError('Winner index required');
+    if (!$roundId) respondError('ID round obbligatorio');
+    if ($winnerIndex === null) respondError('Indice vincitore obbligatorio');
 
     $result = svc('game')->setClickfirstWinner($roundId, (int)$winnerIndex);
     if (!($result['success'] ?? true)) {
-        respondError($result['error'] ?? 'Failed to set winner', 500);
+        respondError($result['error'] ?? 'Impossibile impostare il vincitore', 500);
     }
     respond($result);
 }
@@ -399,18 +399,18 @@ function handleSetClickfirstWinner() {
 function handleJudgeAdvance() {
     $data = input();
     $roundId = $data['round_id'] ?? 0;
-    if (!$roundId) respondError('Round ID required');
+    if (!$roundId) respondError('ID round obbligatorio');
 
     svc('game')->markJudgeDecided($roundId);
     respond([
         'success' => true,
-        'message' => 'Judge advance signaled'
+        'message' => 'Avanzamento giudice segnalato'
     ]);
 }
 
 function handleCheckJudgeDecision() {
     $roundId = $_GET['round_id'] ?? 0;
-    if (!$roundId) respondError('Round ID required');
+    if (!$roundId) respondError('ID round obbligatorio');
 
     $decided = svc('game')->isJudgeDecided($roundId);
     respond([
@@ -462,7 +462,7 @@ function handleRoundAnswers() {
         respond([
             'success' => false,
             'top_answers' => [],
-            'message' => 'Round ID required'
+            'message' => 'ID round obbligatorio'
         ]);
     }
     respond([
@@ -487,7 +487,7 @@ function handlePlayerProgress() {
     requireLoginJson();
     $result = svc('game')->getPlayerProgress();
     if (is_array($result)) {
-        respondError($result['error'] ?? 'Failed to get progress', 500);
+        respondError($result['error'] ?? 'Impossibile ottenere il progresso', 500);
     }
     respond([
         'success' => true,
@@ -499,9 +499,9 @@ function handlePlayerProgress() {
 
 function handleGetQuestion() {
     $id = $_GET['id'] ?? null;
-    if (!$id) respondError('Question ID required');
+    if (!$id) respondError('ID domanda obbligatorio');
     $result = svc('question')->getQuestionById($id);
-    if (!$result) respondError('Question not found', 404);
+    if (!$result) respondError('Domanda non trovata', 404);
     respond([
         'success' => true,
         'question' => $result
@@ -544,7 +544,7 @@ function handleSaveCategories() {
     }
     respond([
         'success' => true,
-        'message' => 'All changes saved successfully'
+        'message' => 'Modifiche salvate'
     ]);
 }
 
@@ -552,9 +552,9 @@ function handleSaveCategories() {
 
 function handleGetQuestionSet() {
     $setId = $_GET['id'] ?? null;
-    if (!$setId) respondError('Set ID is required');
+    if (!$setId) respondError('ID set obbligatorio');
     $set = svc('set')->getQuestionSetById($setId);
-    if (!$set) respondError('Question set not found', 404);
+    if (!$set) respondError('Set di domande non trovato', 404);
     respond([
         'success' => true,
         'set' => $set
@@ -565,49 +565,49 @@ function handleAddQuestionSet() {
     requirePost();
     $data    = input();
     $setName = $data['set_name'] ?? '';
-    if (!$setName) respondError('Set name is required');
+    if (!$setName) respondError('Nome set obbligatorio');
     $result = svc('set')->addSet($setName, $data['set_description'] ?? '');
     if (is_array($result)) {
-        respondError($result['error'] ?? 'Failed to create set');
+        respondError($result['error'] ?? 'Impossibile creare il set');
     }
     respond([
         'success' => true,
         'set_id' => $result,
-        'message' => 'Question set created successfully'
+        'message' => 'Set di domande creato'
     ]);
 }
 
 function handleUpdateQuestionSet() {
     requirePost();
     $data = input();
-    if (!($data['set_id'] ?? null) || !($data['set_name'] ?? '')) respondError('Set ID and name are required');
+    if (!($data['set_id'] ?? null) || !($data['set_name'] ?? '')) respondError('ID set e nome obbligatori');
     $result = svc('set')->updateSet($data['set_id'], $data['set_name'], $data['set_description'] ?? '');
     if (!($result['success'] ?? false)) {
-        respondError($result['error'] ?? 'Failed to update set');
+        respondError($result['error'] ?? 'Impossibile aggiornare il set');
     }
     respond([
         'success' => true,
-        'message' => 'Question set updated successfully'
+        'message' => 'Set di domande aggiornato'
     ]);
 }
 
 function handleDeleteQuestionSet() {
     requirePost();
     $data = input();
-    if (!($data['set_id'] ?? null)) respondError('Set ID is required');
+    if (!($data['set_id'] ?? null)) respondError('ID set obbligatorio');
     $result = svc('set')->deleteSet($data['set_id']);
     if (!($result['success'] ?? false)) {
-        respondError($result['error'] ?? 'Failed to delete set', 500);
+        respondError($result['error'] ?? 'Impossibile eliminare il set', 500);
     }
     respond([
         'success' => true,
-        'message' => 'Question set deleted successfully'
+        'message' => 'Set di domande eliminato'
     ]);
 }
 
 function handleGetSetQuestions() {
     $setId = $_GET['set_id'] ?? null;
-    if (!$setId) respondError('Set ID is required');
+    if (!$setId) respondError('ID set obbligatorio');
     respond([
         'success' => true,
         'questions' => svc('set')->getSetQuestions($setId)
@@ -617,18 +617,18 @@ function handleGetSetQuestions() {
 function handleAddQuestionToSet() {
     requirePost();
     $data = input();
-    if (!($data['set_id'] ?? null) || !($data['question_id'] ?? null)) respondError('Set ID and Question ID are required');
+    if (!($data['set_id'] ?? null) || !($data['question_id'] ?? null)) respondError('ID set e ID domanda obbligatori');
     $q = svc('set');
     $questions = $q->getSetQuestions($data['set_id']);
     $maxOrder = 0;
     foreach ($questions as $qItem) {
         if ($qItem['order_in_set'] > $maxOrder) $maxOrder = $qItem['order_in_set'];
-        if ($qItem['id'] == $data['question_id']) respondError('Question already in set');
+        if ($qItem['id'] == $data['question_id']) respondError('Domanda già presente nel set');
     }
-    if (!$q->addQuestionToSet($data['set_id'], $data['question_id'], $maxOrder + 1)) respondError('Question already in set or unable to add');
+    if (!$q->addQuestionToSet($data['set_id'], $data['question_id'], $maxOrder + 1)) respondError('Domanda già presente nel set o impossibile aggiungerla');
     respond([
         'success' => true,
-        'message' => 'Question added successfully'
+        'message' => 'Domanda aggiunta'
     ]);
 }
 
@@ -636,63 +636,72 @@ function handleAddQuestionToSetAtPosition() {
     requirePost();
     $data = input();
     if (!($data['set_id'] ?? null) || !($data['question_id'] ?? null) || ($data['position'] ?? null) === null) {
-        respondError('Set ID, Question ID and position are required');
+        respondError('ID set, ID domanda e posizione obbligatori');
     }
-    if (!svc('set')->addQuestionAtPosition($data['set_id'], $data['question_id'], $data['position'])) respondError('Question already in set or unable to add');
+    if (!svc('set')->addQuestionAtPosition($data['set_id'], $data['question_id'], $data['position'])) respondError('Domanda già presente nel set o impossibile aggiungerla');
     respond([
         'success' => true,
-        'message' => 'Question added successfully'
+        'message' => 'Domanda aggiunta'
     ]);
 }
 
 function handleRemoveQuestionFromSet() {
     requirePost();
     $data = input();
-    if (!($data['set_id'] ?? null) || !($data['question_id'] ?? null)) respondError('Set ID and Question ID are required');
+    if (!($data['set_id'] ?? null) || !($data['question_id'] ?? null)) respondError('ID set e ID domanda obbligatori');
     svc('set')->removeQuestion($data['set_id'], $data['question_id']);
     respond([
         'success' => true,
-        'message' => 'Question removed successfully'
+        'message' => 'Domanda rimossa'
     ]);
 }
 
 function handleUpdateQuestionOrder() {
     requirePost();
     $data = input();
-    if (!($data['set_id'] ?? null) || empty($data['questions'])) respondError('Set ID and questions are required');
-    if (!svc('set')->updateQuestionsOrder($data['set_id'], $data['questions'])) respondError('Unable to update order');
+    if (!($data['set_id'] ?? null) || empty($data['questions'])) respondError('ID set e domande obbligatori');
+    if (!svc('set')->updateQuestionsOrder($data['set_id'], $data['questions'])) respondError('Impossibile aggiornare l\'ordine');
     respond([
         'success' => true,
-        'message' => 'Order updated successfully'
+        'message' => 'Ordine aggiornato'
     ]);
 }
 
 // ── Misc ─────────────────────────────────────────────────────────────────
 
 function handleGeneratePDF() {
-    $roomId = authRoomId();
-    if (!$roomId) respondError('Room ID not found');
+    $data = input();
+    $roomCode = strtoupper(trim($data['room_code'] ?? ''));
 
-    $room = svc('room');
-    $roomResult = $room->getRoomDetails($roomId);
-    if (!$roomResult) respondError('Room not found', 404);
+    // Resolve room: prefer room_code from request, fall back to session
+    if ($roomCode) {
+        $roomResult = svc('room')->getRoomByPlayerCode($roomCode);
+    } else {
+        $roomId = authRoomId();
+        $roomResult = $roomId ? svc('room')->getRoomDetails($roomId) : null;
+    }
+    if (!$roomResult) respondError('Stanza non trovata', 404);
 
     $codePlayer = $roomResult['code_player'] ?? null;
     $codeJudge  = $roomResult['code_judge'] ?? null;
-    if (!$codePlayer || !$codeJudge) respondError('Both room codes are required');
+    if (!$codePlayer || !$codeJudge) respondError('Codici stanza non trovati. Ricrea la stanza.');
 
     // Retrieve base64-encoded QR SVGs from DB and decode
     $svgPlayer = !empty($roomResult['qr_uri_player']) ? base64_decode($roomResult['qr_uri_player']) : null;
     $svgJudge  = !empty($roomResult['qr_uri_judge'])  ? base64_decode($roomResult['qr_uri_judge'])  : null;
-    if (!$svgPlayer || !$svgJudge) respondError('QR codes not found for this room', 500);
+    if (!$svgPlayer || !$svgJudge) respondError('QR code non trovati per questa stanza. Ricrea la stanza.', 500);
 
     $url = $roomResult['base_url'] ?? '';
-    if (!$url) respondError('Base URL not found for this room', 500);
+    if (!$url) respondError('URL base non trovato per questa stanza', 500);
+    // Normalize: strip trailing /public/ or /public from old records
+    $url = rtrim($url, '/');
+    $url = preg_replace('#/public$#', '', $url);
 
-    // Generate PDF with the codes and QR SVGs
+    // Generate PDF with both player and judge pages
     $pdf = new PDFGenerator($url);
     $pdf->addPage('MVquiz - Giocatore', $codePlayer, $svgPlayer);
     $pdf->addPage('MVquiz - Giudice', $codeJudge, $svgJudge);
+
     respond([
         'success'  => true,
         'pdf_data' => 'data:application/pdf;base64,' . base64_encode($pdf->getPDF()),

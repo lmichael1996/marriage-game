@@ -94,7 +94,7 @@ class SetService {
     public function addSet(string $name, string $description = ''): int|array {
         $setId = $this->setRepo->createSet($name, $description);
         if (!$setId) {
-            return ['success' => false, 'error' => 'Failed to create question set'];
+            return ['success' => false, 'error' => 'Impossibile creare il set di domande'];
         }
 
         return $setId;
@@ -111,7 +111,7 @@ class SetService {
     public function updateSet(int $setId, string $name, string $description = ''): array {
         $success = $this->setRepo->updateSet($setId, $name, $description);
         if (!$success) {
-            return ['success' => false, 'error' => 'Failed to update question set'];
+            return ['success' => false, 'error' => 'Impossibile aggiornare il set di domande'];
         }
 
         return ['success' => true];
@@ -126,7 +126,7 @@ class SetService {
     public function deleteSet(int $setId): array {
         $success = $this->setRepo->deleteSet($setId);
         if (!$success) {
-            return ['success' => false, 'error' => 'Failed to delete question set'];
+            return ['success' => false, 'error' => 'Impossibile eliminare il set di domande'];
         }
 
         return ['success' => true];

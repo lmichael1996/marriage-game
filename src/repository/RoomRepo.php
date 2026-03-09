@@ -54,16 +54,16 @@ class RoomRepo {
     }
 
     /**
-     * Find an open room by player code.
+     * Find a room by player code (any status).
      *
      * @param string $code  Player room code (case-insensitive)
-     * @return array|null   Room row or null if not found/not open
+     * @return array|null   Room row or null if not found
      */
-    public function getOpenRoomByPlayerCode(string $code): ?array {
+    public function getRoomByPlayerCode(string $code): ?array {
         $stmt = $this->conn->prepare("
             SELECT *
             FROM rooms
-            WHERE code_player = ? AND status_room = 'open'
+            WHERE code_player = ?
         ");
         $codeUpper = strtoupper($code);
         $stmt->bind_param("s", $codeUpper);
@@ -76,16 +76,16 @@ class RoomRepo {
     }
 
     /**
-     * Find an open room by judge code.
+     * Find a room by judge code (any status).
      *
      * @param string $code  Judge room code (case-insensitive)
-     * @return array|null   Room row or null if not found/not open
+     * @return array|null   Room row or null if not found
      */
     public function getRoomByJudgeCode(string $code): ?array {
         $stmt = $this->conn->prepare("
             SELECT *
             FROM rooms
-            WHERE code_judge = ? AND status_room = 'open'
+            WHERE code_judge = ?
         ");
         $codeUpper = strtoupper($code);
         $stmt->bind_param("s", $codeUpper);
@@ -119,10 +119,11 @@ class RoomRepo {
     }
 
     /**
-     * Start room and optionally clear judge data if no judge is connected.
+     * Start a room: set status to 'running'.
+     * If no judge is connected, clear judge access codes.
      *
-     * @param int  $roomId     Room ID
-     * @param bool $clearJudge If true, also sets code_judge and qr_uri_judge to NULL
+     * @param int  $roomId      Room ID
+     * @param bool $clearJudge  Whether to clear judge code and QR
      * @return bool True on success
      */
     public function startRoom(int $roomId, bool $clearJudge = false): bool {
@@ -156,7 +157,7 @@ class RoomRepo {
 
         return [
             'success' => $success,
-            'message' => $success ? 'Game finished' : 'Error closing the game'
+            'message' => $success ? 'Gioco terminato' : 'Errore durante la chiusura del gioco'
         ];
     }
 
@@ -178,7 +179,7 @@ class RoomRepo {
 
         return [
             'success' => $success,
-            'message' => $success ? 'Room cancelled' : 'Error cancelling the room'
+            'message' => $success ? 'Stanza annullata' : 'Errore durante l\'annullamento della stanza'
         ];
     }
 

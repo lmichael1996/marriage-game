@@ -78,7 +78,7 @@ class SettingsService {
         $success = $this->settingsRepo->saveSettings($settings);
 
         if (!$success) {
-            return ['success' => false, 'error' => 'Failed to save settings'];
+            return ['success' => false, 'error' => 'Impossibile salvare le impostazioni'];
         }
 
         return ['success' => true];

@@ -33,9 +33,15 @@ class PlayerRepo {
             $stmt->close();
 
             if ($errno === self::DUPLICATE_ENTRY_ERROR_CODE) {
-                return ['success' => false, 'error' => 'A player with this name is already in the room. Use a different name.'];
+                return [
+                    'success' => false,
+                    'error' => 'Username già utilizzato in questa stanza. Scegli un altro nome.'
+                ];
             }
-            return ['success' => false, 'error' => 'Error creating the player.'];
+            return [
+                'success' => false,
+                'error' => 'Errore durante la creazione del giocatore.'
+            ];
         }
 
         $playerId = $this->conn->insert_id;

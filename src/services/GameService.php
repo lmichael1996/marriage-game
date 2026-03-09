@@ -34,7 +34,7 @@ class GameService {
         if (!$question) {
             return [
                 'success' => false,
-                'error' => 'Question not found'
+                'error' => 'Domanda non trovata'
             ];
         }
 
@@ -42,7 +42,7 @@ class GameService {
         if (!$roundId) {
             return [
                 'success' => false,
-                'error' => 'Failed to create round'
+                'error' => 'Impossibile creare il round'
             ];
         }
 
@@ -65,7 +65,7 @@ class GameService {
         if (!$round) {
             return [
                 'success' => false,
-                'error' => 'Round not found'
+                'error' => 'Round non trovato'
             ];
         }
 
@@ -109,7 +109,7 @@ class GameService {
         if (!$round) {
             return [
                 'success' => false,
-                'error' => 'Round not found'
+                'error' => 'Round non trovato'
             ];
         }
 
@@ -117,7 +117,7 @@ class GameService {
         if (!isset($currentRanking[$winnerIndex])) {
             return [
                 'success' => false,
-                'error' => 'Invalid winner index'
+                'error' => 'Indice del vincitore non valido'
             ];
         }
 
@@ -135,7 +135,7 @@ class GameService {
 
         return [
             'success' => true,
-            'message' => 'Clickfirst winner saved'
+            'message' => 'Vincitore Clickfirst salvato'
         ];
     }
 
@@ -170,12 +170,12 @@ class GameService {
         $player = svc('auth')->getPlayer();
         $playerId = $player['player_id'] ?? null;
         if (!$playerId) {
-            return ['success' => false, 'error' => 'Player not authenticated'];
+            return ['success' => false, 'error' => 'Giocatore non autenticato'];
         }
 
         $round = $this->roundRepo->getRoundById($roundId);
         if (!$round) {
-            return ['success' => false, 'error' => 'Round not found'];
+            return ['success' => false, 'error' => 'Round non trovato'];
         }
 
         if ($round['question_type'] === 'clickfirst') {
@@ -290,7 +290,7 @@ class GameService {
         $playerId = $player['player_id'] ?? null;
         $roomId   = $player['room_id'] ?? null;
         if (!$playerId || !$roomId) {
-            return ['success' => false, 'error' => 'Player not authenticated'];
+            return ['success' => false, 'error' => 'Giocatore non autenticato'];
         }
 
         return $this->answerRepo->countAnsweredRounds($playerId, $roomId);

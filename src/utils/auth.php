@@ -42,7 +42,7 @@ function requireLoginJson(): void {
         http_response_code(401);
         echo json_encode([
             'success' => false,
-            'error' => 'Authentication required'
+            'error' => 'Autenticazione richiesta'
         ]);
         exit();
     }
@@ -53,7 +53,7 @@ function requireAdminJson(): void {
         http_response_code(403);
         echo json_encode([
             'success' => false,
-            'error' => 'Admin access required'
+            'error' => 'Accesso admin richiesto'
         ]);
         exit();
     }

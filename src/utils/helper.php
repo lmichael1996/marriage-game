@@ -34,7 +34,7 @@ function handleCredentials(): void {
         $_POST['admin_confirm_password'] ?? null
     );
     if (!($result['success'] ?? false)) {
-        redirect($tab, null, $result['error'] ?? 'Failed to update credentials');
+        redirect($tab, null, $result['error'] ?? 'Impossibile aggiornare le credenziali');
         return;
     }
     svc('auth')->updateAdminSession(authUserId(), $result['username']);
@@ -44,7 +44,7 @@ function handleCredentials(): void {
 function handleSettings(): void {
     $result = svc('settings')->saveSettings($_POST);
     if (!($result['success'] ?? false)) {
-        $error = $result['error'] ?? 'Failed to save settings';
+        $error = $result['error'] ?? 'Impossibile salvare le impostazioni';
         if (isAjax()) jsonResponse(['success' => false, 'error' => $error], 400);
         redirect('settings', null, $error);
         return;
@@ -53,7 +53,7 @@ function handleSettings(): void {
         $settings = svc('settings')->getAllSettings();
         jsonResponse([
             'success' => true,
-            'message' => 'Settings saved',
+            'message' => 'Impostazioni salvate',
             'settings' => $settings['settings']
         ]);
     }
@@ -64,13 +64,13 @@ function handleRound(string $action): void {
     $method = $action === 'start_round' ? 'startRound' : 'closeRound';
     $result = svc('game')->$method((int)($_POST['round_id'] ?? 0));
     $ok     = $result['success'] ?? false;
-    redirect('sets', $ok ? 'round_updated' : null, $ok ? null : ($result['error'] ?? 'Round operation error'));
+    redirect('sets', $ok ? 'round_updated' : null, $ok ? null : ($result['error'] ?? 'Errore operazione round'));
 }
 
 function handleQuestion(bool $isUpdate): void {
     $data = buildQuestionData();
     if (!($data['success'] ?? true)) {
-        $error = $data['error'] ?? 'Invalid question data';
+        $error = $data['error'] ?? 'Dati domanda non validi';
         if (isAjax()) jsonResponse(['success' => false, 'error' => $error], 400);
         redirect('sets', null, $error);
         return;
@@ -81,13 +81,13 @@ function handleQuestion(bool $isUpdate): void {
         : svc('question')->addQuestion($data);
 
     if (!($result['success'] ?? false)) {
-        $error = $result['error'] ?? 'Operation error';
+        $error = $result['error'] ?? 'Errore durante l\'operazione';
         if (isAjax()) jsonResponse(['success' => false, 'error' => $error], 400);
         redirect('sets', null, $error);
         return;
     }
 
-    $msg = $isUpdate ? 'Question updated' : 'Question added';
+    $msg = $isUpdate ? 'Domanda aggiornata' : 'Domanda aggiunta';
     if (isAjax()) jsonResponse(['success' => true, 'message' => $msg, 'question_id' => $result['question_id'] ?? null]);
     redirect('sets', $isUpdate ? 'question_updated' : 'question_added');
 }
@@ -95,8 +95,8 @@ function handleQuestion(bool $isUpdate): void {
 function handleDeleteQuestion(): void {
     $qId = (int)($_POST['question_id'] ?? $_GET['q_id'] ?? 0);
     if (!$qId) {
-        if (isAjax()) jsonResponse(['success' => false, 'error' => 'Invalid ID'], 400);
-        redirect('sets', null, 'Invalid question ID');
+        if (isAjax()) jsonResponse(['success' => false, 'error' => 'ID non valido'], 400);
+        redirect('sets', null, 'ID domanda non valido');
     }
 
     $result = svc('question')->deleteQuestion($qId);
@@ -114,7 +114,7 @@ function handleQuestionSet(string $action): void {
     match ($action) {
         'add_questionset' => (function () use ($qs, $name, $desc) {
             if (!$name) {
-                jsonResponse(['success' => false, 'error' => 'Set name is required'], 400);
+                jsonResponse(['success' => false, 'error' => 'Nome set obbligatorio'], 400);
                 return;
             }
             $result = $qs->addSet($name, $desc);
@@ -122,11 +122,11 @@ function handleQuestionSet(string $action): void {
                 jsonResponse($result, 400);
                 return;
             }
-            jsonResponse(['success' => true, 'setId' => $result, 'message' => 'Set created']);
+            jsonResponse(['success' => true, 'setId' => $result, 'message' => 'Set creato']);
         })(),
         'update_questionset' => (function () use ($qs, $id, $name, $desc) {
             if (!$id || !$name) {
-                jsonResponse(['success' => false, 'error' => 'Set ID and name are required'], 400);
+                jsonResponse(['success' => false, 'error' => 'ID set e nome obbligatori'], 400);
                 return;
             }
             $result = $qs->updateSet($id, $name, $desc);
@@ -134,16 +134,16 @@ function handleQuestionSet(string $action): void {
                 jsonResponse($result, 400);
                 return;
             }
-            jsonResponse(['success' => true, 'message' => 'Set updated']);
+            jsonResponse(['success' => true, 'message' => 'Set aggiornato']);
         })(),
         'delete_questionset' => (function () use ($qs, $id) {
             if (!$id) {
-                redirect('settings', null, 'Set ID is required');
+                redirect('settings', null, 'ID set obbligatorio');
                 return;
             }
             $result = $qs->deleteSet($id);
             if (!($result['success'] ?? false)) {
-                redirect('settings', null, $result['error'] ?? 'Failed to delete set');
+                redirect('settings', null, $result['error'] ?? 'Impossibile eliminare il set');
                 return;
             }
             redirect('settings', 'set_deleted');
@@ -160,12 +160,12 @@ function buildQuestionData(): array {
         'category_id' => (int)($_POST['category_id'] ?? 1),
         'timer'       => (int)($_POST['timer'] ?? 30),
     ];
-    if (!$data['question'])   return ['success' => false, 'error' => 'Question is required'];
-    if (!$data['question_type']) return ['success' => false, 'error' => 'Question type is required'];
+    if (!$data['question'])   return ['success' => false, 'error' => 'Domanda obbligatoria'];
+    if (!$data['question_type']) return ['success' => false, 'error' => 'Tipo domanda obbligatorio'];
 
     if (isset($_POST['question_id'])) {
         $data['id'] = (int)$_POST['question_id'];
-        if (!$data['id']) return ['success' => false, 'error' => 'Question ID is missing'];
+        if (!$data['id']) return ['success' => false, 'error' => 'ID domanda mancante'];
     }
 
     if (in_array($data['question_type'], ['truefalse', 'multiple'], true)) {

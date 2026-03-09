@@ -36,7 +36,10 @@ class AuthService {
     public function adminLogin(string $username, string $password): array {
         $userId = $this->userRepo->authenticate($username, $password);
         if (!$userId) {
-            return ['success' => false, 'error' => 'Invalid username or password'];
+            return [
+                'success' => false,
+                'error' => 'Nome utente o password non validi'
+            ];
         }
 
         $_SESSION['auth_admin'] = [
@@ -70,11 +73,30 @@ class AuthService {
         $username = trim($username);
         $roomCode = strtoupper(trim($roomCode));
 
-        if (empty($username)) return ['success' => false, 'error' => 'Player name is required'];
-        if (empty($roomCode)) return ['success' => false, 'error' => 'Room code is required'];
+        if (empty($username)) return [
+            'success' => false,
+            'error' => 'Il nome del giocatore è obbligatorio'
+        ];
+        if (empty($roomCode)) return [
+            'success' => false,
+            'error' => 'Il codice della stanza è obbligatorio'
+        ];
 
-        $room = $this->roomRepo->getOpenRoomByPlayerCode($roomCode);
-        if (!$room) return ['success' => false, 'error' => 'Invalid room code or room not available'];
+        $room = $this->roomRepo->getRoomByPlayerCode($roomCode);
+        if (!$room) return [
+            'success' => false,
+            'error' => 'Codice della stanza non valido'
+        ];
+
+        $status = $room['status_room'];
+        if ($status === 'running') return [
+            'success' => false,
+            'error' => 'La partita è già in corso'
+        ];
+        if ($status !== 'open') return [
+            'success' => false,
+            'error' => 'La stanza non è più disponibile'
+        ];
 
         $result = $this->playerRepo->createPlayer($username, $room['id']);
         if (is_array($result)) return $result;
@@ -99,11 +121,31 @@ class AuthService {
      */
     public function judgeLogin(string $roomCode): array {
         $roomCode = strtoupper(trim($roomCode));
-        if (empty($roomCode)) return ['success' => false, 'error' => 'Room code is required'];
+        if (empty($roomCode)) return [
+            'success' => false,
+            'error' => 'Il codice della stanza è obbligatorio'
+        ];
 
         $room = $this->roomRepo->getRoomByJudgeCode($roomCode);
         if (!$room) {
-            return ['success' => false, 'error' => 'Invalid judge code or room not available'];
+            return [
+                'success' => false,
+                'error' => 'Codice giudice non valido'
+            ];
+        }
+
+        $status = $room['status_room'];
+        if ($status === 'running') {
+            return [
+                'success' => false,
+                'error' => 'La partita è già in corso'
+            ];
+        }
+        if ($status !== 'open') {
+            return [
+                'success' => false,
+                'error' => 'La stanza non è più disponibile'
+            ];
         }
 
         $result = $this->judgeRepo->createJudge($room['id']);
@@ -179,26 +221,41 @@ class AuthService {
         if (empty($newUsername)) {
             $currentUser = $this->userRepo->getUserById($userId);
             if (!$currentUser) {
-                return ['success' => false, 'error' => 'User not found'];
+                return [
+                    'success' => false,
+                    'error' => 'Utente non trovato'
+                ];
             }
             $newUsername = $currentUser['username'];
         }
 
         if (!empty($newPassword)) {
             if ($newPassword !== $confirmPassword) {
-                return ['success' => false, 'error' => 'Passwords do not match'];
+                return [
+                    'success' => false,
+                    'error' => 'Password e conferma non corrispondono'
+                ];
             }
             if (strlen($newPassword) < self::MIN_PASSWORD_LENGTH) {
-                return ['success' => false, 'error' => 'Password must be at least ' . self::MIN_PASSWORD_LENGTH . ' characters'];
+                return [
+                    'success' => false,
+                    'error' => 'La password deve contenere almeno ' . self::MIN_PASSWORD_LENGTH . ' caratteri'
+                ];
             }
         }
 
         $success = $this->userRepo->updateCredentials($userId, $newUsername, $newPassword);
         if (!$success) {
-            return ['success' => false, 'error' => 'Failed to update credentials'];
+            return [
+                'success' => false,
+                'error' => 'Impossibile aggiornare le credenziali'
+            ];
         }
 
-        return ['success' => true, 'username' => $newUsername];
+        return [
+            'success' => true,
+            'username' => $newUsername
+        ];
     }
 
     /**
