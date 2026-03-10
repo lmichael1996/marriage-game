@@ -150,19 +150,12 @@ requirePlayer();
             const btn = document.getElementById('logout-btn');
             btn.style.opacity = '0.5';
             btn.style.pointerEvents = 'none';
-            window.addEventListener('beforeunload', preventNavigation);
         }
 
         function unlockNavigation() {
             const btn = document.getElementById('logout-btn');
             btn.style.opacity = '1';
             btn.style.pointerEvents = 'auto';
-            window.removeEventListener('beforeunload', preventNavigation);
-        }
-
-        function preventNavigation(e) {
-            e.preventDefault();
-            e.returnValue = '';
         }
 
         let currentRoundCounter = 1;
