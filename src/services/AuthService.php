@@ -170,15 +170,37 @@ class AuthService {
     }
 
     public function getPlayer(): ?array {
-        return $_SESSION['auth_player'] ?? null;
+        $session = $_SESSION['auth_player'] ?? null;
+        if ($session && $this->isRoomExpired($session['room_id'])) {
+            unset($_SESSION['auth_player']);
+            return null;
+        }
+        return $session;
     }
 
     public function getJudge(): ?array {
-        return $_SESSION['auth_judge'] ?? null;
+        $session = $_SESSION['auth_judge'] ?? null;
+        if ($session && $this->isRoomExpired($session['room_id'])) {
+            unset($_SESSION['auth_judge']);
+            return null;
+        }
+        return $session;
     }
 
     public function getAnyUser(): ?array {
         return $this->getAdmin() ?? $this->getPlayer() ?? $this->getJudge();
+    }
+
+    // ── Room session validation ──────────────────────────────────────────
+
+    /**
+     * Check if a room is no longer active (closed or cancelled).
+     * Player/judge sessions are only valid while the room is open or running.
+     */
+    private function isRoomExpired(int $roomId): bool {
+        $room = $this->roomRepo->getRoomById($roomId);
+        if (!$room) return true;
+        return in_array($room['status_room'], ['closed', 'cancelled'], true);
     }
 
     // ── Admin credentials ──────────────────────────────────────────────
