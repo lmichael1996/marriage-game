@@ -1,13 +1,13 @@
 <?php
-require_once __DIR__ . '/../utils/auth.php';
-require_once __DIR__ . '/../utils/PDFGenerator.php';
-require_once __DIR__ . '/../services/ServiceLoader.php';
 require_once __DIR__ . '/Router.php';
 require_once __DIR__ . '/controllers/AuthController.php';
 require_once __DIR__ . '/controllers/RoomController.php';
 require_once __DIR__ . '/controllers/GameController.php';
 require_once __DIR__ . '/controllers/QuestionController.php';
 require_once __DIR__ . '/controllers/SetController.php';
+require_once __DIR__ . '/../utils/auth.php';
+require_once __DIR__ . '/../utils/PDFGenerator.php';
+require_once __DIR__ . '/../services/ServiceLoader.php';
 
 header('Content-Type: application/json');
 

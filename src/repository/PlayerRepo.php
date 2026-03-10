@@ -35,7 +35,7 @@ class PlayerRepo {
             if ($errno === self::DUPLICATE_ENTRY_ERROR_CODE) {
                 return [
                     'success' => false,
-                    'error' => 'Username già utilizzato in questa stanza. Scegli un altro nome.'
+                    'error' => 'Sei già uscito da questa stanza, non puoi rientrare'
                 ];
             }
             return [
@@ -70,36 +70,5 @@ class PlayerRepo {
         $stmt->close();
 
         return $players;
-    }
-
-    /**
-     * Check if a player (by username + room) was already logged out.
-     *
-     * @param string $username Player display name
-     * @param int    $roomId   Room ID
-     * @return bool True if the player exists and has logged_out = 1
-     */
-    public function isPlayerLoggedOut(string $username, int $roomId): bool {
-        $stmt = $this->conn->prepare(
-            "SELECT logged_out FROM players WHERE username = ? AND room_id = ? LIMIT 1"
-        );
-        $stmt->bind_param("si", $username, $roomId);
-        $stmt->execute();
-        $row = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-
-        return $row && (int)$row['logged_out'] === 1;
-    }
-
-    /**
-     * Mark a player as logged out (one-time session).
-     *
-     * @param int $playerId Player ID
-     */
-    public function markLoggedOut(int $playerId): void {
-        $stmt = $this->conn->prepare("UPDATE players SET logged_out = 1 WHERE id = ?");
-        $stmt->bind_param("i", $playerId);
-        $stmt->execute();
-        $stmt->close();
     }
 }
