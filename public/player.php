@@ -91,11 +91,67 @@ requirePlayer();
                     <h1>Partita Annullata</h1>
                     <p>L'amministratore ha chiuso la partita</p>
                 </div>
+
+                <div id="violation-screen" class="game-cancelled-screen" style="display:none;">
+                    <div class="game-cancelled-emoji">🚫</div>
+                    <h1>Hai violato le regole del gioco</h1>
+                    <p>Non puoi uscire dalla pagina durante la partita</p>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        // ── Anti-cheat: detect page leave on mobile ──────────────────
+        // Uses visibilitychange + blur + pagehide to catch all cases:
+        // - switching tab, switching app, home button, task switcher,
+        //   notification tap, control center (iOS)
+        let violated = false;
+        const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+                      || (navigator.maxTouchPoints > 1 && window.innerWidth < 1024);
+
+        function onPageLeave() {
+            if (roundInProgress && !violated) {
+                violated = true;
+                showViolation();
+            }
+        }
+
+        function startWatchdog() {
+            if (!isMobile || violated) return;
+            document.addEventListener('visibilitychange', onVisibilityChange);
+            window.addEventListener('blur', onPageLeave);
+            window.addEventListener('pagehide', onPageLeave);
+        }
+
+        function stopWatchdog() {
+            document.removeEventListener('visibilitychange', onVisibilityChange);
+            window.removeEventListener('blur', onPageLeave);
+            window.removeEventListener('pagehide', onPageLeave);
+        }
+
+        function onVisibilityChange() {
+            if (document.hidden) onPageLeave();
+        }
+
+        function showViolation() {
+            gameEnded = true;
+            clearInterval(checkGameStateInterval);
+            clearInterval(checkRoomStatusInterval);
+            stopWatchdog();
+            if (timerInterval) clearInterval(timerInterval);
+
+            const container = document.querySelector('.container');
+            container.innerHTML = '';
+            const vs = document.createElement('div');
+            vs.className = 'game-cancelled-screen';
+            vs.style.display = 'block';
+            vs.innerHTML = '<div class="game-cancelled-emoji">🚫</div>'
+                         + '<h1>Hai violato le regole del gioco</h1>'
+                         + '<p>Non puoi uscire dalla pagina durante la partita</p>';
+            container.appendChild(vs);
+        }
+
         let currentRoundCounter = 1;
         let currentRoundId = null;
         let timerInterval = null;
@@ -211,6 +267,7 @@ requirePlayer();
         function startRound(round) {
             roundInProgress = true;
             clearInterval(timerInterval);
+            startWatchdog();
 
             hasAnswered = false;
             selectedAnswer = null;
@@ -382,6 +439,7 @@ requirePlayer();
         function showWaitingScreen() {
             hasAnswered = false;
             roundInProgress = false;
+            stopWatchdog();
 
             if (timerInterval) clearInterval(timerInterval);
 
