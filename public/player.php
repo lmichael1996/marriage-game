@@ -91,13 +91,13 @@ requirePlayer();
                     <h1>Partita Annullata</h1>
                     <p>L'amministratore ha chiuso la partita</p>
                 </div>
-
-                <div id="violation-screen" class="game-cancelled-screen" style="display:none;">
-                    <div class="game-cancelled-emoji">🚫</div>
-                    <h1>Hai violato le regole del gioco</h1>
-                    <p>Non puoi uscire dalla pagina durante la partita</p>
-                </div>
             </div>
+        </div>
+
+        <div id="violation-screen" class="game-cancelled-screen" style="display:none;">
+            <div class="game-cancelled-emoji">🚫</div>
+            <h1>Hai violato le regole del gioco</h1>
+            <p>Non puoi uscire dalla pagina durante la partita</p>
         </div>
     </div>
 
@@ -141,15 +141,8 @@ requirePlayer();
             stopWatchdog();
             if (timerInterval) clearInterval(timerInterval);
 
-            const container = document.querySelector('.container');
-            container.innerHTML = '';
-            const vs = document.createElement('div');
-            vs.className = 'game-cancelled-screen';
-            vs.style.display = 'block';
-            vs.innerHTML = '<div class="game-cancelled-emoji">🚫</div>'
-                         + '<h1>Hai violato le regole del gioco</h1>'
-                         + '<p>Non puoi uscire dalla pagina durante la partita</p>';
-            container.appendChild(vs);
+            document.querySelector('.player-container').style.display = 'none';
+            document.getElementById('violation-screen').style.display = 'block';
         }
 
         let currentRoundCounter = 1;
@@ -157,7 +150,6 @@ requirePlayer();
         let timerInterval = null;
         let startTime = null;
         let hasAnswered = false;
-        let selectedAnswer = null;
         let roundInProgress = false;
         let gameEnded = false;  // Flag to stop polling when game ends
         let checkGameStateInterval = null;
@@ -170,7 +162,6 @@ requirePlayer();
                 .then(data => {
                     if (data.success && data.answered > 0) {
                         currentRoundCounter = data.answered + 1;
-                        console.log("Resumed at round counter:", currentRoundCounter);
                     }
                 })
                 .catch(() => {})
@@ -216,16 +207,13 @@ requirePlayer();
         }
 
         function checkGameState() {
-            if (gameEnded) return;  // Stop checking if game has ended
+            if (gameEnded) return;
 
             fetch('../src/api/api.php?endpoint=game&action=get_game_state&counter=' + currentRoundCounter)
                 .then(response => response.json())
                 .then(data => {
-                    console.log("checkGameState response:", data);
-
-                    // Verifica se la partita è terminata (room closed o classifica)
+                    // Partita terminata
                     if (data.game_finished || data.status_room === 'closed') {
-                        console.log("Game finished detected, placement:", data.placement);
                         gameEnded = true;
                         clearInterval(checkGameStateInterval);
                         clearInterval(checkRoomStatusInterval);
@@ -237,9 +225,8 @@ requirePlayer();
                         return;
                     }
 
-                    // Check if admin cancelled the room
+                    // Partita annullata dall'admin
                     if (data.status_room === 'cancelled') {
-                        console.log("Game cancelled by admin (room status = cancelled)");
                         gameEnded = true;
                         clearInterval(checkGameStateInterval);
                         clearInterval(checkRoomStatusInterval);
@@ -248,17 +235,14 @@ requirePlayer();
                     }
 
                     if (data.success === false || !data.round_number) {
-                        console.log("No round available, showing waiting screen");
                         showWaitingScreen();
                         return;
                     }
 
                     const roundNumber = data.round_number;
                     if (roundNumber === currentRoundCounter && !hasAnswered && !roundInProgress) {
-                        console.log("Starting round", roundNumber);
                         startRound(data);
                     } else if (hasAnswered) {
-                        console.log("Already answered, showing waiting screen");
                         showWaitingScreen();
                     }
                 });
@@ -270,7 +254,6 @@ requirePlayer();
             startWatchdog();
 
             hasAnswered = false;
-            selectedAnswer = null;
             startTime = Date.now();
             currentRoundId = round.id;
 
@@ -331,31 +314,17 @@ requirePlayer();
         function selectAnswer(answer) {
             if (hasAnswered) return;
 
-            selectedAnswer = answer;
-
             document.querySelectorAll('.option-btn').forEach(btn => {
                 btn.classList.remove('selected');
             });
 
             document.querySelector(`[data-answer="${answer}"]`).classList.add('selected');
 
-            // Invia direttamente la risposta senza aspettare il pulsante
             hasAnswered = true;
             const timeTaken = (Date.now() - startTime) / 1000;
             clearInterval(timerInterval);
 
-            submitAnswer(selectedAnswer, timeTaken);
-        }
-
-        function submitSelectedAnswer() {
-            // Questa funzione non è più usata ma la lascio per compatibilità
-            if (hasAnswered || !selectedAnswer) return;
-
-            hasAnswered = true;
-            const timeTaken = (Date.now() - startTime) / 1000;
-            clearInterval(timerInterval);
-
-            submitAnswer(selectedAnswer, timeTaken);
+            submitAnswer(answer, timeTaken);
         }
 
         function submitClickFirst() {
@@ -455,7 +424,6 @@ requirePlayer();
         }
 
         function checkWinnerStatus() {
-            console.log("checkWinnerStatus called - polling for ranking");
             const maxAttempts = 20;
             let attempts = 0;
 
@@ -463,24 +431,19 @@ requirePlayer();
                 fetch('../src/api/api.php?endpoint=game&action=check_winner')
                     .then(response => response.json())
                     .then(data => {
-                        console.log("Ranking check attempt", attempts + 1, ":", data);
                         if (data.success) {
-                            console.log("Ranking check result - placement:", data.placement);
                             showFinalResult(data.placement);
                         } else {
-                            console.log("Winner check failed:", data.error);
                             attempts++;
                             if (attempts < maxAttempts) {
                                 setTimeout(tryCheckWinner, 500);
                             } else {
                                 // Fallback: show waiting screen if we can't determine winner
-                                console.log("Max attempts reached, showing waiting screen");
                                 showWaitingScreen();
                             }
                         }
                     })
-                    .catch(error => {
-                        console.log("Winner check error:", error);
+                    .catch(() => {
                         attempts++;
                         if (attempts < maxAttempts) {
                             setTimeout(tryCheckWinner, 500);
