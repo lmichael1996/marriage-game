@@ -30,7 +30,7 @@ requirePlayer();
     <div class="container">
         <div class="header">
             <h1>🎮 Giocatore <?php echo htmlspecialchars($_SESSION['auth_player']['username'] ?? 'Giocatore'); ?></h1>
-            <a href="logout.php?role=player" class="btn btn-secondary">Logout</a>
+            <a href="logout.php?role=player" class="btn btn-secondary" id="logout-btn">Logout</a>
         </div>
 
         <div class="player-container">
@@ -139,10 +139,30 @@ requirePlayer();
             clearInterval(checkGameStateInterval);
             clearInterval(checkRoomStatusInterval);
             stopWatchdog();
+            unlockNavigation();
             if (timerInterval) clearInterval(timerInterval);
 
             document.querySelector('.player-container').style.display = 'none';
             document.getElementById('violation-screen').style.display = 'block';
+        }
+
+        function lockNavigation() {
+            const btn = document.getElementById('logout-btn');
+            btn.style.opacity = '0.5';
+            btn.style.pointerEvents = 'none';
+            window.addEventListener('beforeunload', preventNavigation);
+        }
+
+        function unlockNavigation() {
+            const btn = document.getElementById('logout-btn');
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'auto';
+            window.removeEventListener('beforeunload', preventNavigation);
+        }
+
+        function preventNavigation(e) {
+            e.preventDefault();
+            e.returnValue = '';
         }
 
         let currentRoundCounter = 1;
@@ -252,6 +272,7 @@ requirePlayer();
             roundInProgress = true;
             clearInterval(timerInterval);
             startWatchdog();
+            lockNavigation();
 
             hasAnswered = false;
             startTime = Date.now();
@@ -409,6 +430,7 @@ requirePlayer();
             hasAnswered = false;
             roundInProgress = false;
             stopWatchdog();
+            unlockNavigation();
 
             if (timerInterval) clearInterval(timerInterval);
 
