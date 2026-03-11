@@ -27,6 +27,9 @@ requirePlayer();
 
         #click-first-btn {
             transition: transform 0.1s ease;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+            user-select: none;
         }
         #click-first-btn:active {
             transform: scale(0.85);
