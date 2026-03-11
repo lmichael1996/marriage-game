@@ -26,12 +26,12 @@ requirePlayer();
         }
 
         #click-first-btn {
-            transition: transform 0.1s ease;
+            transition: transform 0.15s ease;
             -webkit-tap-highlight-color: transparent;
             outline: none;
             user-select: none;
         }
-        #click-first-btn:active {
+        #click-first-btn.pressed {
             transform: scale(0.85);
         }
     </style>
@@ -70,7 +70,12 @@ requirePlayer();
                     </div>
 
                     <div id="click-first-screen" style="display: none; text-align: center;">
-                        <img src="../assets/image/button.png" onclick="submitClickFirst()" id="click-first-btn" style="cursor: pointer; max-width: 80%; height: auto;" alt="Clicca!">
+                        <img src="../assets/image/button.png" onclick="submitClickFirst()" id="click-first-btn"
+                             ontouchstart="this.classList.add('pressed')"
+                             ontouchend="this.classList.remove('pressed')"
+                             onmousedown="this.classList.add('pressed')"
+                             onmouseup="this.classList.remove('pressed')"
+                             style="cursor: pointer; max-width: 80%; height: auto;" alt="Clicca!">
                     </div>
                 </div>
 
