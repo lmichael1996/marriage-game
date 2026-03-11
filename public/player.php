@@ -24,6 +24,13 @@ requirePlayer();
         @media (max-width: 640px) {
             body { padding: 10px; }
         }
+
+        #click-first-btn {
+            transition: transform 0.1s ease;
+        }
+        #click-first-btn:active {
+            transform: scale(0.85);
+        }
     </style>
 </head>
 <body>
@@ -60,7 +67,7 @@ requirePlayer();
                     </div>
 
                     <div id="click-first-screen" style="display: none; text-align: center;">
-                        <button class="click-first-btn" onclick="submitClickFirst()" id="click-first-btn">⚡ CLICCA!</button>
+                        <img src="../assets/image/button.png" onclick="submitClickFirst()" id="click-first-btn" style="cursor: pointer; max-width: 80%; height: auto;" alt="Clicca!">
                     </div>
                 </div>
 
@@ -95,7 +102,7 @@ requirePlayer();
         </div>
 
         <div id="violation-screen" class="game-cancelled-screen" style="display:none;">
-            <div class="game-cancelled-emoji">😏</div>
+            <div class="game-cancelled-emoji">👀</div>
             <h1>Ehi, dove vai?!</h1>
             <p>Niente scappatelle durante la partita!</p>
         </div>
@@ -294,7 +301,7 @@ requirePlayer();
             if (round.question_type === 'clickfirst') {
                 answerGrid.style.display = 'none';
                 clickFirstScreen.style.display = 'block';
-                document.getElementById('click-first-btn').disabled = false;
+                document.getElementById('click-first-btn').style.pointerEvents = 'auto';
             } else if (round.question_type === 'truefalse') {
                 setupRound(round, 2);
             } else {
@@ -346,7 +353,7 @@ requirePlayer();
 
             hasAnswered = true;
             clearInterval(timerInterval);
-            document.getElementById('click-first-btn').disabled = true;
+            document.getElementById('click-first-btn').style.pointerEvents = 'none';
 
             const timeTaken = (Date.now() - startTime) / 1000;
             submitAnswer(1, timeTaken);
