@@ -95,9 +95,9 @@ requirePlayer();
         </div>
 
         <div id="violation-screen" class="game-cancelled-screen" style="display:none;">
-            <div class="game-cancelled-emoji">🚫</div>
-            <h1>Hai violato le regole del gioco</h1>
-            <p>Non puoi uscire dalla pagina durante la partita</p>
+            <div class="game-cancelled-emoji">😏</div>
+            <h1>Ehi, dove vai?!</h1>
+            <p>Niente scappatelle durante la partita!</p>
         </div>
     </div>
 
