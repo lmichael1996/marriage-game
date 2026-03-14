@@ -170,38 +170,15 @@ class AuthService {
     }
 
     public function getPlayer(): ?array {
-        $session = $_SESSION['auth_player'] ?? null;
-        if ($session && $this->isRoomClosed($session['room_id'])) {
-            unset($_SESSION['auth_player']);
-            return null;
-        }
-        return $session;
+        return $_SESSION['auth_player'] ?? null;
     }
 
     public function getJudge(): ?array {
-        $session = $_SESSION['auth_judge'] ?? null;
-        if ($session && $this->isRoomClosed($session['room_id'])) {
-            unset($_SESSION['auth_judge']);
-            return null;
-        }
-        return $session;
+        return $_SESSION['auth_judge'] ?? null;
     }
 
     public function getAnyUser(): ?array {
         return $this->getAdmin() ?? $this->getPlayer() ?? $this->getJudge();
-    }
-
-    // ── Room session validation ──────────────────────────────────────────
-
-    /**
-     * Check if a room is closed (game completed).
-     * Player/judge sessions are invalidated only when the room is fully closed,
-     * NOT when cancelled — so players can still poll and see "Partita Annullata".
-     */
-    private function isRoomClosed(int $roomId): bool {
-        $room = $this->roomRepo->getRoomById($roomId);
-        if (!$room) return true;
-        return $room['status_room'] === 'closed';
     }
 
     // ── Admin credentials ──────────────────────────────────────────────

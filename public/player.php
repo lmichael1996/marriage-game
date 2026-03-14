@@ -365,24 +365,29 @@ requirePlayer();
             showScreen('result');
 
             const finalScreen = screens.result;
-            const podium = {
-                1: { emoji: '🥇', title: '1° Posto!', msg: 'Complimenti! Sei il vincitore di questa partita! 🎉', cls: 'winner' },
-                2: { emoji: '🥈', title: '2° Posto!', msg: 'Ottimo risultato! Sei arrivato secondo! 👏',        cls: 'winner' },
-                3: { emoji: '🥉', title: '3° Posto!', msg: 'Bel lavoro! Sei sul podio! 💪',                     cls: 'winner' },
+            const results = {
+                1: { emoji: '🥇', title: '1° Posto — Hai Vinto!',  msg: 'Complimenti! Sei il vincitore di questa partita! 🎉' },
+                2: { emoji: '🥈', title: '2° Posto — Ottimo!',     msg: 'Sei arrivato secondo! Grandissimo risultato! 👏' },
+                3: { emoji: '🥉', title: '3° Posto — Sul Podio!',  msg: 'Bel lavoro! Sei sul podio! 💪' },
             };
-            const info = podium[placement];
+            const info = results[placement];
             finalScreen.classList.remove('winner', 'loser');
 
             if (info) {
-                finalScreen.classList.add(info.cls);
+                finalScreen.classList.add('winner');
                 document.getElementById('final-emoji').textContent   = info.emoji;
                 document.getElementById('final-title').textContent   = info.title;
                 document.getElementById('final-message').textContent = info.msg;
+            } else if (placement > 0) {
+                finalScreen.classList.add('loser');
+                document.getElementById('final-emoji').textContent   = '🏁';
+                document.getElementById('final-title').textContent   = `${placement}° Posto — Hai Perso`;
+                document.getElementById('final-message').textContent = `Sei arrivato in ${placement}ª posizione. Buona fortuna la prossima volta!`;
             } else {
                 finalScreen.classList.add('loser');
-                document.getElementById('final-emoji').textContent   = placement > 0 ? '🏁' : '😢';
-                document.getElementById('final-title').textContent   = placement > 0 ? `${placement}° Posto` : 'Partita terminata';
-                document.getElementById('final-message').textContent = 'Buona fortuna nella prossima partita!';
+                document.getElementById('final-emoji').textContent   = '😢';
+                document.getElementById('final-title').textContent   = 'Partita Terminata';
+                document.getElementById('final-message').textContent = 'Non è stato possibile determinare la tua posizione.';
             }
         }
     </script>
