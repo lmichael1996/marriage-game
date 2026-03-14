@@ -9,30 +9,31 @@
     </div>
 
     <!-- Search Bar -->
-    <div class="search-bar">
-        <form method="POST" action="admin.php" class="search-form" id="search-questions-form">
-            <input type="hidden" name="questions_page" id="questions_page" value="<?php echo (int)($_SESSION['questions_page'] ?? 1); ?>">
+    <form method="POST" action="admin.php" class="search-toolbar" id="search-questions-form">
+        <input type="hidden" name="questions_page" id="questions_page" value="<?php echo (int)($_SESSION['questions_page'] ?? 1); ?>">
+        <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
             <input type="text" name="search_query" id="search-questions" placeholder="Cerca domande..." value="<?php echo htmlspecialchars($_POST['search_query'] ?? ''); ?>">
-            <select name="search_type" id="search-type" class="search-filter">
-                <option value="starts_with" <?php echo ($_POST['search_type'] ?? '') === 'starts_with' ? 'selected' : ''; ?>>Inizia con</option>
-                <option value="contains" <?php echo ($_POST['search_type'] ?? 'contains') === 'contains' ? 'selected' : ''; ?>>Contiene</option>
-                <option value="ends_with" <?php echo ($_POST['search_type'] ?? '') === 'ends_with' ? 'selected' : ''; ?>>Finisce con</option>
-                <option value="exact" <?php echo ($_POST['search_type'] ?? '') === 'exact' ? 'selected' : ''; ?>>Esattamente</option>
-            </select>
-            <select name="category" id="filter-category" class="search-filter">
-                <option value="">🌐 Tutte</option>
-                <?php foreach ($categories as $cat): ?>
-                <option value="<?php echo $cat['id']; ?>" <?php echo ($_POST['category'] ?? '') === (string)$cat['id'] ? 'selected' : ''; ?>>
-                    <?php echo htmlspecialchars($cat['category_name']); ?>
-                </option>
-                <?php endforeach; ?>
-            </select>
-            <button type="submit" class="btn btn-primary">🔍 Cerca</button>
-            <?php if (!empty($_POST['search_query']) || !empty($_POST['category'])): ?>
-                <button type="button" class="btn btn-secondary" id="clear-questions-search">✖ Cancella</button>
-            <?php endif; ?>
-        </form>
-    </div>
+        </div>
+        <select name="search_type" id="search-type" class="search-select">
+            <option value="starts_with" <?php echo ($_POST['search_type'] ?? '') === 'starts_with' ? 'selected' : ''; ?>>Inizia con</option>
+            <option value="contains" <?php echo ($_POST['search_type'] ?? 'contains') === 'contains' ? 'selected' : ''; ?>>Contiene</option>
+            <option value="ends_with" <?php echo ($_POST['search_type'] ?? '') === 'ends_with' ? 'selected' : ''; ?>>Finisce con</option>
+            <option value="exact" <?php echo ($_POST['search_type'] ?? '') === 'exact' ? 'selected' : ''; ?>>Esattamente</option>
+        </select>
+        <select name="category" id="filter-category" class="search-select">
+            <option value="">🌐 Tutte</option>
+            <?php foreach ($categories as $cat): ?>
+            <option value="<?php echo $cat['id']; ?>" <?php echo ($_POST['category'] ?? '') === (string)$cat['id'] ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($cat['category_name']); ?>
+            </option>
+            <?php endforeach; ?>
+        </select>
+        <button type="submit" class="search-btn">Cerca</button>
+        <?php if (!empty($_POST['search_query']) || !empty($_POST['category'])): ?>
+            <button type="button" class="search-btn search-btn-clear" id="clear-questions-search">✖</button>
+        <?php endif; ?>
+    </form>
 
     <!-- Table View -->
     <div class="settings-group">

@@ -514,6 +514,18 @@ form button[type="submit"] {
   letter-spacing: 0.3px;
 }
 
+.search-toolbar button[type="submit"] {
+  width: auto;
+  display: inline-flex;
+  padding: 10px 20px;
+  margin-top: 0;
+  font-size: 0.9em;
+  font-weight: 700;
+  border-radius: 9px;
+  box-shadow: none;
+  letter-spacing: 0;
+}
+
 form button[type="submit"]:hover {
   background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
   box-shadow: 0 8px 25px rgba(26, 26, 46, 0.4);
@@ -1069,6 +1081,46 @@ form button[type="submit"]:active {
   flex-shrink: 0;
 }
 
+.question-item-actions .btn {
+  padding: 4px 8px;
+  font-size: 0.75em;
+  white-space: nowrap;
+  border-radius: 0;
+  border: 1px solid #ccc;
+  box-shadow: none;
+  font-weight: 600;
+  background: #fff;
+  color: #333;
+  transform: none;
+}
+
+.question-item-actions .btn:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.question-item-actions .btn-success {
+  background: #28a745;
+  color: #fff;
+  border-color: #28a745;
+}
+
+.question-item-actions .btn-success:hover {
+  background: #218838;
+  border-color: #218838;
+}
+
+.question-item-actions .btn-danger {
+  background: #dc3545;
+  color: #fff;
+  border-color: #dc3545;
+}
+
+.question-item-actions .btn-danger:hover {
+  background: #c82333;
+  border-color: #c82333;
+}
+
 /* Search & Filter */
 .search-row {
   display: flex;
@@ -1096,52 +1148,122 @@ form button[type="submit"]:active {
 }
 
 .search-row .btn {
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  font-size: 0.9em;
+  border-radius: 4px;
+  box-shadow: none;
+  white-space: nowrap;
+}
+
+/* Search Toolbar */
+.search-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 18px;
+  background: #f4f5f7;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 4px;
+  transition: border-color 0.2s;
+}
+
+.search-toolbar:focus-within {
+  border-color: #74b9ff;
+  box-shadow: 0 0 0 3px rgba(116, 185, 255, 0.12);
+}
+
+.search-input-wrap {
+  display: flex;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.search-icon {
+  padding: 0 8px 0 10px;
+  font-size: 0.95em;
+  opacity: 0.5;
+  pointer-events: none;
   flex-shrink: 0;
 }
 
-.search-bar {
-  margin-bottom: 15px;
-}
-
-.search-form {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.search-bar input,
-.search-filter {
-  padding: 10px 12px;
-  border: 1px solid #333;
-  background: #fff;
-  color: #000;
+.search-toolbar input[type="text"] {
+  flex: 1 1 0;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 10px 8px;
   font-size: 0.95em;
-  border-radius: 4px;
-  transition: all 0.2s ease;
   font-family: inherit;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-}
-
-.search-bar input {
-  flex: 1;
-  min-width: 250px;
-}
-
-.search-filter {
-  min-width: 140px;
-  cursor: pointer;
-}
-
-.search-bar input::placeholder {
-  color: #999;
-}
-
-.search-bar input:focus,
-.search-filter:focus {
+  color: #333;
   outline: none;
-  border-color: #333;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.search-toolbar input[type="text"]::placeholder {
+  color: #aaa;
+}
+
+.search-select {
+  flex: 0 0 auto;
+  border: none;
+  background: transparent;
+  padding: 10px 12px;
+  font-size: 0.9em;
+  font-family: inherit;
+  color: #555;
+  cursor: pointer;
+  outline: none;
+  border-left: 1px solid #ddd;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 24px;
+}
+
+.search-select:hover {
+  color: #333;
+}
+
+.search-btn {
+  flex: 0 0 auto;
+  border: none;
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  color: #fff;
+  padding: 10px 20px;
+  font-size: 0.9em;
+  font-weight: 700;
+  font-family: inherit;
+  border-radius: 9px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.2s,
+    transform 0.1s;
+  margin-left: 4px;
+}
+
+.search-btn:hover {
+  filter: brightness(1.15);
+}
+
+.search-btn:active {
+  transform: scale(0.97);
+}
+
+.search-btn-clear {
+  background: #e9ecef;
+  color: #666;
+  padding: 10px 14px;
+  margin-left: 2px;
+}
+
+.search-btn-clear:hover {
+  background: #dee2e6;
+  color: #333;
 }
 
 mark {
@@ -1578,12 +1700,12 @@ mark {
 }
 
 .form-settings .question-item {
-  padding: 10px 15px;
+  padding: 10px;
   border-bottom: 1px solid #ddd;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
   background-color: #fff;
   cursor: pointer;
   border-radius: 0;
@@ -1597,29 +1719,6 @@ mark {
 
 .form-settings .question-item:hover {
   background-color: #f5f5f5;
-}
-
-.form-settings .question-item > div:first-child {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  flex: 1;
-  min-width: 0;
-}
-
-.form-settings .question-item > div:first-child > div:first-child {
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  line-height: 1.3;
-  color: #333;
-  font-size: 0.9em;
-}
-
-.form-settings .question-item > div:last-child {
-  display: flex;
-  gap: 5px;
-  flex-shrink: 0;
 }
 
 .form-settings .btn-sm,
@@ -1645,12 +1744,6 @@ mark {
 .form-settings .btn-danger:hover {
   background: #c82333;
   border-color: #c82333;
-}
-
-.form-settings .badge-category,
-.form-settings .badge-type {
-  padding: 2px 6px;
-  font-size: 0.7em;
 }
 
 .form-settings p {
@@ -2782,7 +2875,7 @@ mark {
 
 .player-main {
   background: #fff;
-  border: 3px solid transparent;
+  border: 5px solid transparent;
   border-radius: 20px;
   padding: 0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
@@ -3734,19 +3827,17 @@ mark {
   }
 
   .form-settings .question-item {
-    padding: 12px 15px;
+    padding: 10px;
     gap: 10px;
     flex-wrap: wrap;
   }
 
-  .form-settings .question-item > div:first-child > div:first-child {
+  .form-settings .question-item-content {
     font-size: 0.9em;
   }
 
-  .form-settings .question-item > div:last-child {
+  .form-settings .question-item-actions {
     gap: 5px;
-    width: 100%;
-    justify-content: flex-end;
   }
 
   .form-settings .btn-sm,
@@ -3754,17 +3845,6 @@ mark {
   .form-settings .btn-warning {
     padding: 5px 10px;
     font-size: 0.8em;
-  }
-
-  /* Search */
-  .search-form {
-    flex-direction: column;
-  }
-  .search-bar input {
-    min-width: 100%;
-  }
-  .search-filter {
-    min-width: 100%;
   }
 
   .search-row {
@@ -4411,18 +4491,16 @@ mark {
   }
 
   .form-settings .question-item {
-    padding: 10px 12px;
+    padding: 10px;
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
-  .form-settings .question-item > div:first-child {
+  .form-settings .question-item-content {
     width: 100%;
-  }
-  .form-settings .question-item > div:first-child > div:first-child {
     font-size: 0.85em;
   }
-  .form-settings .question-item > div:last-child {
+  .form-settings .question-item-actions {
     width: 100%;
     flex-wrap: wrap;
     justify-content: flex-start;
@@ -4435,11 +4513,6 @@ mark {
     font-size: 0.75em;
     flex: 1;
     min-width: 50px;
-  }
-  .form-settings .badge-category,
-  .form-settings .badge-type {
-    padding: 2px 5px;
-    font-size: 0.65em;
   }
   .form-settings p {
     padding: 12px;

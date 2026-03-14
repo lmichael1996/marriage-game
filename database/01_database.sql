@@ -115,8 +115,6 @@ CREATE TABLE IF NOT EXISTS player_answers (
     UNIQUE (round_id, player_id)
 );
 
-DROP EVENT IF EXISTS close_abandoned_rooms;
-
 CREATE EVENT close_abandoned_rooms ON SCHEDULE EVERY 1 HOUR DO
 UPDATE
     rooms

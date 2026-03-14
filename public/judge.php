@@ -153,7 +153,7 @@ $judge = authJudge();
             const catColor = round.category_color || 'transparent';
             const catName = round.category_name || '';
             const gameCard = document.querySelector('.game-card');
-            if (gameCard) gameCard.style.border = `3px solid ${catColor}`;
+            if (gameCard) gameCard.style.border = `5px solid ${catColor}`;
             const headerBar = document.getElementById('category-header-bar');
             if (headerBar) headerBar.style.background = catColor;
 

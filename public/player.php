@@ -125,9 +125,6 @@ requirePlayer();
         function showScreen(name) {
             Object.entries(screens).forEach(([k, el]) => el.style.display = k === name ? 'block' : 'none');
             catHeader.style.display = 'none';
-            // Hide parent border for full-bleed gradient screens
-            const fullBleed = name === 'result' || name === 'cancelled' || name === 'violation';
-            document.querySelector('.player-main').style.border = fullBleed ? 'none' : '3px solid transparent';
         }
 
         /** Mark game as ended and stop all polling */
