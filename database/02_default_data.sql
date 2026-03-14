@@ -16,7 +16,15 @@ VALUES
 INSERT INTO
     question_categories (category_name, color)
 VALUES
-    ('Generale', '#ecf0f1');
+    ('Generale', '#ecf0f1'),
+    ('Storia', '#f1c40f'),
+    ('Sport', '#e67e22'),
+    ('Scienze', '#2ecc71'),
+    ('Geografia', '#3498db'),
+    ('Film', '#e91e63'),
+    ('Arte', '#e74c3c'),
+    ('Musica', '#00bcd4'),
+    ('Cucina', '#9b59b6');
 
 -- Insert default game settings
 INSERT INTO

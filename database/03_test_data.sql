@@ -3,16 +3,9 @@
 -- ============================================
 USE marriage_game;
 
--- Insert default question categories
-INSERT INTO
-    question_categories (category_name, color)
-VALUES
-    ('Scienza', '#e3f2fd'),
-    ('Storia', '#f3e5f5'),
-    ('Sport', '#fff3e0'),
-    ('Intrattenimento', '#fce4ec');
-
--- Insert sample questions (25 questions across all categories and types)
+-- Category IDs from 02_default_data.sql:
+-- 1=Generale, 2=Storia, 3=Sport, 4=Scienze, 5=Geografia, 6=Film, 7=Arte, 8=Musica, 9=Cucina
+-- Insert sample questions (45 questions, 5 per category, mixed types)
 INSERT INTO
     questions (
         question_type,
@@ -26,7 +19,7 @@ INSERT INTO
         timer
     )
 VALUES
-    -- Multiple Choice - Generale (1)
+    -- ── Generale (1) ── multiple ──
     (
         'multiple',
         'Qual è la capitale della Francia?',
@@ -82,71 +75,15 @@ VALUES
         2,
         30
     ),
-    -- True/False - Scienza (2)
-    (
-        'truefalse',
-        'Il carbonio è un non-metallo',
-        '',
-        '',
-        '',
-        '',
-        2,
-        1,
-        20
-    ),
-    (
-        'truefalse',
-        'L\'acqua bolle a 100 gradi Celsius al livello del mare',
-        '',
-        '',
-        '',
-        '',
-        2,
-        1,
-        20
-    ),
-    (
-        'truefalse',
-        'Gli atomi sono le particelle più piccole della materia',
-        '',
-        '',
-        '',
-        '',
-        2,
-        2,
-        20
-    ),
-    (
-        'truefalse',
-        'La velocità della luce è di circa 300.000 km/s',
-        '',
-        '',
-        '',
-        '',
-        2,
-        1,
-        20
-    ),
-    (
-        'truefalse',
-        'Le piante producono ossigeno durante la fotosintesi',
-        '',
-        '',
-        '',
-        '',
-        2,
-        1,
-        20
-    ),
-    -- Click First - Storia (3)
+    -- ── Storia (2) ── clickfirst ──
     (
         'clickfirst',
-        'In quale anno è caduto l\'Impero Romano d\'Occidente?',
+        'In quale anno è caduto l''Impero Romano d''Occidente?',
         '',
         '',
         '',
         '',
-        3,
+        2,
         NULL,
         15
     ),
@@ -157,18 +94,18 @@ VALUES
         '',
         '',
         '',
-        3,
+        2,
         NULL,
         15
     ),
     (
         'clickfirst',
-        'In quale anno Colombo ha raggiunto l\'America?',
+        'In quale anno Colombo ha raggiunto l''America?',
         '',
         '',
         '',
         '',
-        3,
+        2,
         NULL,
         15
     ),
@@ -179,7 +116,7 @@ VALUES
         '',
         '',
         '',
-        3,
+        2,
         NULL,
         15
     ),
@@ -190,11 +127,11 @@ VALUES
         '',
         '',
         '',
-        3,
+        2,
         NULL,
         15
     ),
-    -- Multiple Choice - Sport (4)
+    -- ── Sport (3) ── multiple ──
     (
         'multiple',
         'In quale anno si sono svolti i Giochi Olimpici di Rio?',
@@ -202,7 +139,7 @@ VALUES
         '2014',
         '2016',
         '2018',
-        4,
+        3,
         3,
         30
     ),
@@ -213,7 +150,7 @@ VALUES
         '11',
         '12',
         '9',
-        4,
+        3,
         2,
         30
     ),
@@ -224,7 +161,7 @@ VALUES
         'Real Madrid',
         'Bayern Monaco',
         'Liverpool',
-        4,
+        3,
         2,
         30
     ),
@@ -235,7 +172,7 @@ VALUES
         'Pechino',
         'Londra',
         'Rio',
-        4,
+        3,
         1,
         30
     ),
@@ -246,14 +183,103 @@ VALUES
         'Rafael Nadal',
         'Novak Djokovic',
         'Andy Murray',
-        4,
+        3,
         3,
         30
     ),
-    -- True/False - Intrattenimento (5)
+    -- ── Scienze (4) ── truefalse ──
     (
         'truefalse',
-        'Avatar è il film con il maggior incasso di tutti i tempi',
+        'Il carbonio è un non-metallo',
+        '',
+        '',
+        '',
+        '',
+        4,
+        1,
+        20
+    ),
+    (
+        'truefalse',
+        'L''acqua bolle a 100 gradi Celsius al livello del mare',
+        '',
+        '',
+        '',
+        '',
+        4,
+        1,
+        20
+    ),
+    (
+        'truefalse',
+        'Gli atomi sono le particelle più piccole della materia',
+        '',
+        '',
+        '',
+        '',
+        4,
+        2,
+        20
+    ),
+    (
+        'truefalse',
+        'La velocità della luce è di circa 300.000 km/s',
+        '',
+        '',
+        '',
+        '',
+        4,
+        1,
+        20
+    ),
+    (
+        'truefalse',
+        'Le piante producono ossigeno durante la fotosintesi',
+        '',
+        '',
+        '',
+        '',
+        4,
+        1,
+        20
+    ),
+    -- ── Geografia (5) ── multiple ──
+    (
+        'multiple',
+        'Qual è il fiume più lungo del mondo?',
+        'Mississippi',
+        'Nilo',
+        'Rio delle Amazzoni',
+        'Yangtze',
+        5,
+        2,
+        30
+    ),
+    (
+        'multiple',
+        'In quale continente si trova il deserto del Sahara?',
+        'Asia',
+        'Africa',
+        'America del Sud',
+        'Oceania',
+        5,
+        2,
+        30
+    ),
+    (
+        'multiple',
+        'Quale nazione ha più isole al mondo?',
+        'Indonesia',
+        'Filippine',
+        'Svezia',
+        'Giappone',
+        5,
+        3,
+        30
+    ),
+    (
+        'truefalse',
+        'L''Australia è sia un paese che un continente',
         '',
         '',
         '',
@@ -264,13 +290,25 @@ VALUES
     ),
     (
         'truefalse',
-        'La Monna Lisa è stata dipinta da Michelangelo',
+        'Il Monte Everest si trova in Africa',
         '',
         '',
         '',
         '',
         5,
         2,
+        20
+    ),
+    -- ── Film (6) ── truefalse + multiple ──
+    (
+        'truefalse',
+        'Avatar è il film con il maggior incasso di tutti i tempi',
+        '',
+        '',
+        '',
+        '',
+        6,
+        1,
         20
     ),
     (
@@ -280,7 +318,7 @@ VALUES
         '',
         '',
         '',
-        5,
+        6,
         1,
         20
     ),
@@ -291,313 +329,274 @@ VALUES
         '',
         '',
         '',
-        5,
+        6,
         2,
         20
     ),
     (
+        'multiple',
+        'Chi ha diretto "Il Padrino"?',
+        'Martin Scorsese',
+        'Francis Ford Coppola',
+        'Steven Spielberg',
+        'Stanley Kubrick',
+        6,
+        2,
+        30
+    ),
+    (
+        'multiple',
+        'In quale anno è uscito il primo film di Star Wars?',
+        '1975',
+        '1977',
+        '1979',
+        '1980',
+        6,
+        2,
+        30
+    ),
+    -- ── Arte (7) ── multiple + truefalse ──
+    (
+        'multiple',
+        'Chi ha dipinto la Cappella Sistina?',
+        'Leonardo da Vinci',
+        'Raffaello',
+        'Michelangelo',
+        'Caravaggio',
+        7,
+        3,
+        30
+    ),
+    (
+        'multiple',
+        'In quale museo si trova la Gioconda?',
+        'Uffizi',
+        'Louvre',
+        'British Museum',
+        'Prado',
+        7,
+        2,
+        30
+    ),
+    (
         'truefalse',
-        'Game of Thrones è basato su libri di George R. R. Martin',
+        'La Monna Lisa è stata dipinta da Michelangelo',
         '',
         '',
         '',
         '',
-        5,
+        7,
+        2,
+        20
+    ),
+    (
+        'multiple',
+        'Quale movimento artistico è associato a Salvador Dalí?',
+        'Cubismo',
+        'Impressionismo',
+        'Surrealismo',
+        'Futurismo',
+        7,
+        3,
+        30
+    ),
+    (
+        'clickfirst',
+        'In quale anno Van Gogh ha dipinto "Notte Stellata"?',
+        '',
+        '',
+        '',
+        '',
+        7,
+        NULL,
+        15
+    ),
+    -- ── Musica (8) ── multiple + clickfirst ──
+    (
+        'multiple',
+        'Chi ha composto "Le Quattro Stagioni"?',
+        'Mozart',
+        'Vivaldi',
+        'Beethoven',
+        'Bach',
+        8,
+        2,
+        30
+    ),
+    (
+        'multiple',
+        'Quale strumento suonava Jimi Hendrix?',
+        'Batteria',
+        'Basso',
+        'Chitarra',
+        'Tastiera',
+        8,
+        3,
+        30
+    ),
+    (
+        'clickfirst',
+        'In quale anno i Beatles si sono sciolti?',
+        '',
+        '',
+        '',
+        '',
+        8,
+        NULL,
+        15
+    ),
+    (
+        'truefalse',
+        'Mozart è nato in Austria',
+        '',
+        '',
+        '',
+        '',
+        8,
         1,
         20
+    ),
+    (
+        'multiple',
+        'Quale band ha cantato "Bohemian Rhapsody"?',
+        'The Beatles',
+        'Led Zeppelin',
+        'Queen',
+        'Pink Floyd',
+        8,
+        3,
+        30
+    ),
+    -- ── Cucina (9) ── multiple + truefalse ──
+    (
+        'multiple',
+        'Qual è l''ingrediente principale del pesto genovese?',
+        'Prezzemolo',
+        'Basilico',
+        'Rucola',
+        'Spinaci',
+        9,
+        2,
+        30
+    ),
+    (
+        'multiple',
+        'Da quale regione italiana proviene la pizza margherita?',
+        'Lazio',
+        'Sicilia',
+        'Campania',
+        'Toscana',
+        9,
+        3,
+        30
+    ),
+    (
+        'truefalse',
+        'Il risotto alla milanese contiene zafferano',
+        '',
+        '',
+        '',
+        '',
+        9,
+        1,
+        20
+    ),
+    (
+        'multiple',
+        'Quale formaggio si usa nella carbonara tradizionale?',
+        'Parmigiano',
+        'Pecorino Romano',
+        'Grana Padano',
+        'Mozzarella',
+        9,
+        2,
+        30
+    ),
+    (
+        'clickfirst',
+        'In quale anno è nata la Nutella?',
+        '',
+        '',
+        '',
+        '',
+        9,
+        NULL,
+        15
     );
 
--- Create a sample question set
+-- ── Question sets ──────────────────────────────────────────────────
+-- Set 1: Mix Generale (5 domande dal cat. Generale)
 INSERT INTO
     qsets (set_name, set_description)
 VALUES
+    ('Mix Generale', 'Domande di cultura generale'),
     (
-        'Trivia Generale',
-        'Un set di domande trivia su vari argomenti'
-    );
+        'Storia Veloce',
+        'Domande click-first sulla storia'
+    ),
+    ('Sport Mania', 'Domande su sport internazionali'),
+    ('Scienza Quiz', 'Domande vero/falso di scienze'),
+    ('Giro del Mondo', 'Domande di geografia'),
+    ('Cinefili', 'Domande su film e serie TV'),
+    ('Arte & Storia', 'Mix arte e storia'),
+    ('Musica Maestro', 'Domande sulla musica'),
+    ('A Tavola!', 'Domande di cucina italiana');
 
--- Associate questions with the question set (via qset_questions) - 25 domande
+-- Associate questions with sets (5 domande ciascuno)
 INSERT INTO
     qset_questions (qset_id, question_id, order_in_set)
 VALUES
+    -- Set 1: Mix Generale → domande 1-5
     (1, 1, 1),
     (1, 2, 2),
     (1, 3, 3),
     (1, 4, 4),
-    (1, 5, 5);
-
--- Add additional question sets (5 questions each)
-INSERT INTO
-    qsets (set_name, set_description)
-VALUES
-    (
-        'Set Scienza Base',
-        'Domande di scienza per principianti'
-    ),
-    (
-        'Set Storia Antica',
-        'Domande sulla storia antica e medioevo'
-    ),
-    (
-        'Set Sport Mondiale',
-        'Domande su sport internazionali'
-    ),
-    (
-        'Set Cultura Generale',
-        'Domande di cultura generale miste'
-    );
-
--- Associate questions with new sets
-INSERT INTO
-    qset_questions (qset_id, question_id, order_in_set)
-VALUES
-    -- Set 2: Scienza Base (domande 1-5)
-    (2, 1, 1),
-    (2, 2, 2),
-    (2, 3, 3),
-    (2, 4, 4),
-    (2, 5, 5),
-    -- Set 3: Storia Antica (domande 6-10)
-    (3, 6, 1),
-    (3, 7, 2),
-    (3, 8, 3),
-    (3, 9, 4),
-    (3, 10, 5),
-    -- Set 4: Sport Mondiale (domande 11-15)
-    (4, 11, 1),
-    (4, 12, 2),
-    (4, 13, 3),
-    (4, 14, 4),
-    (4, 15, 5),
-    -- Set 5: Cultura Generale (domande 16-20)
-    (5, 16, 1),
-    (5, 17, 2),
-    (5, 18, 3),
-    (5, 19, 4),
-    (5, 20, 5);
-
-/*
- -- Add 20 more question sets (5 questions each) - Sets 6-25
- INSERT INTO
- qsets (set_name, set_description)
- VALUES
- (
- 'Set Geografia',
- 'Domande di geografia mondiale'
- ),
- (
- 'Set Matematica',
- 'Domande di matematica e logica'
- ),
- (
- 'Set Letteratura',
- 'Domande su autori e opere letterarie',
- TRUE
- ),
- (
- 'Set Musica Classica',
- 'Domande su compositori e musica classica',
- TRUE
- ),
- ('Set Cinema', 'Domande su film e cinema', TRUE),
- (
- 'Set Biologia',
- 'Domande di biologia e genetica',
- TRUE
- ),
- (
- 'Set Fisica',
- 'Domande di fisica e meccanica',
- TRUE
- ),
- (
- 'Set Chimica',
- 'Domande di chimica organica',
- TRUE
- ),
- (
- 'Set Astronomia',
- 'Domande su pianeti e spazio',
- TRUE
- ),
- (
- 'Set Filosofia',
- 'Domande di filosofia antica e moderna',
- TRUE
- ),
- (
- 'Set Arte Rinascimentale',
- 'Domande su pittori del rinascimento',
- TRUE
- ),
- (
- 'Set Mitologia Greca',
- 'Domande su dei e eroi greci',
- TRUE
- ),
- (
- 'Set Cucina Italiana',
- 'Domande su piatti e tradizioni culinarie',
- TRUE
- ),
- (
- 'Set Calcio Europeo',
- 'Domande su squadre e giocatori di calcio',
- TRUE
- ),
- (
- 'Set Tennis Mondiale',
- 'Domande su campioni e tornei di tennis',
- TRUE
- ),
- (
- 'Set Automobili',
- 'Domande su marchi e modelli di auto',
- TRUE
- ),
- (
- 'Set Fotografia',
- 'Domande su tecniche e fotografi famosi',
- TRUE
- ),
- (
- 'Set Economia',
- 'Domande di economia e finanza',
- TRUE
- ),
- (
- 'Set Politica Internazionale',
- 'Domande su governi e relazioni internazionali',
- TRUE
- ),
- (
- 'Set Psicologia',
- 'Domande di psicologia comportamentale',
- TRUE
- );
- 
- -- Associate questions with new sets (6-25) - ciclando attraverso le 25 domande
- INSERT INTO
- qset_questions (qset_id, question_id, order_in_set)
- VALUES
- -- Set 6: Geografia (domande 21-25, 1-2)
- (6, 21, 1),
- (6, 22, 2),
- (6, 23, 3),
- (6, 24, 4),
- (6, 25, 5),
- -- Set 7: Matematica (domande 1, 6-9)
- (7, 1, 1),
- (7, 6, 2),
- (7, 7, 3),
- (7, 8, 4),
- (7, 9, 5),
- -- Set 8: Letteratura (domande 2, 10-13)
- (8, 2, 1),
- (8, 10, 2),
- (8, 11, 3),
- (8, 12, 4),
- (8, 13, 5),
- -- Set 9: Musica Classica (domande 3, 14-17)
- (9, 3, 1),
- (9, 14, 2),
- (9, 15, 3),
- (9, 16, 4),
- (9, 17, 5),
- -- Set 10: Cinema (domande 4, 18-21)
- (10, 4, 1),
- (10, 18, 2),
- (10, 19, 3),
- (10, 20, 4),
- (10, 21, 5),
- -- Set 11: Biologia (domande 5, 22-25, 1)
- (11, 5, 1),
- (11, 22, 2),
- (11, 23, 3),
- (11, 24, 4),
- (11, 25, 5),
- -- Set 12: Fisica (domande 6, 1-4)
- (12, 6, 1),
- (12, 1, 2),
- (12, 2, 3),
- (12, 3, 4),
- (12, 4, 5),
- -- Set 13: Chimica (domande 7, 5, 10-12)
- (13, 7, 1),
- (13, 5, 2),
- (13, 10, 3),
- (13, 11, 4),
- (13, 12, 5),
- -- Set 14: Astronomia (domande 8, 13-16)
- (14, 8, 1),
- (14, 13, 2),
- (14, 14, 3),
- (14, 15, 4),
- (14, 16, 5),
- -- Set 15: Filosofia (domande 9, 17-20)
- (15, 9, 1),
- (15, 17, 2),
- (15, 18, 3),
- (15, 19, 4),
- (15, 20, 5),
- -- Set 16: Arte Rinascimentale (domande 10, 21-24)
- (16, 10, 1),
- (16, 21, 2),
- (16, 22, 3),
- (16, 23, 4),
- (16, 24, 5),
- -- Set 17: Mitologia Greca (domande 11, 25, 1-3)
- (17, 11, 1),
- (17, 25, 2),
- (17, 1, 3),
- (17, 2, 4),
- (17, 3, 5),
- -- Set 18: Cucina Italiana (domande 12, 4-7)
- (18, 12, 1),
- (18, 4, 2),
- (18, 5, 3),
- (18, 6, 4),
- (18, 7, 5),
- -- Set 19: Calcio Europeo (domande 13, 8-11)
- (19, 13, 1),
- (19, 8, 2),
- (19, 9, 3),
- (19, 10, 4),
- (19, 11, 5),
- -- Set 20: Tennis Mondiale (domande 12-16)
- (20, 12, 1),
- (20, 13, 2),
- (20, 14, 3),
- (20, 15, 4),
- (20, 16, 5),
- -- Set 21: Automobili (domande 15, 16-19)
- (21, 15, 1),
- (21, 16, 2),
- (21, 17, 3),
- (21, 18, 4),
- (21, 19, 5),
- -- Set 22: Fotografia (domande 16, 20-23)
- (22, 16, 1),
- (22, 20, 2),
- (22, 21, 3),
- (22, 22, 4),
- (22, 23, 5),
- -- Set 23: Economia (domande 17, 24-25, 1-2)
- (23, 17, 1),
- (23, 24, 2),
- (23, 25, 3),
- (23, 1, 4),
- (23, 2, 5),
- -- Set 24: Politica Internazionale (domande 18, 3-6)
- (24, 18, 1),
- (24, 3, 2),
- (24, 4, 3),
- (24, 5, 4),
- (24, 6, 5),
- -- Set 25: Psicologia (domande 19, 7-10)
- (25, 19, 1),
- (25, 7, 2),
- (25, 8, 3),
- (25, 9, 4),
- (25, 10, 5);
- */
+    (1, 5, 5),
+    -- Set 2: Storia Veloce → domande 6-10
+    (2, 6, 1),
+    (2, 7, 2),
+    (2, 8, 3),
+    (2, 9, 4),
+    (2, 10, 5),
+    -- Set 3: Sport Mania → domande 11-15
+    (3, 11, 1),
+    (3, 12, 2),
+    (3, 13, 3),
+    (3, 14, 4),
+    (3, 15, 5),
+    -- Set 4: Scienza Quiz → domande 16-20
+    (4, 16, 1),
+    (4, 17, 2),
+    (4, 18, 3),
+    (4, 19, 4),
+    (4, 20, 5),
+    -- Set 5: Giro del Mondo → domande 21-25
+    (5, 21, 1),
+    (5, 22, 2),
+    (5, 23, 3),
+    (5, 24, 4),
+    (5, 25, 5),
+    -- Set 6: Cinefili → domande 26-30
+    (6, 26, 1),
+    (6, 27, 2),
+    (6, 28, 3),
+    (6, 29, 4),
+    (6, 30, 5),
+    -- Set 7: Arte & Storia → domande 31-35
+    (7, 31, 1),
+    (7, 32, 2),
+    (7, 33, 3),
+    (7, 34, 4),
+    (7, 35, 5),
+    -- Set 8: Musica Maestro → domande 36-40
+    (8, 36, 1),
+    (8, 37, 2),
+    (8, 38, 3),
+    (8, 39, 4),
+    (8, 40, 5),
+    -- Set 9: A Tavola! → domande 41-45
+    (9, 41, 1),
+    (9, 42, 2),
+    (9, 43, 3),
+    (9, 44, 4),
+    (9, 45, 5);
