@@ -2901,16 +2901,16 @@ mark {
 
 .player-main .option-btn:hover:not(:disabled) {
   background: #e9ecef;
-  border-color: #74b9ff;
+  border-color: var(--cat-color, #74b9ff);
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
 
 .option-btn.selected {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: var(--cat-color, #1a1a2e);
   color: #fff;
   border-color: transparent;
-  box-shadow: 0 4px 15px rgba(26, 26, 46, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
 }
 
 .option-btn:disabled {

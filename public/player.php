@@ -250,7 +250,9 @@ requirePlayer();
 
             // Category header
             const color = round.category_color || '#74b9ff';
-            document.querySelector('.player-main').style.border = '5px solid ' + color;
+            const main = document.querySelector('.player-main');
+            main.style.border = '5px solid ' + color;
+            main.style.setProperty('--cat-color', color);
             catHeader.style.background = color;
             document.getElementById('header-round').textContent = round.round_number;
             document.getElementById('header-category').textContent = round.category_name || '';
