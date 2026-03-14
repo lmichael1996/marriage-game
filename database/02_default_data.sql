@@ -16,10 +16,10 @@ VALUES
 INSERT INTO
     question_categories (category_name, color)
 VALUES
-    ('Generale', '#ecf0f1'),
-    ('Storia', '#f1c40f'),
+    ('Generale', '#565656ff'),
+    ('Storia', '#bc9700ff'),
     ('Sport', '#e67e22'),
-    ('Scienze', '#2ecc71'),
+    ('Scienze', '#008839ff'),
     ('Geografia', '#3498db'),
     ('Film', '#e91e63'),
     ('Arte', '#e74c3c'),

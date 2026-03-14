@@ -24,7 +24,7 @@
         <select name="category" id="filter-category" class="search-select">
             <option value="">🌐 Tutte</option>
             <?php foreach ($categories as $cat): ?>
-            <option value="<?php echo $cat['id']; ?>" <?php echo ($_POST['category'] ?? '') === (string)$cat['id'] ? 'selected' : ''; ?>>
+            <option value="<?php echo $cat['id']; ?>" data-color="<?php echo htmlspecialchars($cat['color'] ?? '#6c757d'); ?>" <?php echo ($_POST['category'] ?? '') === (string)$cat['id'] ? 'selected' : ''; ?>>
                 <?php echo htmlspecialchars($cat['category_name']); ?>
             </option>
             <?php endforeach; ?>
@@ -156,9 +156,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Auto-submit form quando cambia la categoria
     document.getElementById('filter-category').addEventListener('change', function() {
+        colorCategorySelect(this);
         const form = this.closest('form');
         form.submit();
     });
+
+    // Colora le option del select categorie con il pallino colorato
+    function colorCategorySelect(select) {
+        select.querySelectorAll('option[data-color]').forEach(opt => {
+            opt.style.color = opt.dataset.color;
+        });
+        const selected = select.options[select.selectedIndex];
+        if (selected && selected.dataset.color) {
+            select.style.color = selected.dataset.color;
+        } else {
+            select.style.color = '';
+        }
+    }
+    colorCategorySelect(document.getElementById('filter-category'));
 
     document.addEventListener('click', function(e) {
         if (e.target.closest('.btn-edit-question')) {
@@ -335,12 +350,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     data.categories.forEach(cat => {
                         const option = document.createElement('option');
                         option.value = cat.id;
-                        option.textContent = cat.category_name;
+                        option.textContent = '● ' + cat.category_name;
+                        option.dataset.color = cat.color || '#6c757d';
                         filterSelect.appendChild(option);
                     });
                     if (filterCurrentValue) {
                         filterSelect.value = filterCurrentValue;
                     }
+                    colorCategorySelect(filterSelect);
 
                     // Aggiorna il select di "Aggiungi Domanda"
                     const newQuestionSelect = document.getElementById('new-category');
