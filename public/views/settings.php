@@ -144,7 +144,7 @@
 
                 <div class="form-group">
                     <input type="number" id="points_clickfirst" name="points_clickfirst"
-                           min="1" max="1000" value="<?php echo $gameSettings['points_clickfirst'] ?? 50; ?>" required class="input-narrow">
+                           min="1" max="100" value="<?php echo $gameSettings['points_clickfirst'] ?? 50; ?>" required class="input-narrow">
                     <small>Solo il primo che ha risposto correttamente ottiene punti; tutti gli altri ottengono 0 punti.</small>
                 </div>
             </div>

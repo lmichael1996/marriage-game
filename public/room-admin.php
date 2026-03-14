@@ -52,7 +52,7 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
                 </div>
                 <?php endif; ?>
 
-                <div class="game-card" style="border: 5px solid <?php echo htmlspecialchars($catColor); ?>;">
+                <div class="game-card" style="border: <?php echo $gameOver ? '0' : '5px solid ' . htmlspecialchars($catColor); ?>;">
 
                 <?php if ($gameOver): ?>
                     <div class="game-step game-over">
