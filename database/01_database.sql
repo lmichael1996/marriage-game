@@ -86,6 +86,7 @@ CREATE TABLE IF NOT EXISTS players (
     UNIQUE (username, room_id)
 );
 
+-- Judges table (stores judge information for each room, if needed)
 CREATE TABLE IF NOT EXISTS judges (
     id INT AUTO_INCREMENT PRIMARY KEY,
     room_id INT NOT NULL UNIQUE,
@@ -115,6 +116,7 @@ CREATE TABLE IF NOT EXISTS player_answers (
     UNIQUE (round_id, player_id)
 );
 
+-- Event to close abandoned rooms after 24 hours
 CREATE EVENT close_abandoned_rooms ON SCHEDULE EVERY 1 HOUR DO
 UPDATE
     rooms
