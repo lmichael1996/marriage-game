@@ -908,8 +908,8 @@ form button[type="submit"]:active {
 }
 
 .modal-scroll-content {
-  max-height: 80vh;
-  overflow-y: auto;
+  max-height: none;
+  overflow-y: visible;
 }
 
 .modal-actions-footer {
