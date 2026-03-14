@@ -159,17 +159,12 @@ requirePlayer();
             if (roundInProgress && !violated) {
                 violated = true;
                 roundInProgress = false;
-                hasAnswered = true;
+                hasAnswered = false;
+                currentRoundCounter++;
                 stopTimer();
                 stopWatchdog();
                 document.querySelector('.player-container').style.display = 'none';
                 showScreen('violation');
-
-                setTimeout(() => {
-                    document.querySelector('.player-container').style.display = '';
-                    violated = false;
-                    showScreen('waiting');
-                }, 3000);
             }
         }
 
@@ -232,11 +227,15 @@ requirePlayer();
                     showScreen('cancelled');
                     return;
                 }
-                if (!data.success && !data.round_number) { showScreen('waiting'); return; }
+                if (!data.success && !data.round_number) { if (!violated) showScreen('waiting'); return; }
                 if (data.round_number === currentRoundCounter && !hasAnswered && !roundInProgress) {
+                    if (violated) {
+                        violated = false;
+                        document.querySelector('.player-container').style.display = '';
+                    }
                     startRound(data);
                 } else if (hasAnswered) {
-                    showScreen('waiting');
+                    if (!violated) showScreen('waiting');
                 }
             });
         }
