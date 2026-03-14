@@ -135,23 +135,17 @@ requirePlayer();
             clearInterval(checkRoomStatusInterval);
             stopTimer();
             stopWatchdog();
-            unlockNavigation();
+            setNav(false);
         }
 
         function stopTimer() {
             if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
         }
 
-        function lockNavigation() {
-            logoutBtn.classList.add('disabled-link');
-            logoutBtn.style.opacity = '0.5';
-            logoutBtn.style.pointerEvents = 'none';
-        }
-
-        function unlockNavigation() {
-            logoutBtn.classList.remove('disabled-link');
-            logoutBtn.style.opacity = '1';
-            logoutBtn.style.pointerEvents = 'auto';
+        function setNav(locked) {
+            logoutBtn.classList.toggle('disabled-link', locked);
+            logoutBtn.style.opacity = locked ? '0.5' : '1';
+            logoutBtn.style.pointerEvents = locked ? 'none' : 'auto';
         }
 
         // ── Anti-cheat: detect page leave on mobile ───────────────────
@@ -196,6 +190,11 @@ requirePlayer();
         });
 
         // ── Polling ────────────────────────────────────────────────────
+        /** Resolve final placement from data or fall back to checkWinnerStatus */
+        function resolveResult(data) {
+            data && data.placement !== undefined ? showFinalResult(data.placement) : checkWinnerStatus();
+        }
+
         function checkRoomStatus() {
             if (gameEnded) return;
             api('endpoint=check_room_status').then(data => {
@@ -203,8 +202,7 @@ requirePlayer();
                 if (data.status === 'closed') {
                     endGame();
                     api('endpoint=game&action=get_game_state&counter=' + currentRoundCounter)
-                        .then(d => d.placement !== undefined ? showFinalResult(d.placement) : checkWinnerStatus())
-                        .catch(() => checkWinnerStatus());
+                        .then(resolveResult).catch(() => checkWinnerStatus());
                 } else if (data.status === 'cancelled') {
                     endGame();
                     showScreen('cancelled');
@@ -219,7 +217,7 @@ requirePlayer();
 
                 if (data.game_finished || data.status_room === 'closed') {
                     endGame();
-                    data.placement !== undefined ? showFinalResult(data.placement) : checkWinnerStatus();
+                    resolveResult(data);
                     return;
                 }
                 if (data.status_room === 'cancelled') {
@@ -248,19 +246,18 @@ requirePlayer();
             currentRoundId = round.id;
             stopTimer();
             startWatchdog();
-            lockNavigation();
+            setNav(true);
 
             // Category header
             const color = round.category_color || '#74b9ff';
             document.querySelector('.player-main').style.borderColor = color;
-            catHeader.style.display = 'flex';
             catHeader.style.background = color;
             document.getElementById('header-round').textContent = round.round_number;
             document.getElementById('header-category').textContent = round.category_name || '';
 
             document.getElementById('question-text').textContent = round.question || '';
             showScreen('game');
-            catHeader.style.display = 'flex'; // re-show after showScreen hid it
+            catHeader.style.display = 'flex';
 
             if (round.question_type === 'clickfirst') {
                 answerGrid.style.display = 'none';
@@ -320,7 +317,6 @@ requirePlayer();
 
         function timeExpired() {
             if (hasAnswered) return;
-            hasAnswered = true;
             currentRoundCounter++;
             resetRound();
             showScreen('waiting');
@@ -332,7 +328,7 @@ requirePlayer();
             roundInProgress = false;
             stopTimer();
             stopWatchdog();
-            unlockNavigation();
+            setNav(false);
         }
 
         // ── Timer ──────────────────────────────────────────────────────
@@ -361,12 +357,9 @@ requirePlayer();
             (function tryCheck() {
                 api('endpoint=game&action=check_winner').then(data => {
                     if (data.success) return showFinalResult(data.placement);
-                    if (++attempts < 20) setTimeout(tryCheck, 500);
-                    else showScreen('waiting');
-                }).catch(() => {
-                    if (++attempts < 20) setTimeout(tryCheck, 500);
-                    else showScreen('waiting');
-                });
+                    retry();
+                }).catch(retry);
+                function retry() { ++attempts < 20 ? setTimeout(tryCheck, 500) : showScreen('waiting'); }
             })();
         }
 
@@ -387,16 +380,15 @@ requirePlayer();
                 document.getElementById('final-emoji').textContent   = info.emoji;
                 document.getElementById('final-title').textContent   = info.title;
                 document.getElementById('final-message').textContent = info.msg;
-            } else if (placement > 0) {
-                finalScreen.classList.add('loser');
-                document.getElementById('final-emoji').textContent   = '🏁';
-                document.getElementById('final-title').textContent   = `${placement}° Posto — Hai Perso`;
-                document.getElementById('final-message').textContent = `Sei arrivato in ${placement}ª posizione. Buona fortuna la prossima volta!`;
             } else {
                 finalScreen.classList.add('loser');
-                document.getElementById('final-emoji').textContent   = '😢';
-                document.getElementById('final-title').textContent   = 'Partita Terminata';
-                document.getElementById('final-message').textContent = 'Non è stato possibile determinare la tua posizione.';
+                document.getElementById('final-emoji').textContent   = placement > 0 ? '🏁' : '😢';
+                document.getElementById('final-title').textContent   = placement > 0
+                    ? `${placement}° Posto — Hai Perso`
+                    : 'Partita Terminata';
+                document.getElementById('final-message').textContent = placement > 0
+                    ? `Sei arrivato in ${placement}ª posizione. Buona fortuna la prossima volta!`
+                    : 'Non è stato possibile determinare la tua posizione.';
             }
         }
     </script>
