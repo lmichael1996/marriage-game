@@ -272,7 +272,11 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
         }
 
         function goBack() {
-            if (!gameOver && !confirm('Termina partita?')) return;
+            if (gameOver) return deleteRoom();
+            document.getElementById('modal-end-game').style.display = 'flex';
+        }
+
+        function deleteRoom() {
             fetch(API + '?endpoint=delete_room', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -286,6 +290,24 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
             .catch(() => showToast('Errore nella chiusura della stanza', 'error'));
         }
     </script>
+
+    <!-- MODALE CONFERMA TERMINA PARTITA -->
+    <div id="modal-end-game" class="modal-overlay" style="display: none;">
+        <div class="modal-content modal-content-medium">
+            <div class="modal-header">
+                <h2>⚠️ Termina Partita</h2>
+                <button type="button" class="modal-close" onclick="document.getElementById('modal-end-game').style.display='none';">✕</button>
+            </div>
+            <div class="modal-body">
+                <p>Sei sicuro di voler terminare la partita?</p>
+                <p class="modal-subtitle">Questa azione non può essere annullata.</p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-end-game').style.display='none';">Annulla</button>
+                <button type="button" class="btn btn-danger" onclick="deleteRoom()">✓ Termina</button>
+            </div>
+        </div>
+    </div>
 
     <div id="toast-container" class="toast-container"></div>
     <script>
