@@ -2905,10 +2905,62 @@ mark {
   color: #fff;
 }
 
-.social-links a:hover {
-  background: rgba(255, 255, 255, 0.3) !important;
-  opacity: 1;
+.social-links {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.social-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.3);
+  color: #fff;
   text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95em;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.social-links a:hover {
+  background: rgba(255, 255, 255, 0.45);
+  text-decoration: none;
+}
+
+/* Click-first button (player image button) */
+#click-first-screen {
+  text-align: center;
+}
+
+#click-first-btn {
+  cursor: pointer;
+  max-width: 80%;
+  height: auto;
+  transition: transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  user-select: none;
+}
+
+#click-first-btn.pressed {
+  transform: scale(0.85);
+}
+
+/* Player page body overrides */
+.player-page {
+  background: #f0f2f5;
+  padding: 20px;
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .player-page {
+    padding: 10px;
+  }
 }
 
 /* Judge */

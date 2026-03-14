@@ -10,30 +10,9 @@ requirePlayer();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Player - Marriage Game</title>
-    <link rel="stylesheet" href="../assets/css/main.css?v=2">
-    <style>
-        body {
-            background: #f0f2f5;
-            padding: 20px;
-            display: block;
-        }
-
-        @media (max-width: 640px) {
-            body { padding: 10px; }
-        }
-
-        #click-first-btn {
-            transition: transform 0.15s ease;
-            -webkit-tap-highlight-color: transparent;
-            outline: none;
-            user-select: none;
-        }
-        #click-first-btn.pressed {
-            transform: scale(0.85);
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/css/main.css?v=3">
 </head>
-<body>
+<body class="player-page">
     <div class="container">
         <div class="header">
             <h1>🎮 Giocatore <?php echo htmlspecialchars($_SESSION['auth_player']['username'] ?? 'Giocatore'); ?></h1>
@@ -66,13 +45,13 @@ requirePlayer();
                         <div class="option-btn" data-answer="4" onclick="selectAnswer(4)" id="btn-4"></div>
                     </div>
 
-                    <div id="click-first-screen" style="display: none; text-align: center;">
+                    <div id="click-first-screen" style="display: none;">
                         <img src="../assets/image/button.png" onclick="submitClickFirst()" id="click-first-btn"
                              ontouchstart="this.classList.add('pressed')"
                              ontouchend="this.classList.remove('pressed')"
                              onmousedown="this.classList.add('pressed')"
                              onmouseup="this.classList.remove('pressed')"
-                             style="cursor: pointer; max-width: 80%; height: auto;" alt="Clicca!">
+                             alt="Clicca!">
                     </div>
                 </div>
 
@@ -82,8 +61,8 @@ requirePlayer();
                         <h1 id="final-title">Hai Vinto!</h1>
                         <p id="final-message">Complimenti! Sei il vincitore di questa partita!</p>
 
-                        <div class="social-links" style="margin-top: 30px; display: flex; justify-content: center; gap: 15px;">
-                            <a href="https://www.instagram.com/mvmusicaeventi/?hl=it" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 25px; background: rgba(255,255,255,0.3); color: #fff; text-decoration: none; font-weight: 600; font-size: 0.95em; border: 2px solid rgba(255,255,255,0.5);">
+                        <div class="social-links">
+                            <a href="https://www.instagram.com/mvmusicaeventi/?hl=it" target="_blank">
                                 <svg viewBox="0 0 24 24" width="20" height="20" fill="#fff"><path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5A4.25 4.25 0 0 0 7.75 20.5h8.5A4.25 4.25 0 0 0 20.5 16.25v-8.5A4.25 4.25 0 0 0 16.25 3.5h-8.5zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 1.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm5.25-2.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
                                 Instagram
                             </a>
@@ -107,20 +86,84 @@ requirePlayer();
     </div>
 
     <script>
-        // ── Anti-cheat: detect page leave on mobile ──────────────────
-        // Uses visibilitychange + blur + pagehide to catch all cases:
-        // - switching tab, switching app, home button, task switcher,
-        //   notification tap, control center (iOS)
+        // ── DOM refs ──────────────────────────────────────────────────
+        const screens = {
+            waiting:   document.getElementById('waiting-screen'),
+            game:      document.getElementById('game-screen'),
+            result:    document.getElementById('final-result-screen'),
+            cancelled: document.getElementById('game-cancelled-screen'),
+            violation: document.getElementById('violation-screen'),
+        };
+        const catHeader   = document.getElementById('category-header');
+        const headerTimer = document.getElementById('header-timer');
+        const logoutBtn   = document.getElementById('logout-btn');
+        const answerGrid  = document.getElementById('answer-grid');
+        const clickFirst  = document.getElementById('click-first-screen');
+        const clickBtn    = document.getElementById('click-first-btn');
+
+        // ── State ──────────────────────────────────────────────────────
+        let currentRoundCounter = 1;
+        let currentRoundId = null;
+        let timerInterval = null;
+        let startTime = null;
+        let hasAnswered = false;
+        let roundInProgress = false;
+        let gameEnded = false;
         let violated = false;
+        let checkGameStateInterval = null;
+        let checkRoomStatusInterval = null;
+
         const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
                       || (navigator.maxTouchPoints > 1 && window.innerWidth < 1024);
 
+        // ── Helpers ────────────────────────────────────────────────────
+        function api(qs) {
+            return fetch('../src/api/api.php?' + qs).then(r => r.json());
+        }
+
+        /** Show one screen, hide all others + category header */
+        function showScreen(name) {
+            Object.entries(screens).forEach(([k, el]) => el.style.display = k === name ? 'block' : 'none');
+            catHeader.style.display = 'none';
+        }
+
+        /** Mark game as ended and stop all polling */
+        function endGame() {
+            gameEnded = true;
+            clearInterval(checkGameStateInterval);
+            clearInterval(checkRoomStatusInterval);
+            stopTimer();
+            stopWatchdog();
+            unlockNavigation();
+        }
+
+        function stopTimer() {
+            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        }
+
+        function lockNavigation() {
+            logoutBtn.classList.add('disabled-link');
+            logoutBtn.style.opacity = '0.5';
+            logoutBtn.style.pointerEvents = 'none';
+        }
+
+        function unlockNavigation() {
+            logoutBtn.classList.remove('disabled-link');
+            logoutBtn.style.opacity = '1';
+            logoutBtn.style.pointerEvents = 'auto';
+        }
+
+        // ── Anti-cheat: detect page leave on mobile ───────────────────
         function onPageLeave() {
             if (roundInProgress && !violated) {
                 violated = true;
-                showViolation();
+                endGame();
+                document.querySelector('.player-container').style.display = 'none';
+                showScreen('violation');
             }
         }
+
+        function onVisibilityChange() { if (document.hidden) onPageLeave(); }
 
         function startWatchdog() {
             if (!isMobile || violated) return;
@@ -135,382 +178,212 @@ requirePlayer();
             window.removeEventListener('pagehide', onPageLeave);
         }
 
-        function onVisibilityChange() {
-            if (document.hidden) onPageLeave();
-        }
-
-        function showViolation() {
-            gameEnded = true;
-            clearInterval(checkGameStateInterval);
-            clearInterval(checkRoomStatusInterval);
-            stopWatchdog();
-            unlockNavigation();
-            if (timerInterval) clearInterval(timerInterval);
-
-            document.querySelector('.player-container').style.display = 'none';
-            document.getElementById('violation-screen').style.display = 'block';
-        }
-
-        function lockNavigation() {
-            const btn = document.getElementById('logout-btn');
-            btn.style.opacity = '0.5';
-            btn.style.pointerEvents = 'none';
-        }
-
-        function unlockNavigation() {
-            const btn = document.getElementById('logout-btn');
-            btn.style.opacity = '1';
-            btn.style.pointerEvents = 'auto';
-        }
-
-        let currentRoundCounter = 1;
-        let currentRoundId = null;
-        let timerInterval = null;
-        let startTime = null;
-        let hasAnswered = false;
-        let roundInProgress = false;
-        let gameEnded = false;  // Flag to stop polling when game ends
-        let checkGameStateInterval = null;
-        let checkRoomStatusInterval = null;
-
+        // ── Init ───────────────────────────────────────────────────────
         document.addEventListener('DOMContentLoaded', () => {
-            // Recupera il progresso del player prima di avviare il polling
-            fetch('../src/api/api.php?endpoint=player_progress')
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success && data.answered > 0) {
-                        currentRoundCounter = data.answered + 1;
-                    }
-                })
+            api('endpoint=player_progress')
+                .then(data => { if (data.success && data.answered > 0) currentRoundCounter = data.answered + 1; })
                 .catch(() => {})
                 .finally(() => {
                     checkRoomStatusInterval = setInterval(checkRoomStatus, 1000);
-                    checkGameStateInterval = setInterval(checkGameState, 1000);
+                    checkGameStateInterval  = setInterval(checkGameState, 1000);
                     checkGameState();
                 });
         });
 
+        // ── Polling ────────────────────────────────────────────────────
         function checkRoomStatus() {
             if (gameEnded) return;
-
-            fetch('../src/api/api.php?endpoint=check_room_status')
-                .then(response => response.json())
-                .then(data => {
-                    if (gameEnded) return;  // another callback may have ended the game
-
-                    // Se la room è chiusa (partita finita), chiedi placement via get_game_state
-                    if (data.status === 'closed') {
-                        gameEnded = true;
-                        clearInterval(checkGameStateInterval);
-                        clearInterval(checkRoomStatusInterval);
-                        fetch('../src/api/api.php?endpoint=game&action=get_game_state&counter=' + currentRoundCounter)
-                            .then(r => r.json())
-                            .then(d => {
-                                if (d.placement !== undefined) {
-                                    showFinalResult(d.placement);
-                                } else {
-                                    checkWinnerStatus();
-                                }
-                            })
-                            .catch(() => checkWinnerStatus());
-                        return;
-                    }
-                    // Se la room è cancellata dall'admin, mostra schermata annullamento
-                    if (data.status === 'cancelled') {
-                        gameEnded = true;
-                        clearInterval(checkGameStateInterval);
-                        clearInterval(checkRoomStatusInterval);
-                        showGameCancelled();
-                        return;
-                    }
-                })
-                .catch(() => {});
+            api('endpoint=check_room_status').then(data => {
+                if (gameEnded) return;
+                if (data.status === 'closed') {
+                    endGame();
+                    api('endpoint=game&action=get_game_state&counter=' + currentRoundCounter)
+                        .then(d => d.placement !== undefined ? showFinalResult(d.placement) : checkWinnerStatus())
+                        .catch(() => checkWinnerStatus());
+                } else if (data.status === 'cancelled') {
+                    endGame();
+                    showScreen('cancelled');
+                }
+            }).catch(() => {});
         }
 
         function checkGameState() {
             if (gameEnded) return;
+            api('endpoint=game&action=get_game_state&counter=' + currentRoundCounter).then(data => {
+                if (gameEnded) return;
 
-            fetch('../src/api/api.php?endpoint=game&action=get_game_state&counter=' + currentRoundCounter)
-                .then(response => response.json())
-                .then(data => {
-                    if (gameEnded) return;  // another callback may have ended the game
-
-                    // Partita terminata
-                    if (data.game_finished || data.status_room === 'closed') {
-                        gameEnded = true;
-                        clearInterval(checkGameStateInterval);
-                        clearInterval(checkRoomStatusInterval);
-                        if (data.placement !== undefined) {
-                            showFinalResult(data.placement);
-                        } else {
-                            checkWinnerStatus();
-                        }
-                        return;
-                    }
-
-                    // Partita annullata dall'admin
-                    if (data.status_room === 'cancelled') {
-                        gameEnded = true;
-                        clearInterval(checkGameStateInterval);
-                        clearInterval(checkRoomStatusInterval);
-                        showGameCancelled();
-                        return;
-                    }
-
-                    if (data.success === false || !data.round_number) {
-                        showWaitingScreen();
-                        return;
-                    }
-
-                    const roundNumber = data.round_number;
-                    if (roundNumber === currentRoundCounter && !hasAnswered && !roundInProgress) {
-                        startRound(data);
-                    } else if (hasAnswered) {
-                        showWaitingScreen();
-                    }
-                });
+                if (data.game_finished || data.status_room === 'closed') {
+                    endGame();
+                    data.placement !== undefined ? showFinalResult(data.placement) : checkWinnerStatus();
+                    return;
+                }
+                if (data.status_room === 'cancelled') {
+                    endGame();
+                    showScreen('cancelled');
+                    return;
+                }
+                if (!data.success && !data.round_number) { showScreen('waiting'); return; }
+                if (data.round_number === currentRoundCounter && !hasAnswered && !roundInProgress) {
+                    startRound(data);
+                } else if (hasAnswered) {
+                    showScreen('waiting');
+                }
+            });
         }
 
+        // ── Round lifecycle ────────────────────────────────────────────
         function startRound(round) {
             roundInProgress = true;
-            clearInterval(timerInterval);
-            startWatchdog();
-            lockNavigation();
-
             hasAnswered = false;
             startTime = Date.now();
             currentRoundId = round.id;
+            stopTimer();
+            startWatchdog();
+            lockNavigation();
 
-            // Category colored border + header
-            const catColor = round.category_color || '#74b9ff';
-            const catName = round.category_name || '';
-            const playerMain = document.querySelector('.player-main');
-            if (playerMain) playerMain.style.borderColor = catColor;
-            const catHeader = document.getElementById('category-header');
-            if (catHeader) {
-                catHeader.style.display = 'flex';
-                catHeader.style.background = catColor;
-                document.getElementById('header-round').textContent = round.round_number;
-                document.getElementById('header-category').textContent = catName;
-            }
+            // Category header
+            const color = round.category_color || '#74b9ff';
+            document.querySelector('.player-main').style.borderColor = color;
+            catHeader.style.display = 'flex';
+            catHeader.style.background = color;
+            document.getElementById('header-round').textContent = round.round_number;
+            document.getElementById('header-category').textContent = round.category_name || '';
 
             document.getElementById('question-text').textContent = round.question || '';
-
-            document.getElementById('waiting-screen').style.display = 'none';
-            document.getElementById('game-screen').style.display = 'block';
-
-            const answerGrid = document.getElementById('answer-grid');
-            const clickFirstScreen = document.getElementById('click-first-screen');
+            showScreen('game');
+            catHeader.style.display = 'flex'; // re-show after showScreen hid it
 
             if (round.question_type === 'clickfirst') {
                 answerGrid.style.display = 'none';
-                clickFirstScreen.style.display = 'block';
-                document.getElementById('click-first-btn').style.pointerEvents = 'auto';
-            } else if (round.question_type === 'truefalse') {
-                setupRound(round, 2);
+                clickFirst.style.display = 'block';
+                clickBtn.style.pointerEvents = 'auto';
             } else {
-                setupRound(round, 4);
+                setupRound(round, round.question_type === 'truefalse' ? 2 : 4);
             }
 
             startTimer(round.timer || 10);
         }
 
         function setupRound(round, numOptions) {
-            const answerGrid = document.getElementById('answer-grid');
             answerGrid.style.display = 'flex';
-            document.getElementById('click-first-screen').style.display = 'none';
+            clickFirst.style.display = 'none';
 
             const tfLabels = { 1: 'Vero', 2: 'Falso' };
-
             for (let i = 1; i <= 4; i++) {
                 const btn = document.getElementById('btn-' + i);
-                if (i <= numOptions) {
-                    btn.style.display = 'flex';
-                    btn.textContent = round.question_type === 'truefalse'
-                        ? tfLabels[i]
-                        : (round['option' + i] || 'Opzione ' + i);
-                } else {
-                    btn.style.display = 'none';
-                }
+                btn.style.display = i <= numOptions ? 'flex' : 'none';
+                btn.textContent = i <= numOptions
+                    ? (round.question_type === 'truefalse' ? tfLabels[i] : (round['option' + i] || 'Opzione ' + i))
+                    : '';
                 btn.classList.remove('selected');
             }
         }
 
+        // ── Answers ────────────────────────────────────────────────────
         function selectAnswer(answer) {
             if (hasAnswered) return;
-
-            document.querySelectorAll('.option-btn').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-
+            document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
             document.querySelector(`[data-answer="${answer}"]`).classList.add('selected');
-
             hasAnswered = true;
-            const timeTaken = (Date.now() - startTime) / 1000;
-            clearInterval(timerInterval);
-
-            submitAnswer(answer, timeTaken);
+            stopTimer();
+            submitAnswer(answer, (Date.now() - startTime) / 1000);
         }
 
         function submitClickFirst() {
             if (hasAnswered) return;
-
             hasAnswered = true;
-            clearInterval(timerInterval);
-            document.getElementById('click-first-btn').style.pointerEvents = 'none';
-
-            const timeTaken = (Date.now() - startTime) / 1000;
-            submitAnswer(1, timeTaken);
+            stopTimer();
+            clickBtn.style.pointerEvents = 'none';
+            submitAnswer(1, (Date.now() - startTime) / 1000);
         }
 
         function submitAnswer(answer, timeTaken) {
             fetch('../src/api/api.php?endpoint=answer', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    round_id: currentRoundId,
-                    answer: answer,
-                    time_taken: timeTaken
-                })
-            })
-            .then(response => response.json())
-            .then(() => {
+                body: JSON.stringify({ round_id: currentRoundId, answer, time_taken: timeTaken })
+            }).then(r => r.json()).then(() => {
                 currentRoundCounter++;
-                showWaitingScreen();
+                resetRound();
+                showScreen('waiting');
             });
         }
 
+        function timeExpired() {
+            if (hasAnswered) return;
+            hasAnswered = true;
+            currentRoundCounter++;
+            resetRound();
+            showScreen('waiting');
+        }
+
+        /** Common cleanup after a round ends (answer, timeout, etc.) */
+        function resetRound() {
+            hasAnswered = false;
+            roundInProgress = false;
+            stopTimer();
+            stopWatchdog();
+            unlockNavigation();
+        }
+
+        // ── Timer ──────────────────────────────────────────────────────
         function startTimer(initialTime = 10) {
-            let timeLeft = parseInt(initialTime);
-            if (isNaN(timeLeft) || timeLeft <= 0) timeLeft = 10;
-
-            const headerTimer = document.getElementById('header-timer');
-            if (headerTimer) headerTimer.textContent = timeLeft;
-
-            if (timerInterval) clearInterval(timerInterval);
+            let timeLeft = parseInt(initialTime) || 10;
+            headerTimer.textContent = timeLeft;
+            headerTimer.style.color = '#2d3436';
+            stopTimer();
 
             timerInterval = setInterval(() => {
                 timeLeft--;
-                if (headerTimer) {
-                    headerTimer.textContent = timeLeft;
-                    if (timeLeft <= 5) headerTimer.style.color = '#dc143c';
-                    else if (timeLeft <= 10) headerTimer.style.color = '#ffc107';
-                    else headerTimer.style.color = '#2d3436';
-                }
+                headerTimer.textContent = timeLeft;
+                headerTimer.style.color = timeLeft <= 5 ? '#dc143c' : timeLeft <= 10 ? '#ffc107' : '#2d3436';
 
                 if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    if (headerTimer) headerTimer.style.color = '#2d3436';
+                    stopTimer();
+                    headerTimer.style.color = '#2d3436';
                     if (!hasAnswered) timeExpired();
                 }
             }, 1000);
         }
 
-        function timeExpired() {
-            if (hasAnswered) return;
-
-            hasAnswered = true;
-            currentRoundCounter++;
-            showWaitingScreen();
-        }
-
-        function showWaitingScreen() {
-            hasAnswered = false;
-            roundInProgress = false;
-            stopWatchdog();
-            unlockNavigation();
-
-            if (timerInterval) clearInterval(timerInterval);
-
-            document.getElementById('waiting-screen').style.display = 'block';
-            document.getElementById('game-screen').style.display = 'none';
-            document.getElementById('final-result-screen').style.display = 'none';
-            document.getElementById('game-cancelled-screen').style.display = 'none';
-
-            // Hide category header bar when waiting
-            const catHeader = document.getElementById('category-header');
-            if (catHeader) catHeader.style.display = 'none';
-        }
-
+        // ── End-game screens ───────────────────────────────────────────
         function checkWinnerStatus() {
-            const maxAttempts = 20;
             let attempts = 0;
-
-            function tryCheckWinner() {
-                fetch('../src/api/api.php?endpoint=game&action=check_winner')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showFinalResult(data.placement);
-                        } else {
-                            attempts++;
-                            if (attempts < maxAttempts) {
-                                setTimeout(tryCheckWinner, 500);
-                            } else {
-                                // Fallback: show waiting screen if we can't determine winner
-                                showWaitingScreen();
-                            }
-                        }
-                    })
-                    .catch(() => {
-                        attempts++;
-                        if (attempts < maxAttempts) {
-                            setTimeout(tryCheckWinner, 500);
-                        } else {
-                            showWaitingScreen();
-                        }
-                    });
-            }
-
-            tryCheckWinner();
+            (function tryCheck() {
+                api('endpoint=game&action=check_winner').then(data => {
+                    if (data.success) return showFinalResult(data.placement);
+                    if (++attempts < 20) setTimeout(tryCheck, 500);
+                    else showScreen('waiting');
+                }).catch(() => {
+                    if (++attempts < 20) setTimeout(tryCheck, 500);
+                    else showScreen('waiting');
+                });
+            })();
         }
 
         function showFinalResult(placement) {
-            document.getElementById('waiting-screen').style.display = 'none';
-            document.getElementById('game-screen').style.display = 'none';
-            document.getElementById('final-result-screen').style.display = 'block';
-            document.getElementById('game-cancelled-screen').style.display = 'none';
+            showScreen('result');
 
-            // Hide category header
-            const catHeader = document.getElementById('category-header');
-            if (catHeader) catHeader.style.display = 'none';
-
-            const finalScreen = document.getElementById('final-result-screen');
-            const emoji = document.getElementById('final-emoji');
-            const title = document.getElementById('final-title');
-            const message = document.getElementById('final-message');
-
+            const finalScreen = screens.result;
             const podium = {
-                1: { emoji: '🥇', title: '1° Posto!', message: 'Complimenti! Sei il vincitore di questa partita! 🎉', cls: 'winner' },
-                2: { emoji: '🥈', title: '2° Posto!', message: 'Ottimo risultato! Sei arrivato secondo! 👏', cls: 'winner' },
-                3: { emoji: '🥉', title: '3° Posto!', message: 'Bel lavoro! Sei sul podio! 💪', cls: 'winner' },
+                1: { emoji: '🥇', title: '1° Posto!', msg: 'Complimenti! Sei il vincitore di questa partita! 🎉', cls: 'winner' },
+                2: { emoji: '🥈', title: '2° Posto!', msg: 'Ottimo risultato! Sei arrivato secondo! 👏',        cls: 'winner' },
+                3: { emoji: '🥉', title: '3° Posto!', msg: 'Bel lavoro! Sei sul podio! 💪',                     cls: 'winner' },
             };
-
             const info = podium[placement];
             finalScreen.classList.remove('winner', 'loser');
 
             if (info) {
                 finalScreen.classList.add(info.cls);
-                emoji.textContent = info.emoji;
-                title.textContent = info.title;
-                message.textContent = info.message;
+                document.getElementById('final-emoji').textContent   = info.emoji;
+                document.getElementById('final-title').textContent   = info.title;
+                document.getElementById('final-message').textContent = info.msg;
             } else {
                 finalScreen.classList.add('loser');
-                emoji.textContent = placement > 0 ? '🏁' : '😢';
-                title.textContent = placement > 0 ? `${placement}° Posto` : 'Partita terminata';
-                message.textContent = 'Buona fortuna nella prossima partita!';
+                document.getElementById('final-emoji').textContent   = placement > 0 ? '🏁' : '😢';
+                document.getElementById('final-title').textContent   = placement > 0 ? `${placement}° Posto` : 'Partita terminata';
+                document.getElementById('final-message').textContent = 'Buona fortuna nella prossima partita!';
             }
-        }
-
-        function showGameCancelled() {
-            document.getElementById('waiting-screen').style.display = 'none';
-            document.getElementById('game-screen').style.display = 'none';
-            document.getElementById('final-result-screen').style.display = 'none';
-            document.getElementById('game-cancelled-screen').style.display = 'block';
-
-            // Hide category header
-            const catHeader = document.getElementById('category-header');
-            if (catHeader) catHeader.style.display = 'none';
         }
     </script>
 </body>
