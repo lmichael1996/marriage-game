@@ -1046,20 +1046,29 @@ form button[type="submit"]:active {
   max-height: 350px;
   overflow-y: auto;
   border: 1px solid #ddd;
-  padding: 10px;
+  padding: 0;
   border-radius: 4px;
   background-color: #fff;
 }
 
 .question-item {
   padding: 10px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #ddd;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 15px;
   background-color: #fff;
   cursor: move;
+  transition: background-color 0.15s ease;
+}
+
+.question-item:last-child {
+  border-bottom: none;
+}
+
+.question-item:hover {
+  background-color: #f5f5f5;
 }
 
 .question-item-content {
@@ -1667,12 +1676,13 @@ mark {
 }
 
 .form-settings {
-  background: #f9f9f9;
+  background: #fff;
   padding: 0;
   margin: 15px 0;
   border-radius: 4px;
-  border: 1px solid #333;
-  overflow: hidden;
+  border: 1px solid #ddd;
+  max-height: 350px;
+  overflow-y: auto;
 }
 
 .form-settings h3 {
@@ -1680,9 +1690,9 @@ mark {
   font-size: 0.95em;
   font-weight: 600;
   border: none;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #ddd;
   padding: 12px 15px 10px 15px;
-  background: #f9f9f9;
+  background: #fff;
   color: #333;
 }
 
@@ -1691,9 +1701,9 @@ mark {
   font-size: 1em;
   font-weight: 600;
   border: none;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #ddd;
   padding: 12px 15px 10px 15px;
-  background: #f9f9f9;
+  background: #fff;
   color: #333;
 }
 
@@ -1703,28 +1713,6 @@ mark {
   border-radius: 0;
   margin: 0;
   overflow: hidden;
-}
-
-.form-settings .question-item {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 15px;
-  background-color: #fff;
-  cursor: pointer;
-  border-radius: 0;
-  margin: 0;
-  transition: background-color 0.15s ease;
-}
-
-.form-settings .question-item:last-child {
-  border-bottom: none;
-}
-
-.form-settings .question-item:hover {
-  background-color: #f5f5f5;
 }
 
 .form-settings .btn-sm,
@@ -3851,17 +3839,17 @@ mark {
     font-size: 0.95em;
   }
 
-  .form-settings .question-item {
+  .question-item {
     padding: 10px;
     gap: 10px;
     flex-wrap: wrap;
   }
 
-  .form-settings .question-item-content {
+  .question-item-content {
     font-size: 0.9em;
   }
 
-  .form-settings .question-item-actions {
+  .question-item-actions {
     gap: 5px;
   }
 
