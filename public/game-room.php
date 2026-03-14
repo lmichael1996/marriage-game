@@ -12,7 +12,7 @@ extract(loadGameRoom());
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestione Partita - Marriage Game</title>
-    <link rel="stylesheet" href="../assets/css/main.css?v=2">
+    <link rel="stylesheet" href="../assets/css/main.css?v=17">
 </head>
 <body>
     <div class="container">
@@ -47,7 +47,7 @@ extract(loadGameRoom());
                     <p><strong>🎮 Stanza Attiva</strong></p>
 
                     <!-- QR Code Tabs -->
-                    <div style="margin-top: 20px;">
+                    <div class="mt-20">
                         <div class="tab-container">
                             <button class="tab-button active" data-tab="player-qr">
                                 👤 Giocatore
@@ -58,17 +58,17 @@ extract(loadGameRoom());
                         </div>
 
                         <!-- Player QR Tab -->
-                        <div id="player-qr" class="tab-content active" style="text-align: center; padding: 20px;">
+                        <div id="player-qr" class="tab-content active qr-tab-content">
                             <p>Codice: <strong><span id="room-code-player">------</span></strong></p>
-                            <div id="qr-code-container-player" style="display: inline-block; border: 2px solid #007bff; padding: 10px; border-radius: 4px;"></div>
-                            <p style="margin-top: 10px; font-size: 0.9em;">Inquadra o usa il codice</p>
+                            <div id="qr-code-container-player" class="qr-code-box"></div>
+                            <p class="qr-hint">Inquadra o usa il codice</p>
                         </div>
 
                         <!-- Judge QR Tab -->
-                        <div id="judge-qr" class="tab-content" style="text-align: center; padding: 20px; display: none;">
+                        <div id="judge-qr" class="tab-content qr-tab-content" style="display: none;">
                             <p>Codice: <strong><span id="room-code-judge">------</span></strong></p>
-                            <div id="qr-code-container-judge" style="display: inline-block; border: 2px solid #28a745; padding: 10px; border-radius: 4px;"></div>
-                            <p style="margin-top: 10px; font-size: 0.9em;">Inquadra o usa il codice</p>
+                            <div id="qr-code-container-judge" class="qr-code-box judge"></div>
+                            <p class="qr-hint">Inquadra o usa il codice</p>
                         </div>
                     </div>
 
@@ -168,7 +168,7 @@ extract(loadGameRoom());
             }
 
             // Se non c'è dataUri, non fare nulla (il QR verrà generato on-demand dal server quando serve)
-            container.innerHTML = '<p style="color: #999; text-align: center;">QR code generato al momento...</p>';
+            container.innerHTML = '<p class="text-muted-center">QR code generato al momento...</p>';
         }
 
         // Generate PDF with QR code and room code

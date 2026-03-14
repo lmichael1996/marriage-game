@@ -921,7 +921,7 @@ function loadSetQuestions(setId) {
                 const filteredQuestions = data.questions.filter(q => !questionsToRemove.includes(q.id));
 
                 if (filteredQuestions.length === 0) {
-                    containerAssociated.innerHTML = '<p style="text-align: center; color: #999;">Nessuna domanda associata</p>';
+                    containerAssociated.innerHTML = '<p class="text-muted-center">Nessuna domanda associata</p>';
                     return;
                 }
 
@@ -961,12 +961,12 @@ function loadSetQuestions(setId) {
                 // Setup drag and drop per riordinamento
                 setupDragAndDrop(setId);
             } else {
-                containerAssociated.innerHTML = '<p style="text-align: center; color: #999;">Nessuna domanda associata</p>';
+                containerAssociated.innerHTML = '<p class="text-muted-center">Nessuna domanda associata</p>';
             }
         })
         .catch(error => {
             console.error('Errore nel caricamento domande:', error);
-            containerAssociated.innerHTML = '<p style="text-align: center; color: #d9534f;">Errore nel caricamento</p>';
+            containerAssociated.innerHTML = '<p class="text-error-center">Errore nel caricamento</p>';
         });
 }
 
@@ -976,7 +976,7 @@ function loadGameQuestions() {
     const addedQuestionIds = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
 
     if (addedQuestionIds.length === 0) {
-        containerAssociated.innerHTML = '<p style="text-align: center; color: #999;">Nessuna domanda associata</p>';
+        containerAssociated.innerHTML = '<p class="text-muted-center">Nessuna domanda associata</p>';
         return;
     }
 
@@ -1031,12 +1031,12 @@ function loadGameQuestions() {
                 // Setup drag and drop per riordinamento
                 setupDragAndDropForGameQuestions();
             } else {
-                containerAssociated.innerHTML = '<p style="text-align: center; color: #999;">Nessuna domanda associata</p>';
+                containerAssociated.innerHTML = '<p class="text-muted-center">Nessuna domanda associata</p>';
             }
         })
         .catch(error => {
             console.error('Errore nel caricamento domande:', error);
-            containerAssociated.innerHTML = '<p style="text-align: center; color: #d9534f;">Errore nel caricamento</p>';
+            containerAssociated.innerHTML = '<p class="text-error-center">Errore nel caricamento</p>';
         });
 }
 
@@ -1591,7 +1591,7 @@ function searchAvailableQuestions() {
     const container = document.getElementById('edit-available-questions');
     const setId = document.getElementById('edit-set-id').value;
 
-    container.innerHTML = '<p style="text-align: center; color: #999;">Ricerca in corso...</p>';
+    container.innerHTML = '<p class="text-muted-center">Ricerca in corso...</p>';
 
     // Fetch tutte le domande
     fetch(`/src/api/api.php?endpoint=get_questions`)
@@ -1624,7 +1624,7 @@ function searchAvailableQuestions() {
                 });
 
                 if (filtered.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #999;">Nessuna domanda trovata</p>';
+                    container.innerHTML = '<p class="text-muted-center">Nessuna domanda trovata</p>';
                     return;
                 }
 
@@ -1681,7 +1681,7 @@ function searchAvailableQuestions() {
                         const availableQuestions = filtered.filter(q => !allExcludedIds.includes(q.id));
 
                         if (availableQuestions.length === 0) {
-                            container.innerHTML = '<p style="text-align: center; color: #999;">Tutte le domande trovate sono già associate</p>';
+                            container.innerHTML = '<p class="text-muted-center">Tutte le domande trovate sono già associate</p>';
                             return;
                         }
 
@@ -1710,12 +1710,12 @@ function searchAvailableQuestions() {
                         container.innerHTML = html;
                     });
             } else {
-                container.innerHTML = '<p style="text-align: center; color: #d9534f;">Errore nel caricamento domande</p>';
+                container.innerHTML = '<p class="text-error-center">Errore nel caricamento domande</p>';
             }
         })
         .catch(error => {
             console.error('Errore:', error);
-            container.innerHTML = '<p style="text-align: center; color: #d9534f;">Errore durante la ricerca</p>';
+            container.innerHTML = '<p class="text-error-center">Errore durante la ricerca</p>';
         });
 }
 
@@ -1758,7 +1758,7 @@ function searchAvailableQuestionsForNewSet() {
                 });
 
                 if (filtered.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #999;">Nessuna domanda trovata</p>';
+                    container.innerHTML = '<p class="text-muted-center">Nessuna domanda trovata</p>';
                     return;
                 }
 
@@ -1769,7 +1769,7 @@ function searchAvailableQuestionsForNewSet() {
                 const availableQuestions = filtered.filter(q => !addedQuestionIds.includes(parseInt(q.id)));
 
                 if (availableQuestions.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #999;">Tutte le domande trovate sono già associate</p>';
+                    container.innerHTML = '<p class="text-muted-center">Tutte le domande trovate sono già associate</p>';
                     return;
                 }
 
@@ -1797,12 +1797,12 @@ function searchAvailableQuestionsForNewSet() {
                 });
                 container.innerHTML = html;
             } else {
-                container.innerHTML = '<p style="text-align: center; color: #d9534f;">Errore nel caricamento domande</p>';
+                container.innerHTML = '<p class="text-error-center">Errore nel caricamento domande</p>';
             }
         })
         .catch(error => {
             console.error('Errore:', error);
-            container.innerHTML = '<p style="text-align: center; color: #d9534f;">Errore durante la ricerca</p>';
+            container.innerHTML = '<p class="text-error-center">Errore durante la ricerca</p>';
         });
 }
 
@@ -1880,7 +1880,7 @@ function showAlreadyPresentError(questionId) {
     const messageDiv = document.getElementById('edit-set-message');
     if (!messageDiv) return;
 
-    messageDiv.innerHTML = '<div style="background-color: #f8d7da; border-left: 4px solid #dc3545; color: #721c24; padding: 10px; border-radius: 4px; font-weight: 500;">⚠ Questa domanda è già presente nel set!</div>';
+    messageDiv.innerHTML = '<div class="duplicate-warning">⚠ Questa domanda è già presente nel set!</div>';
 
     // Rimuovi il messaggio dopo 3 secondi
     setTimeout(() => {
@@ -1893,7 +1893,7 @@ function showAlreadyPresentErrorForNewSet(questionId) {
     const messageDiv = document.getElementById('add-set-message');
     if (!messageDiv) return;
 
-    messageDiv.innerHTML = '<div style="background-color: #f8d7da; border-left: 4px solid #dc3545; color: #721c24; padding: 10px; border-radius: 4px; font-weight: 500;">⚠ Questa domanda è già presente nel set!</div>';
+    messageDiv.innerHTML = '<div class="duplicate-warning">⚠ Questa domanda è già presente nel set!</div>';
 
     // Rimuovi il messaggio dopo 3 secondi
     setTimeout(() => {
@@ -1930,7 +1930,7 @@ function loadNewSetQuestions(highlightId = null) {
     const addedQuestionIds = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
 
     if (addedQuestionIds.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #999;">Nessuna domanda associata</p>';
+        container.innerHTML = '<p class="text-muted-center">Nessuna domanda associata</p>';
         return;
     }
 
@@ -1981,7 +1981,7 @@ function loadNewSetQuestions(highlightId = null) {
         })
         .catch(error => {
             console.error('Errore nel caricamento domande:', error);
-            container.innerHTML = '<p style="text-align: center; color: #d9534f;">Errore nel caricamento</p>';
+            container.innerHTML = '<p class="text-error-center">Errore nel caricamento</p>';
         });
 }
 
@@ -2232,13 +2232,13 @@ function createNewGame() {
     localStorage.removeItem('addSetQuestions');
 
     // Pulisci le domande associate
-    document.getElementById('edit-set-questions').innerHTML = '<p style="text-align: center; color: #999;">Nessuna domanda associata</p>';
+    document.getElementById('edit-set-questions').innerHTML = '<p class="text-muted-center">Nessuna domanda associata</p>';
 
     // Resetta campi di ricerca
     document.getElementById('edit-search-questions').value = '';
     document.getElementById('edit-category-filter').value = '';
     // Mostra il messaggio iniziale come "Aggiungi Set"
-    document.getElementById('edit-available-questions').innerHTML = '<p style="text-align: center; color: #999;">Ricerca domande...</p>';
+    document.getElementById('edit-available-questions').innerHTML = '<p class="text-muted-center">Ricerca domande...</p>';
 
     document.getElementById('modal-edit-set').style.display = 'flex';
 

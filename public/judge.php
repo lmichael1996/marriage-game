@@ -10,7 +10,7 @@ $judge = authJudge();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giudice - Marriage Game</title>
-    <link rel="stylesheet" href="../assets/css/main.css?v=2">
+    <link rel="stylesheet" href="../assets/css/main.css?v=17">
 </head>
 <body>
     <div class="container">
@@ -381,7 +381,7 @@ $judge = authJudge();
                                 <div class="medal">${p.medal}</div>
                                 <div class="leaderboard-info">
                                     <div class="leaderboard-name">${p.username}</div>
-                                    <div class="leaderboard-time" style="color: #2d3436; font-weight: 700;">${p.score} punti</div>
+                                    <div class="leaderboard-time score-text">${p.score} punti</div>
                                 </div>
                             </div>`;
                         });

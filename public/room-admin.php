@@ -30,7 +30,7 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestione Partita - Marriage Game</title>
-    <link rel="stylesheet" href="../assets/css/main.css?v=2">
+    <link rel="stylesheet" href="../assets/css/main.css?v=17">
 </head>
 <body>
     <div class="container">
@@ -209,7 +209,7 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
                             <div class="medal">${p.medal}</div>
                             <div class="leaderboard-info">
                                 <div class="leaderboard-name">${p.username}</div>
-                                <div class="leaderboard-time" style="color:#2d3436;font-weight:700">${p.score} punti</div>
+                                <div class="leaderboard-time score-text">${p.score} punti</div>
                             </div>
                         </div>`).join('');
                 });
@@ -286,20 +286,28 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
         }
     </script>
 
-    <div id="toast-container" style="position:fixed;top:20px;right:20px;z-index:10000;display:flex;flex-direction:column;gap:10px;"></div>
+    <div id="toast-container" class="toast-container"></div>
     <script>
         function showToast(message, type = 'info', duration = 3000) {
             const container = document.getElementById('toast-container');
+            const icons = { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' };
+
             const toast = document.createElement('div');
-            const colors = { success: '#00b894', error: '#d63031', warning: '#fdcb6e', info: '#0984e3' };
-            const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
-            toast.style.cssText = `background:${colors[type]||colors.info};color:#fff;padding:14px 22px;border-radius:10px;font-size:15px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.15);display:flex;align-items:center;gap:10px;opacity:0;transform:translateX(40px);transition:all .4s ease;min-width:260px;max-width:420px;`;
-            toast.innerHTML = `<span style="font-size:20px">${icons[type]||icons.info}</span><span>${message}</span>`;
+            toast.className = `toast toast-${type}`;
+            toast.style.setProperty('--toast-duration', duration + 'ms');
+            toast.innerHTML = `
+                <span class="toast-icon">${icons[type] || icons.info}</span>
+                <span class="toast-message">${message}</span>
+                <button class="toast-close" onclick="this.parentElement.classList.add('toast-hiding'); setTimeout(() => this.parentElement.remove(), 300)">×</button>
+                <div class="toast-progress"></div>
+            `;
+
             container.appendChild(toast);
-            requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; });
             setTimeout(() => {
-                toast.style.opacity = '0'; toast.style.transform = 'translateX(40px)';
-                setTimeout(() => toast.remove(), 400);
+                if (toast.parentElement) {
+                    toast.classList.add('toast-hiding');
+                    setTimeout(() => toast.remove(), 300);
+                }
             }, duration);
         }
     </script>

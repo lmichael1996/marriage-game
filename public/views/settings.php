@@ -36,7 +36,7 @@
         </form>
     </div>
 
-    <hr class="settings-divider" style="margin-top: 2rem;">
+    <hr class="settings-divider">
 
     <div class="settings-group">
         <h3>🎮 Impostazioni Punteggi</h3>

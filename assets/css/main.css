@@ -4621,3 +4621,72 @@ mark {
   background: #f8f9fa;
   border-color: #e9ecef;
 }
+
+/* ========================================
+   Utility Classes (inline style replacement)
+   ======================================== */
+
+/* Text states for dynamic JS content */
+.text-muted-center {
+  text-align: center;
+  color: #999;
+}
+
+.text-error-center {
+  text-align: center;
+  color: #d9534f;
+}
+
+/* Score text in leaderboard (bold variant) */
+.leaderboard-time.score-text {
+  color: #2d3436;
+  font-weight: 700;
+}
+
+/* Duplicate question warning */
+.duplicate-warning {
+  background-color: #f8d7da;
+  border-left: 4px solid #dc3545;
+  color: #721c24;
+  padding: 10px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* Modal subtitle / secondary text */
+.modal-subtitle {
+  color: #666;
+  font-size: 0.9em;
+}
+
+/* QR code sections */
+.qr-tab-content {
+  text-align: center;
+  padding: 20px;
+}
+
+.qr-code-box {
+  display: inline-block;
+  padding: 10px;
+  border-radius: 4px;
+  border: 2px solid #007bff;
+}
+
+.qr-code-box.judge {
+  border-color: #28a745;
+}
+
+.qr-hint {
+  margin-top: 10px;
+  font-size: 0.9em;
+}
+
+/* Settings divider spacing */
+.settings-divider {
+  margin-top: 2rem;
+}
+
+/* Margin-top utility */
+.mt-20 {
+  margin-top: 20px;
+}

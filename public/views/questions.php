@@ -998,7 +998,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         <div class="modal-body">
             <p>Sei sicuro di voler eliminare questa domanda?</p>
-            <p style="color: #666; font-size: 0.9em;">Questa azione non può essere annullata.</p>
+            <p class="modal-subtitle">Questa azione non può essere annullata.</p>
         </div>
         <div class="modal-actions">
             <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-delete-question').style.display='none';">Annulla</button>
@@ -1008,9 +1008,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <!-- MODALE GESTISCI CATEGORIE -->
-<style>
-
-</style>
 
 <div id="modal-categories" class="modal-overlay" style="display: none;">
     <div class="modal-content modal-content-large">
