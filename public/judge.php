@@ -370,6 +370,7 @@ $judge = authJudge();
             document.querySelector('.game-sidebar').style.display = 'none';
             document.querySelector('.game-grid').style.gridTemplateColumns = '1fr';
             document.querySelector('.game-grid').style.maxWidth = '800px';
+            document.querySelector('.game-card').style.border = '0';
 
             fetch('../src/api/api.php?endpoint=final_leaderboard&room_id=<?php echo $judge['room_id'] ?? 0; ?>')
                 .then(r => r.json())
