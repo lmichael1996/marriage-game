@@ -953,7 +953,7 @@ function loadSetQuestions(setId) {
                 }
 
                 filteredQuestions.forEach((q, index) => {
-                    const categoryBadge = q.category_name ? `<span class="badge-category" style="background-color: ${q.color || '#6c757d'}; border-color: ${q.color || '#6c757d'};">${q.category_name}</span>` : '';
+                    const categoryBadge = q.category_name ? `<span class="badge-category"><span class="color-dot" style="background: ${q.color || '#6c757d'};"></span>${q.category_name}</span>` : '';
 
                     const typeMap = {
                         'multiple': '📋 Scelta multipla',
@@ -1023,7 +1023,7 @@ function loadGameQuestions() {
                 let html = '<div class="questions-associated" id="game-questions-list">';
 
                 associatedQuestions.forEach((q, index) => {
-                    const categoryBadge = q.category_name ? `<span class="badge-category" style="background-color: ${q.color || '#6c757d'}; border-color: ${q.color || '#6c757d'};">${q.category_name}</span>` : '';
+                    const categoryBadge = q.category_name ? `<span class="badge-category"><span class="color-dot" style="background: ${q.color || '#6c757d'};"></span>${q.category_name}</span>` : '';
 
                     const typeMap = {
                         'multiple': '📋 Scelta multipla',

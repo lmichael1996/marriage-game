@@ -10,9 +10,7 @@ $judge = authJudge();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giudice - Marriage Game</title>
-    <link rel="stylesheet" href="../assets/css/base.css">
-    <link rel="stylesheet" href="../assets/css/admin.css">
-    <link rel="stylesheet" href="../assets/css/game.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
 </head>
 <body>
     <div class="container">
@@ -32,7 +30,7 @@ $judge = authJudge();
 
                 <!-- Round in corso -->
                 <div id="game-screen" style="display: none;">
-                    <div class="category-header" id="category-header-bar" style="background: #f0f2f5;">
+                    <div class="category-header" id="category-header-bar">
                         <span class="round-label">Domanda <span id="round-number">-</span> — <span id="category-name"></span></span>
                         <span class="timer-label">⏱️ <span id="timer-value">-</span></span>
                     </div>
@@ -95,6 +93,8 @@ $judge = authJudge();
             fetch('../src/api/api.php?endpoint=check_room_status')
                 .then(r => r.json())
                 .then(data => {
+                    if (gameEnded) return;
+
                     if (data.status === 'closed') {
                         gameEnded = true;
                         clearAllIntervals();
@@ -104,7 +104,8 @@ $judge = authJudge();
                         clearAllIntervals();
                         showGameCancelled();
                     }
-                });
+                })
+                .catch(() => {});
         }
 
         function checkGameState() {
@@ -113,6 +114,8 @@ $judge = authJudge();
             fetch('../src/api/api.php?endpoint=game&action=get_game_state&counter=' + currentRoundCounter)
                 .then(r => r.json())
                 .then(data => {
+                    if (gameEnded) return;
+
                     if (data.game_finished || data.status_room === 'closed') {
                         gameEnded = true;
                         clearAllIntervals();
@@ -146,11 +149,13 @@ $judge = authJudge();
             currentCorrectAnswer = round.correct_answer || null;
             currentRoundType = round.question_type || 'multiple';
 
-            // Colora la category-header bar
-            const catColor = round.category_color || '#f0f2f5';
+            // Colora bordo card + header
+            const catColor = round.category_color || 'transparent';
             const catName = round.category_name || '';
+            const gameCard = document.querySelector('.game-card');
+            if (gameCard) gameCard.style.border = `3px solid ${catColor}`;
             const headerBar = document.getElementById('category-header-bar');
-            if (headerBar) headerBar.style.backgroundColor = catColor;
+            if (headerBar) headerBar.style.background = catColor;
 
             document.getElementById('round-number').textContent = round.round_number;
             const isClickFirst = currentRoundType === 'clickfirst';

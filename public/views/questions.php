@@ -78,7 +78,8 @@
                         }
                     ?></strong></td>
                     <td>
-                        <span class="badge-category" style="background: <?php echo htmlspecialchars($q['color'] ?? '#ecf0f1'); ?>; color: #333;">
+                        <span class="badge-category">
+                            <span class="color-dot" style="background: <?php echo htmlspecialchars($q['color'] ?? '#6c757d'); ?>;"></span>
                             <?php echo htmlspecialchars($q['category_name'] ?? 'Generale'); ?>
                         </span>
                     </td>

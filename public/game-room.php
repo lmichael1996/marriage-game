@@ -12,13 +12,7 @@ extract(loadGameRoom());
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestione Partita - Marriage Game</title>
-    <link rel="stylesheet" href="../assets/css/base.css">
-    <link rel="stylesheet" href="../assets/css/admin.css">
-    <link rel="stylesheet" href="../assets/css/tab.css">
-    <link rel="stylesheet" href="../assets/css/views.css">
-    <link rel="stylesheet" href="../assets/css/settings-group.css">
-    <link rel="stylesheet" href="../assets/css/popup.css">
-    <link rel="stylesheet" href="../assets/css/game-room.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
 </head>
 <body>
     <div class="container">

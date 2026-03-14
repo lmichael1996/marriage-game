@@ -10,10 +10,7 @@ requirePlayer();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Player - Marriage Game</title>
-    <link rel="stylesheet" href="../assets/css/base.css">
-    <link rel="stylesheet" href="../assets/css/admin.css">
-    <link rel="stylesheet" href="../assets/css/logo.css">
-    <link rel="stylesheet" href="../assets/css/game.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
     <style>
         body {
             background: #f0f2f5;
@@ -76,13 +73,6 @@ requirePlayer();
                              onmousedown="this.classList.add('pressed')"
                              onmouseup="this.classList.remove('pressed')"
                              style="cursor: pointer; max-width: 80%; height: auto;" alt="Clicca!">
-                    </div>
-                </div>
-
-                <div id="result-screen" class="result-screen" style="display: none;">
-                    <div id="result-content">
-                        <h2>Risposta registrata!</h2>
-                        <p style="margin-top: 15px;">In attesa del prossimo round...</p>
                     </div>
                 </div>
 
@@ -206,6 +196,8 @@ requirePlayer();
             fetch('../src/api/api.php?endpoint=check_room_status')
                 .then(response => response.json())
                 .then(data => {
+                    if (gameEnded) return;  // another callback may have ended the game
+
                     // Se la room è chiusa (partita finita), chiedi placement via get_game_state
                     if (data.status === 'closed') {
                         gameEnded = true;
@@ -231,7 +223,8 @@ requirePlayer();
                         showGameCancelled();
                         return;
                     }
-                });
+                })
+                .catch(() => {});
         }
 
         function checkGameState() {
@@ -240,6 +233,8 @@ requirePlayer();
             fetch('../src/api/api.php?endpoint=game&action=get_game_state&counter=' + currentRoundCounter)
                 .then(response => response.json())
                 .then(data => {
+                    if (gameEnded) return;  // another callback may have ended the game
+
                     // Partita terminata
                     if (data.game_finished || data.status_room === 'closed') {
                         gameEnded = true;
@@ -286,13 +281,15 @@ requirePlayer();
             startTime = Date.now();
             currentRoundId = round.id;
 
-            // Category colored header bar
+            // Category colored border + header
             const catColor = round.category_color || '#74b9ff';
             const catName = round.category_name || '';
+            const playerMain = document.querySelector('.player-main');
+            if (playerMain) playerMain.style.borderColor = catColor;
             const catHeader = document.getElementById('category-header');
             if (catHeader) {
                 catHeader.style.display = 'flex';
-                catHeader.style.background = `linear-gradient(135deg, ${catColor} 0%, ${catColor}dd 100%)`;
+                catHeader.style.background = catColor;
                 document.getElementById('header-round').textContent = round.round_number;
                 document.getElementById('header-category').textContent = catName;
             }
@@ -300,7 +297,6 @@ requirePlayer();
             document.getElementById('question-text').textContent = round.question || '';
 
             document.getElementById('waiting-screen').style.display = 'none';
-            document.getElementById('result-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'block';
 
             const answerGrid = document.getElementById('answer-grid');
@@ -380,15 +376,7 @@ requirePlayer();
             .then(response => response.json())
             .then(() => {
                 currentRoundCounter++;
-
-                document.getElementById('result-content').innerHTML = '<h2>✅ Risposta registrata!</h2><p style="margin-top: 15px;">In attesa del prossimo round...</p>';
-                document.getElementById('game-screen').style.display = 'none';
-                document.getElementById('result-screen').style.display = 'block';
-
-                setTimeout(() => {
-                    document.getElementById('result-screen').style.display = 'none';
-                    showWaitingScreen();
-                }, 2000);
+                showWaitingScreen();
             });
         }
 
@@ -423,15 +411,7 @@ requirePlayer();
 
             hasAnswered = true;
             currentRoundCounter++;
-
-            document.getElementById('game-screen').style.display = 'none';
-            document.getElementById('result-screen').style.display = 'block';
-            document.getElementById('result-content').innerHTML = '<h2>⏱ Tempo scaduto!</h2><p>Non hai risposto in tempo</p>';
-
-            setTimeout(() => {
-                document.getElementById('result-screen').style.display = 'none';
-                showWaitingScreen();
-            }, 2000);
+            showWaitingScreen();
         }
 
         function showWaitingScreen() {
@@ -444,7 +424,6 @@ requirePlayer();
 
             document.getElementById('waiting-screen').style.display = 'block';
             document.getElementById('game-screen').style.display = 'none';
-            document.getElementById('result-screen').style.display = 'none';
             document.getElementById('final-result-screen').style.display = 'none';
             document.getElementById('game-cancelled-screen').style.display = 'none';
 
@@ -487,10 +466,8 @@ requirePlayer();
         }
 
         function showFinalResult(placement) {
-            // Hide all other screens
             document.getElementById('waiting-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'none';
-            document.getElementById('result-screen').style.display = 'none';
             document.getElementById('final-result-screen').style.display = 'block';
             document.getElementById('game-cancelled-screen').style.display = 'none';
 
@@ -526,10 +503,8 @@ requirePlayer();
         }
 
         function showGameCancelled() {
-            // Hide all other screens
             document.getElementById('waiting-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'none';
-            document.getElementById('result-screen').style.display = 'none';
             document.getElementById('final-result-screen').style.display = 'none';
             document.getElementById('game-cancelled-screen').style.display = 'block';
 

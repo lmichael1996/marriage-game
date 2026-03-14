@@ -5,8 +5,9 @@ class PDFGenerator {
     private TCPDF $pdf;
     private string $url;
 
-    private const LOGO_PATH = __DIR__ . '/../../assets/image/logo.jpeg';
-    private const FONT = 'dejavusans';
+    private const LOGO_PATH  = __DIR__ . '/../../assets/image/logo.jpeg';
+    private const IMAGE_DIR  = __DIR__ . '/../../assets/image';
+    private const FONT       = 'dejavusans';
 
     public function __construct(string $url) {
         $this->url = $url;
@@ -46,7 +47,7 @@ class PDFGenerator {
         $this->pdf->Cell(0, 8, 'Inquadra il QR code per connetterti:', 0, 1, 'C');
         $this->pdf->Ln(5);
 
-        $tempFile = sys_get_temp_dir() . '/qr_' . uniqid() . '.svg';
+        $tempFile = self::IMAGE_DIR . '/qr_' . uniqid() . '.svg';
         file_put_contents($tempFile, $svgMarkup);
         $qrSize = 70;
         $xPosition = ($this->pdf->GetPageWidth() - $qrSize) / 2;

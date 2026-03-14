@@ -48,12 +48,7 @@ extract($tabData);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - MVquiz</title>
-    <link rel="stylesheet" href="../assets/css/base.css">
-    <link rel="stylesheet" href="../assets/css/admin.css">
-    <link rel="stylesheet" href="../assets/css/tab.css">
-    <link rel="stylesheet" href="../assets/css/views.css">
-    <link rel="stylesheet" href="../assets/css/settings-group.css">
-    <link rel="stylesheet" href="../assets/css/popup.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
 </head>
 <body>
     <div class="container">

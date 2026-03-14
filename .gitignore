@@ -14,6 +14,9 @@ Thumbs.db
 *.swp
 *~
 
+# QR temp SVGs written by PDFGenerator
+assets/image/qr_*.svg
+
 # Composer
 vendor/
 composer.lock
