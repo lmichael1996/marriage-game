@@ -280,9 +280,27 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
             .then(r => r.json())
             .then(data => {
                 if (data.success) window.location.href = 'admin.php';
-                else alert('Errore: ' + (data.error || data.message));
+                else showToast('Errore: ' + (data.error || data.message), 'error');
             })
-            .catch(() => alert('Errore nella chiusura della stanza'));
+            .catch(() => showToast('Errore nella chiusura della stanza', 'error'));
+        }
+    </script>
+
+    <div id="toast-container" style="position:fixed;top:20px;right:20px;z-index:10000;display:flex;flex-direction:column;gap:10px;"></div>
+    <script>
+        function showToast(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = { success: '#00b894', error: '#d63031', warning: '#fdcb6e', info: '#0984e3' };
+            const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+            toast.style.cssText = `background:${colors[type]||colors.info};color:#fff;padding:14px 22px;border-radius:10px;font-size:15px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.15);display:flex;align-items:center;gap:10px;opacity:0;transform:translateX(40px);transition:all .4s ease;min-width:260px;max-width:420px;`;
+            toast.innerHTML = `<span style="font-size:20px">${icons[type]||icons.info}</span><span>${message}</span>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; });
+            setTimeout(() => {
+                toast.style.opacity = '0'; toast.style.transform = 'translateX(40px)';
+                setTimeout(() => toast.remove(), 400);
+            }, duration);
         }
     </script>
 </body>
