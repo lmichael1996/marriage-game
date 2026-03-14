@@ -158,9 +158,18 @@ requirePlayer();
         function onPageLeave() {
             if (roundInProgress && !violated) {
                 violated = true;
-                endGame();
+                roundInProgress = false;
+                hasAnswered = true;
+                stopTimer();
+                stopWatchdog();
                 document.querySelector('.player-container').style.display = 'none';
                 showScreen('violation');
+
+                setTimeout(() => {
+                    document.querySelector('.player-container').style.display = '';
+                    violated = false;
+                    showScreen('waiting');
+                }, 3000);
             }
         }
 
