@@ -363,6 +363,7 @@ requirePlayer();
 
         function showFinalResult(placement) {
             showScreen('result');
+            document.querySelector('.player-main').style.borderColor = 'transparent';
 
             const finalScreen = screens.result;
             const results = {
