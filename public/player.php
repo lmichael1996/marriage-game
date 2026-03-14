@@ -125,7 +125,7 @@ requirePlayer();
         function showScreen(name) {
             Object.entries(screens).forEach(([k, el]) => el.style.display = k === name ? 'block' : 'none');
             catHeader.style.display = 'none';
-            if (name !== 'game') document.querySelector('.player-main').style.borderColor = 'transparent';
+            if (name !== 'game') document.querySelector('.player-main').style.border = '0';
         }
 
         /** Mark game as ended and stop all polling */
@@ -250,7 +250,7 @@ requirePlayer();
 
             // Category header
             const color = round.category_color || '#74b9ff';
-            document.querySelector('.player-main').style.borderColor = color;
+            document.querySelector('.player-main').style.border = '5px solid ' + color;
             catHeader.style.background = color;
             document.getElementById('header-round').textContent = round.round_number;
             document.getElementById('header-category').textContent = round.category_name || '';
