@@ -125,6 +125,7 @@ requirePlayer();
         function showScreen(name) {
             Object.entries(screens).forEach(([k, el]) => el.style.display = k === name ? 'block' : 'none');
             catHeader.style.display = 'none';
+            if (name !== 'game') document.querySelector('.player-main').style.borderColor = 'transparent';
         }
 
         /** Mark game as ended and stop all polling */
@@ -363,7 +364,6 @@ requirePlayer();
 
         function showFinalResult(placement) {
             showScreen('result');
-            document.querySelector('.player-main').style.borderColor = 'transparent';
 
             const finalScreen = screens.result;
             const results = {
