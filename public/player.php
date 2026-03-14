@@ -10,7 +10,7 @@ requirePlayer();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Player - Marriage Game</title>
-    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/main.css?v=2">
     <style>
         body {
             background: #f0f2f5;

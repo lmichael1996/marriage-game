@@ -150,6 +150,16 @@ class RoomService {
     }
 
     /**
+     * Count the total number of rounds played in a room.
+     *
+     * @param int $roomId  Room ID
+     * @return int         Number of rounds
+     */
+    public function getRoundCount(int $roomId): int {
+        return $this->roundRepo->countRounds($roomId);
+    }
+
+    /**
      * Get a round by its position (round_number) within a room.
      *
      * @param int $roomId    Room ID

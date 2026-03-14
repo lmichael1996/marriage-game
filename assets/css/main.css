@@ -4478,3 +4478,15 @@ mark {
     padding: 2px 6px !important;
   }
 }
+
+/* Room-admin: options are read-only */
+.game-card .option-btn {
+  cursor: default;
+  user-select: none;
+  pointer-events: none;
+  transition: none;
+}
+.game-card .option-btn:hover {
+  background: #f8f9fa;
+  border-color: #e9ecef;
+}

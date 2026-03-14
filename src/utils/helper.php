@@ -263,38 +263,27 @@ function loadRoomAdmin(): array {
     $_SESSION['room_id'] = $roomId;
     $_SESSION['active_room_code'] = $room['code_player'];
 
-    // Counter: increments every time the admin clicks "Next Question"
-    $counterKey = 'round_counter_' . $roomId;
-    $counter    = $_SESSION[$counterKey] ?? 1;
-
-    // Current question and active round
+    $roundCount  = Container::room()->getRoundCount($roomId);
+    $activeRound = Container::room()->getActiveRound($roomId);
+    $counter     = $activeRound ? $roundCount : $roundCount + 1;
     $question    = Container::set()->getQuestionByCounter($room['qset_id'], $counter);
-    $activeRound = null;
-    if ($question) {
-        $round = Container::room()->getActiveRound($room['id']);
-        if ($round && $round['question_id'] == $question['id']) {
-            $activeRound = $round;
-        }
+
+    // Discard activeRound if it doesn't match the current question
+    if ($activeRound && (!$question || $activeRound['question_id'] != $question['id'])) {
+        $activeRound = null;
     }
 
     $gameOver = !$question;
 
-    // If no more questions and the room is still 'running', close it
     if ($gameOver && $room['status_room'] === 'running') {
         Container::room()->finishGame($roomId);
-        // Update local data for consistency
         $room['status_room'] = 'closed';
     }
 
-    // Room info (cached in session)
-    $roomInfoKey = 'room_info_' . $roomId;
-    if (!isset($_SESSION[$roomInfoKey])) {
-        $_SESSION[$roomInfoKey] = [
-            'num_players'     => Container::room()->getPlayerCount($roomId),
-            'total_questions' => Container::set()->getQuestionCountByQset($room['qset_id']),
-        ];
-    }
-    $roomInfo = $_SESSION[$roomInfoKey];
+    $roomInfo = [
+        'num_players'     => Container::room()->getPlayerCount($roomId),
+        'total_questions' => Container::set()->getQuestionCountByQset($room['qset_id']),
+    ];
 
     $judgeConnected = Container::room()->isJudgeConnected($roomId);
 

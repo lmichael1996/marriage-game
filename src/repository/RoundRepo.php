@@ -15,6 +15,21 @@ class RoundRepo {
     }
 
     /**
+     * Count the total number of rounds played in a room.
+     *
+     * @param int $room_id  Room ID
+     * @return int          Number of rounds
+     */
+    public function countRounds(int $room_id): int {
+        $stmt = $this->conn->prepare("SELECT COUNT(*) as total FROM rounds WHERE room_id = ?");
+        $stmt->bind_param("i", $room_id);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        return (int)($result['total'] ?? 0);
+    }
+
+    /**
      * Create a new round for a room.
      *
      * @param int $room_id      Room ID
@@ -96,7 +111,7 @@ class RoundRepo {
             FROM rounds r
             LEFT JOIN questions q ON r.question_id = q.id
             LEFT JOIN question_categories qc ON q.category_id = qc.id
-            WHERE r.room_id = ?
+            WHERE r.room_id = ? AND r.ranking IS NULL
             ORDER BY r.id DESC
             LIMIT 1
         ");
