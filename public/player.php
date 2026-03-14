@@ -79,7 +79,7 @@ requirePlayer();
         </div>
 
         <div id="violation-screen" class="game-cancelled-screen" style="display:none;">
-            <div class="game-cancelled-emoji">👀</div>
+            <div class="game-cancelled-emoji emoji-eyes">👀</div>
             <h1>Ehi, dove vai?!</h1>
             <p>Niente scappatelle durante la partita!</p>
         </div>

@@ -2870,6 +2870,24 @@ mark {
 .game-cancelled-emoji {
   font-size: 4em;
   margin-bottom: 20px;
+  animation: bounce 1s ease-in-out infinite;
+}
+
+.emoji-eyes {
+  animation: lookAround 2s ease-in-out infinite;
+}
+
+@keyframes lookAround {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-12px);
+  }
+  75% {
+    transform: translateX(12px);
+  }
 }
 
 /* ===== 18. PLAYER SPECIFIC (from game.css) ===== */
@@ -2978,7 +2996,7 @@ mark {
 .final-result-emoji {
   font-size: 5em;
   margin-bottom: 20px;
-  animation: bounce 1s infinite;
+  animation: bounce 1s ease-in-out infinite;
 }
 
 @keyframes bounce {
