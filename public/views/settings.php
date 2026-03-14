@@ -149,11 +149,11 @@
                 </div>
             </div>
 
+            <div id="settings-message" class="credentials-message"></div>
+
             <div class="button-container">
                 <button type="submit" class="btn btn-primary">Salva Impostazioni</button>
             </div>
-
-            <div id="settings-message" class="credentials-message"></div>
         </form>
     </div>
 

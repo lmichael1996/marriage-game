@@ -176,7 +176,7 @@ extract(loadGameRoom());
             const codePlayerElem = document.getElementById('room-code-player').textContent;
 
             if (!codePlayerElem || codePlayerElem === '------') {
-                alert('Codice stanza non disponibile.');
+                showToast('Codice stanza non disponibile', 'warning');
                 return;
             }
 
@@ -201,12 +201,12 @@ extract(loadGameRoom());
                     link.click();
                     document.body.removeChild(link);
                 } else {
-                    alert('Errore nella generazione del PDF: ' + (data.error || 'Errore sconosciuto'));
+                    showToast('Errore nella generazione del PDF: ' + (data.error || 'Errore sconosciuto'), 'error');
                 }
             })
             .catch(err => {
                 console.error('Errore nel download del PDF:', err);
-                alert('Errore nella comunicazione con il server');
+                showToast('Errore nella comunicazione con il server', 'error');
             });
         }
 
@@ -241,7 +241,7 @@ extract(loadGameRoom());
 
         function confirmSelection() {
             if (!selectedGameSetId) {
-                alert('Seleziona un set di domande');
+                showToast('Seleziona un set di domande', 'warning');
                 return;
             }
 
@@ -269,7 +269,7 @@ extract(loadGameRoom());
         // Back to admin button
         document.getElementById('btn-back-admin').addEventListener('click', function() {
             if (roomActive) {
-                alert('⚠️ Non è possibile tornare ad admin con partita aperta. Chiudi la stanza prima di tornare.');
+                showToast('Chiudi la stanza prima di tornare ad admin', 'warning');
                 return;
             }
             window.location.href = 'admin.php';
@@ -278,7 +278,7 @@ extract(loadGameRoom());
         // Create room
         document.getElementById('btn-create-room').addEventListener('click', function() {
             if (!selectedGameSetId) {
-                alert('Seleziona un set di domande');
+                showToast('Seleziona un set di domande', 'warning');
                 return;
             }
 
@@ -341,12 +341,12 @@ extract(loadGameRoom());
                     }
                 } else {
                     roomActive = false;
-                    alert('Errore nella creazione della stanza: ' + (data.error || 'Errore sconosciuto'));
+                    showToast('Errore nella creazione della stanza: ' + (data.error || 'Errore sconosciuto'), 'error');
                 }
             })
             .catch(error => {
                 roomActive = false;
-                alert('Errore nella comunicazione con il server: ' + error.message);
+                showToast('Errore nella comunicazione con il server: ' + error.message, 'error');
             });
         });
 
@@ -418,12 +418,12 @@ extract(loadGameRoom());
                         // Reset devices count
                         document.getElementById('connected-count').textContent = '0';
                     } else {
-                        alert('Errore: ' + (data.message || 'impossibile chiudere la stanza'));
+                        showToast('Errore: ' + (data.message || 'impossibile chiudere la stanza'), 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Errore nella chiusura della stanza: ' + error);
+                    showToast('Errore nella chiusura della stanza', 'error');
                 });
             }
         });
@@ -443,14 +443,14 @@ extract(loadGameRoom());
         // Start game
         document.getElementById('btn-start-game').addEventListener('click', function() {
             if (!selectedGameSetId) {
-                alert('Seleziona un set di domande');
+                showToast('Seleziona un set di domande', 'warning');
                 return;
             }
 
             const connectedCount = parseInt(document.getElementById('connected-count').textContent) || 0;
 
             if (connectedCount < minPlayers) {
-                alert(`❌ Numero di giocatori insufficiente!\n\nGiocatori connessi: ${connectedCount}\nMinimo richiesto: ${minPlayers}\n\nAttendi che altri giocatori si connettino.`);
+                showToast(`Giocatori insufficienti: ${connectedCount}/${minPlayers}. Attendi che altri si connettano.`, 'warning', 5000);
                 return;
             }
 
@@ -477,11 +477,11 @@ extract(loadGameRoom());
                             window.location.href = redirectUrl;
                         }, 1000);
                     } else {
-                        alert('Errore nell\'avvio della partita: ' + (data.error || 'Errore sconosciuto'));
+                        showToast('Errore nell\'avvio della partita: ' + (data.error || 'Errore sconosciuto'), 'error');
                     }
                 })
                 .catch(error => {
-                    alert('Errore nella comunicazione con il server');
+                    showToast('Errore nella comunicazione con il server', 'error');
                 });
             }
         });
@@ -597,6 +597,33 @@ extract(loadGameRoom());
                 });
             });
         });
+</script>
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+<script>
+function showToast(message, type = 'info', duration = 3000) {
+    const container = document.getElementById('toast-container');
+    const icons = { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' };
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.style.setProperty('--toast-duration', duration + 'ms');
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || icons.info}</span>
+        <span class="toast-message">${message}</span>
+        <button class="toast-close" onclick="this.parentElement.classList.add('toast-hiding'); setTimeout(() => this.parentElement.remove(), 300)">×</button>
+        <div class="toast-progress"></div>
+    `;
+
+    container.appendChild(toast);
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.classList.add('toast-hiding');
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, duration);
+}
 </script>
 </body>
 </html>

@@ -1590,19 +1590,25 @@ mark {
 }
 
 /* Credentials Message */
-.credentials-message {
-  margin-bottom: 15px;
-  min-height: 40px;
-  display: flex;
-  align-items: center;
+.credentials-message,
+.form-message {
+  margin: 0;
+}
+
+.credentials-message:not(:empty),
+.form-message:not(:empty) {
+  margin: 15px 0;
 }
 
 .alert-success,
 .alert-warning,
 .alert-error {
-  padding: 12px 15px;
-  border-radius: 4px;
-  font-weight: 500;
+  width: 100%;
+  padding: 14px 20px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
   text-align: center;
 }
 
@@ -3688,7 +3694,7 @@ mark {
 
   /* Forms */
   .form-group {
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
   .form-group label {
     font-size: 0.9em;

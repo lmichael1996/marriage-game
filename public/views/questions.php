@@ -118,34 +118,7 @@
     </div>
 </div>
 
-<!-- Toast Container -->
-<div id="toast-container" class="toast-container"></div>
-
 <script>
-// ========== TOAST NOTIFICATION SYSTEM ==========
-function showToast(message, type = 'info', duration = 3000) {
-    const container = document.getElementById('toast-container');
-    const icons = { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' };
-
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.style.setProperty('--toast-duration', duration + 'ms');
-    toast.innerHTML = `
-        <span class="toast-icon">${icons[type] || icons.info}</span>
-        <span class="toast-message">${message}</span>
-        <button class="toast-close" onclick="this.parentElement.classList.add('toast-hiding'); setTimeout(() => this.parentElement.remove(), 300)">×</button>
-        <div class="toast-progress"></div>
-    `;
-
-    container.appendChild(toast);
-    setTimeout(() => {
-        if (toast.parentElement) {
-            toast.classList.add('toast-hiding');
-            setTimeout(() => toast.remove(), 300);
-        }
-    }, duration);
-}
-
 document.addEventListener('DOMContentLoaded', function() {
     // ========== TRACCIAMENTO MODIFICHE CATEGORIE ==========
     let categoryChanges = {
