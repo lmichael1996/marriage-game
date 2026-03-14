@@ -114,6 +114,7 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
         const activeRoundId = <?php echo $activeRound['id'] ?? 'null'; ?>;
         const judgeConnected = <?php echo $judgeConnected ? 'true' : 'false'; ?>;
         const isClickFirst = <?php echo $isClickFirst ? 'true' : 'false'; ?>;
+        const gameOver = <?php echo $gameOver ? 'true' : 'false'; ?>;
         let timerInterval = null;
 
         const API = '../src/api/api.php';
@@ -271,7 +272,7 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
         }
 
         function goBack() {
-            if (!confirm('Termina partita?')) return;
+            if (!gameOver && !confirm('Termina partita?')) return;
             fetch(API + '?endpoint=delete_room', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
