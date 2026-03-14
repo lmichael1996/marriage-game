@@ -3072,6 +3072,7 @@ mark {
   background: #f0f2f5;
   padding: 20px;
   display: block;
+  overscroll-behavior: none;
 }
 
 @media (max-width: 640px) {

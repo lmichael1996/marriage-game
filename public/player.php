@@ -116,6 +116,11 @@ requirePlayer();
         const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
                       || (navigator.maxTouchPoints > 1 && window.innerWidth < 1024);
 
+        // ── Block refresh (F5 / Ctrl+R) ──────────────────────────────
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) e.preventDefault();
+        });
+
         // ── Helpers ────────────────────────────────────────────────────
         function api(qs) {
             return fetch('../src/api/api.php?' + qs).then(r => r.json());
