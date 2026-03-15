@@ -6,6 +6,9 @@
 .DS_Store
 Thumbs.db
 
+# Test pages
+public/test-*.php
+
 # Logs
 *.log
 
