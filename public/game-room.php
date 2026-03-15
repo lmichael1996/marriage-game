@@ -360,8 +360,12 @@ extract(loadGameRoom());
 
         // Close room
         document.getElementById('btn-close-room').addEventListener('click', function() {
-            if (confirm('Vuoi chiudere la stanza? Tutti i giocatori verranno disconnessi.')) {
-                fetch('/src/api/api.php?endpoint=delete_room', {
+            document.getElementById('modal-close-room').style.display = 'flex';
+        });
+
+        function closeRoom() {
+            document.getElementById('modal-close-room').style.display = 'none';
+            fetch('/src/api/api.php?endpoint=delete_room', {
                     method: 'POST'
                 })
                 .then(response => response.json())
@@ -428,8 +432,7 @@ extract(loadGameRoom());
                     console.error('Error:', error);
                     showToast('Errore nella chiusura della stanza', 'error');
                 });
-            }
-        });
+        }
 
         // Update start button
         function updateStartButton() {
@@ -461,8 +464,13 @@ extract(loadGameRoom());
                 ? `Avviare la partita con ${connectedCount} giocatori?`
                 : `Avviare la partita "${selectedGameSetName}" con ${connectedCount} giocatori?`;
 
-            if (confirm(alertQuestion)) {
-                fetch('/src/api/api.php?endpoint=start_room', {
+            document.getElementById('start-game-message').textContent = alertQuestion;
+            document.getElementById('modal-start-game').style.display = 'flex';
+        });
+
+        function startGame() {
+            document.getElementById('modal-start-game').style.display = 'none';
+            fetch('/src/api/api.php?endpoint=start_room', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -486,8 +494,7 @@ extract(loadGameRoom());
                 .catch(error => {
                     showToast('Errore nella comunicazione con il server', 'error');
                 });
-            }
-        });
+        }
 
         // Update connected devices
         function updateConnectedDevices() {
@@ -601,6 +608,41 @@ extract(loadGameRoom());
             });
         });
 </script>
+
+<!-- MODALE CONFERMA CHIUDI STANZA -->
+<div id="modal-close-room" class="modal-overlay" style="display: none;">
+    <div class="modal-content modal-content-medium">
+        <div class="modal-header">
+            <h2>⚠️ Chiudi Stanza</h2>
+            <button type="button" class="modal-close" onclick="document.getElementById('modal-close-room').style.display='none';">✕</button>
+        </div>
+        <div class="modal-body">
+            <p>Vuoi chiudere la stanza?</p>
+            <p class="modal-subtitle">Tutti i giocatori verranno disconnessi.</p>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-close-room').style.display='none';">Annulla</button>
+            <button type="button" class="btn btn-danger" onclick="closeRoom()">✓ Chiudi Stanza</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODALE CONFERMA AVVIO PARTITA -->
+<div id="modal-start-game" class="modal-overlay" style="display: none;">
+    <div class="modal-content modal-content-medium">
+        <div class="modal-header">
+            <h2>🎮 Avvia Partita</h2>
+            <button type="button" class="modal-close" onclick="document.getElementById('modal-start-game').style.display='none';">✕</button>
+        </div>
+        <div class="modal-body">
+            <p id="start-game-message"></p>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-start-game').style.display='none';">Annulla</button>
+            <button type="button" class="btn btn-success" onclick="startGame()">✓ Avvia</button>
+        </div>
+    </div>
+</div>
 
 <!-- Toast Container -->
 <div id="toast-container" class="toast-container"></div>
