@@ -60,13 +60,6 @@ function handleSettings(): void {
     redirect('settings', 'settings_saved');
 }
 
-function handleRound(string $action): void {
-    $method = $action === 'start_round' ? 'startRound' : 'closeRound';
-    $result = Container::game()->$method((int)($_POST['round_id'] ?? 0));
-    $ok     = $result['success'] ?? false;
-    redirect('sets', $ok ? 'round_updated' : null, $ok ? null : ($result['error'] ?? 'Errore operazione round'));
-}
-
 function handleQuestion(bool $isUpdate): void {
     $data = buildQuestionData();
     if (!($data['success'] ?? true)) {

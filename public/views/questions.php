@@ -442,24 +442,22 @@ document.addEventListener('DOMContentLoaded', function() {
         // Elimina categoria (tracciamento locale)
         document.querySelectorAll('.btn-delete-category').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                if (confirm('Sei sicuro di voler eliminare questa categoria?')) {
-                    const categoryCard = btn.closest('.category-card');
-                    const categoryId = parseInt(categoryCard.dataset.categoryId);
-                    const categoryName = categoryCard.querySelector('.category-name').textContent;
+                const categoryCard = btn.closest('.category-card');
+                const categoryId = parseInt(categoryCard.dataset.categoryId);
+                const categoryName = categoryCard.querySelector('.category-name').textContent;
 
-                    // Traccia l'eliminazione
-                    if (categoryId > 0) {
-                        // Categoria esistente: aggiungi a deleted
-                        categoryChanges.deleted.push(categoryId);
-                    } else {
-                        // Categoria nuova non salvata: rimuovi da added
-                        categoryChanges.added = categoryChanges.added.filter(c => c.name !== categoryName);
-                    }
-
-                    // Rimuovi dal DOM
-                    categoryCard.remove();
-                    showToast('Categoria "' + categoryName + '" eliminata. Salva per confermare.', 'info');
+                // Traccia l'eliminazione
+                if (categoryId > 0) {
+                    // Categoria esistente: aggiungi a deleted
+                    categoryChanges.deleted.push(categoryId);
+                } else {
+                    // Categoria nuova non salvata: rimuovi da added
+                    categoryChanges.added = categoryChanges.added.filter(c => c.name !== categoryName);
                 }
+
+                // Rimuovi dal DOM
+                categoryCard.remove();
+                showToast('Categoria "' + categoryName + '" eliminata. Salva per confermare.', 'info');
             });
         });
     }
@@ -869,7 +867,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="form-row">
                 <div class="form-group">
                     <label for="new-timer">Timer (secondi)</label>
-                    <input type="number" id="new-timer" name="timer" required min="5" max="120" step="5" value="30">
+                    <input type="number" id="new-timer" name="timer" required min="5" max="120" step="5" value="10">
                 </div>
             </div>
 
@@ -1150,14 +1148,12 @@ function deleteCategoryUI(btn) {
     const card = btn.closest('.cat-card');
     const id = card.getAttribute('data-id');
 
-    if (confirm('Elimina categoria?')) {
-        if (id && id !== 'temp') {
-            categoryChanges.deleted.push(parseInt(id));
-        } else {
-            categoryChanges.added = categoryChanges.added.filter(c => c.name !== card.querySelector('.cat-display strong').textContent);
-        }
-        card.remove();
+    if (id && id !== 'temp') {
+        categoryChanges.deleted.push(parseInt(id));
+    } else {
+        categoryChanges.added = categoryChanges.added.filter(c => c.name !== card.querySelector('.cat-display strong').textContent);
     }
+    card.remove();
 }
 
 function addCategoryUI() {

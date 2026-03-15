@@ -13,10 +13,9 @@ $currentTab = $_SESSION['admin_tab'] ?? 'sets';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action = $_POST['action'] ?? '')) {
     match ($action) {
-        'change_credentials', 'update_credentials', 'update_admin_credentials' => handleCredentials(),
-        'save_settings', 'update_general_settings' => handleSettings(),
-        'start_round', 'close_round' => handleRound($action),
-        'add_question', 'save_question' => handleQuestion(false),
+        'update_admin_credentials' => handleCredentials(),
+        'save_settings' => handleSettings(),
+        'add_question' => handleQuestion(false),
         'update_question' => handleQuestion(true),
         'delete_question' => handleDeleteQuestion(),
         'add_questionset', 'update_questionset', 'delete_questionset' => handleQuestionSet($action),
@@ -24,15 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action = $_POST['action'] ?? ''))
     };
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'delete_question') {
-    handleDeleteQuestion();
-}
-
 $_SESSION['questions_page'] ??= 1;
 $_SESSION['sets_page'] ??= 1;
-
-$questions = $categories = $questionSets = $gameSettings = [];
-$pagination = ['total' => 0, 'page' => 1, 'perPage' => 10, 'totalPages' => 1];
 
 $tabData = match ($currentTab) {
     'sets'     => loadQuestionsTab(),

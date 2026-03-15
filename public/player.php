@@ -439,8 +439,8 @@ requirePlayer();
             } else {
                 finalScreen.classList.add('loser');
                 document.getElementById('final-emoji').textContent   = placement > 0 ? '🏁' : '😢';
-                document.getElementById('final-title').textContent   = placement > 0
-                    ? `${placement}° Posto — Hai Perso`
+                document.getElementById('final-title').innerHTML   = placement > 0
+                    ? `Hai Perso<br>${placement}° Posto`
                     : 'Partita Terminata';
                 document.getElementById('final-message').textContent = placement > 0
                     ? `Sei arrivato in ${placement}ª posizione. Buona fortuna la prossima volta!`
