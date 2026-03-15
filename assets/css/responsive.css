@@ -480,15 +480,6 @@
     align-self: flex-end;
   }
 
-  .category-view-mode {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .category-actions {
-    align-self: flex-end;
-    margin-top: 10px;
-  }
-
   /* Toast */
   .toast-container {
     top: 10px;

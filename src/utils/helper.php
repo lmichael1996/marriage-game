@@ -98,50 +98,20 @@ function handleDeleteQuestion(): void {
     redirect('sets', $ok ? 'question_deleted' : null, $ok ? null : ($result['error'] ?? null));
 }
 
-function handleQuestionSet(string $action): void {
-    $qs   = Container::set();
-    $id   = (int)($_POST['set_id'] ?? 0);
-    $name = trim($_POST['set_name'] ?? '');
-    $desc = $_POST['set_description'] ?? '';
+function handleQuestionSet(): void {
+    $qs = Container::set();
+    $id = (int)($_POST['set_id'] ?? 0);
 
-    match ($action) {
-        'add_questionset' => (function () use ($qs, $name, $desc) {
-            if (!$name) {
-                jsonResponse(['success' => false, 'error' => 'Nome set obbligatorio'], 400);
-                return;
-            }
-            $result = $qs->addSet($name, $desc);
-            if (is_array($result)) {
-                jsonResponse($result, 400);
-                return;
-            }
-            jsonResponse(['success' => true, 'setId' => $result, 'message' => 'Set creato']);
-        })(),
-        'update_questionset' => (function () use ($qs, $id, $name, $desc) {
-            if (!$id || !$name) {
-                jsonResponse(['success' => false, 'error' => 'ID set e nome obbligatori'], 400);
-                return;
-            }
-            $result = $qs->updateSet($id, $name, $desc);
-            if (!($result['success'] ?? false)) {
-                jsonResponse($result, 400);
-                return;
-            }
-            jsonResponse(['success' => true, 'message' => 'Set aggiornato']);
-        })(),
-        'delete_questionset' => (function () use ($qs, $id) {
-            if (!$id) {
-                redirect('settings', null, 'ID set obbligatorio');
-                return;
-            }
-            $result = $qs->deleteSet($id);
-            if (!($result['success'] ?? false)) {
-                redirect('settings', null, $result['error'] ?? 'Impossibile eliminare il set');
-                return;
-            }
-            redirect('settings', 'set_deleted');
-        })(),
-    };
+    if (!$id) {
+        redirect('settings', null, 'ID set obbligatorio');
+        return;
+    }
+    $result = $qs->deleteSet($id);
+    if (!($result['success'] ?? false)) {
+        redirect('settings', null, $result['error'] ?? 'Impossibile eliminare il set');
+        return;
+    }
+    redirect('settings', 'set_deleted');
 }
 
 // ── Question Data Builder ────────────────────────────────────────────────

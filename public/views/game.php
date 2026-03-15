@@ -1,4 +1,4 @@
-<!-- Tab: Gestione Set Domande -->
+<!-- Tab: Management section -->
 <div class="admin-section">
     <div class="tab-header-with-button">
         <h2>🎮 Gestione Set Domande</h2>
@@ -102,7 +102,7 @@
     </div>
 </div>
 
-<!-- Modal: Modifica Set -->
+<!-- Modal: Edit Set -->
 <div id="modal-edit-set" class="modal-overlay">
     <div class="modal-content modal-content-large">
         <div class="modal-header">
@@ -161,7 +161,7 @@
     </div>
 </div>
 
-<!-- Modal: Aggiungi Set -->
+<!-- Modal: Add Set -->
 <div id="modal-add-set" class="modal-overlay" style="display: none;">
     <div class="modal-content modal-content-large">
         <div class="modal-header">
@@ -218,7 +218,7 @@
     </div>
 </div>
 
-<!-- Modal: Eliminazione Set -->
+<!-- Modal: Delete Set -->
 <div id="modal-delete-set" class="modal-overlay" style="display: none;">
     <div class="modal-content modal-content-medium">
         <div class="modal-header">
@@ -236,7 +236,7 @@
 
 <script>
 // ============================================================================
-// PAGINAZIONE SET
+// PAGINATION SET
 // ============================================================================
 document.addEventListener('DOMContentLoaded', function() {
     const ROWS_PER_PAGE = 10;
@@ -251,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateUI() {
-        // Se non ci sono set, mostra 'Nessun set disponibile' invece di 'Set 0-0 di 0'
+        // If there are no sets, show 'No sets available' instead of 'Set 0-0 of 0'
         if (total === 0) {
             pageInfo.textContent = `Nessun set disponibile`;
         } else {
@@ -310,15 +310,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-
-// Variabili globali per tracciare i valori originali del set in modifica
 let editSetOriginalData = {
     id: null,
     name: null,
     description: null
 };
 
-// Flag per tracciare se stiamo creando un nuovo set (non ancora salvato)
+// Flag to track if we are creating a new set (not yet saved)
 let isNewSet = false;
 
 // Traccia le domande da eliminare dal set (solo al salvataggio finale)

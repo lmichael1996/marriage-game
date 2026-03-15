@@ -466,36 +466,6 @@ mark {
   flex-shrink: 0;
 }
 
-/* Category Card (views) */
-.category-card {
-  background: #f9f9f9;
-  padding: 15px;
-  border-radius: 6px;
-  margin-bottom: 10px;
-  border-left: 5px solid #3498db;
-}
-
-.category-info {
-  font-size: 0.85em;
-  color: #666;
-  margin-top: 5px;
-}
-
-.category-color-preview {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  vertical-align: middle;
-  margin-left: 5px;
-}
-
-.category-actions {
-  display: flex;
-  gap: 5px;
-}
-
 /* Info Boxes */
 .info-box {
   padding: 15px;
@@ -886,54 +856,6 @@ mark {
 
 #modal-categories .modal-actions {
   margin-top: 25px !important;
-}
-
-/* Category Card — View/Edit Mode */
-.category-view-mode {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.category-name {
-  display: block;
-}
-
-.category-edit-mode {
-  display: none;
-}
-
-.category-edit-inputs {
-  display: flex;
-  gap: 10px;
-  align-items: flex-end;
-  margin-bottom: 12px;
-}
-
-.edit-category-name {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.95em;
-}
-
-.edit-category-color {
-  width: 70px;
-  height: 40px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-  padding: 0;
-}
-
-.category-edit-actions {
-  display: flex;
-  gap: 5px;
-}
-
-.category-edit-actions .btn {
-  flex: 1;
 }
 
 /* ===== 5. TOAST NOTIFICATIONS ===== */

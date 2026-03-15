@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action = $_POST['action'] ?? ''))
         'add_question' => handleQuestion(false),
         'update_question' => handleQuestion(true),
         'delete_question' => handleDeleteQuestion(),
-        'add_questionset', 'update_questionset', 'delete_questionset' => handleQuestionSet($action),
+        'delete_questionset' => handleQuestionSet(),
         default => redirect('sets', null, 'invalid_action'),
     };
 }
@@ -130,14 +130,19 @@ extract($tabData);
         });
     </script>
 
-    <!-- Toast Container (globale per tutti i tab) -->
+    <!-- Toast Container (global for all tabs) -->
     <div id="toast-container" class="toast-container"></div>
     <script>
     function showToast(message, type = 'info', duration = 3000) {
         const container = document.getElementById('toast-container');
-        const icons = { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' };
-
+        const icons = {
+            success: '✓',
+            error: '✗',
+            warning: '⚠',
+            info: 'ℹ'
+        };
         const toast = document.createElement('div');
+
         toast.className = `toast toast-${type}`;
         toast.style.setProperty('--toast-duration', duration + 'ms');
         toast.innerHTML = `
