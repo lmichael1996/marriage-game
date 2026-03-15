@@ -153,8 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const questionId = e.target.closest('.btn-edit-question').getAttribute('data-question-id');
 
             // Carica dati domanda tramite API
-            fetch(`/src/api/api.php?endpoint=get_question&id=${questionId}`)
-                .then(response => response.json())
+            api('get_question&id=' + questionId)
                 .then(data => {
                     if (data.success && data.question) {
                         const q = data.question;
@@ -310,8 +309,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Funzione per aggiornare la listbox categorie
     function updateCategorySelect() {
-        fetch('/src/api/api.php?endpoint=get_categories')
-            .then(response => response.json())
+        api('get_categories')
             .then(data => {
                 if (data.success && Array.isArray(data.categories)) {
                     // Aggiorna il select di filtro ricerca
@@ -570,19 +568,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Invia i cambiamenti al server
-            fetch('/src/api/api.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    endpoint: 'save_categories',
-                    deleted: categoryChanges.deleted,
-                    updated: categoryChanges.updated,
-                    added: categoryChanges.added
-                })
+            api('save_categories', {
+                deleted: categoryChanges.deleted,
+                updated: categoryChanges.updated,
+                added: categoryChanges.added
             })
-            .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     showToast(data.message, 'success');
@@ -1178,18 +1168,12 @@ async function saveCategoriesAPI() {
     btn.textContent = 'Salvataggio...';
 
     try {
-        const res = await fetch('/src/api/api.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                endpoint: 'save_categories',
-                deleted: categoryChanges.deleted,
-                updated: categoryChanges.updated,
-                added: categoryChanges.added
-            })
+        const result = await api('save_categories', {
+            deleted: categoryChanges.deleted,
+            updated: categoryChanges.updated,
+            added: categoryChanges.added
         });
 
-        const result = await res.json();
         const messageDiv = document.getElementById('categories-message');
 
         if (result.success) {

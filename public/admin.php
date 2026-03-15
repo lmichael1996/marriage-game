@@ -43,6 +43,7 @@ extract($tabData);
     <link rel="stylesheet" href="../assets/css/core.css?v=21">
     <link rel="stylesheet" href="../assets/css/admin.css?v=21">
     <link rel="stylesheet" href="../assets/css/responsive.css?v=21">
+    <script src="../assets/js/api.js?v=21"></script>
 </head>
 <body>
     <div class="container">

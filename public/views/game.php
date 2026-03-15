@@ -324,41 +324,6 @@ let isNewSet = false;
 // Traccia le domande da eliminare dal set (solo al salvataggio finale)
 let questionsToRemove = [];
 
-// Funzione helper per parsare JSON da API con error handling
-async function safeFetchJSON(url, options = {}) {
-    try {
-        // Assicura che i cookie di sessione vengano inviati
-        if (!options.credentials) {
-            options.credentials = 'include';
-        }
-
-        const response = await fetch(url, options);
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const text = await response.text();
-
-        // Verifica che la risposta sia JSON
-        if (!text || !text.trim().startsWith('{')) {
-            console.error('Non-JSON response from', url, ':', text.substring(0, 200));
-            throw new Error('Server returned non-JSON response: ' + text.substring(0, 100));
-        }
-
-        try {
-            return JSON.parse(text);
-        } catch (parseError) {
-            console.error('JSON parse error from', url, ':', parseError);
-            console.error('Response text:', text.substring(0, 500));
-            throw new Error('Invalid JSON response');
-        }
-    } catch (error) {
-        console.error('safeFetchJSON error:', error);
-        throw error;
-    }
-}
-
 // Chiude il modal "Modifica Set" senza salvare
 function closeEditSetModal() {
     // Semplice chiusura del modal senza salvataggio
@@ -390,15 +355,9 @@ function saveSetChanges() {
 
         // Se è un nuovo set senza ID, crea il set nel database prima
         if (!setId) {
-            safeFetchJSON('/src/api/api.php?endpoint=add_questionset', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    set_name: currentName,
-                    set_description: currentDescription
-                })
+            api('add_questionset', {
+                set_name: currentName,
+                set_description: currentDescription
             })
             .then(data => {
                 if (data.success && data.set_id) {
@@ -429,16 +388,10 @@ function saveSetChanges() {
         if (questionsToRemove.length > 0) {
             // Elimina tutte le domande nel tracking array
             Promise.all(questionsToRemove.map(questionId =>
-                fetch('/src/api/api.php?endpoint=remove_question_from_set', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        set_id: setId,
-                        question_id: questionId
-                    })
-                }).then(response => response.json())
+                api('remove_question_from_set', {
+                    set_id: setId,
+                    question_id: questionId
+                })
             )).then(results => {
                 // Verifica che tutte le eliminazioni siano riuscite
                 const allSuccess = results.every(r => r.success);
@@ -475,32 +428,19 @@ function saveSetMetadata(setId, currentName, currentDescription, messageDiv) {
 
         // Se c'è un ordine da salvare, salvalo prima
         if (questionOrder.length > 0) {
-            fetch('/src/api/api.php?endpoint=update_question_order', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    set_id: setId,
-                    questions: questionOrder
-                })
-            }).then(response => response.json()).catch(error => console.error('Errore aggiornamento ordine:', error));
+            api('update_question_order', {
+                set_id: setId,
+                questions: questionOrder
+            }).catch(error => console.error('Errore aggiornamento ordine:', error));
         }
     }
 
     // Poi salva i metadati via API
-    fetch('/src/api/api.php?endpoint=update_questionset', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            set_id: setId,
-            set_name: currentName,
-            set_description: currentDescription
-        })
+    api('update_questionset', {
+        set_id: setId,
+        set_name: currentName,
+        set_description: currentDescription
     })
-    .then(response => response.json())
     .then(data => {
         if (data.success) {
             messageDiv.innerHTML = '<div class="alert-success">✓ Modifiche salvate!</div>';
@@ -536,16 +476,10 @@ function addQuestionsToNewSet(setId, messageDiv) {
 
     // Aggiungi tutte le domande al set
     Promise.all(questionIds.map((questionId, index) =>
-        fetch('/src/api/api.php?endpoint=add_question_to_set', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                set_id: setId,
-                question_id: questionId
-            })
-        }).then(response => response.json())
+        api('add_question_to_set', {
+            set_id: setId,
+            question_id: questionId
+        })
     )).then(results => {
         const allSuccess = results.every(r => r.success);
         if (allSuccess) {
@@ -606,15 +540,9 @@ function saveAddSetChanges() {
     }
 
     // Crea il set nel database
-    safeFetchJSON('/src/api/api.php?endpoint=add_questionset', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            set_name: currentName,
-            set_description: currentDescription
-        })
+    api('add_questionset', {
+        set_name: currentName,
+        set_description: currentDescription
     })
     .then(data => {
         if (data.success && data.set_id) {
@@ -623,16 +551,10 @@ function saveAddSetChanges() {
 
             // Aggiungi tutte le domande al set
             Promise.all(questionIds.map(questionId =>
-                fetch('/src/api/api.php?endpoint=add_question_to_set', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        set_id: data.set_id,
-                        question_id: questionId
-                    })
-                }).then(response => response.json())
+                api('add_question_to_set', {
+                    set_id: data.set_id,
+                    question_id: questionId
+                })
             )).then(results => {
                 const allSuccess = results.every(r => r.success);
                 if (allSuccess) {
@@ -739,8 +661,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const setId = e.target.closest('.btn-edit-set').getAttribute('data-set-id');
 
             // Carica dati set tramite API
-            fetch(`/src/api/api.php?endpoint=get_questionset&id=${setId}`)
-                .then(response => response.json())
+            api('get_questionset&id=' + setId)
                 .then(data => {
                     if (data.success && data.set) {
                         const s = data.set;
@@ -821,18 +742,7 @@ function loadCategoriesForFilter() {
         return; // Già caricate
     }
 
-    fetch(`/src/api/api.php?endpoint=get_categories`)
-        .then(response => {
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return response.text().then(text => {
-                try {
-                    return JSON.parse(text);
-                } catch (e) {
-                    console.error('JSON parse error in get_categories:', e, 'Response:', text);
-                    throw e;
-                }
-            });
-        })
+    api('get_categories')
         .then(data => {
             if (data.success && data.categories) {
                 data.categories.forEach(cat => {
@@ -858,8 +768,7 @@ function loadCategoriesForAddSetFilter() {
         return; // Già caricate
     }
 
-    fetch(`/src/api/api.php?endpoint=get_categories`)
-        .then(response => response.json())
+    api('get_categories')
         .then(data => {
             if (data.success && data.categories) {
                 data.categories.forEach(cat => {
@@ -881,8 +790,7 @@ function loadCategoriesForAddSetFilter() {
 function loadSetQuestions(setId) {
     const containerAssociated = document.getElementById('edit-set-questions');
 
-    fetch(`/src/api/api.php?endpoint=get_set_questions&set_id=${setId}`)
-        .then(response => response.json())
+    api('get_set_questions&set_id=' + setId)
         .then(data => {
             if (data.success && data.questions && data.questions.length > 0) {
                 let html = '<div class="questions-associated" id="questions-list-' + setId + '">';
@@ -952,8 +860,7 @@ function loadGameQuestions() {
     }
 
     // Fetch tutte le domande per ottenere i dettagli
-    fetch(`/src/api/api.php?endpoint=get_questions`)
-        .then(response => response.json())
+    api('get_questions')
         .then(data => {
             if (data.success && data.questions) {
                 // Normalizza gli ID nel localStorage a numeri interi
@@ -1305,21 +1212,9 @@ function updateOrderInDatabase(setId) {
         return;
     }
 
-    fetch('/src/api/api.php?endpoint=update_question_order', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            set_id: setId,
-            questions: questionOrder
-        })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Errore HTTP: ' + response.status);
-        }
-        return response.json();
+    api('update_question_order', {
+        set_id: setId,
+        questions: questionOrder
     })
     .then(data => {
         if (!data.success) {
@@ -1513,17 +1408,10 @@ function updateOrderAfterMove(setId, questionId) {
         order: index + 1
     }));
 
-    fetch('/src/api/api.php?endpoint=update_question_order', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            set_id: setId,
-            questions: questionOrder
-        })
+    api('update_question_order', {
+        set_id: setId,
+        questions: questionOrder
     })
-    .then(response => response.json())
     .then(data => {
         if (!data.success) {
             console.error('Errore nell\'aggiornamento ordine:', data.error);
@@ -1561,8 +1449,7 @@ function searchAvailableQuestions() {
     container.innerHTML = '<p class="text-muted-center">Ricerca in corso...</p>';
 
     // Fetch tutte le domande
-    fetch(`/src/api/api.php?endpoint=get_questions`)
-        .then(response => response.json())
+    api('get_questions')
         .then(data => {
             if (data.success && data.questions) {
                 // Applica filtro per tipo di ricerca
@@ -1689,8 +1576,7 @@ function searchAvailableQuestionsForNewSet() {
     const associatedContainer = document.getElementById('add-set-associated-questions');
 
     // Fetch tutte le domande (sempre, per aggiornare l'elenco escludendo quelle appena aggiunte)
-    fetch(`/src/api/api.php?endpoint=get_questions`)
-        .then(response => response.json())
+    api('get_questions')
         .then(data => {
             if (data.success && data.questions) {
                 // Applica filtro per tipo di ricerca
@@ -1797,17 +1683,10 @@ function highlightSearchResult(questionId) {
 
 // Aggiunge una domanda al set
 function addQuestionToSet(setId, questionId) {
-    fetch('/src/api/api.php?endpoint=add_question_to_set', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            set_id: setId,
-            question_id: questionId
-        })
+    api('add_question_to_set', {
+        set_id: setId,
+        question_id: questionId
     })
-    .then(response => response.json())
     .then(data => {
         if (data.success) {
             showToast('Domanda aggiunta con successo!', 'success');
@@ -1895,8 +1774,7 @@ function loadNewSetQuestions(highlightId = null) {
     }
 
     // Fetch tutte le domande per ottenere i dettagli
-    fetch(`/src/api/api.php?endpoint=get_questions`)
-        .then(response => response.json())
+    api('get_questions')
         .then(data => {
             if (data.success && data.questions) {
                 const associatedQuestions = data.questions.filter(q => {
@@ -2049,18 +1927,11 @@ function openAddBelowModal(setId, positionIndex) {
 
 // Aggiunge una domanda al set in una posizione specifica
 function addQuestionBelowInSet(setId, questionId, positionIndex) {
-    fetch('/src/api/api.php?endpoint=add_question_to_set_at_position', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            set_id: setId,
-            question_id: questionId,
-            position: positionIndex + 1
-        })
+    api('add_question_to_set_at_position', {
+        set_id: setId,
+        question_id: questionId,
+        position: positionIndex + 1
     })
-    .then(response => response.json())
     .then(data => {
         if (data.success) {
             loadSetQuestions(setId);
@@ -2099,15 +1970,9 @@ function startGameFromModal() {
     }
 
     // Crea il set nel database
-    safeFetchJSON('/src/api/api.php?endpoint=add_questionset', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            set_name: currentName,
-            set_description: currentDescription
-        })
+    api('add_questionset', {
+        set_name: currentName,
+        set_description: currentDescription
     })
     .then(data => {
         if (data.success && data.set_id) {
@@ -2116,17 +1981,10 @@ function startGameFromModal() {
 
             // Aggiungi tutte le domande al set
             Promise.all(questionIds.map(questionId =>
-                fetch('/src/api/api.php?endpoint=add_question_to_set', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        set_id: data.set_id,
-                        question_id: questionId
-                    })
-                }).then(response => response.json())
+                api('add_question_to_set', {
+                    set_id: data.set_id,
+                    question_id: questionId
+                })
             )).then(results => {
                 const allSuccess = results.every(r => r.success);
                 if (allSuccess) {
