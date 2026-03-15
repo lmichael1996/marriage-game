@@ -22,7 +22,7 @@ const MV_SITE_URL = "https://www.mvmusicaeventi.it";
 <body class="player-page">
     <div class="container">
         <div class="header">
-            <h1>🎮 Giocatore <?php echo htmlspecialchars($_SESSION['auth_player']['username'] ?? 'Giocatore'); ?></h1>
+            <h1>🎮 Giocatore: <?php echo htmlspecialchars($_SESSION['auth_player']['username'] ?? 'Giocatore'); ?></h1>
             <a href="logout.php?role=player" class="btn btn-secondary" id="logout-btn">Logout</a>
         </div>
 

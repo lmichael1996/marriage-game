@@ -1636,36 +1636,36 @@ function showAlreadyPresentError(questionId) {
 
     messageDiv.innerHTML = '<div class="duplicate-warning">⚠ Questa domanda è già presente nel set!</div>';
 
-    // Rimuovi il messaggio dopo 3 secondi
+    // Remove the message after 3 seconds
     setTimeout(() => {
         messageDiv.innerHTML = '';
     }, 3000);
 }
 
-// Mostra una banda rossa nel messaggio quando la domanda è già presente nel set (Aggiungi Set)
+// Show a red band in the message when the question is already present in the set (Add Set)
 function showAlreadyPresentErrorForNewSet(questionId) {
     const messageDiv = document.getElementById('add-set-message');
     if (!messageDiv) return;
 
     messageDiv.innerHTML = '<div class="duplicate-warning">⚠ Questa domanda è già presente nel set!</div>';
 
-    // Rimuovi il messaggio dopo 3 secondi
+    // Remove the message after 3 seconds
     setTimeout(() => {
         messageDiv.innerHTML = '';
     }, 3000);
 }
 
-// Aggiunge una domanda al nuovo set (prima della creazione)
+// Adds a question to the new set (before creation)
 function addQuestionToNewSet(questionId) {
-    // Ottieni le domande già aggiunte dal localStorage
+    // Get the questions already added from localStorage
     let addedQuestions = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
 
-    // Aggiungi il nuovo ID se non esiste già
+    // Add the new ID if it doesn't already exist
     if (!addedQuestions.includes(questionId)) {
         addedQuestions.push(questionId);
         localStorage.setItem('addSetQuestions', JSON.stringify(addedQuestions));
 
-        // Ricarica la lista e la ricerca per riflettere i cambiamenti
+        // Reload the list and search to reflect the changes
         loadNewSetQuestions();
         setTimeout(() => {
             highlightNewSetQuestion(questionId);
@@ -1673,12 +1673,12 @@ function addQuestionToNewSet(questionId) {
         highlightSearchResultForNewSet(questionId);
         searchAvailableQuestionsForNewSet();
     } else {
-        // Mostra banda rossa se la domanda è già presente
+        // Show a red band if the question is already present
         showAlreadyPresentErrorForNewSet(questionId);
     }
 }
 
-// Carica le domande associate al nuovo set (dal localStorage)
+// Load the questions associated with the new set (from localStorage)
 function loadNewSetQuestions(highlightId = null) {
     const container = document.getElementById('add-set-associated-questions');
     const addedQuestionIds = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
@@ -1688,7 +1688,7 @@ function loadNewSetQuestions(highlightId = null) {
         return;
     }
 
-    // Fetch tutte le domande per ottenere i dettagli
+    // Fetch all questions to get the details
     api('get_questions')
         .then(data => {
             if (data.success && data.questions) {
@@ -1721,10 +1721,10 @@ function loadNewSetQuestions(highlightId = null) {
                 html += '</div>';
                 container.innerHTML = html;
 
-                // Setup drag and drop per riordinamento
+                // Setup drag and drop for reordering
                 setupDragAndDropForNewSet();
 
-                // Se c'è un ID da evidenziare, fallo dopo che il DOM è aggiornato
+                // If there's an ID to highlight, do it after the DOM is updated
                 if (highlightId) {
                     setTimeout(() => {
                         highlightNewSetQuestion(highlightId);
@@ -1738,7 +1738,7 @@ function loadNewSetQuestions(highlightId = null) {
         });
 }
 
-// Rimuove una domanda dal nuovo set
+// Removes a question from the new set
 function removeQuestionFromNewSet(questionId) {
     let addedQuestions = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
     addedQuestions = addedQuestions.filter(id => id !== questionId);
@@ -1748,7 +1748,7 @@ function removeQuestionFromNewSet(questionId) {
     searchAvailableQuestionsForNewSet();
 }
 
-// Evidenzia una domanda nel nuovo set
+// Highlights a question in the new set
 function highlightNewSetQuestion(questionId) {
     const container = document.getElementById('new-set-questions-list');
     if (!container) return;
@@ -1762,7 +1762,7 @@ function highlightNewSetQuestion(questionId) {
     }
 }
 
-// Evidenzia una domanda nella ricerca del nuovo set
+// Highlights a question in the search results for the new set
 function highlightSearchResultForNewSet(questionId) {
     const container = document.getElementById('add-available-questions');
     if (!container) return;
@@ -1776,71 +1776,71 @@ function highlightSearchResultForNewSet(questionId) {
     }
 }
 
-// Sposta una domanda su nel nuovo set (solo grafico + localStorage, niente DB)
+// Moves a question up in the new set (only graphical + localStorage, no DB)
 function moveNewSetQuestionUp(index) {
-    if (index === 0) return; // Non puoi spostare il primo elemento su
+    if (index === 0) return; // You can't move the first element up
 
     const addedQuestionIds = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
     if (index <= 0 || index >= addedQuestionIds.length) return;
 
-    // Scambia nel localStorage PRIMA
+    // Swap in localStorage FIRST
     [addedQuestionIds[index - 1], addedQuestionIds[index]] = [addedQuestionIds[index], addedQuestionIds[index - 1]];
     localStorage.setItem('addSetQuestions', JSON.stringify(addedQuestionIds));
 
-    // Ottieni l'ID della domanda spostata
+    // Get the ID of the moved question
     const questionId = addedQuestionIds[index - 1];
 
-    // Ricarica la lista (come fa Modifica Set)
+    // Reload the list (like Edit Set)
     loadNewSetQuestions();
 
-    // Ricarica anche la ricerca per aggiornare le domande disponibili
+    // Reload the search to update available questions
     searchAvailableQuestionsForNewSet();
 
-    // Evidenzia la domanda mossa dopo un breve delay
+    // Highlight the moved question after a short delay
     setTimeout(() => {
         highlightNewSetQuestion(questionId);
     }, 100);
 }
 
-// Sposta una domanda giù nel nuovo set (solo grafico + localStorage, niente DB)
+// Moves a question down in the new set (only graphical + localStorage, no DB)
 function moveNewSetQuestionDown(index) {
     const addedQuestionIds = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
     if (index < 0 || index >= addedQuestionIds.length - 1) return;
 
-    // Scambia nel localStorage PRIMA
+    // Swap in localStorage FIRST
     [addedQuestionIds[index], addedQuestionIds[index + 1]] = [addedQuestionIds[index + 1], addedQuestionIds[index]];
     localStorage.setItem('addSetQuestions', JSON.stringify(addedQuestionIds));
 
-    // Ottieni l'ID della domanda spostata
+    // Get the ID of the moved question
     const questionId = addedQuestionIds[index];
 
-    // Ricarica la lista (come fa Modifica Set)
+    // Reload the list (like Edit Set)
     loadNewSetQuestions();
 
-    // Ricarica anche la ricerca per aggiornare le domande disponibili
+    // Reload the search to update available questions
     searchAvailableQuestionsForNewSet();
 
-    // Evidenzia la domanda mossa dopo un breve delay
+    // Highlight the moved question after a short delay
     setTimeout(() => {
         highlightNewSetQuestion(questionId);
     }, 100);
 }
 
-// Apri modal per aggiungere domanda sotto una specifica
+// Opens modal to add a question below a specific one
 function openAddBelowModal(setId, positionIndex) {
-    // Salva il setId e l'indice in variabili globali per usarle successivamente
+    // Save the setId and index in global variables for later use
     window.selectedSetId = setId;
     window.selectedPositionIndex = positionIndex;
 
-    // Mostra il modal di ricerca
+    // Show the search modal
     const modal = document.getElementById('modal-edit-set');
     const container = document.getElementById('edit-available-questions');
-    // Resetta la ricerca
+    // Reset the search
     document.getElementById('edit-search-questions').value = '';
     document.getElementById('edit-category-filter').value = '';
 }
 
-// Aggiunge una domanda al set in una posizione specifica
+// Adds a question to the set at a specific position
 function addQuestionBelowInSet(setId, questionId, positionIndex) {
     api('add_question_to_set_at_position', {
         set_id: setId,
@@ -1862,39 +1862,37 @@ function addQuestionBelowInSet(setId, questionId, positionIndex) {
 }
 
 function startGameWithSet(setId) {
-    // Usa l'API endpoint per reindirizzare a game-room.php mantenendo la sessione
-    console.log('startGameWithSet called with setId:', setId);
+    // Use the API endpoint to redirect to game-room.php while maintaining the session
     const gameRoomUrl = `/public/game-room.php?set_id=${setId}`;
-    console.log('Redirecting to:', gameRoomUrl);
 
-    // Reindirizza direttamente - il cookie è stato preservato dalle fetch precedenti
+    // Redirect directly - the cookie has been preserved from previous fetches
     window.location.href = gameRoomUrl;
 }
 
-// Avvia un gioco dal modal "Crea Partita"
+// Starts a game from the "Create Game" modal
 function startGameFromModal() {
     const currentName = document.getElementById('edit-set-name').value || 'set temporaneo';
     const currentDescription = document.getElementById('edit-set-description').value || '';
     const messageDiv = document.getElementById('edit-set-message');
 
-    // Conta le domande nel set
+    // Count the number of questions added to the new set from localStorage
     const questionItems = document.querySelectorAll('#edit-set-questions .question-item');
     if (questionItems.length === 0) {
         messageDiv.innerHTML = '<div class="alert-error">✗ Il set deve contenere almeno una domanda</div>';
         return;
     }
 
-    // Crea il set nel database
+    // Create the set in the database
     api('add_questionset', {
         set_name: currentName,
         set_description: currentDescription
     })
     .then(data => {
         if (data.success && data.set_id) {
-            // Ottieni le IDs delle domande dal localStorage
+            // Get the IDs of the questions from localStorage
             const questionIds = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
 
-            // Aggiungi tutte le domande al set
+            // Add all questions to the set
             Promise.all(questionIds.map(questionId =>
                 api('add_question_to_set', {
                     set_id: data.set_id,
@@ -1906,7 +1904,7 @@ function startGameFromModal() {
                     messageDiv.innerHTML = '<div class="alert-success">✓ Partita avviata!</div>';
                     localStorage.removeItem('addSetQuestions');
                     setTimeout(() => {
-                        // Avvia il gioco
+                        // Start the game
                         startGameWithSet(data.set_id);
                     }, 500);
                 } else {
@@ -1927,19 +1925,19 @@ function startGameFromModal() {
 }
 
 function createNewGame() {
-    // Marca come nuovo set (non ancora salvato nel DB)
+    // Marks as a new set (not yet saved in the DB)
     isNewSet = true;
-    questionsToRemove = []; // Resetta array eliminazioni
+    questionsToRemove = []; // Resets the removal array
 
-    // Inizializza il form senza creare il set nel database
+    // Initializes the form without creating the set in the database
     document.getElementById('edit-set-id').value = '';
 
-    // Genera nome automatico con timestamp
+    // Generates an automatic name with timestamp
     const timestamp = new Date().getTime();
     document.getElementById('edit-set-name').value = '#Temporary set ' + timestamp;
     document.getElementById('edit-set-description').value = '';
 
-    // Nascondi i campi nome e descrizione per "Crea Partita"
+    // Hide the name and description fields for "Create Game"
     document.querySelector('#edit-set-name').parentElement.style.display = 'none';
     document.querySelector('#edit-set-description').parentElement.style.display = 'none';
 
@@ -1952,31 +1950,30 @@ function createNewGame() {
     document.querySelector('#modal-edit-set .modal-header h2').textContent = '🎮 Crea Partita';
     document.getElementById('edit-set-message').innerHTML = '';
 
-    // Aggiorna il bottone per mostrare "Avvia partita"
+    // Update the button to show "Start Game" instead of "Save Changes"
     const btnSaveSetChanges = document.getElementById('btn-save-set-changes');
     if (btnSaveSetChanges) {
-        btnSaveSetChanges.textContent = '▶ Avvia partita';
-        btnSaveSetChanges.className = 'btn btn-primary'; // Cambia colore a blu
+        btnSaveSetChanges.textContent = '▶ Start Game';
+        btnSaveSetChanges.className = 'btn btn-primary'; // Change color to blue
     }
 
-    // Resetta il localStorage delle domande (come Aggiungi Set)
+    // Resets the localStorage for questions (like "Add Set")
     localStorage.removeItem('addSetQuestions');
 
-    // Pulisci le domande associate
-    document.getElementById('edit-set-questions').innerHTML = '<p class="text-muted-center">Nessuna domanda associata</p>';
-
-    // Resetta campi di ricerca
+    // Clear the associated questions
+    document.getElementById('edit-set-questions').innerHTML = '<p class="text-muted-center">No questions associated</p>';
+    // Reset search fields
     document.getElementById('edit-search-questions').value = '';
     document.getElementById('edit-category-filter').value = '';
-    // Mostra il messaggio iniziale come "Aggiungi Set"
-    document.getElementById('edit-available-questions').innerHTML = '<p class="text-muted-center">Ricerca domande...</p>';
+    // Show the initial message as "Add Set"
+    document.getElementById('edit-available-questions').innerHTML = '<p class="text-muted-center">Search questions...</p>';
 
     document.getElementById('modal-edit-set').style.display = 'flex';
 
-    // Carica categorie nel filtro
+    // Load categories for the filter
     loadCategoriesForFilter();
 
-    // Carica solo le domande associate dal localStorage (che sarà vuoto)
+    // Load only the associated questions from localStorage (which will be empty)
     setTimeout(() => {
         loadGameQuestions();
     }, 100);
