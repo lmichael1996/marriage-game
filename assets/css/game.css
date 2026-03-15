@@ -714,7 +714,14 @@
 
 /* Player Final Result */
 .final-result-screen.winner {
-  background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+  background: linear-gradient(
+    135deg,
+    #ffdede 0%,
+    #ffadad 25%,
+    #f07070 50%,
+    #d94f4f 75%,
+    #b33a3a 100%
+  );
   border-radius: 20px;
   padding: 60px 20px;
 }
@@ -764,8 +771,10 @@
 .social-links a {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 10px 22px;
+  min-width: 140px;
   border-radius: 25px;
   background: rgba(255, 255, 255, 0.3);
   color: #fff;

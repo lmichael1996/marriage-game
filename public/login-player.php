@@ -88,7 +88,7 @@
                     errorDiv.textContent = result.error || 'Errore nel login';
                     errorDiv.classList.remove('hidden');
                 }
-            } catch (error) {
+            } catch {
                 errorDiv.textContent = 'Errore di connessione. Riprova.';
                 errorDiv.classList.remove('hidden');
             }

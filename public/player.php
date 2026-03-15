@@ -68,6 +68,10 @@ requirePlayer();
                                 <svg viewBox="0 0 24 24" width="20" height="20" fill="#fff"><path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5A4.25 4.25 0 0 0 7.75 20.5h8.5A4.25 4.25 0 0 0 20.5 16.25v-8.5A4.25 4.25 0 0 0 16.25 3.5h-8.5zM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 1.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm5.25-2.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
                                 Instagram
                             </a>
+                            <a href="https://www.mvmusicaeventi.it" target="_blank">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><text x="12" y="17" text-anchor="middle" font-family="Georgia, serif" font-size="13" font-weight="bold" font-style="italic" fill="#fff" letter-spacing="-1">MV</text><rect x="1" y="1" width="22" height="22" rx="4" stroke="#fff" stroke-width="1.5" fill="none"/></svg>
+                                Sito
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -420,9 +424,9 @@ requirePlayer();
 
             const finalScreen = screens.result;
             const results = {
-                1: { emoji: '🥇', title: '1° Posto — Hai Vinto!',  msg: 'Complimenti! Sei il vincitore di questa partita! 🎉' },
-                2: { emoji: '🥈', title: '2° Posto — Ottimo!',     msg: 'Sei arrivato secondo! Grandissimo risultato! 👏' },
-                3: { emoji: '🥉', title: '3° Posto — Sul Podio!',  msg: 'Bel lavoro! Sei sul podio! 💪' },
+                1: { emoji: '🥇', title: 'Hai Vinto!<br>1° Posto',   msg: 'Complimenti! Sei il vincitore di questa partita! 🎉' },
+                2: { emoji: '🥈', title: 'Ottimo!<br>2° Posto',      msg: 'Sei arrivato secondo! Grandissimo risultato! 👏' },
+                3: { emoji: '🥉', title: 'Sul Podio!<br>3° Posto',   msg: 'Bel lavoro! Sei sul podio! 💪' },
             };
             const info = results[placement];
             finalScreen.classList.remove('winner', 'loser');
@@ -430,7 +434,7 @@ requirePlayer();
             if (info) {
                 finalScreen.classList.add('winner');
                 document.getElementById('final-emoji').textContent   = info.emoji;
-                document.getElementById('final-title').textContent   = info.title;
+                document.getElementById('final-title').innerHTML     = info.title;
                 document.getElementById('final-message').textContent = info.msg;
             } else {
                 finalScreen.classList.add('loser');

@@ -1635,47 +1635,41 @@ function searchAvailableQuestions() {
                     return;
                 }
 
-                // Carica domande già nel set per escluderle
-                fetch(`/src/api/api.php?endpoint=get_set_questions&set_id=${setId}`)
-                    .then(r => r.json())
-                    .then(setData => {
-                        const setQuestionIds = setData.questions ? setData.questions.map(q => q.id) : [];
+                // Ottieni le domande già associate al set dal DOM
+                const associatedItems = document.querySelectorAll('#edit-set-questions .question-item');
+                const setQuestionIds = Array.from(associatedItems).map(item => parseInt(item.getAttribute('data-question-id')));
 
-                        // Combina con le domande contrassegnate per l'eliminazione
-                        const allExcludedIds = setQuestionIds.concat(questionsToRemove);
+                // Escludi le domande già associate dal risultato della ricerca
+                const availableQuestions = filtered.filter(q => !setQuestionIds.includes(parseInt(q.id)));
 
-                        // Escludi le domande già associate e quelle contrassegnate per l'eliminazione dal risultato della ricerca
-                        const availableQuestions = filtered.filter(q => !allExcludedIds.includes(q.id));
+                if (availableQuestions.length === 0) {
+                    container.innerHTML = '<p class="text-muted-center">Tutte le domande trovate sono già associate</p>';
+                    return;
+                }
 
-                        if (availableQuestions.length === 0) {
-                            container.innerHTML = '<p class="text-muted-center">Tutte le domande trovate sono già associate</p>';
-                            return;
-                        }
+                let html = '';
+                availableQuestions.forEach(q => {
+                    const categoryBadge = q.category_name ? `<span class="badge-category"><span class="color-dot" style="background: ${q.color || '#6c757d'};"></span>${q.category_name}</span>` : '';
+                    const typeMap = { 'multiple': '📋 Scelta multipla', 'truefalse': '✔️ Vero/Falso', 'clickfirst': '⚡ Clicca per primo' };
+                    const typeBadge = q.question_type ? `<span class="badge-type">${typeMap[q.question_type] || q.question_type}</span>` : '';
 
-                        let html = '';
-                        availableQuestions.forEach(q => {
-                            const categoryBadge = q.category_name ? `<span class="badge-category"><span class="color-dot" style="background: ${q.color || '#6c757d'};"></span>${q.category_name}</span>` : '';
-                            const typeMap = { 'multiple': '📋 Scelta multipla', 'truefalse': '✔️ Vero/Falso', 'clickfirst': '⚡ Clicca per primo' };
-                            const typeBadge = q.question_type ? `<span class="badge-type">${typeMap[q.question_type] || q.question_type}</span>` : '';
+                    let questionText = q.question;
+                    if (searchTerm && pattern) {
+                        questionText = q.question.replace(pattern, '<mark>$&</mark>');
+                    }
 
-                            let questionText = q.question;
-                            if (searchTerm && pattern) {
-                                questionText = q.question.replace(pattern, '<mark>$&</mark>');
-                            }
-
-                            html += `
-                                <div class="question-item" data-question-id="${q.id}">
-                                    <div class="question-item-content">${questionText}</div>
-                                    <div class="question-item-center">${categoryBadge}</div>
-                                    <div class="question-item-center">${typeBadge}</div>
-                                    <div class="question-item-actions">
-                                        <button type="button" class="btn btn-success btn-sm" onclick="addQuestionToSet(${setId}, ${q.id})" title="Aggiungi al set">+ Aggiungi</button>
-                                    </div>
-                                </div>
-                            `;
-                        });
-                        container.innerHTML = html;
-                    });
+                    html += `
+                        <div class="question-item" data-question-id="${q.id}">
+                            <div class="question-item-content">${questionText}</div>
+                            <div class="question-item-center">${categoryBadge}</div>
+                            <div class="question-item-center">${typeBadge}</div>
+                            <div class="question-item-actions">
+                                <button type="button" class="btn btn-success btn-sm" onclick="addQuestionToSet(${setId}, ${q.id})" title="Aggiungi al set">+ Aggiungi</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
             } else {
                 container.innerHTML = '<p class="text-error-center">Errore nel caricamento domande</p>';
             }
@@ -1817,13 +1811,12 @@ function addQuestionToSet(setId, questionId) {
     .then(data => {
         if (data.success) {
             showToast('Domanda aggiunta con successo!', 'success');
-            // Ricarica sia le domande associate che la ricerca
+            // Ricarica le domande associate
             loadSetQuestions(setId);
             setTimeout(() => {
                 highlightQuestion(questionId, setId);
             }, 100);
-            // Evidenzia la domanda nella ricerca
-            highlightSearchResult(questionId);
+            // Aggiorna la ricerca per escludere la domanda appena aggiunta
             searchAvailableQuestions();
         } else {
             // Estrai il messaggio di errore specifico

@@ -10,7 +10,7 @@ class AuthController
         $data = Router::input();
         $result = Container::auth()->playerLogin($data['username'] ?? '', $data['room_code'] ?? '');
         if (!($result['success'] ?? false)) {
-            Router::error($result['error'] ?? 'Login fallito', 401);
+            Router::error($result['error'] ?? 'Login fallito', 422);
         }
         Router::respond([
             'success'  => true,

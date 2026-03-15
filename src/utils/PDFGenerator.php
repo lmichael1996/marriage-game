@@ -25,10 +25,10 @@ class PDFGenerator {
 
         if (file_exists(self::LOGO_PATH)) {
             $this->pdf->setAlpha(0.2);
-            // Logo at the bottom-right with correct aspect ratio (1181x835 → ~120x85mm)
+            // Logo at the bottom-center with correct aspect ratio (1181x835 → ~120x85mm)
             $logoW = 120;
             $logoH = 85;
-            $logoX = $this->pdf->GetPageWidth() - $logoW - 2;
+            $logoX = ($this->pdf->GetPageWidth() - $logoW) / 2;
             $logoY = $this->pdf->GetPageHeight() - $logoH - 10;
             $this->pdf->Image(self::LOGO_PATH, $logoX, $logoY, $logoW, $logoH);
             $this->pdf->setAlpha(1);
