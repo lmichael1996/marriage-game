@@ -10,9 +10,9 @@ $judge = authJudge();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giudice - Marriage Game</title>
-    <link rel="stylesheet" href="../assets/css/core.css?v=19">
-    <link rel="stylesheet" href="../assets/css/game.css?v=19">
-    <link rel="stylesheet" href="../assets/css/responsive.css?v=19">
+    <link rel="stylesheet" href="../assets/css/core.css?v=20">
+    <link rel="stylesheet" href="../assets/css/game.css?v=20">
+    <link rel="stylesheet" href="../assets/css/responsive.css?v=20">
 </head>
 <body>
     <div class="container">
@@ -379,9 +379,10 @@ $judge = authJudge();
                 .then(data => {
                     if (data.success && data.leaderboard?.length > 0) {
                         let html = '';
-                        data.leaderboard.forEach(p => {
+                        data.leaderboard.forEach((p, i) => {
                             html += `<div class="leaderboard-item">
-                                <div class="medal">${p.medal}</div>
+                                <div class="leaderboard-position">#${i + 1}</div>
+                                <div class="medal">${p.medal || ''}</div>
                                 <div class="leaderboard-info">
                                     <div class="leaderboard-name">${p.username}</div>
                                     <div class="leaderboard-time score-text">${p.score} punti</div>

@@ -129,6 +129,12 @@
     padding: 10px;
   }
 
+  /* Final leaderboard grid — 3 cols on tablet */
+  .final-leaderboard {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
   /* Modals */
   .modal-content {
     width: 92%;
@@ -645,6 +651,14 @@
   }
   .final-leaderboard {
     max-width: 100%;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .final-leaderboard .leaderboard-item {
+    padding: 12px 8px;
+  }
+  .final-leaderboard .medal {
+    font-size: 1.5em;
   }
 
   /* Waiting / cancelled screens mobile */
