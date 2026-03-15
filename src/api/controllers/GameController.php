@@ -122,9 +122,22 @@ class GameController
 
         $counter  = max(1, intval($_GET['counter'] ?? 1));
         $result   = $room->getRoundByPosition($roomData['id'], $counter);
-        $response = $result
-            ? array_merge($result, ['success' => true, 'status_room' => $statusRoom])
-            : ['success' => false, 'status_room' => $statusRoom];
+
+        if ($result) {
+            $playerId       = authPlayerId();
+            $alreadyAnswered = $playerId
+                ? Container::game()->hasAnswered($playerId, (int)$result['id'])
+                : false;
+
+            $response = array_merge($result, [
+                'success'          => true,
+                'status_room'      => $statusRoom,
+                'already_answered' => $alreadyAnswered,
+            ]);
+        } else {
+            $response = ['success' => false, 'status_room' => $statusRoom];
+        }
+
         Router::respond($response);
     }
 

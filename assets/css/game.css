@@ -789,14 +789,31 @@
   cursor: pointer;
   max-width: 80%;
   height: auto;
-  transition: transform 0.15s ease;
+  transition:
+    transform 0.12s ease,
+    filter 0.12s ease;
   -webkit-tap-highlight-color: transparent;
   outline: none;
   user-select: none;
+  touch-action: manipulation;
+  animation: clickFirstPulse 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.15));
 }
 
 #click-first-btn.pressed {
-  transform: scale(0.85);
+  transform: scale(0.78);
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1)) brightness(1.1);
+  animation: none;
+}
+
+@keyframes clickFirstPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 /* Player page body overrides */

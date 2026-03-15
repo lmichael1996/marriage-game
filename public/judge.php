@@ -378,11 +378,12 @@ $judge = authJudge();
                 .then(r => r.json())
                 .then(data => {
                     if (data.success && data.leaderboard?.length > 0) {
+                        const medals = ['🥇', '🥈', '🥉'];
                         let html = '';
                         data.leaderboard.forEach((p, i) => {
                             html += `<div class="leaderboard-item">
                                 <div class="leaderboard-position">#${i + 1}</div>
-                                <div class="medal">${p.medal || ''}</div>
+                                <div class="medal">${medals[i] || ''}</div>
                                 <div class="leaderboard-info">
                                     <div class="leaderboard-name">${p.username}</div>
                                     <div class="leaderboard-time score-text">${p.score} punti</div>

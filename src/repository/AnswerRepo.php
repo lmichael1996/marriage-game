@@ -102,4 +102,25 @@ class AnswerRepo {
 
         return (int)($row['cnt'] ?? 0);
     }
+
+    /**
+     * Check if a player has already answered a specific round.
+     *
+     * @param int $playerId Player ID
+     * @param int $roundId  Round ID
+     * @return bool True if already answered
+     */
+    public function hasAnswered(int $playerId, int $roundId): bool {
+        $stmt = $this->conn->prepare("
+            SELECT 1 FROM player_answers
+            WHERE player_id = ? AND round_id = ?
+            LIMIT 1
+        ");
+        $stmt->bind_param("ii", $playerId, $roundId);
+        $stmt->execute();
+        $found = (bool)$stmt->get_result()->fetch_assoc();
+        $stmt->close();
+
+        return $found;
+    }
 }

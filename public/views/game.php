@@ -811,37 +811,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================================
-// FORM SUBMISSION
+// FUNZIONI DI RICERCA E GESTIONE SET
 // ============================================================================
-
-
-function submitEditSet(event) {
-    event.preventDefault();
-
-    const form = document.getElementById('edit-set-form');
-    const formData = new FormData(form);
-    const messageDiv = document.getElementById('edit-set-message');
-
-    fetch('admin.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            messageDiv.innerHTML = '<div class="alert-success">✓ Set aggiornato con successo!</div>';
-            setTimeout(() => {
-                window.location.reload();
-            }, 1500);
-        } else {
-            messageDiv.innerHTML = `<div class="alert-error">✗ ${data.error || 'Errore'}</div>`;
-        }
-    })
-    .catch(error => {
-        console.error('Errore:', error);
-        messageDiv.innerHTML = '<div class="alert-error">✗ Errore durante l\'aggiornamento del set</div>';
-    });
-}
 
 // Carica le categorie nel dropdown dei filtri
 function loadCategoriesForFilter() {

@@ -262,17 +262,10 @@ class GameService {
             ];
         }
 
-        // Save the ranking JSON (without display fields like medals)
+        // Save the ranking JSON
         if (!empty($leaderboard)) {
             $this->roomRepo->setFinalRanking($room['id'], $leaderboard);
         }
-
-        // Add medals for API response only
-        $medals = ['🥇', '🥈', '🥉'];
-        foreach ($leaderboard as $i => &$entry) {
-            $entry['medal'] = $medals[$i] ?? '';
-        }
-        unset($entry);
 
         return [
             'success' => true,
@@ -294,5 +287,12 @@ class GameService {
         }
 
         return $this->answerRepo->countAnsweredRounds($playerId, $roomId);
+    }
+
+    /**
+     * Check if a player has already answered a specific round.
+     */
+    public function hasAnswered(int $playerId, int $roundId): bool {
+        return $this->answerRepo->hasAnswered($playerId, $roundId);
     }
 }

@@ -246,8 +246,18 @@ requirePlayer();
                     showScreen('cancelled');
                     return;
                 }
-                if (!data.success && !data.round_number) { if (!violated) showScreen('waiting'); return; }
+                if (!data.success && !data.round_number) {
+                    if (!violated) showScreen('waiting');
+                    return;
+                }
                 if (data.round_number === currentRoundCounter && !hasAnswered && !roundInProgress) {
+                    // Server says we already answered this round (e.g. after refresh)
+                    if (data.already_answered) {
+                        sessionStorage.removeItem('activeRound');
+                        currentRoundCounter++;
+                        if (!violated) showScreen('waiting');
+                        return;
+                    }
                     // Penalise refresh: skip this round immediately
                     if (skipCurrentRound) {
                         skipCurrentRound = false;

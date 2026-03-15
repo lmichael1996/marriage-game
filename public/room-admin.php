@@ -211,7 +211,7 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
                     el.innerHTML = data.leaderboard.map((p, i) => `
                         <div class="leaderboard-item">
                             <div class="leaderboard-position">#${i + 1}</div>
-                            <div class="medal">${p.medal || ''}</div>
+                            <div class="medal">${['🥇','🥈','🥉'][i] || ''}</div>
                             <div class="leaderboard-info">
                                 <div class="leaderboard-name">${p.username}</div>
                                 <div class="leaderboard-time score-text">${p.score} punti</div>
