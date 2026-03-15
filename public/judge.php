@@ -10,7 +10,9 @@ $judge = authJudge();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giudice - Marriage Game</title>
-    <link rel="stylesheet" href="../assets/css/main.css?v=17">
+    <link rel="stylesheet" href="../assets/css/core.css?v=18">
+    <link rel="stylesheet" href="../assets/css/game.css?v=18">
+    <link rel="stylesheet" href="../assets/css/responsive.css?v=18">
 </head>
 <body>
     <div class="container">

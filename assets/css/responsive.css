@@ -1,0 +1,1011 @@
+/* ============================================================================
+   RESPONSIVE.CSS — All media queries
+   ============================================================================ */
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .login-box {
+    max-width: 440px;
+  }
+  .login-box.landing-box {
+    max-width: 750px;
+  }
+  .landing-buttons {
+    gap: 25px;
+  }
+  .landing-btn {
+    padding: 50px 30px;
+  }
+}
+
+@media (min-width: 768px) {
+  .login-box.landing-box {
+    max-width: 650px;
+  }
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .game-grid {
+    grid-template-columns: 1fr;
+  }
+  .game-sidebar {
+    position: static;
+  }
+  .options-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Mobile — 768px */
+@media (max-width: 767px) {
+  /* Header */
+  .header {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 18px;
+    border-radius: 16px;
+  }
+
+  .header h1 {
+    font-size: 1.3em;
+  }
+
+  .user-info {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Admin */
+  .admin-nav {
+    flex-direction: column;
+    border-radius: 14px;
+  }
+
+  .nav-item {
+    border-bottom: 2px solid #f0f2f5;
+    padding: 12px 15px;
+    font-size: 0.9em;
+  }
+
+  .nav-item.active {
+    border-bottom-color: #74b9ff;
+    background: #f0f7ff;
+  }
+
+  .admin-section {
+    padding: 16px;
+    margin-bottom: 14px;
+    border-radius: 16px;
+  }
+
+  .admin-section h2 {
+    font-size: 1.1em;
+    margin-bottom: 12px;
+  }
+
+  .tab-header,
+  .tab-header-with-button {
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 12px;
+    margin-bottom: 15px;
+  }
+
+  .tab-header h2,
+  .tab-header-with-button h2 {
+    font-size: 1.1em;
+    min-width: auto;
+  }
+
+  .tab-header-with-button .btn {
+    width: 100%;
+  }
+
+  .button-group {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .button-group .btn {
+    width: 100%;
+  }
+
+  /* Forms */
+  .form-group {
+    margin-bottom: 10px;
+  }
+  .form-group label {
+    font-size: 0.9em;
+    margin-bottom: 5px;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    padding: 10px 14px;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+
+  /* Login */
+  .login-box {
+    max-width: 100%;
+    padding: 30px 22px;
+    margin: 8px;
+    border-radius: 20px;
+  }
+
+  .login-box h1 {
+    font-size: 1.6em;
+  }
+  .login-box h2 {
+    font-size: 0.9em;
+    margin-bottom: 22px;
+  }
+
+  .login-box .form-group input {
+    padding: 13px 16px;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+
+  form button[type="submit"] {
+    padding: 14px 20px;
+    font-size: 1em;
+    margin-top: 15px;
+  }
+
+  .error {
+    font-size: 0.88em;
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+
+  /* Landing */
+  .login-box.landing-box {
+    max-width: 100%;
+    padding: 25px 18px;
+  }
+
+  .landing-buttons {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-top: 20px;
+  }
+
+  .landing-btn {
+    padding: 28px 20px;
+    border-radius: 18px;
+    min-height: auto;
+    flex-direction: row;
+    gap: 18px;
+    justify-content: flex-start;
+  }
+
+  .landing-btn .icon {
+    font-size: 2.5em;
+    margin-bottom: 0;
+  }
+  .landing-btn h3 {
+    font-size: 1.2em;
+    margin-bottom: 0;
+  }
+  .landing-btn p {
+    font-size: 0.85em;
+  }
+
+  .landing-btn:nth-child(1) {
+    border-bottom: none;
+    border-left: 5px solid #00b894;
+  }
+  .landing-btn:nth-child(2) {
+    border-bottom: none;
+    border-left: 5px solid #fdcb6e;
+  }
+  .landing-btn:nth-child(3) {
+    border-bottom: none;
+    border-left: 5px solid #e17055;
+  }
+
+  /* Tables */
+  .questions-table,
+  .sets-table {
+    font-size: 0.85em;
+  }
+  .sets-table th,
+  .sets-table td {
+    padding: 8px 6px;
+  }
+
+  .btn {
+    padding: 10px 16px;
+    font-size: 0.9em;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  /* Settings Group */
+  .settings-group {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+
+  .settings-group h3,
+  .settings-group h2 {
+    margin: 0 0 15px 0;
+    font-size: 1em;
+    padding-bottom: 10px;
+  }
+
+  .form-settings {
+    margin: 15px 0;
+  }
+  .form-settings h3,
+  .form-settings h2 {
+    padding: 12px 15px 10px;
+    font-size: 0.95em;
+  }
+
+  .question-item {
+    padding: 10px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .question-item-content {
+    font-size: 0.9em;
+  }
+
+  .question-item-actions {
+    gap: 5px;
+  }
+
+  .form-settings .btn-sm,
+  .form-settings .btn-danger,
+  .form-settings .btn-warning {
+    padding: 5px 10px;
+    font-size: 0.8em;
+  }
+
+  .search-row {
+    flex-direction: column;
+  }
+
+  .search-row-input,
+  .search-row-select,
+  .search-row .btn {
+    width: 100%;
+  }
+
+  /* Pagination */
+  .pagination-controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .pagination-controls button {
+    width: 100%;
+  }
+  .page-info {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .btn-icon {
+    padding: 6px 10px;
+    font-size: 0.85em;
+  }
+
+  /* Popup Categories */
+  .cat-add-inputs {
+    flex-wrap: wrap !important;
+  }
+  .cat-add-inputs input[type="color"] {
+    width: 60px;
+  }
+
+  .cat-display {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .cat-display div:nth-child(2) {
+    margin-top: 10px;
+    align-self: flex-end;
+  }
+
+  .category-view-mode {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .category-actions {
+    align-self: flex-end;
+    margin-top: 10px;
+  }
+
+  /* Toast */
+  .toast-container {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+  }
+  .toast {
+    min-width: unset;
+    max-width: unset;
+    width: 100%;
+  }
+
+  /* Game Room */
+  #qr-code-container-player,
+  #qr-code-container-judge {
+    display: none !important;
+  }
+
+  .tab-container {
+    display: flex;
+    gap: 0;
+  }
+  .tab-button {
+    flex: 1;
+    font-size: 0.85em;
+    padding: 8px 6px;
+  }
+  .tab-content {
+    padding: 12px 10px !important;
+  }
+  .tab-content p strong span {
+    font-size: 1.3em;
+    letter-spacing: 2px;
+  }
+  .tab-content p:last-child {
+    display: none;
+  }
+
+  .button-container-close {
+    flex-direction: column;
+  }
+  .button-container-close .btn {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .sets-table thead {
+    display: none;
+  }
+  .sets-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .sets-table tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    gap: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+
+  .sets-table tbody td {
+    padding: 0;
+    border: none;
+    font-size: 0.9em;
+  }
+  .sets-table tbody td:first-child {
+    font-weight: 600;
+    flex: 1;
+  }
+  .sets-table tbody td:nth-child(2) {
+    flex-shrink: 0;
+  }
+  .sets-table tbody td:last-child {
+    color: #666;
+    font-size: 0.8em;
+    flex-shrink: 0;
+  }
+
+  .settings-group h2 {
+    font-size: 1.05em;
+  }
+  #final-info p {
+    font-size: 0.9em;
+  }
+  .button-container .btn {
+    width: 100%;
+  }
+  #btn-start-game {
+    width: 100%;
+  }
+
+  /* Database */
+  .header p {
+    color: #636e72;
+    font-size: 0.9em;
+  }
+  .stats {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 8px;
+    border-radius: 16px;
+  }
+  .stat-card {
+    padding: 10px;
+    border-radius: 12px;
+  }
+  .table-card {
+    border-radius: 16px;
+  }
+  .table-card table {
+    font-size: 0.75em;
+  }
+  .table-card td,
+  .table-card th {
+    padding: 8px;
+  }
+
+  /* Questions Table → Card Layout */
+  .questions-table {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+  }
+  .questions-table thead {
+    display: none;
+  }
+  .questions-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .questions-table tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    gap: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .questions-table tbody tr:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  .questions-table td:first-child {
+    flex: 1 1 100%;
+    font-size: 0.95em;
+    line-height: 1.4;
+    padding: 0;
+    border: none;
+    text-align: center;
+  }
+  .questions-table td:nth-child(2) {
+    padding: 0;
+    border: none;
+  }
+  .questions-table td:nth-child(3) {
+    padding: 0;
+    border: none;
+  }
+  .questions-table td:nth-child(4) {
+    padding: 0;
+    border: none;
+    font-size: 0.8em;
+    color: #666;
+  }
+  .questions-table td:nth-child(4)::before {
+    content: "⏱ ";
+  }
+
+  .questions-table td:last-child {
+    flex: 1 1 100%;
+    padding: 0;
+    border: none;
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .questions-table .btn-icon {
+    padding: 6px 10px;
+    font-size: 0.95em;
+    border-radius: 6px;
+    min-width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .questions-table .btn-icon:active {
+    transform: scale(0.95);
+  }
+  .questions-table .badge-type,
+  .questions-table .badge-category {
+    font-size: 0.75em;
+    padding: 2px 8px;
+  }
+
+  /* Sets Table Card Overrides */
+  .sets-list-table td:nth-child(4)::before {
+    content: none;
+  }
+  .sets-list-table td:nth-child(2) {
+    flex: 1 1 100%;
+    font-size: 0.85em;
+    color: #666;
+    padding: 0;
+    border: none;
+    text-align: center;
+  }
+  .sets-list-table td:nth-child(3) {
+    font-size: 0.8em;
+    color: #666;
+  }
+  .sets-list-table td:nth-child(3)::before {
+    content: "📋 ";
+  }
+  .sets-list-table td:nth-child(4) {
+    font-size: 0.8em;
+    color: #666;
+  }
+  .sets-list-table td:nth-child(4)::before {
+    content: "📅 ";
+  }
+
+  .sets-list-table td:nth-child(5) {
+    padding: 0;
+    border: none;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .sets-list-table td:last-child {
+    flex: 1 1 100%;
+  }
+  .sets-list-table td:last-child .btn-icon {
+    width: 100%;
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 0.9em;
+  }
+
+  /* Points Table */
+  .points-table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  .points-table thead {
+    display: none;
+  }
+  .points-table tbody {
+    display: grid;
+    grid-template-columns: auto 1fr;
+  }
+  .points-table tbody tr {
+    display: contents;
+  }
+
+  .points-table tbody tr:nth-child(1) td:nth-child(1) {
+    order: 1;
+  }
+  .points-table tbody tr:nth-child(1) td:nth-child(2) {
+    order: 2;
+  }
+  .points-table tbody tr:nth-child(1) td:nth-child(3) {
+    order: 11;
+  }
+  .points-table tbody tr:nth-child(1) td:nth-child(4) {
+    order: 12;
+  }
+  .points-table tbody tr:nth-child(2) td:nth-child(1) {
+    order: 3;
+  }
+  .points-table tbody tr:nth-child(2) td:nth-child(2) {
+    order: 4;
+  }
+  .points-table tbody tr:nth-child(2) td:nth-child(3) {
+    order: 13;
+  }
+  .points-table tbody tr:nth-child(2) td:nth-child(4) {
+    order: 14;
+  }
+  .points-table tbody tr:nth-child(3) td:nth-child(1) {
+    order: 5;
+  }
+  .points-table tbody tr:nth-child(3) td:nth-child(2) {
+    order: 6;
+  }
+  .points-table tbody tr:nth-child(3) td:nth-child(3) {
+    order: 15;
+  }
+  .points-table tbody tr:nth-child(3) td:nth-child(4) {
+    order: 16;
+  }
+  .points-table tbody tr:nth-child(4) td:nth-child(1) {
+    order: 7;
+  }
+  .points-table tbody tr:nth-child(4) td:nth-child(2) {
+    order: 8;
+  }
+  .points-table tbody tr:nth-child(4) td:nth-child(3) {
+    order: 17;
+  }
+  .points-table tbody tr:nth-child(4) td:nth-child(4) {
+    order: 18;
+  }
+  .points-table tbody tr:nth-child(5) td:nth-child(1) {
+    order: 9;
+  }
+  .points-table tbody tr:nth-child(5) td:nth-child(2) {
+    order: 10;
+  }
+  .points-table tbody tr:nth-child(5) td:nth-child(3) {
+    order: 19;
+  }
+  .points-table tbody tr:nth-child(5) td:nth-child(4) {
+    order: 20;
+  }
+
+  .points-table td {
+    padding: 8px 10px;
+    border: 1px solid #e0e0e0;
+  }
+  .points-table td input[type="number"] {
+    width: 100%;
+  }
+
+  /* Question-item compact (modal lists) */
+  .question-item {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 8px !important;
+  }
+
+  .question-item > div:first-child {
+    flex: none !important;
+    font-size: 0.9em;
+    line-height: 1.35;
+    text-align: center;
+  }
+  .question-item > div:nth-child(2),
+  .question-item > div:nth-child(3) {
+    flex: none !important;
+    text-align: center !important;
+  }
+  .question-item span[style*="border-radius: 12px"] {
+    font-size: 0.75em !important;
+    padding: 2px 8px !important;
+  }
+  .question-item > div:last-child,
+  .question-item > button:last-child {
+    align-self: center;
+  }
+  .question-item .btn-sm,
+  .question-item .btn {
+    padding: 4px 10px;
+    font-size: 0.8em;
+  }
+}
+
+/* Small Mobile — 640px (game specific) */
+@media (max-width: 640px) {
+  .game-grid {
+    margin: 15px auto;
+    padding: 0 10px;
+  }
+  .game-sidebar {
+    padding: 15px;
+  }
+  .game-grid .info-box {
+    padding: 12px;
+  }
+
+  .category-header {
+    padding: 14px 18px;
+  }
+  .category-header .round-label {
+    font-size: 1em;
+  }
+  .category-header .timer-label {
+    font-size: 1.1em;
+  }
+
+  .game-step p,
+  #question-text {
+    font-size: 1.15em;
+    padding: 25px 18px;
+  }
+  .options-grid {
+    padding: 0 18px 18px;
+    gap: 10px;
+  }
+  .option-btn {
+    padding: 16px 20px;
+    font-size: 0.95em;
+  }
+
+  .game-card .button-group,
+  .game-step .button-group {
+    flex-direction: column;
+    padding: 0 18px 18px;
+  }
+  .btn-main {
+    width: 100%;
+    min-width: unset;
+  }
+  .btn-judge-confirm {
+    width: calc(100% - 36px);
+    margin: 0 18px 18px;
+  }
+  #timer {
+    font-size: 2em;
+  }
+  .player-main {
+    border-radius: 16px;
+  }
+  .round-info {
+    padding: 25px 18px;
+  }
+  .click-first-btn {
+    padding: 25px 50px;
+    font-size: 1.4em;
+  }
+
+  .header {
+    gap: 10px;
+    text-align: center;
+  }
+
+  .header h1 {
+    font-size: 1.2em;
+  }
+
+  .player-page {
+    padding: 10px;
+  }
+}
+
+/* Very Small Mobile — 479px */
+@media (max-width: 479px) {
+  body {
+    padding: 8px;
+  }
+  .container {
+    padding: 10px;
+  }
+
+  .header {
+    gap: 10px;
+    padding: 12px;
+    border-radius: 14px;
+  }
+  .header h1 {
+    font-size: 1.1em;
+  }
+
+  .admin-section {
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 14px;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    font-size: 16px;
+  }
+
+  .questions-table,
+  .sets-table {
+    font-size: 0.8em;
+  }
+  .sets-table th,
+  .sets-table td {
+    padding: 6px 4px;
+  }
+
+  .btn {
+    padding: 9px 12px;
+    font-size: 0.85em;
+  }
+
+  .modal-content {
+    width: 98%;
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .nav-item {
+    padding: 8px 10px;
+    font-size: 0.85em;
+  }
+  .tab-header h2,
+  .tab-header-with-button h2 {
+    font-size: 0.95em;
+  }
+
+  /* Login */
+  .login-box {
+    padding: 25px 18px;
+    margin: 4px;
+    border-radius: 18px;
+  }
+  .login-box h1 {
+    font-size: 1.4em;
+  }
+  .login-box h2 {
+    font-size: 0.82em;
+    margin-bottom: 18px;
+  }
+  .login-box .form-group input {
+    padding: 12px 14px;
+    font-size: 16px;
+  }
+  form button[type="submit"] {
+    padding: 13px 18px;
+    font-size: 0.95em;
+  }
+  .landing-btn {
+    padding: 22px 16px;
+    border-radius: 16px;
+  }
+  .landing-btn .icon {
+    font-size: 2em;
+  }
+  .landing-btn h3 {
+    font-size: 1.05em;
+  }
+
+  /* Settings Group */
+  .settings-group {
+    padding: 15px;
+    margin-bottom: 12px;
+    border-radius: 2px;
+  }
+  .settings-group h3,
+  .settings-group h2 {
+    margin: 0 0 12px 0;
+    font-size: 0.95em;
+    padding-bottom: 8px;
+  }
+  .form-settings {
+    margin: 12px 0;
+    border-radius: 2px;
+  }
+  .form-settings h3,
+  .form-settings h2 {
+    padding: 10px 12px 8px;
+    font-size: 0.9em;
+  }
+
+  .form-settings .question-item {
+    padding: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .form-settings .question-item-content {
+    width: 100%;
+    font-size: 0.85em;
+  }
+  .form-settings .question-item-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 5px;
+  }
+  .form-settings .btn-sm,
+  .form-settings .btn-danger,
+  .form-settings .btn-warning {
+    padding: 4px 8px;
+    font-size: 0.75em;
+    flex: 1;
+    min-width: 50px;
+  }
+  .form-settings p {
+    padding: 12px;
+    font-size: 0.85em;
+  }
+
+  /* Tables */
+  .questions-table,
+  .sets-table,
+  .points-table {
+    font-size: 0.85em;
+  }
+  .questions-table th,
+  .sets-table th,
+  .points-table th {
+    padding: 10px;
+  }
+  .sets-table td,
+  .points-table td {
+    padding: 10px;
+  }
+
+  .questions-table tbody tr {
+    padding: 10px;
+    gap: 6px;
+  }
+  .questions-table td:first-child {
+    font-size: 0.9em;
+  }
+  .questions-table .btn-icon {
+    padding: 5px 8px;
+    font-size: 0.9em;
+    min-width: 30px;
+    height: 30px;
+  }
+
+  .sets-table .btn-icon {
+    padding: 4px 6px;
+    font-size: 0.85em;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    margin: 0;
+    min-width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sets-table .btn-icon:active {
+    transform: scale(0.95);
+  }
+  .sets-table td:nth-last-child(2),
+  .sets-table td:last-child {
+    padding: 0;
+    width: auto;
+  }
+  .sets-table td:nth-last-child(2) {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 2px;
+    align-items: center;
+  }
+
+  .pagination-controls {
+    padding: 10px;
+    gap: 8px;
+  }
+  .pagination-controls button {
+    padding: 8px 15px;
+    font-size: 0.9em;
+  }
+  .page-info {
+    font-size: 0.9em;
+  }
+
+  .question-item {
+    padding: 6px !important;
+    gap: 4px !important;
+  }
+  .question-item > div:first-child {
+    font-size: 0.85em;
+  }
+  .question-item span[style*="border-radius: 12px"] {
+    font-size: 0.7em !important;
+    padding: 2px 6px !important;
+  }
+}

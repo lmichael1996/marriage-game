@@ -1,0 +1,208 @@
+/* ============================================================================
+   LOGIN.CSS — Login pages, Landing page
+   ============================================================================ */
+
+.login-box {
+  max-width: 420px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 40px 35px;
+  border: none;
+  border-radius: 24px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+}
+
+.login-box h1 {
+  color: #2d3436;
+  text-align: center;
+  margin-bottom: 6px;
+  font-size: 2em;
+  font-weight: 800;
+}
+
+.login-box h2 {
+  color: #636e72;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 1em;
+  font-weight: 500;
+}
+
+.login-box .header-brand {
+  justify-content: center;
+}
+
+.login-box .form-group input {
+  padding: 14px 18px;
+  font-size: 1em;
+}
+
+form button[type="submit"] {
+  width: 100%;
+  display: block;
+  padding: 16px 28px;
+  margin-top: 20px;
+  border: none;
+  font-size: 1.1em;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #fff;
+  border-radius: 50px;
+  box-shadow: 0 6px 20px rgba(26, 26, 46, 0.3);
+  user-select: none;
+  text-align: center;
+  transition: all 0.2s ease;
+  letter-spacing: 0.3px;
+}
+
+form button[type="submit"]:hover {
+  background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+  box-shadow: 0 8px 25px rgba(26, 26, 46, 0.4);
+  transform: translateY(-2px);
+}
+
+form button[type="submit"]:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 10px rgba(26, 26, 46, 0.2);
+}
+
+.error {
+  background: #fff5f5;
+  color: #d63031;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  border: none;
+  border-radius: 14px;
+  font-size: 0.9em;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(214, 48, 49, 0.08);
+}
+
+.error strong {
+  font-weight: 700;
+}
+
+.login-nav-link {
+  color: #74b9ff;
+  text-decoration: none;
+  font-size: 0.9em;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.login-nav-link:hover {
+  color: #0984e3;
+}
+
+.login-nav {
+  margin-top: 24px;
+  text-align: center;
+  padding-top: 18px;
+  border-top: 2px solid #f0f2f5;
+}
+
+.login-nav p {
+  margin: 0;
+  font-size: 0.9em;
+  color: #636e72;
+}
+
+/* Landing Box */
+.login-box.landing-box {
+  max-width: 1200px;
+  background: #fff;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+  padding: 40px 35px;
+}
+
+.landing-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  justify-items: stretch;
+  margin-top: 35px;
+}
+
+.landing-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 45px 25px;
+  background: #fff;
+  border: none;
+  border-radius: 24px;
+  text-decoration: none;
+  color: #2d3436;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.07);
+  cursor: pointer;
+  font-family: inherit;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  min-height: 220px;
+}
+
+.landing-btn::before {
+  content: none;
+}
+
+.landing-btn:hover {
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+  transform: translateY(-6px);
+}
+
+.landing-btn:active {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+
+.landing-btn .icon {
+  font-size: 4.5em;
+  margin-bottom: 18px;
+  display: block;
+  transition: transform 0.25s ease;
+  line-height: 1;
+}
+
+.landing-btn:hover .icon {
+  transform: scale(1.12) rotate(-3deg);
+}
+
+.landing-btn h3 {
+  font-size: 1.5em;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: #2d3436;
+}
+
+.landing-btn p {
+  font-size: 0.95em;
+  color: #636e72;
+  line-height: 1.5;
+  margin: 0;
+  font-weight: 500;
+}
+
+.landing-btn:nth-child(1) {
+  border-bottom: 5px solid #00b894;
+}
+.landing-btn:nth-child(2) {
+  border-bottom: 5px solid #fdcb6e;
+}
+.landing-btn:nth-child(3) {
+  border-bottom: 5px solid #e17055;
+}
+
+.landing-btn:nth-child(1):hover {
+  box-shadow: 0 12px 35px rgba(0, 184, 148, 0.15);
+}
+.landing-btn:nth-child(2):hover {
+  box-shadow: 0 12px 35px rgba(253, 203, 110, 0.2);
+}
+.landing-btn:nth-child(3):hover {
+  box-shadow: 0 12px 35px rgba(225, 112, 85, 0.15);
+}
