@@ -737,7 +737,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function loadCategoriesForFilter() {
     const select = document.getElementById('edit-category-filter');
     if (!select || select.options.length > 1) {
-        return; // Già caricate
+        return; // Already loaded
     }
 
     api('get_categories')
@@ -763,7 +763,7 @@ function loadCategoriesForFilter() {
 function loadCategoriesForAddSetFilter() {
     const select = document.getElementById('add-category-filter');
     if (!select || select.options.length > 1) {
-        return; // Già caricate
+        return; // Already loaded
     }
 
     api('get_categories')
@@ -1353,7 +1353,7 @@ function removeQuestionFromSet(setId, questionId) {
     showToast('Domanda rimossa dal set', 'error');
 }
 
-// Ricerca domande disponibili
+// Search available questions based on search term, type, and category, excluding those already associated with the set
 function searchAvailableQuestions() {
     const searchTerm = document.getElementById('edit-search-questions').value.trim();
     const searchType = document.getElementById('edit-search-type').value;
@@ -1363,11 +1363,11 @@ function searchAvailableQuestions() {
 
     container.innerHTML = '<p class="text-muted-center">Ricerca in corso...</p>';
 
-    // Fetch tutte le domande
+    // Fetch all questions to apply client-side filtering
     api('get_questions')
         .then(data => {
             if (data.success && data.questions) {
-                // Applica filtro per tipo di ricerca
+                // Apply filter based on search type
                 let pattern = null;
                 if (searchTerm) {
                     switch(searchType) {
@@ -1385,7 +1385,7 @@ function searchAvailableQuestions() {
                     }
                 }
 
-                // Filtra le domande in base al termine di ricerca e alla categoria
+                // Filter questions based on search term and category
                 const filtered = data.questions.filter(q => {
                     const matchesSearch = !pattern || (q.question && pattern.test(q.question));
                     const matchesCategory = !categoryId || (q.category_id && q.category_id.toString() === categoryId);
@@ -1397,15 +1397,15 @@ function searchAvailableQuestions() {
                     return;
                 }
 
-                // Se è un nuovo set (setId vuoto), non fare fetch delle domande associate
+                // If it's a new set (empty setId), don't fetch associated questions
                 if (!setId) {
-                    // Per "Crea Partita", ottieni le domande già aggiunte dal localStorage
+                    // For "Create Game", get the questions already added from localStorage
                     const addedQuestionIds = JSON.parse(localStorage.getItem('addSetQuestions') || '[]').map(id => parseInt(id));
 
-                    // Per nuovi set, mostra tutte le domande filtrate escludendo quelle già aggiunte
+                    // For new sets, show all filtered questions excluding those already added
                     let html = '';
                     filtered.forEach(q => {
-                        // Salta le domande già aggiunte
+                        // Skip questions already added
                         if (addedQuestionIds.includes(parseInt(q.id))) {
                             return;
                         }
@@ -1419,7 +1419,7 @@ function searchAvailableQuestions() {
                             questionText = q.question.replace(pattern, '<mark>$&</mark>');
                         }
 
-                        // Per "Crea Partita", aggiungi a localStorage; per nuovi set da salvare in DB, usa addQuestionToSet
+                        // For "Create Game", add to localStorage; for new sets to be saved in DB, use addQuestionToSet
                         const functionCall = isNewSet && document.querySelector('#modal-edit-set .modal-header h2').textContent.includes('Crea Partita') ? `addQuestionToGameSet(${q.id})` : `addQuestionToSet(${setId}, ${q.id})`;
 
                         html += `
@@ -1437,11 +1437,11 @@ function searchAvailableQuestions() {
                     return;
                 }
 
-                // Ottieni le domande già associate al set dal DOM
+                // Get the questions already associated with the set from the DOM
                 const associatedItems = document.querySelectorAll('#edit-set-questions .question-item');
                 const setQuestionIds = Array.from(associatedItems).map(item => parseInt(item.getAttribute('data-question-id')));
 
-                // Escludi le domande già associate dal risultato della ricerca
+                // Exclude the questions already associated from the search results
                 const availableQuestions = filtered.filter(q => !setQuestionIds.includes(parseInt(q.id)));
 
                 if (availableQuestions.length === 0) {
@@ -1482,7 +1482,7 @@ function searchAvailableQuestions() {
         });
 }
 
-// Ricerca domande per il nuovo set (senza ID set)
+// Search available questions for the new set (without set ID)
 function searchAvailableQuestionsForNewSet() {
     const searchTerm = document.getElementById('add-search-questions').value.trim();
     const searchType = document.getElementById('add-search-type').value;
@@ -1490,11 +1490,11 @@ function searchAvailableQuestionsForNewSet() {
     const container = document.getElementById('add-available-questions');
     const associatedContainer = document.getElementById('add-set-associated-questions');
 
-    // Fetch tutte le domande (sempre, per aggiornare l'elenco escludendo quelle appena aggiunte)
+    // Fetch all questions (always, to update the list excluding those just added)
     api('get_questions')
         .then(data => {
             if (data.success && data.questions) {
-                // Applica filtro per tipo di ricerca
+                // Apply filter based on search type
                 let pattern = null;
                 if (searchTerm) {
                     switch(searchType) {
@@ -1512,7 +1512,7 @@ function searchAvailableQuestionsForNewSet() {
                     }
                 }
 
-                // Filtra le domande in base al termine di ricerca e alla categoria
+                // Filter questions based on search term and category
                 const filtered = data.questions.filter(q => {
                     const matchesSearch = !pattern || (q.question && pattern.test(q.question));
                     const matchesCategory = !categoryId || (q.category_id && q.category_id.toString() === categoryId);
@@ -1524,10 +1524,10 @@ function searchAvailableQuestionsForNewSet() {
                     return;
                 }
 
-                // Ottieni le domande già associate al nuovo set (da localStorage)
+                // Get the questions already associated with the new set (from localStorage)
                 const addedQuestionIds = JSON.parse(localStorage.getItem('addSetQuestions') || '[]').map(id => parseInt(id));
 
-                // Escludi le domande già associate dal risultato della ricerca
+                // Exclude the questions already associated from the search results
                 const availableQuestions = filtered.filter(q => !addedQuestionIds.includes(parseInt(q.id)));
 
                 if (availableQuestions.length === 0) {
@@ -1568,7 +1568,7 @@ function searchAvailableQuestionsForNewSet() {
         });
 }
 
-// Evidenzia una domanda temporaneamente
+// Highlight a question temporarily
 function highlightQuestion(questionId, setId) {
     const container = document.getElementById('questions-list-' + setId);
     if (!container) return;
@@ -1582,7 +1582,7 @@ function highlightQuestion(questionId, setId) {
     }
 }
 
-// Evidenzia una domanda nella sezione di ricerca
+// Highlight a question in the search section
 function highlightSearchResult(questionId) {
     const container = document.getElementById('edit-available-questions');
     if (!container) return;
@@ -1596,7 +1596,7 @@ function highlightSearchResult(questionId) {
     }
 }
 
-// Aggiunge una domanda al set
+// Adds a question to a set
 function addQuestionToSet(setId, questionId) {
     api('add_question_to_set', {
         set_id: setId,
@@ -1605,18 +1605,18 @@ function addQuestionToSet(setId, questionId) {
     .then(data => {
         if (data.success) {
             showToast('Domanda aggiunta con successo!', 'success');
-            // Ricarica le domande associate
+            // Reload the associated questions
             loadSetQuestions(setId);
             setTimeout(() => {
                 highlightQuestion(questionId, setId);
             }, 100);
-            // Aggiorna la ricerca per escludere la domanda appena aggiunta
+            // Update the search to exclude the newly added question
             searchAvailableQuestions();
         } else {
-            // Estrai il messaggio di errore specifico
-            const errorMsg = data.error || data.message || 'Non è stato possibile aggiungere la domanda';
+            // Extract the specific error message
+            const errorMsg = data.error || data.message || 'Unable to add the question';
             if (errorMsg.includes('already')) {
-                // Mostra banda rossa sotto la domanda al posto dell'alert
+                // Show a red band under the question instead of an alert
                 showAlreadyPresentError(questionId);
             } else {
                 showToast(errorMsg, 'error');
@@ -1629,7 +1629,7 @@ function addQuestionToSet(setId, questionId) {
     });
 }
 
-// Mostra una banda rossa nel messaggio quando la domanda è già presente nel set (Modifica Set / Crea Partita)
+// Show a red band in the message when the question is already present in the set (Edit Set / Create Game)
 function showAlreadyPresentError(questionId) {
     const messageDiv = document.getElementById('edit-set-message');
     if (!messageDiv) return;

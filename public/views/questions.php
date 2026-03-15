@@ -1,4 +1,4 @@
-<!-- Tab: Domande e Gestione Partita -->
+<!-- Tab: Questions and Management -->
 <div class="admin-section">
     <div class="tab-header-with-button">
         <h2>❓ Domande Disponibili</h2>
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
         form.submit();
     });
 
-    // Colora le option del select categorie con il pallino colorato
+    // Color the options of the category select with the colored dot
     function colorCategorySelect(select) {
         select.querySelectorAll('option[data-color]').forEach(opt => {
             opt.style.color = opt.dataset.color;
@@ -145,23 +145,23 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target.closest('.btn-edit-question')) {
             const questionId = e.target.closest('.btn-edit-question').getAttribute('data-question-id');
 
-            // Carica dati domanda tramite API
+            // Upload question data via API
             api('get_question&id=' + questionId)
                 .then(data => {
                     if (data.success && data.question) {
                         const q = data.question;
 
-                        // Popola i campi del form
+                        // Populate form fields
                         document.getElementById('edit-question-id').value = q.id;
                         document.getElementById('edit-question').value = q.question;
                         document.getElementById('edit-type').value = q.question_type;
                         document.getElementById('edit-category').value = q.category_id;
                         document.getElementById('edit-timer').value = q.timer;
 
-                        // Trigger change per mostrare i campi risposte
+                        // Trigger change to show answer fields
                         document.getElementById('edit-type').dispatchEvent(new Event('change'));
 
-                        // Popola le risposte in base al tipo
+                        // Populate answers based on type
                         if (q.question_type === 'truefalse') {
                             if (q.option1) document.getElementById('edit-answer1').value = q.option1;
                             if (q.option2) document.getElementById('edit-answer2').value = q.option2;
@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (q.correct_answer) document.getElementById('edit-correct').value = q.correct_answer;
                         }
 
-                        // Mostra il modal
+                        // Show the modal
                         const modal = document.getElementById('modal-edit-question');
                         modal.style.display = 'flex';
                     } else {
@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             modal.style.display = 'flex';
 
-            // Aggiorna il button per eliminare con l'ID corretto
+            // Update the delete button to submit the form with the correct question ID
             btnConfirmDelete.onclick = function() {
                 const form = document.createElement('form');
                 form.method = 'POST';
@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Paginazione domande - Session-based con POST
+    // Questions pagination - Session-based with POST
     const ROWS_PER_PAGE = 10;
     const total = <?php echo (int)($pagination['total'] ?? 0); ?>;
     let totalPages = total > 0 ? Math.ceil(total / ROWS_PER_PAGE) : 1;
@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!pageInfo || !btnPrev || !btnNext) return;
 
-        // Se non ci sono domande, mostra 'Nessuna domanda disponibile' invece di 'Domande 0-0 di 0'
+        // If there are no questions, show 'No questions available' instead of 'Questions 0-0 of 0'
         if (total === 0) {
             pageInfo.textContent = `Nessuna domanda disponibile`;
         } else {
@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Gestione popup Nuova Domanda
+    // Manage Add Question Modal
     const btnNewQuestion = document.getElementById('btn-new-question');
     const modalOverlay = document.getElementById('modal-add-question');
 
@@ -311,7 +311,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Chiudi modal quando clicchi sul overlay
+    // Close modal when clicking on the overlay
     if (modalOverlay) {
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) {
@@ -321,11 +321,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Invia form aggiunta domanda
+    // Submit Add Question form
     const formNewQuestion = document.getElementById('form-new-question');
     if (formNewQuestion) {
         formNewQuestion.addEventListener('submit', (e) => {
-            // Validazione: controlla che sia selezionato un tipo valido
+            // Validation: check if a valid type is selected
             const typeSelected = document.getElementById('new-type').value;
 
             if (!typeSelected) {
@@ -358,7 +358,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Gestisci visibilità campi risposte basato sul tipo
+    // Manage answer fields visibility based on type
     const typeSelect = document.getElementById('new-type');
     const answersContainer = document.getElementById('answers-container');
     const answer3Group = document.getElementById('answer3-group');
@@ -370,12 +370,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const type = e.target.value;
             const answerInputs = [document.getElementById('new-answer1'), document.getElementById('new-answer2'), document.getElementById('new-answer3'), document.getElementById('new-answer4')];
 
-            // Mostra/nascondi sezione risposte basato sul tipo
+            // Show/hide answer section based on type
             if (type === 'multiple') {
                 answersContainer.style.display = 'block';
                 answer3Group.style.display = 'block';
                 answer4Group.style.display = 'block';
-                // Mostra i campi input answer
+                // Show answer input fields
                 document.getElementById('new-answer1').parentElement.style.display = 'block';
                 document.getElementById('new-answer2').parentElement.style.display = 'block';
                 correctSelect.innerHTML = '<option value="1">Risposta 1</option><option value="2">Risposta 2</option><option value="3">Risposta 3</option><option value="4">Risposta 4</option>';
@@ -384,7 +384,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 answersContainer.style.display = 'block';
                 answer3Group.style.display = 'none';
                 answer4Group.style.display = 'none';
-                // Nascondi i campi input answer1 e answer2 per vero/falso
+                // Hide answer input fields for true/false
                 document.getElementById('new-answer1').parentElement.style.display = 'none';
                 document.getElementById('new-answer2').parentElement.style.display = 'none';
                 correctSelect.innerHTML = '<option value="1">Vero</option><option value="2">Falso</option>';
@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ========== MODAL MODIFICA DOMANDA ==========
+    // ========== MODAL EDIT QUESTION ==========
     const modalEditQuestion = document.getElementById('modal-edit-question');
     const closeEditBtn = document.querySelector('#modal-edit-question .modal-close');
     const formEditQuestion = document.getElementById('form-edit-question');
@@ -417,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Gestisci visibilità campi risposte per modal edit
+    // Manage answer fields visibility for edit modal
     const editTypeSelect = document.getElementById('edit-type');
     const editAnswersContainer = document.getElementById('edit-answers-container');
     const editAnswer3Group = document.getElementById('edit-answer3-group');
@@ -433,7 +433,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 editAnswersContainer.style.display = 'block';
                 editAnswer3Group.style.display = 'none';
                 editAnswer4Group.style.display = 'none';
-                // Nascondi i campi input answer1 e answer2 per vero/falso
+                // Hide answer input fields for true/false
                 document.getElementById('edit-answer1').parentElement.style.display = 'none';
                 document.getElementById('edit-answer2').parentElement.style.display = 'none';
                 editCorrectSelect.innerHTML = '<option value="1">Vero</option><option value="2">Falso</option>';
@@ -442,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 editAnswersContainer.style.display = 'block';
                 editAnswer3Group.style.display = 'block';
                 editAnswer4Group.style.display = 'block';
-                // Mostra i campi input answer
+                // Show answer input fields for multiple choice
                 document.getElementById('edit-answer1').parentElement.style.display = 'block';
                 document.getElementById('edit-answer2').parentElement.style.display = 'block';
                 editCorrectSelect.innerHTML = '<option value="1">Risposta 1</option><option value="2">Risposta 2</option><option value="3">Risposta 3</option><option value="4">Risposta 4</option>';
@@ -459,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (formEditQuestion) {
         formEditQuestion.addEventListener('submit', (e) => {
-            // Validazione: controlla che sia selezionato un tipo valido
+            // Validation: check if a valid type is selected
             const typeSelected = document.getElementById('edit-type').value;
 
             if (!typeSelected) {
@@ -468,7 +468,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Per "Vero/Falso" e "Clicca il Primo" non servono risposte
+            // For "True/False" and "Click First" types, answers are not required
 
             e.preventDefault();
             const formData = new FormData(formEditQuestion);
@@ -477,11 +477,11 @@ document.addEventListener('DOMContentLoaded', function() {
             postFormData('admin.php', formData)
             .then(response => response.text())
             .then(data => {
-                // Mostra il messaggio di successo nella banda verde
+                // Show success message in the green banner
                 const messageDiv = document.getElementById('edit-question-message');
                 messageDiv.innerHTML = '<div class="alert-success">✓ Domanda modificata con successo!</div>';
 
-                // Chiudi il modal dopo 1 secondo e ricarica
+                // Close the modal after 1 second and reload
                 setTimeout(() => {
                     modalEditQuestion.style.display = 'none';
                     location.reload();
@@ -494,7 +494,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ========== MODAL ELIMINAZIONE DOMANDA ==========
+    // ========== MODAL DELETE QUESTION ==========
     const modalDeleteQuestion = document.getElementById('modal-delete-question');
     const closeDeleteBtn = document.querySelector('#modal-delete-question .modal-close');
 
@@ -514,7 +514,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<!-- Modal per aggiungere nuova domanda -->
+<!-- Modal ADD QUESTION -->
 <div id="modal-add-question" class="modal-overlay" style="display: none;">
     <div class="modal-content modal-content-large">
         <div class="modal-header">
@@ -591,7 +591,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 
-<!-- Modal per modificare domanda -->
+<!-- Modal EDIT QUESTION -->
 <div id="modal-edit-question" class="modal-overlay" style="display: none;">
     <div class="modal-content modal-content-large">
         <div class="modal-header">
@@ -669,7 +669,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 
-<!-- Modal per confermare eliminazione domanda -->
+<!-- Modal DELETE QUESTION -->
 <div id="modal-delete-question" class="modal-overlay" style="display: none;">
     <div class="modal-content modal-content-small">
         <div class="modal-header">
@@ -687,7 +687,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 
-<!-- MODALE GESTISCI CATEGORIE -->
+<!-- MODALE CATEGORIES -->
 
 <div id="modal-categories" class="modal-overlay" style="display: none;">
     <div class="modal-content modal-content-large">
@@ -725,13 +725,13 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 let categoryChanges = { deleted: [], updated: [], added: [] };
 
-// Apri modale
+// Open modal
 document.getElementById('btn-new-category').addEventListener('click', function() {
     loadCategoriesUI();
     document.getElementById('modal-categories').style.display = 'flex';
 });
 
-// Chiudi modale
+// Close modal
 document.querySelectorAll('#modal-categories .modal-close').forEach(b => {
     b.addEventListener('click', () => document.getElementById('modal-categories').style.display = 'none');
 });
@@ -740,7 +740,7 @@ document.getElementById('modal-categories').addEventListener('click', (e) => {
     if (e.target.id === 'modal-categories') document.getElementById('modal-categories').style.display = 'none';
 });
 
-// Carica categorie nel modale
+// Load categories into the modal
 function loadCategoriesUI() {
     const list = document.getElementById('categoriesList');
     list.innerHTML = '';
@@ -760,7 +760,7 @@ function createCategoryCard(id, name, color, existing = false) {
     const displayDiv = document.createElement('div');
     displayDiv.className = 'cat-display';
 
-    // Contenitore inputs
+    // Inputs container
     const inputsContainer = document.createElement('div');
     inputsContainer.style.display = 'flex';
     inputsContainer.style.gap = '10px';
@@ -782,7 +782,7 @@ function createCategoryCard(id, name, color, existing = false) {
     colorInput.className = 'cat-color-edit';
     colorInput.value = color;
 
-    // Pulsante elimina
+    // Delete button
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'btn-icon btn-danger';
     deleteBtn.textContent = '×';
@@ -796,7 +796,7 @@ function createCategoryCard(id, name, color, existing = false) {
     displayDiv.appendChild(inputsContainer);
     displayDiv.appendChild(deleteBtn);
 
-    // Aggiungi event listener per update su change
+    // Add event listener for update on change
     nameInput.addEventListener('change', function() {
         updateCategoryChange(card, id, nameInput.value.trim(), colorInput.value);
     });
