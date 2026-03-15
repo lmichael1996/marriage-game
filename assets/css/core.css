@@ -179,15 +179,15 @@ button {
 }
 
 .btn-warning {
-  background: #fdcb6e;
-  color: #2d3436;
+  background: #f39c12;
+  color: #fff;
   border: none;
-  box-shadow: 0 4px 15px rgba(253, 203, 110, 0.3);
+  box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
 }
 
 .btn-warning:hover {
-  background: #ffc048;
-  box-shadow: 0 6px 20px rgba(253, 203, 110, 0.4);
+  background: #e08e0b;
+  box-shadow: 0 6px 20px rgba(243, 156, 18, 0.4);
   transform: translateY(-2px);
 }
 

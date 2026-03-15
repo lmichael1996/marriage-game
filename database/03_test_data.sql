@@ -29,7 +29,7 @@ VALUES
         'Tolosa',
         1,
         2,
-        30
+        10
     ),
     (
         'multiple',
@@ -40,7 +40,7 @@ VALUES
         '8',
         1,
         3,
-        30
+        10
     ),
     (
         'multiple',
@@ -51,7 +51,7 @@ VALUES
         'García Márquez',
         1,
         2,
-        30
+        10
     ),
     (
         'multiple',
@@ -62,7 +62,7 @@ VALUES
         'Urano',
         1,
         2,
-        30
+        10
     ),
     (
         'multiple',
@@ -73,7 +73,7 @@ VALUES
         'Inghilterra',
         1,
         2,
-        30
+        10
     ),
     -- ── Storia (2) ── clickfirst ──
     (
@@ -141,7 +141,7 @@ VALUES
         '2018',
         3,
         3,
-        30
+        10
     ),
     (
         'multiple',
@@ -152,7 +152,7 @@ VALUES
         '9',
         3,
         2,
-        30
+        10
     ),
     (
         'multiple',
@@ -163,7 +163,7 @@ VALUES
         'Liverpool',
         3,
         2,
-        30
+        10
     ),
     (
         'multiple',
@@ -174,7 +174,7 @@ VALUES
         'Rio',
         3,
         1,
-        30
+        10
     ),
     (
         'multiple',
@@ -185,7 +185,7 @@ VALUES
         'Andy Murray',
         3,
         3,
-        30
+        10
     ),
     -- ── Scienze (4) ── truefalse ──
     (
@@ -223,7 +223,7 @@ VALUES
     ),
     (
         'truefalse',
-        'La velocità della luce è di circa 300.000 km/s',
+        'La velocità della luce è di circa 100.000 km/s',
         '',
         '',
         '',
@@ -253,7 +253,7 @@ VALUES
         'Yangtze',
         5,
         2,
-        30
+        10
     ),
     (
         'multiple',
@@ -264,7 +264,7 @@ VALUES
         'Oceania',
         5,
         2,
-        30
+        10
     ),
     (
         'multiple',
@@ -275,7 +275,7 @@ VALUES
         'Giappone',
         5,
         3,
-        30
+        10
     ),
     (
         'truefalse',
@@ -342,7 +342,7 @@ VALUES
         'Stanley Kubrick',
         6,
         2,
-        30
+        10
     ),
     (
         'multiple',
@@ -353,7 +353,7 @@ VALUES
         '1980',
         6,
         2,
-        30
+        10
     ),
     -- ── Arte (7) ── multiple + truefalse ──
     (
@@ -365,7 +365,7 @@ VALUES
         'Caravaggio',
         7,
         3,
-        30
+        10
     ),
     (
         'multiple',
@@ -376,7 +376,7 @@ VALUES
         'Prado',
         7,
         2,
-        30
+        10
     ),
     (
         'truefalse',
@@ -398,7 +398,7 @@ VALUES
         'Futurismo',
         7,
         3,
-        30
+        10
     ),
     (
         'clickfirst',
@@ -421,7 +421,7 @@ VALUES
         'Bach',
         8,
         2,
-        30
+        10
     ),
     (
         'multiple',
@@ -432,7 +432,7 @@ VALUES
         'Tastiera',
         8,
         3,
-        30
+        10
     ),
     (
         'clickfirst',
@@ -465,7 +465,7 @@ VALUES
         'Pink Floyd',
         8,
         3,
-        30
+        10
     ),
     -- ── Cucina (9) ── multiple + truefalse ──
     (
@@ -477,7 +477,7 @@ VALUES
         'Spinaci',
         9,
         2,
-        30
+        10
     ),
     (
         'multiple',
@@ -488,7 +488,7 @@ VALUES
         'Toscana',
         9,
         3,
-        30
+        10
     ),
     (
         'truefalse',
@@ -510,7 +510,7 @@ VALUES
         'Mozzarella',
         9,
         2,
-        30
+        10
     ),
     (
         'clickfirst',
@@ -576,12 +576,12 @@ VALUES
     (5, 23, 3),
     (5, 24, 4),
     (5, 25, 5),
-    -- Set 6: Cinefili → domande 26-30
+    -- Set 6: Cinefili → domande 26-10
     (6, 26, 1),
     (6, 27, 2),
     (6, 28, 3),
     (6, 29, 4),
-    (6, 30, 5),
+    (6, 10, 5),
     -- Set 7: Arte & Storia → domande 31-35
     (7, 31, 1),
     (7, 32, 2),
