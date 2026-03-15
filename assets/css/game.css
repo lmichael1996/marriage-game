@@ -267,6 +267,7 @@
   align-items: center;
   justify-content: center;
   font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .option-btn.correct {
@@ -647,18 +648,19 @@
   font-size: 1.05em;
 }
 
-.player-main .option-btn:hover:not(:disabled) {
+.player-main .option-btn:hover:not(:disabled):not(.selected) {
   background: #e9ecef;
   border-color: var(--cat-color, #74b9ff);
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
 
-.option-btn.selected {
+.player-main .option-btn.selected {
   background: var(--cat-color, #1a1a2e);
-  color: #fff;
   border-color: transparent;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  transform: scale(1.03);
+  transition: all 0.25s ease;
 }
 
 .option-btn:disabled {

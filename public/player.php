@@ -10,9 +10,9 @@ requirePlayer();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Player - Marriage Game</title>
-    <link rel="stylesheet" href="../assets/css/core.css?v=20">
-    <link rel="stylesheet" href="../assets/css/game.css?v=20">
-    <link rel="stylesheet" href="../assets/css/responsive.css?v=20">
+    <link rel="stylesheet" href="../assets/css/core.css?v=21">
+    <link rel="stylesheet" href="../assets/css/game.css?v=21">
+    <link rel="stylesheet" href="../assets/css/responsive.css?v=21">
 </head>
 <body class="player-page">
     <div class="container">
@@ -123,6 +123,11 @@ requirePlayer();
             if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) e.preventDefault();
         });
 
+        // ── Detect page reload (penalise refresh mid-round) ──────────
+        const wasReloaded = (performance.getEntriesByType('navigation')[0]?.type === 'reload')
+                         || (performance.navigation && performance.navigation.type === 1);
+        let skipCurrentRound = false;
+
         // ── Helpers ────────────────────────────────────────────────────
         function api(qs) {
             return fetch('../src/api/api.php?' + qs).then(r => r.json());
@@ -138,6 +143,7 @@ requirePlayer();
         /** Mark game as ended and stop all polling */
         function endGame() {
             gameEnded = true;
+            sessionStorage.removeItem('activeRound');
             clearInterval(checkGameStateInterval);
             clearInterval(checkRoomStatusInterval);
             stopTimer();
@@ -187,7 +193,15 @@ requirePlayer();
         // ── Init ───────────────────────────────────────────────────────
         document.addEventListener('DOMContentLoaded', () => {
             api('endpoint=player_progress')
-                .then(data => { if (data.success && data.answered > 0) currentRoundCounter = data.answered + 1; })
+                .then(data => {
+                    if (data.success && data.answered > 0) currentRoundCounter = data.answered + 1;
+
+                    // If reloaded while a round was active → skip (penalise)
+                    const savedRound = sessionStorage.getItem('activeRound');
+                    if (wasReloaded && savedRound && parseInt(savedRound) === currentRoundCounter) {
+                        skipCurrentRound = true;
+                    }
+                })
                 .catch(() => {})
                 .finally(() => {
                     checkRoomStatusInterval = setInterval(checkRoomStatus, 1000);
@@ -234,6 +248,14 @@ requirePlayer();
                 }
                 if (!data.success && !data.round_number) { if (!violated) showScreen('waiting'); return; }
                 if (data.round_number === currentRoundCounter && !hasAnswered && !roundInProgress) {
+                    // Penalise refresh: skip this round immediately
+                    if (skipCurrentRound) {
+                        skipCurrentRound = false;
+                        sessionStorage.removeItem('activeRound');
+                        currentRoundCounter++;
+                        showScreen('waiting');
+                        return;
+                    }
                     if (violated) {
                         violated = false;
                         document.querySelector('.player-container').style.display = '';
@@ -251,6 +273,7 @@ requirePlayer();
             hasAnswered = false;
             startTime = Date.now();
             currentRoundId = round.id;
+            sessionStorage.setItem('activeRound', String(round.round_number));
             stopTimer();
             startWatchdog();
             setNav(true);
@@ -291,16 +314,25 @@ requirePlayer();
                     ? (round.question_type === 'truefalse' ? tfLabels[i] : (round['option' + i] || 'Opzione ' + i))
                     : '';
                 btn.classList.remove('selected');
+                btn.style.pointerEvents = '';
             }
         }
 
         // ── Answers ────────────────────────────────────────────────────
         function selectAnswer(answer) {
             if (hasAnswered) return;
-            document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-            document.querySelector(`[data-answer="${answer}"]`).classList.add('selected');
             hasAnswered = true;
             stopTimer();
+
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(b => {
+                b.classList.remove('selected');
+                if (b.getAttribute('data-answer') == answer) {
+                    b.classList.add('selected');
+                }
+                b.style.pointerEvents = 'none';
+            });
+
             submitAnswer(answer, (Date.now() - startTime) / 1000);
         }
 
@@ -335,6 +367,7 @@ requirePlayer();
         function resetRound() {
             hasAnswered = false;
             roundInProgress = false;
+            sessionStorage.removeItem('activeRound');
             stopTimer();
             stopWatchdog();
             setNav(false);
