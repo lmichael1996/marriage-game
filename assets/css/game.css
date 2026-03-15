@@ -434,6 +434,7 @@
   padding: 15px;
   color: #b2bec3;
   font-size: 0.9em;
+  grid-column: 1 / -1;
 }
 
 /* Waiting Screen */
