@@ -1171,15 +1171,13 @@ function addQuestionToGameSet(questionId) {
 
 // Rimuove una domanda da "Crea Partita"
 function removeGameQuestion(questionId) {
-    if (confirm('Vuoi eliminare questa domanda dal set?')) {
-        let addedQuestions = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
-        addedQuestions = addedQuestions.filter(id => id !== questionId);
-        localStorage.setItem('addSetQuestions', JSON.stringify(addedQuestions));
+    let addedQuestions = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
+    addedQuestions = addedQuestions.filter(id => id !== questionId);
+    localStorage.setItem('addSetQuestions', JSON.stringify(addedQuestions));
 
-        loadGameQuestions();
-        searchAvailableQuestions();
-        showToast('Domanda rimossa dal set', 'error');
-    }
+    loadGameQuestions();
+    searchAvailableQuestions();
+    showToast('Domanda rimossa dal set', 'error');
 }
 
 // Evidenzia una domanda in "Crea Partita"
@@ -1477,20 +1475,18 @@ function updateNewSetOrderInLocalStorage() {
 
 // Rimuove una domanda da un set (traccia solo, salva al click di "Salva Modifiche")
 function removeQuestionFromSet(setId, questionId) {
-    if (confirm('Vuoi eliminare questa domanda dal set?')) {
-        // Aggiungi alla lista di domande da eliminare
-        if (!questionsToRemove.includes(questionId)) {
-            questionsToRemove.push(questionId);
-        }
-
-        // Rimuove immediatamente l'elemento dalla lista
-        const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
-        if (questionElement) {
-            questionElement.remove();
-        }
-
-        showToast('Domanda rimossa dal set', 'error');
+    // Aggiungi alla lista di domande da eliminare
+    if (!questionsToRemove.includes(questionId)) {
+        questionsToRemove.push(questionId);
     }
+
+    // Rimuove immediatamente l'elemento dalla lista
+    const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
+    if (questionElement) {
+        questionElement.remove();
+    }
+
+    showToast('Domanda rimossa dal set', 'error');
 }
 
 // Sposta una domanda su nella lista
@@ -1987,14 +1983,12 @@ function loadNewSetQuestions(highlightId = null) {
 
 // Rimuove una domanda dal nuovo set
 function removeQuestionFromNewSet(questionId) {
-    if (confirm('Vuoi eliminare questa domanda dal set?')) {
-        let addedQuestions = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
-        addedQuestions = addedQuestions.filter(id => id !== questionId);
-        localStorage.setItem('addSetQuestions', JSON.stringify(addedQuestions));
+    let addedQuestions = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
+    addedQuestions = addedQuestions.filter(id => id !== questionId);
+    localStorage.setItem('addSetQuestions', JSON.stringify(addedQuestions));
 
-        loadNewSetQuestions();
-        searchAvailableQuestionsForNewSet();
-    }
+    loadNewSetQuestions();
+    searchAvailableQuestionsForNewSet();
 }
 
 // Evidenzia una domanda nel nuovo set
