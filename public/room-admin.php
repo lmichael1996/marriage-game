@@ -88,7 +88,7 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
                                     ➡️ Prossima Domanda
                                 </button>
                             <?php else: ?>
-                                <button class="btn-main btn-primary-custom" onclick="startRound(<?php echo $question['id']; ?>)">
+                                <button class="btn-main" onclick="startRound(<?php echo $question['id']; ?>)">
                                     ▶ AVVIA ROUND
                                 </button>
                             <?php endif; ?>
