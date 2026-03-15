@@ -9,9 +9,9 @@ $tableData = getTableData();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Database - MVquiz</title>
-    <link rel="stylesheet" href="../../assets/css/core.css?v=20">
-    <link rel="stylesheet" href="../../assets/css/database.css?v=20">
-    <link rel="stylesheet" href="../../assets/css/responsive.css?v=20">
+    <link rel="stylesheet" href="../../assets/css/core.css?v=21">
+    <link rel="stylesheet" href="../../assets/css/database.css?v=21">
+    <link rel="stylesheet" href="../../assets/css/responsive.css?v=21">
 </head>
 <body>
     <div class="container">
