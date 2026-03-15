@@ -46,6 +46,7 @@
             }
         });
 
+        // Handle form submission
         document.getElementById('judge-login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -61,7 +62,9 @@
             }
 
             try {
-                const result = await api('judge_login', { room_code: roomCode });
+                const result = await api('judge_login', {
+                    room_code: roomCode
+                });
 
                 if (result.success) {
                     window.location.href = result.redirect;

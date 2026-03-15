@@ -88,34 +88,34 @@ extract($tabData);
         document.addEventListener('DOMContentLoaded', function() {
             const activeTab = '<?php echo htmlspecialchars($currentTab, ENT_QUOTES); ?>';
 
-            // Rimuovi active da tutti
+            // Remove active from all tabs and contents
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
-            // Aggiungi active al tab corrente con transizione
+            // Add active to the current tab with transition
             const navItem = document.querySelector('[data-tab="' + activeTab + '"]');
             if (navItem) {
                 navItem.classList.add('active');
                 const tabContent = document.getElementById('tab-' + activeTab);
                 if (tabContent) {
-                    // Trigger reflow per attivare la transizione
+                    // Trigger reflow to activate the transition
                     tabContent.offsetHeight;
                     tabContent.classList.add('active');
                 }
             }
 
-            // Click sui tab con transizione
+            // Click on tabs with transition
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
                     const tabName = this.getAttribute('data-tab');
 
-                    // Se il tab è già attivo, non fare nulla
+                    // If the tab is already active, do nothing
                     if (this.classList.contains('active')) {
                         return;
                     }
 
-                    // Anima il tab attuale
+                    // Animate the current tab
                     document.querySelectorAll('.tab-content.active').forEach(content => {
                         content.classList.remove('active');
                     });
@@ -123,12 +123,8 @@ extract($tabData);
                         nav.classList.remove('active');
                     });
 
-                    // Invia POST per cambiare tab
-                    fetch('admin.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: 'change_tab=' + encodeURIComponent(tabName)
-                    }).then(() => location.reload());
+                    // Send POST request to change tab
+                    postForm('admin.php', { change_tab: tabName }).then(() => location.reload());
                 });
             });
         });

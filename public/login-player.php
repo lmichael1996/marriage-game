@@ -54,6 +54,7 @@
             }
         });
 
+        // Handle form submission
         document.getElementById('player-login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 

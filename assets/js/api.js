@@ -18,3 +18,28 @@ function api(endpoint, body = null) {
     : {};
   return fetch(API_BASE_URL + endpoint, opts).then((r) => r.json());
 }
+
+/**
+ * POST a form-urlencoded request (for non-API calls like admin.php tab switching).
+ * Usage:
+ *   postForm('admin.php', { change_tab: 'settings' })
+ */
+function postForm(url, data) {
+  return fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams(data),
+  });
+}
+
+/**
+ * POST a FormData request (for file uploads or multipart form submissions).
+ * Usage:
+ *   postFormData('admin.php', new FormData(form)).then(r => r.text())
+ *   postFormData('admin.php', formData, { 'X-Requested-With': 'XMLHttpRequest' })
+ */
+function postFormData(url, formData, headers = {}) {
+  const opts = { method: "POST", body: formData };
+  if (Object.keys(headers).length) opts.headers = headers;
+  return fetch(url, opts);
+}

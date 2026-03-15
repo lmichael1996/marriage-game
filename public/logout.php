@@ -3,8 +3,9 @@ require_once __DIR__ . '/../src/utils/auth.php';
 
 $role = $_GET['role'] ?? null;
 
-if ($role && in_array($role, ['admin', 'player', 'judge'])) {
-    // Logout singolo ruolo
+// If a specific role is provided and valid, log out only that role. Otherwise, log out all roles.
+if ($role && ($role === 'admin' || $role === 'player' || $role === 'judge')) {
+    // Logout specific role
     Container::auth()->logout($role);
 
     $redirect = match ($role) {
@@ -13,7 +14,7 @@ if ($role && in_array($role, ['admin', 'player', 'judge'])) {
         'judge'  => 'login-judge.php',
     };
 } else {
-    // Logout totale (distrugge sessione)
+    // Total logout (all roles)
     Container::auth()->logout();
     $redirect = '../index.html';
 }

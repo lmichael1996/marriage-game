@@ -196,14 +196,16 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
             api('final_leaderboard&room_id=' + roomId)
                 .then(data => {
                     const el = document.getElementById('final-leaderboard');
+
                     if (!data.success || !data.leaderboard?.length) {
                         el.innerHTML = '<div class="empty-state">Nessun risultato disponibile</div>';
                         return;
                     }
+                    const medals = ['🥇', '🥈', '🥉'];
                     el.innerHTML = data.leaderboard.map((p, i) => `
                         <div class="leaderboard-item">
                             <div class="leaderboard-position">#${i + 1}</div>
-                            <div class="medal">${['🥇','🥈','🥉'][i] || ''}</div>
+                            <div class="medal">${medals[i] || ''}</div>
                             <div class="leaderboard-info">
                                 <div class="leaderboard-name">${p.username}</div>
                                 <div class="leaderboard-time score-text">${p.score} punti</div>

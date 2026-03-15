@@ -640,10 +640,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData(formNewQuestion);
             formData.append('action', 'add_question');
 
-            fetch('admin.php', {
-                method: 'POST',
-                body: formData
-            })
+            postFormData('admin.php', formData)
             .then(response => response.text())
             .then(data => {
                 // Mostra il messaggio di successo nella banda verde
@@ -779,10 +776,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData(formEditQuestion);
             formData.append('action', 'update_question');
 
-            fetch('admin.php', {
-                method: 'POST',
-                body: formData
-            })
+            postFormData('admin.php', formData)
             .then(response => response.text())
             .then(data => {
                 // Mostra il messaggio di successo nella banda verde

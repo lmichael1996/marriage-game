@@ -195,10 +195,7 @@
 
         const formData = new FormData(this);
 
-        fetch('admin.php', {
-            method: 'POST',
-            body: formData
-        })
+        postFormData('admin.php', formData)
         .then(r => r.text())
         .then(data => {
             if (hasPassword) {
@@ -228,13 +225,7 @@
         const form = document.getElementById('settings-form');
         const formData = new FormData(form);
 
-        fetch('admin.php', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
+        postFormData('admin.php', formData, { 'X-Requested-With': 'XMLHttpRequest' })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Errore HTTP ' + response.status);
