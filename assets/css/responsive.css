@@ -24,10 +24,71 @@
   }
 }
 
-/* Tablet */
+/* Tablet — 1024px */
 @media (max-width: 1024px) {
+  body {
+    padding: 14px;
+  }
+  .container {
+    padding: 20px;
+  }
+
+  /* Header */
+  .header {
+    padding: 16px 22px;
+    border-radius: 18px;
+  }
+  .header h1 {
+    font-size: 1.35em;
+  }
+
+  /* Admin nav — horizontal scroll on narrow tablets */
+  .admin-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .nav-item {
+    white-space: nowrap;
+    padding: 12px 16px;
+    font-size: 0.92em;
+  }
+
+  /* Admin section */
+  .admin-section {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  /* Search toolbar compact */
+  .search-toolbar {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .search-input-wrap {
+    flex: 1 1 100%;
+  }
+  .search-select {
+    flex: 1 1 auto;
+    border-left: none;
+    border-top: 1px solid #ddd;
+  }
+
+  /* Tables */
+  .questions-table,
+  .sets-table {
+    font-size: 0.9em;
+  }
+
+  /* Settings */
+  .settings-group {
+    padding: 16px;
+  }
+
+  /* Game grid — 1 column on tablet */
   .game-grid {
     grid-template-columns: 1fr;
+    max-width: 700px;
+    gap: 16px;
   }
   .game-sidebar {
     position: static;
@@ -35,10 +96,76 @@
   .options-grid {
     grid-template-columns: 1fr;
   }
+
+  /* Game card — more compact */
+  .game-step p,
+  #question-text {
+    font-size: 1.25em;
+    padding: 30px 22px;
+  }
+  .category-header {
+    padding: 16px 22px;
+  }
+  .option-btn {
+    padding: 14px 20px;
+  }
+  .btn-main {
+    min-width: 160px;
+  }
+
+  /* Game-room: QR code smaller on tablet */
+  .qr-code-box img {
+    width: 200px !important;
+    height: 200px !important;
+  }
+
+  /* Info box compact */
+  .game-grid .info-box {
+    padding: 14px;
+  }
+
+  /* Leaderboard compact */
+  .leaderboard-item {
+    padding: 10px;
+  }
+
+  /* Modals */
+  .modal-content {
+    width: 92%;
+    padding: 24px;
+  }
+
+  /* Database */
+  .stats {
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  }
+
+  /* Login landing */
+  .login-box.landing-box {
+    padding: 30px 25px;
+  }
+  .landing-btn {
+    padding: 35px 20px;
+    min-height: 180px;
+  }
+  .landing-btn .icon {
+    font-size: 3.5em;
+  }
+  .landing-btn h3 {
+    font-size: 1.3em;
+  }
 }
 
 /* Mobile — 768px */
 @media (max-width: 767px) {
+  body {
+    padding: 10px;
+    align-items: flex-start;
+  }
+  .container {
+    padding: 16px;
+  }
+
   /* Header */
   .header {
     flex-direction: column;
@@ -284,6 +411,33 @@
     width: 100%;
   }
 
+  /* Search toolbar mobile */
+  .search-toolbar {
+    flex-direction: column;
+    padding: 6px;
+    border-radius: 14px;
+  }
+  .search-input-wrap {
+    width: 100%;
+  }
+  .search-select {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #ddd;
+    padding: 10px;
+  }
+  .search-btn {
+    width: 100%;
+    border-radius: 10px;
+    margin-left: 0;
+    margin-top: 4px;
+    padding: 12px 20px;
+  }
+  .search-btn-clear {
+    margin-left: 0;
+    margin-top: 2px;
+  }
+
   /* Pagination */
   .pagination-controls {
     flex-direction: column;
@@ -375,6 +529,161 @@
     width: 100%;
   }
 
+  /* Game-room: step sections compact */
+  .selected-set-info {
+    padding: 0.6rem;
+    font-size: 0.9em;
+    margin-bottom: 1rem;
+  }
+  .room-section-text {
+    font-size: 0.9em;
+    margin-bottom: 1rem;
+  }
+  .qr-tab-content {
+    padding: 14px 10px;
+  }
+  .qr-hint {
+    font-size: 0.8em;
+  }
+  #game-start-section {
+    margin-top: 1rem;
+  }
+  #final-info p {
+    font-size: 0.9em;
+  }
+
+  /* Game Grid — mobile */
+  .game-grid {
+    margin: 12px auto;
+    padding: 0 8px;
+    gap: 12px;
+  }
+  .game-card {
+    border-radius: 16px;
+  }
+  .game-sidebar {
+    padding: 14px;
+    border-radius: 16px;
+  }
+  .sidebar-title {
+    font-size: 1em;
+    margin-bottom: 10px;
+  }
+  .game-grid .info-box {
+    padding: 12px;
+    border-radius: 16px;
+  }
+  .game-grid .info-box p {
+    font-size: 0.88em;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  .game-grid .info-box code {
+    font-size: 0.95em;
+  }
+
+  /* Game card content — mobile */
+  .category-header {
+    padding: 14px 16px;
+  }
+  .category-header .round-label {
+    font-size: 0.95em;
+  }
+  .category-header .timer-label {
+    font-size: 1.1em;
+  }
+  .game-step p,
+  #question-text {
+    font-size: 1.15em;
+    padding: 25px 16px;
+  }
+  .options-grid {
+    padding: 0 16px 16px;
+    gap: 10px;
+  }
+  .option-btn {
+    padding: 14px 18px;
+    font-size: 0.95em;
+    border-radius: 40px;
+  }
+
+  /* Game buttons mobile */
+  .game-card .button-group,
+  .game-step .button-group {
+    padding: 0 16px 16px;
+    flex-direction: column;
+  }
+  .btn-main {
+    width: 100%;
+    min-width: unset;
+    padding: 12px 20px;
+    font-size: 0.95em;
+  }
+  .btn-judge-confirm {
+    width: calc(100% - 32px);
+    margin: 0 16px 16px;
+    padding: 12px 20px;
+    font-size: 0.95em;
+  }
+
+  /* Leaderboard mobile */
+  .leaderboard-item {
+    padding: 10px;
+    border-radius: 12px;
+    margin-bottom: 6px;
+  }
+  .medal {
+    font-size: 1.1em;
+    min-width: 26px;
+  }
+  .leaderboard-name {
+    font-size: 0.9em;
+  }
+  .leaderboard-time {
+    font-size: 0.8em;
+  }
+  .final-leaderboard {
+    max-width: 100%;
+  }
+
+  /* Waiting / cancelled screens mobile */
+  .waiting-screen {
+    padding: 40px 16px;
+  }
+  .waiting-screen h2 {
+    font-size: 1.2em;
+  }
+  .spinner {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 20px;
+  }
+  .game-cancelled-screen {
+    padding: 40px 16px;
+    border-radius: 16px;
+  }
+  .game-cancelled-screen h1 {
+    font-size: 1.5em;
+  }
+  .game-cancelled-emoji {
+    font-size: 3em;
+  }
+  .final-result-screen {
+    padding: 30px 16px;
+  }
+  .final-result-screen h2 {
+    font-size: 1.3em;
+  }
+
+  /* Game-over */
+  .game-step.game-over {
+    padding: 30px 16px;
+  }
+  .game-step.game-over h2 {
+    font-size: 1.3em;
+  }
+
   .sets-table thead {
     display: none;
   }
@@ -437,13 +746,27 @@
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 8px;
     border-radius: 16px;
+    padding: 12px;
   }
   .stat-card {
     padding: 10px;
     border-radius: 12px;
   }
+  .stat-number {
+    font-size: 1.3em;
+  }
   .table-card {
     border-radius: 16px;
+    margin-bottom: 14px;
+  }
+  .table-header {
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+    padding: 12px 14px;
+  }
+  .table-count {
+    font-size: 0.7em;
   }
   .table-card table {
     font-size: 0.75em;
@@ -708,53 +1031,38 @@
 /* Small Mobile — 640px (game specific) */
 @media (max-width: 640px) {
   .game-grid {
-    margin: 15px auto;
-    padding: 0 10px;
-  }
-  .game-sidebar {
-    padding: 15px;
-  }
-  .game-grid .info-box {
-    padding: 12px;
+    padding: 0 6px;
+    gap: 10px;
   }
 
   .category-header {
-    padding: 14px 18px;
-  }
-  .category-header .round-label {
-    font-size: 1em;
-  }
-  .category-header .timer-label {
-    font-size: 1.1em;
+    padding: 12px 14px;
   }
 
   .game-step p,
   #question-text {
-    font-size: 1.15em;
-    padding: 25px 18px;
+    font-size: 1.1em;
+    padding: 20px 14px;
   }
   .options-grid {
-    padding: 0 18px 18px;
-    gap: 10px;
+    padding: 0 14px 14px;
+    gap: 8px;
   }
   .option-btn {
-    padding: 16px 20px;
-    font-size: 0.95em;
+    padding: 13px 16px;
+    font-size: 0.9em;
+    border-radius: 35px;
   }
 
   .game-card .button-group,
   .game-step .button-group {
-    flex-direction: column;
-    padding: 0 18px 18px;
-  }
-  .btn-main {
-    width: 100%;
-    min-width: unset;
+    padding: 0 14px 14px;
   }
   .btn-judge-confirm {
-    width: calc(100% - 36px);
-    margin: 0 18px 18px;
+    width: calc(100% - 28px);
+    margin: 0 14px 14px;
   }
+
   #timer {
     font-size: 2em;
   }
@@ -762,7 +1070,7 @@
     border-radius: 16px;
   }
   .round-info {
-    padding: 25px 18px;
+    padding: 20px 14px;
   }
   .click-first-btn {
     padding: 25px 50px;
@@ -773,13 +1081,24 @@
     gap: 10px;
     text-align: center;
   }
-
   .header h1 {
     font-size: 1.2em;
   }
 
   .player-page {
     padding: 10px;
+  }
+
+  /* Game-room: steps even more compact */
+  .settings-group {
+    padding: 10px;
+  }
+  .settings-group h2 {
+    font-size: 0.95em;
+  }
+  .qr-code-box img {
+    width: 160px !important;
+    height: 160px !important;
   }
 }
 

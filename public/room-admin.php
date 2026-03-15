@@ -30,10 +30,10 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestione Partita - Marriage Game</title>
-    <link rel="stylesheet" href="../assets/css/core.css?v=18">
-    <link rel="stylesheet" href="../assets/css/admin.css?v=18">
-    <link rel="stylesheet" href="../assets/css/game.css?v=18">
-    <link rel="stylesheet" href="../assets/css/responsive.css?v=18">
+    <link rel="stylesheet" href="../assets/css/core.css?v=19">
+    <link rel="stylesheet" href="../assets/css/admin.css?v=19">
+    <link rel="stylesheet" href="../assets/css/game.css?v=19">
+    <link rel="stylesheet" href="../assets/css/responsive.css?v=19">
 </head>
 <body>
     <div class="container">
