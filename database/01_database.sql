@@ -6,7 +6,7 @@ USE marriage_game;
 -- Users table (for admin login only)
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
+    username VARCHAR(15) UNIQUE NOT NULL,
     user_password VARCHAR(255) NOT NULL
 );
 

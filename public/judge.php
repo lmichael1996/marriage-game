@@ -408,6 +408,7 @@ $judge = authJudge();
             document.querySelector('.game-sidebar').style.display = 'none';
             document.querySelector('.game-grid').style.gridTemplateColumns = '1fr';
             document.querySelector('.game-grid').style.maxWidth = '800px';
+            document.querySelector('.game-card').style.border = '0';
         }
 
         function hideAll() {

@@ -19,7 +19,7 @@
             <form id="player-login-form">
                 <div class="form-group">
                     <label for="username">👤 Nome Giocatore:</label>
-                    <input type="text" id="username" name="username" maxlength="50" required autofocus placeholder="Inserisci il tuo nome giocatore">
+                    <input type="text" id="username" name="username" maxlength="15" required autofocus placeholder="Inserisci il tuo nome giocatore">
                 </div>
 
                 <div class="form-group">
