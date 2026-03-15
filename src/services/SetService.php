@@ -194,26 +194,4 @@ class SetService {
     public function removeQuestion(int $setId, int $questionId): bool {
         return $this->setRepo->removeQuestionFromSet($setId, $questionId);
     }
-
-    /**
-     * Move a question up in a set.
-     *
-     * @param int $setId       Set ID
-     * @param int $questionId  Question ID
-     * @return bool
-     */
-    public function moveQuestionUp(int $setId, int $questionId): bool {
-        return $this->setRepo->moveQuestionUp($setId, $questionId);
-    }
-
-    /**
-     * Move a question down in a set.
-     *
-     * @param int $setId       Set ID
-     * @param int $questionId  Question ID
-     * @return bool
-     */
-    public function moveQuestionDown(int $setId, int $questionId): bool {
-        return $this->setRepo->moveQuestionDown($setId, $questionId);
-    }
 }

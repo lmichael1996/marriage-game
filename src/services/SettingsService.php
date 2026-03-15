@@ -43,7 +43,7 @@ class SettingsService {
      * @param string $key  Setting key
      * @return string|null Setting value or null if not found
      */
-    public function getSetting(string $key): ?string {
+    private function getSetting(string $key): ?string {
         return $this->settingsRepo->getSetting($key);
     }
 

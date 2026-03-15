@@ -7,6 +7,8 @@ require_once __DIR__ . '/../config/database.php';
 class UserRepo {
     private $conn;
 
+    private const PASSWORD_ALGO = PASSWORD_ARGON2ID;
+
     public function __construct() {
         $this->conn = getDBConnection();
     }
@@ -61,7 +63,7 @@ class UserRepo {
      */
     public function updateCredentials(int $userId, string $newUsername, ?string $newPassword = null): bool {
         if ($newPassword) {
-            $hashedPassword = password_hash($newPassword, PASSWORD_ARGON2ID);
+            $hashedPassword = password_hash($newPassword, self::PASSWORD_ALGO);
             $stmt = $this->conn->prepare("UPDATE users SET username = ?, user_password = ? WHERE id = ?");
             $stmt->bind_param("ssi", $newUsername, $hashedPassword, $userId);
         } else {

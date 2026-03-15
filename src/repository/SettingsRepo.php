@@ -45,13 +45,13 @@ class SettingsRepo {
     }
 
     /**
-     * Insert or update a single setting (UPSERT)
+     * Insert or update a single game setting (used internally).
      *
      * @param string $key    Setting key
      * @param string $value  Setting value
      * @return bool          true on success
      */
-    public function saveSetting(string $key, string $value): bool {
+    private function saveSetting(string $key, string $value): bool {
         $stmt = $this->conn->prepare("
             INSERT INTO game_settings (setting_key, setting_value)
             VALUES (?, ?)
