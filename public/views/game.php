@@ -319,39 +319,39 @@ let editSetOriginalData = {
 // Flag to track if we are creating a new set (not yet saved)
 let isNewSet = false;
 
-// Traccia le domande da eliminare dal set (solo al salvataggio finale)
+// Tracks questions marked for removal from the set (only on final save)
 let questionsToRemove = [];
 
-// Chiude il modal "Modifica Set" senza salvare
+// Closes the "Edit Set" modal without saving
 function closeEditSetModal() {
-    // Semplice chiusura del modal senza salvataggio
-    // Il salvataggio avverrà solo cliccando "Salva Modifiche"
+    // Simple closure of the modal without saving
+    // Saving will only occur by clicking "Save Changes"
     document.getElementById('modal-edit-set').style.display = 'none';
-    questionsToRemove = []; // Resetta le domande da eliminare
+    questionsToRemove = []; // Reset the questions to be removed
 }
 
-// Salva i cambiamenti al set quando clicchi il bottone "Salva Modifiche"
+// Saves the changes to the set when clicking the "Save Changes" button
 function saveSetChanges() {
     const setId = document.getElementById('edit-set-id').value;
     const currentName = document.getElementById('edit-set-name').value.trim();
     const currentDescription = document.getElementById('edit-set-description').value.trim();
     const messageDiv = document.getElementById('edit-set-message');
 
-    // Se è un nuovo set, salva sempre
+    // Validation: If it's a new set, name is required and at least one question must be added
     if (isNewSet) {
         if (!currentName) {
             messageDiv.innerHTML = '<div class="alert-error">✗ Il nome del set è obbligatorio</div>';
             return;
         }
 
-        // Conta le domande nel set
+        // Count the questions in the set
         const questionItems = document.querySelectorAll('#edit-set-questions .question-item');
         if (questionItems.length === 0) {
             messageDiv.innerHTML = '<div class="alert-error">✗ Il set deve contenere almeno una domanda</div>';
             return;
         }
 
-        // Se è un nuovo set senza ID, crea il set nel database prima
+        // If it's a new set without an ID, create the set in the database first
         if (!setId) {
             api('add_questionset', {
                 set_name: currentName,
@@ -359,10 +359,10 @@ function saveSetChanges() {
             })
             .then(data => {
                 if (data.success && data.set_id) {
-                    // Aggiorna l'ID del set nel form
+                    // Update the set ID in the form
                     document.getElementById('edit-set-id').value = data.set_id;
 
-                    // Ora aggiungi le domande associate al set appena creato
+                    // Now add the questions associated with the newly created set
                     addQuestionsToNewSet(data.set_id, messageDiv);
                 } else {
                     messageDiv.innerHTML = '<div class="alert-error">✗ Errore nella creazione del set</div>';
@@ -381,20 +381,20 @@ function saveSetChanges() {
             }, 1000);
         }
     } else {
-        // Set esistente: salva sempre
-        // Prima elimina le domande marcate per l'eliminazione
+        // Existing set: always save
+        // First, remove the questions marked for deletion
         if (questionsToRemove.length > 0) {
-            // Elimina tutte le domande nel tracking array
+            // Remove all questions in the tracking array
             Promise.all(questionsToRemove.map(questionId =>
                 api('remove_question_from_set', {
                     set_id: setId,
                     question_id: questionId
                 })
             )).then(results => {
-                // Verifica che tutte le eliminazioni siano riuscite
+                // Check if all deletions were successful
                 const allSuccess = results.every(r => r.success);
                 if (allSuccess) {
-                    // Ora salva i metadati via API
+                    // Now save the metadata via API
                     saveSetMetadata(setId, currentName, currentDescription, messageDiv);
                 } else {
                     messageDiv.innerHTML = '<div class="alert-error">✗ Errore nell\'eliminazione delle domande</div>';
@@ -404,15 +404,15 @@ function saveSetChanges() {
                 messageDiv.innerHTML = '<div class="alert-error">✗ Errore durante l\'eliminazione delle domande</div>';
             });
         } else {
-            // Nessuna domanda da eliminare, salva solo i metadati
+            // No questions to remove, save only the metadata
             saveSetMetadata(setId, currentName, currentDescription, messageDiv);
         }
     }
 }
 
-// Funzione helper per salvare i metadati del set
+// Helper function to save the set metadata
 function saveSetMetadata(setId, currentName, currentDescription, messageDiv) {
-    // Prima salva l'ordine delle domande
+    // First, save the order of the questions
     const setContainer = document.getElementById('questions-list-' + setId) || document.getElementById('edit-set-questions');
     if (setContainer) {
         const questionItems = setContainer.querySelectorAll('.question-item');
@@ -424,7 +424,7 @@ function saveSetMetadata(setId, currentName, currentDescription, messageDiv) {
             };
         });
 
-        // Se c'è un ordine da salvare, salvalo prima
+        // If there's an order to save, save it first
         if (questionOrder.length > 0) {
             api('update_question_order', {
                 set_id: setId,
@@ -433,7 +433,7 @@ function saveSetMetadata(setId, currentName, currentDescription, messageDiv) {
         }
     }
 
-    // Poi salva i metadati via API
+    // Then save the metadata via API
     api('update_questionset', {
         set_id: setId,
         set_name: currentName,
@@ -442,7 +442,7 @@ function saveSetMetadata(setId, currentName, currentDescription, messageDiv) {
     .then(data => {
         if (data.success) {
             messageDiv.innerHTML = '<div class="alert-success">✓ Modifiche salvate!</div>';
-            questionsToRemove = []; // Resetta l'array
+            questionsToRemove = []; // Reset the array
             setTimeout(() => {
                 document.getElementById('modal-edit-set').style.display = 'none';
                 window.location.reload();
@@ -457,7 +457,7 @@ function saveSetMetadata(setId, currentName, currentDescription, messageDiv) {
     });
 }
 
-// Funzione helper per aggiungere domande al nuovo set appena creato
+// Helper function to add questions to the newly created set
 function addQuestionsToNewSet(setId, messageDiv) {
     const questionItems = document.querySelectorAll('#edit-set-questions .question-item');
     const questionIds = Array.from(questionItems).map(item => parseInt(item.getAttribute('data-question-id')));
@@ -472,7 +472,7 @@ function addQuestionsToNewSet(setId, messageDiv) {
         return;
     }
 
-    // Aggiungi tutte le domande al set
+    // Add all questions to the set
     Promise.all(questionIds.map((questionId, index) =>
         api('add_question_to_set', {
             set_id: setId,
@@ -482,7 +482,7 @@ function addQuestionsToNewSet(setId, messageDiv) {
         const allSuccess = results.every(r => r.success);
         if (allSuccess) {
             messageDiv.innerHTML = '<div class="alert-success">✓ Set salvato con successo!</div>';
-            // Resetta il localStorage per la prossima volta che si clicca "Crea Partita"
+            // Reset the localStorage for the next time "Crea Partita" is clicked
             localStorage.removeItem('addSetQuestions');
             isNewSet = false;
             setTimeout(() => {
@@ -498,20 +498,20 @@ function addQuestionsToNewSet(setId, messageDiv) {
     });
 }
 
-// Pulisce i campi di ricerca del modal Modifica Set
+// Helper function to clean up the search fields in the Edit Set modal
 function cleanupEditSetModal() {
     document.getElementById('edit-search-questions').value = '';
     document.getElementById('add-category-filter').value = '';
     document.getElementById('edit-available-questions').innerHTML = '<p class="placeholder-text">Ricerca domande...</p>';
 
-    // Se è "Crea Partita", resetta anche il localStorage
+    // If it's "Crea Partita", reset the localStorage as well
     const modalTitle = document.querySelector('#modal-edit-set .modal-header h2').textContent;
     if (modalTitle.includes('Crea Partita')) {
         localStorage.removeItem('addSetQuestions');
     }
 }
 
-// Pulisce i campi di ricerca del modal Aggiungi Set
+// Helper function to clean up the search fields in the Add Set modal
 function cleanupAddSetModal() {
     document.getElementById('add-search-questions').value = '';
     document.getElementById('add-category-filter').value = '';
@@ -519,7 +519,7 @@ function cleanupAddSetModal() {
     localStorage.removeItem('addSetQuestions');
 }
 
-// Salva i cambiamenti al nuovo set
+// Helper function to save the changes to the new set
 function saveAddSetChanges() {
     const currentName = document.getElementById('add-set-name').value.trim();
     const currentDescription = document.getElementById('add-set-description').value.trim();
@@ -530,24 +530,24 @@ function saveAddSetChanges() {
         return;
     }
 
-    // Conta le domande nel set
+    // Count the questions in the set
     const questionItems = document.querySelectorAll('#add-set-associated-questions .question-item');
     if (questionItems.length === 0) {
         messageDiv.innerHTML = '<div class="alert-error">✗ Il set deve contenere almeno una domanda</div>';
         return;
     }
 
-    // Crea il set nel database
+    // Create the set in the database
     api('add_questionset', {
         set_name: currentName,
         set_description: currentDescription
     })
     .then(data => {
         if (data.success && data.set_id) {
-            // Ottieni le IDs delle domande dal localStorage
+            // Get the IDs of the questions from localStorage
             const questionIds = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
 
-            // Aggiungi tutte le domande al set
+            // Add all questions to the set
             Promise.all(questionIds.map(questionId =>
                 api('add_question_to_set', {
                     set_id: data.set_id,
@@ -579,12 +579,12 @@ function saveAddSetChanges() {
     });
 }
 
-// Chiude il modal "Aggiungi Set" e pulisce il localStorage
+// Helper function to close the "Add Set" modal and clean up the localStorage
 // ============================================================================
-// GESTIONE MODALI E AZIONI SET
+// MODAL AND SET ACTIONS MANAGEMENT
 // ============================================================================
 document.addEventListener('DOMContentLoaded', function() {
-    // Event listener per il bottone "Chiudi/Salva Set"
+    // Event listener for the "Close/Save Set" button in the Edit Set modal
     const btnCloseEditSet = document.getElementById('btn-close-edit-set');
     if (btnCloseEditSet) {
         btnCloseEditSet.addEventListener('click', function() {
@@ -593,7 +593,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Event listener per il bottone "Chiudi" del modal Aggiungi Set
+    // Event listener for the "Close" button in the Add Set modal
     const btnCloseAddSet = document.getElementById('btn-close-add-set');
     if (btnCloseAddSet) {
         btnCloseAddSet.addEventListener('click', function() {
@@ -602,52 +602,52 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Event listener per il bottone "Salva Modifiche" / "Avvia partita"
+    // Event listener for the "Save Changes" / "Start Game" button
     const btnSaveSetChanges = document.getElementById('btn-save-set-changes');
     if (btnSaveSetChanges) {
         btnSaveSetChanges.addEventListener('click', function() {
             const modalTitle = document.querySelector('#modal-edit-set .modal-header h2').textContent;
 
             if (modalTitle.includes('Crea Partita')) {
-                // Per "Crea Partita", avvia il gioco invece di salvare
+                // For "Crea Partita", start the game instead of saving
                 startGameFromModal();
             } else {
-                // Per "Modifica Set", salva le modifiche
+                // For "Modifica Set", save the changes
                 saveSetChanges();
             }
         });
     }
 
-    // Gestione popup Nuovo Set
+    // Event listener for the "New Set" button
     const btnNewSet = document.getElementById('btn-new-set');
     const modalAddSet = document.getElementById('modal-add-set');
 
     if (btnNewSet) {
         btnNewSet.addEventListener('click', () => {
-            // Resetta il form del nuovo set
+            // Reset the form for the new set
             document.getElementById('add-set-name').value = '';
             document.getElementById('add-set-description').value = '';
             document.getElementById('add-set-message').innerHTML = '';
             document.getElementById('add-set-associated-questions').innerHTML = '<p class="placeholder-text">Nessuna domanda associata</p>';
 
-            // Resetta il localStorage delle domande
+            // Reset the localStorage for questions
             localStorage.removeItem('addSetQuestions');
 
-            // Apri il modal
+            // Open the modal
             document.getElementById('modal-add-set').style.display = 'flex';
 
-            // Carica categorie nel filtro
+            // Load categories into the filter
             loadCategoriesForAddSetFilter();
         });
     }
 
-    // Gestione popup Crea Partita
+    // Event listener for the "Create Game" button
     const btnCreateGame = document.getElementById('btn-create-game');
     if (btnCreateGame) {
         btnCreateGame.addEventListener('click', createNewGame);
     }
 
-    // Gestione click edit, delete, start-game
+    // Event listener for edit, delete, start-game buttons
     document.addEventListener('click', function(e) {
         if (e.target.closest('.btn-start-game')) {
             const setId = e.target.closest('.btn-start-game').getAttribute('data-set-id');
@@ -658,7 +658,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target.closest('.btn-edit-set')) {
             const setId = e.target.closest('.btn-edit-set').getAttribute('data-set-id');
 
-            // Carica dati set tramite API
+            // Load set data via API
             api('get_questionset&id=' + setId)
                 .then(data => {
                     if (data.success && data.set) {
@@ -667,7 +667,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('edit-set-name').value = s.set_name;
                         document.getElementById('edit-set-description').value = s.set_description || '';
 
-                        // Mostra i campi nome e descrizione per "Modifica Set"
+                        // Show name and description fields for "Edit Set"
                         document.querySelector('#edit-set-name').parentElement.style.display = 'block';
                         document.querySelector('#edit-set-description').parentElement.style.display = 'block';
 
@@ -679,23 +679,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         document.querySelector('.modal-header h2').textContent = 'Modifica Set';
 
-                        // Ripristina il bottone al testo originale "Salva Modifiche"
+                        // Reset the button to its original text "Save Changes"
                         const btnSaveSetChanges = document.getElementById('btn-save-set-changes');
                         if (btnSaveSetChanges) {
                             btnSaveSetChanges.textContent = '✓ Salva Modifiche';
                             btnSaveSetChanges.className = 'btn btn-success'; // Cambia colore a verde
                         }
 
-                        // Reset flag nuovo set
+                        // Reset flag for new set
                         isNewSet = false;
 
                         document.getElementById('edit-set-message').innerHTML = '';
                         document.getElementById('modal-edit-set').style.display = 'flex';
 
-                        // Carica categorie nel filtro
+                        // Load categories into the filter
                         loadCategoriesForFilter();
 
-                        // Carica domande associate al set
+                        // Load questions associated with the set
                         loadSetQuestions(s.id);
                     } else {
                         showToast('Errore nel caricamento del set', 'error');
@@ -730,10 +730,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================================
-// FUNZIONI DI RICERCA E GESTIONE SET
+// FUNCTIONS FOR SEARCHING AND MANAGING SETS
 // ============================================================================
 
-// Carica le categorie nel dropdown dei filtri
+// Load categories into the filter dropdown
 function loadCategoriesForFilter() {
     const select = document.getElementById('edit-category-filter');
     if (!select || select.options.length > 1) {
@@ -750,7 +750,7 @@ function loadCategoriesForFilter() {
                     select.appendChild(option);
                 });
 
-                // Aggiungi event listener per trigghernare la ricerca al cambio di categoria
+                // Add event listener to trigger search on category change
                 select.addEventListener('change', function() {
                     searchAvailableQuestions();
                 });
@@ -759,7 +759,7 @@ function loadCategoriesForFilter() {
         .catch(error => console.error('Errore nel caricamento categorie:', error));
 }
 
-// Carica categorie per il filtro nel modal di aggiunta set
+// Load categories for the filter in the "Add Set" modal
 function loadCategoriesForAddSetFilter() {
     const select = document.getElementById('add-category-filter');
     if (!select || select.options.length > 1) {
@@ -784,7 +784,7 @@ function loadCategoriesForAddSetFilter() {
         .catch(error => console.error('Errore nel caricamento categorie:', error));
 }
 
-// Carica domande associate a un set
+// Load questions associated with a set and display them in the Edit Set modal
 function loadSetQuestions(setId) {
     const containerAssociated = document.getElementById('edit-set-questions');
 
@@ -794,7 +794,7 @@ function loadSetQuestions(setId) {
                 let html = '<div class="questions-associated" id="questions-list-' + setId + '">';
                 const total = data.questions.length;
 
-                // Filtra le domande escludendo quelle contrassegnate per l'eliminazione
+                // Filter questions excluding those marked for removal
                 const filteredQuestions = data.questions.filter(q => !questionsToRemove.includes(q.id));
 
                 if (filteredQuestions.length === 0) {
@@ -847,7 +847,7 @@ function loadSetQuestions(setId) {
         });
 }
 
-// Carica domande per "Crea Partita" (dal localStorage)
+// Load questions for "Create Game" (from localStorage)
 function loadGameQuestions() {
     const containerAssociated = document.getElementById('edit-set-questions');
     const addedQuestionIds = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
@@ -857,11 +857,11 @@ function loadGameQuestions() {
         return;
     }
 
-    // Fetch tutte le domande per ottenere i dettagli
+    // Fetch all questions to get their details
     api('get_questions')
         .then(data => {
             if (data.success && data.questions) {
-                // Normalizza gli ID nel localStorage a numeri interi
+                // Normalize IDs in localStorage to integers
                 const normalizedIds = addedQuestionIds.map(id => parseInt(id));
 
                 const associatedQuestions = data.questions.filter(q => {
@@ -904,7 +904,7 @@ function loadGameQuestions() {
                 html += '</div>';
                 containerAssociated.innerHTML = html;
 
-                // Setup drag and drop per riordinamento
+                // Setup drag and drop for reordering
                 setupDragAndDropForGameQuestions();
             } else {
                 containerAssociated.innerHTML = '<p class="text-muted-center">Nessuna domanda associata</p>';
@@ -916,7 +916,7 @@ function loadGameQuestions() {
         });
 }
 
-// Setup drag and drop per "Crea Partita"
+// Setup drag and drop for "Create Game"
 function setupDragAndDropForGameQuestions() {
     const container = document.getElementById('game-questions-list');
     if (!container) return;
@@ -924,7 +924,7 @@ function setupDragAndDropForGameQuestions() {
     let draggedElement = null;
     let dragStarted = false;
 
-    // Usa event delegation sul container
+    // Use event delegation on the container
     container.addEventListener('dragstart', (e) => {
         if (e.target.draggable === true || e.target.hasAttribute('draggable')) {
             draggedElement = e.target;
@@ -940,7 +940,7 @@ function setupDragAndDropForGameQuestions() {
             draggedElement = null;
             dragStarted = false;
         }
-        // Rimuovi i border da tutti gli elementi
+        // Remove borders from all elements
         const items = container.querySelectorAll('[draggable="true"]');
         items.forEach(item => {
             item.style.borderTop = 'none';
@@ -971,35 +971,35 @@ function setupDragAndDropForGameQuestions() {
         if (dragStarted && draggedElement && e.target.draggable === true && e.target !== draggedElement) {
             e.target.style.borderTop = 'none';
 
-            // Ripulisci l'opacity immediatamente
+            // Reset opacity immediately
             if (draggedElement) {
                 draggedElement.style.opacity = '1';
             }
-            // Rimuovi i border da tutti gli elementi
+            // Remove borders from all elements
             const items = container.querySelectorAll('[draggable="true"]');
             items.forEach(item => {
                 item.style.borderTop = 'none';
             });
 
-            // Inserisci l'elemento trascinato prima dell'elemento target
+            // Insert the dragged element before the target element
             const allItems = Array.from(container.querySelectorAll('[draggable="true"]'));
             const draggedIndex = allItems.indexOf(draggedElement);
             const targetIndex = allItems.indexOf(e.target);
 
             if (draggedIndex >= 0 && targetIndex >= 0) {
                 if (draggedIndex < targetIndex) {
-                    // Trascini verso il basso: inserisci dopo il target
+                    // Dragging down: insert after the target
                     if (e.target.nextSibling) {
                         e.target.parentNode.insertBefore(draggedElement, e.target.nextSibling);
                     } else {
                         e.target.parentNode.appendChild(draggedElement);
                     }
                 } else {
-                    // Trascini verso l'alto: inserisci prima del target
+                    // Dragging up: insert before the target
                     e.target.parentNode.insertBefore(draggedElement, e.target);
                 }
 
-                // Aggiorna l'ordine nel localStorage
+                // Update the order in localStorage
                 updateGameQuestionOrderInLocalStorage();
             }
         }
@@ -1009,7 +1009,7 @@ function setupDragAndDropForGameQuestions() {
     }, false);
 }
 
-// Aggiorna l'ordine delle domande nel localStorage per "Crea Partita"
+// Update the order of questions in localStorage for "Create Game"
 function updateGameQuestionOrderInLocalStorage() {
     const container = document.getElementById('game-questions-list');
     if (!container) return;
@@ -1017,21 +1017,21 @@ function updateGameQuestionOrderInLocalStorage() {
     const items = container.querySelectorAll('[draggable="true"]');
     const questionIds = Array.from(items).map(item => parseInt(item.getAttribute('data-question-id')));
 
-    // Salva l'ordine nel localStorage
+    // Save the order in localStorage
     localStorage.setItem('addSetQuestions', JSON.stringify(questionIds));
 }
 
-// Aggiunge una domanda a "Crea Partita" (localStorage)
+// Add a question to "Create Game" (localStorage)
 function addQuestionToGameSet(questionId) {
-    // Ottieni le domande già aggiunte dal localStorage
+    // Get the questions already added from localStorage
     let addedQuestions = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
 
-    // Aggiungi il nuovo ID se non esiste già
+    // Add the new ID if it doesn't already exist
     if (!addedQuestions.includes(questionId)) {
         addedQuestions.push(questionId);
         localStorage.setItem('addSetQuestions', JSON.stringify(addedQuestions));
 
-        // Ricarica la lista e la ricerca per riflettere i cambiamenti
+        // Reload the list and search to reflect the changes
         loadGameQuestions();
         setTimeout(() => {
             highlightGameQuestion(questionId);
@@ -1040,12 +1040,12 @@ function addQuestionToGameSet(questionId) {
         searchAvailableQuestions();
         showToast('Domanda aggiunta al set', 'success');
     } else {
-        // Mostra banda rossa se la domanda è già presente
+        // If the question is already in the set, just highlight it
         showAlreadyPresentError(questionId);
     }
 }
 
-// Rimuove una domanda da "Crea Partita"
+// Remove a question from "Create Game"
 function removeGameQuestion(questionId) {
     let addedQuestions = JSON.parse(localStorage.getItem('addSetQuestions') || '[]');
     addedQuestions = addedQuestions.filter(id => id !== questionId);
@@ -1056,7 +1056,7 @@ function removeGameQuestion(questionId) {
     showToast('Domanda rimossa dal set', 'error');
 }
 
-// Evidenzia una domanda in "Crea Partita"
+// Highlight a question in "Create Game"
 function highlightGameQuestion(questionId) {
     const container = document.getElementById('game-questions-list');
     if (!container) return;
@@ -1070,7 +1070,7 @@ function highlightGameQuestion(questionId) {
     }
 }
 
-// Evidenzia una domanda nella ricerca per "Crea Partita"
+// Highlight a question in the search for "Create Game"
 function highlightSearchResultForGameSet(questionId) {
     const container = document.getElementById('edit-available-questions');
     if (!container) return;
@@ -1084,7 +1084,7 @@ function highlightSearchResultForGameSet(questionId) {
     }
 }
 
-// Setup drag and drop per riordinamento domande
+// Setup drag and drop for reordering questions
 function setupDragAndDrop(setId) {
     const container = document.getElementById('questions-list-' + setId);
     if (!container) return;
@@ -1092,7 +1092,7 @@ function setupDragAndDrop(setId) {
     let draggedElement = null;
     let dragStarted = false;
 
-    // Usa event delegation sul container
+    // Use event delegation on the container
     container.addEventListener('dragstart', (e) => {
         if (e.target.draggable === true || e.target.hasAttribute('draggable')) {
             draggedElement = e.target;
@@ -1108,7 +1108,7 @@ function setupDragAndDrop(setId) {
             draggedElement = null;
             dragStarted = false;
         }
-        // Rimuovi i border da tutti gli elementi
+        // Remove borders from all elements
         const items = container.querySelectorAll('[draggable="true"]');
         items.forEach(item => {
             item.style.borderTop = 'none';
@@ -1139,36 +1139,36 @@ function setupDragAndDrop(setId) {
         if (dragStarted && draggedElement && e.target.draggable === true && e.target !== draggedElement) {
             e.target.style.borderTop = 'none';
 
-            // Ripulisci l'opacity immediatamente
+            // Reset opacity immediately
             if (draggedElement) {
                 draggedElement.style.opacity = '1';
             }
-            // Rimuovi i border da tutti gli elementi
+            // Remove borders from all elements
             const items = container.querySelectorAll('[draggable="true"]');
             items.forEach(item => {
                 item.style.borderTop = 'none';
             });
 
-            // Inserisci l'elemento trascinato prima dell'elemento target
-            // Se lo trascini giù, inserisci dopo; se lo trascini su, inserisci prima
+            // Insert the dragged element before the target element
+            // If dragging down, insert after; if dragging up, insert before
             const allItems = Array.from(container.querySelectorAll('[draggable="true"]'));
             const draggedIndex = allItems.indexOf(draggedElement);
             const targetIndex = allItems.indexOf(e.target);
 
             if (draggedIndex >= 0 && targetIndex >= 0) {
                 if (draggedIndex < targetIndex) {
-                    // Trascini verso il basso: inserisci dopo il target
+                    // Dragging down: insert after the target
                     if (e.target.nextSibling) {
                         e.target.parentNode.insertBefore(draggedElement, e.target.nextSibling);
                     } else {
                         e.target.parentNode.appendChild(draggedElement);
                     }
                 } else {
-                    // Trascini verso l'alto: inserisci prima del target
+                    // Dragging up: insert before the target
                     e.target.parentNode.insertBefore(draggedElement, e.target);
                 }
 
-                // Aggiorna l'ordine nel database
+                // Update the order in the database
                 updateOrderInDatabase(setId);
             }
         }
@@ -1178,7 +1178,7 @@ function setupDragAndDrop(setId) {
     }, false);
 }
 
-// Aggiorna l'ordine nel database
+// Update the order in the database
 function updateOrderInDatabase(setId) {
     const container = document.getElementById('questions-list-' + setId);
     if (!container) {
@@ -1217,7 +1217,7 @@ function updateOrderInDatabase(setId) {
     .then(data => {
         if (!data.success) {
             console.error('Errore nell\'aggiornamento ordine:', data.error);
-            // Ricarica solo dopo un ritardo per evitare race condition
+            // Load with delay to avoid race condition
             setTimeout(() => {
                 loadSetQuestions(setId);
             }, 300);
@@ -1225,7 +1225,7 @@ function updateOrderInDatabase(setId) {
     })
     .catch(error => {
         console.error('Errore nel salvataggio ordine:', error);
-        // Ricarica con ritardo per evitare race condition
+        // Reload with delay to avoid race condition
         setTimeout(() => {
             loadSetQuestions(setId);
         }, 300);
@@ -1240,7 +1240,7 @@ function setupDragAndDropForNewSet() {
     let draggedElement = null;
     let dragStarted = false;
 
-    // Usa event delegation sul container
+    // Use event delegation on the container
     container.addEventListener('dragstart', (e) => {
         if (e.target.draggable === true || e.target.hasAttribute('draggable')) {
             draggedElement = e.target;
@@ -1256,7 +1256,7 @@ function setupDragAndDropForNewSet() {
             draggedElement = null;
             dragStarted = false;
         }
-        // Rimuovi i border da tutti gli elementi
+        // Remove borders from all elements
         const items = container.querySelectorAll('[draggable="true"]');
         items.forEach(item => {
             item.style.borderTop = 'none';
@@ -1287,35 +1287,35 @@ function setupDragAndDropForNewSet() {
         if (dragStarted && draggedElement && e.target.draggable === true && e.target !== draggedElement) {
             e.target.style.borderTop = 'none';
 
-            // Ripulisci l'opacity immediatamente
+            // Reset opacity immediately
             if (draggedElement) {
                 draggedElement.style.opacity = '1';
             }
-            // Rimuovi i border da tutti gli elementi
+            // Remove borders from all elements
             const items = container.querySelectorAll('[draggable="true"]');
             items.forEach(item => {
                 item.style.borderTop = 'none';
             });
 
-            // Inserisci l'elemento trascinato prima dell'elemento target
+            // Insert the dragged element before the target element
             const allItems = Array.from(container.querySelectorAll('[draggable="true"]'));
             const draggedIndex = allItems.indexOf(draggedElement);
             const targetIndex = allItems.indexOf(e.target);
 
             if (draggedIndex >= 0 && targetIndex >= 0) {
                 if (draggedIndex < targetIndex) {
-                    // Trascini verso il basso: inserisci dopo il target
+                    // Dragging down: insert after the target
                     if (e.target.nextSibling) {
                         e.target.parentNode.insertBefore(draggedElement, e.target.nextSibling);
                     } else {
                         e.target.parentNode.appendChild(draggedElement);
                     }
                 } else {
-                    // Trascini verso l'alto: inserisci prima del target
+                    // Dragging up: insert before the target
                     e.target.parentNode.insertBefore(draggedElement, e.target);
                 }
 
-                // Aggiorna l'ordine nel localStorage
+                // Update the order in localStorage
                 updateNewSetOrderInLocalStorage();
             }
         }
@@ -1325,7 +1325,7 @@ function setupDragAndDropForNewSet() {
     }, false);
 }
 
-// Aggiorna l'ordine delle domande nel localStorage
+// Update the order of questions in localStorage for the new set
 function updateNewSetOrderInLocalStorage() {
     const container = document.getElementById('new-set-questions-list');
     if (!container) return;
@@ -1333,107 +1333,24 @@ function updateNewSetOrderInLocalStorage() {
     const items = container.querySelectorAll('[draggable="true"]');
     const questionIds = Array.from(items).map(item => parseInt(item.getAttribute('data-question-id')));
 
-    // Salva l'ordine nel localStorage
+    // Save the order in localStorage
     localStorage.setItem('addSetQuestions', JSON.stringify(questionIds));
 }
 
-// Rimuove una domanda da un set (traccia solo, salva al click di "Salva Modifiche")
+// Remove a question from a set (track only, save on "Save Changes" click)
 function removeQuestionFromSet(setId, questionId) {
-    // Aggiungi alla lista di domande da eliminare
+    // Add to the list of questions to remove
     if (!questionsToRemove.includes(questionId)) {
         questionsToRemove.push(questionId);
     }
 
-    // Rimuove immediatamente l'elemento dalla lista
+    // Remove the element from the list immediately
     const questionElement = document.querySelector(`[data-question-id="${questionId}"]`);
     if (questionElement) {
         questionElement.remove();
     }
 
     showToast('Domanda rimossa dal set', 'error');
-}
-
-// Sposta una domanda su nella lista
-function moveQuestionUp(setId, currentIndex) {
-    if (currentIndex === 0) return; // Non puoi spostare il primo elemento su
-
-    const container = document.getElementById('questions-list-' + setId);
-    if (!container) return;
-
-    const items = Array.from(container.querySelectorAll('.question-item'));
-    if (currentIndex <= 0 || currentIndex >= items.length) return;
-
-    // Scambia gli elementi nel DOM
-    const currentItem = items[currentIndex];
-    const previousItem = items[currentIndex - 1];
-    previousItem.parentNode.insertBefore(currentItem, previousItem);
-
-    // Ottieni l'ID della domanda spostata
-    const questionId = parseInt(currentItem.getAttribute('data-question-id'));
-
-    // Aggiorna l'ordine nel database
-    updateOrderAfterMove(setId, questionId);
-}
-
-// Sposta una domanda giù nella lista
-function moveQuestionDown(setId, currentIndex) {
-    const container = document.getElementById('questions-list-' + setId);
-    if (!container) return;
-
-    const items = Array.from(container.querySelectorAll('.question-item'));
-    if (currentIndex < 0 || currentIndex >= items.length - 1) return;
-
-    // Scambia gli elementi nel DOM
-    const currentItem = items[currentIndex];
-    const nextItem = items[currentIndex + 1];
-    currentItem.parentNode.insertBefore(nextItem, currentItem);
-
-    // Ottieni l'ID della domanda spostata
-    const questionId = parseInt(currentItem.getAttribute('data-question-id'));
-
-    // Aggiorna l'ordine nel database
-    updateOrderAfterMove(setId, questionId);
-}
-
-// Aggiorna l'ordine dopo lo spostamento con frecce
-function updateOrderAfterMove(setId, questionId) {
-    const container = document.getElementById('questions-list-' + setId);
-    if (!container) return;
-
-    const items = Array.from(container.querySelectorAll('.question-item'));
-    const questionOrder = items.map((item, index) => ({
-        question_id: parseInt(item.getAttribute('data-question-id')),
-        order: index + 1
-    }));
-
-    api('update_question_order', {
-        set_id: setId,
-        questions: questionOrder
-    })
-    .then(data => {
-        if (!data.success) {
-            console.error('Errore nell\'aggiornamento ordine:', data.error);
-            showToast('Errore nell\'aggiornamento dell\'ordine', 'error');
-            setTimeout(() => {
-                loadSetQuestions(setId);
-            }, 300);
-        } else {
-            // Ricarica gli elementi per rigenerare i bottoni freccia
-            loadSetQuestions(setId);
-            if (questionId) {
-                setTimeout(() => {
-                    highlightQuestion(questionId, setId);
-                }, 100);
-            }
-        }
-    })
-    .catch(error => {
-        console.error('Errore:', error);
-        showToast('Errore nell\'aggiornamento dell\'ordine', 'error');
-        setTimeout(() => {
-            loadSetQuestions(setId);
-        }, 300);
-    });
 }
 
 // Ricerca domande disponibili
