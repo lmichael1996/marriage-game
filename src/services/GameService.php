@@ -152,8 +152,12 @@ class GameService {
     /**
      * Submit a player's answer for a round.
      *
+     * Every answer is always saved (with selected_answer and time).
+     * Filtering for correct answers happens in the repository query
+     * when building the ranking (getTopFastestAnswers).
+     *
      * @param int        $roundId    Round ID
-     * @param string|int $answer     Player's answer
+     * @param string|int $answer     Player's answer (option number)
      * @param float      $timeTaken  Time taken in seconds
      * @return array  Result with is_correct flag, or error array
      */
@@ -175,6 +179,8 @@ class GameService {
             ];
         }
 
+        $selectedAnswer = (int)$answer;
+
         if ($round['question_type'] === 'clickfirst') {
             $this->answerRepo->submitAnswer($roundId, $playerId, $timeTaken);
             return [
@@ -183,12 +189,9 @@ class GameService {
             ];
         }
 
-        // For multiple choice and true/false, check correctness
-        $isCorrect = $answer == $round['correct_answer'];
-        if ($isCorrect) {
-            // Only save the answer if correct, to be ranked in closeRound()
-            $this->answerRepo->submitAnswer($roundId, $playerId, $timeTaken);
-        }
+        // Always save the answer (correct or not)
+        $isCorrect = $selectedAnswer == $round['correct_answer'];
+        $this->answerRepo->submitAnswer($roundId, $playerId, $timeTaken, $selectedAnswer);
 
         return [
             'success' => true,

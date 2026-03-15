@@ -5,8 +5,9 @@ require_once __DIR__ . '/../config/database.php';
  * Repository for player_answers table.
  *
  * Handles recording, retrieving, and ranking player answers per round.
- * Each row in player_answers stores (round_id, player_id, answer_time)
- * where answer_time is a DECIMAL(10,4) representing seconds taken to respond.
+ * Each row in player_answers stores (round_id, player_id, selected_answer, answer_time)
+ * where selected_answer is the option number chosen (1-4, NULL for clickfirst)
+ * and answer_time is a DECIMAL(10,4) representing seconds taken to respond.
  */
 class AnswerRepo {
     private mysqli $conn;
@@ -18,20 +19,21 @@ class AnswerRepo {
     /**
      * Record a player's answer for a given round.
      *
-     * @param int   $round_id  The active round ID
-     * @param int   $player_id The answering player's ID
-     * @param float $time_taken Response time in seconds
+     * @param int      $round_id        The active round ID
+     * @param int      $player_id       The answering player's ID
+     * @param float    $time_taken       Response time in seconds
+     * @param int|null $selected_answer  The answer option chosen (1-4), null for clickfirst
      * @return bool True on success, false on failure
      */
-    public function submitAnswer(int $round_id, int $player_id, float $time_taken): bool {
+    public function submitAnswer(int $round_id, int $player_id, float $time_taken, ?int $selected_answer = null): bool {
         try {
             $answer_time = floatval($time_taken);
 
             $stmt = $this->conn->prepare("
-                INSERT INTO player_answers (round_id, player_id, answer_time)
-                VALUES (?, ?, ?)
+                INSERT INTO player_answers (round_id, player_id, selected_answer, answer_time)
+                VALUES (?, ?, ?, ?)
             ");
-            $stmt->bind_param("iid", $round_id, $player_id, $answer_time);
+            $stmt->bind_param("iiid", $round_id, $player_id, $selected_answer, $answer_time);
             $success = $stmt->execute();
 
             $stmt->close();
@@ -44,12 +46,14 @@ class AnswerRepo {
     /**
      * Get the top N fastest correct answers for a round, with ranking position.
      *
+     * For multiple-choice and true/false rounds, only answers matching the
+     * correct_answer are returned. For clickfirst rounds all answers are returned.
      * Uses ROW_NUMBER() to assign a 1-based position to each player
      * ordered by answer_time ASC (fastest first).
      *
      * @param int $round_id The round ID
      * @param int $limit    Max number of results (default 10)
-     * @return array List of answers with username, player_id, answer_time, position
+     * @return array List of answers with username, player_id, answer_time, selected_answer, position
      */
     public function getTopFastestAnswers(int $round_id, int $limit = 10): array {
         try {
@@ -57,11 +61,15 @@ class AnswerRepo {
                 SELECT
                     p.username,
                     pa.player_id,
+                    pa.selected_answer,
                     pa.answer_time,
                     ROW_NUMBER() OVER (ORDER BY pa.answer_time ASC) as position
                 FROM player_answers pa
                 INNER JOIN players p ON p.id = pa.player_id
+                INNER JOIN rounds r ON r.id = pa.round_id
+                INNER JOIN questions q ON q.id = r.question_id
                 WHERE pa.round_id = ?
+                  AND (q.question_type = 'clickfirst' OR pa.selected_answer = q.correct_answer)
                 ORDER BY pa.answer_time ASC
                 LIMIT ?
             ");

@@ -85,7 +85,7 @@ VALUES
         '',
         2,
         NULL,
-        15
+        10
     ),
     (
         'clickfirst',
@@ -96,7 +96,7 @@ VALUES
         '',
         2,
         NULL,
-        15
+        10
     ),
     (
         'clickfirst',
@@ -107,7 +107,7 @@ VALUES
         '',
         2,
         NULL,
-        15
+        10
     ),
     (
         'clickfirst',
@@ -118,7 +118,7 @@ VALUES
         '',
         2,
         NULL,
-        15
+        10
     ),
     (
         'clickfirst',
@@ -129,16 +129,16 @@ VALUES
         '',
         2,
         NULL,
-        15
+        10
     ),
     -- ── Sport (3) ── multiple ──
     (
         'multiple',
         'In quale anno si sono svolti i Giochi Olimpici di Rio?',
-        '2012',
-        '2014',
-        '2016',
-        '2018',
+        '1012',
+        '1014',
+        '1016',
+        '1018',
         3,
         3,
         10
@@ -167,7 +167,7 @@ VALUES
     ),
     (
         'multiple',
-        'In quale città si sono svolti i Giochi Olimpici del 2020?',
+        'In quale città si sono svolti i Giochi Olimpici del 1010?',
         'Tokyo',
         'Pechino',
         'Londra',
@@ -197,7 +197,7 @@ VALUES
         '',
         4,
         1,
-        20
+        10
     ),
     (
         'truefalse',
@@ -208,7 +208,7 @@ VALUES
         '',
         4,
         1,
-        20
+        10
     ),
     (
         'truefalse',
@@ -219,7 +219,7 @@ VALUES
         '',
         4,
         2,
-        20
+        10
     ),
     (
         'truefalse',
@@ -230,7 +230,7 @@ VALUES
         '',
         4,
         1,
-        20
+        10
     ),
     (
         'truefalse',
@@ -241,7 +241,7 @@ VALUES
         '',
         4,
         1,
-        20
+        10
     ),
     -- ── Geografia (5) ── multiple ──
     (
@@ -286,7 +286,7 @@ VALUES
         '',
         5,
         1,
-        20
+        10
     ),
     (
         'truefalse',
@@ -297,7 +297,7 @@ VALUES
         '',
         5,
         2,
-        20
+        10
     ),
     -- ── Film (6) ── truefalse + multiple ──
     (
@@ -309,7 +309,7 @@ VALUES
         '',
         6,
         1,
-        20
+        10
     ),
     (
         'truefalse',
@@ -320,7 +320,7 @@ VALUES
         '',
         6,
         1,
-        20
+        10
     ),
     (
         'truefalse',
@@ -331,7 +331,7 @@ VALUES
         '',
         6,
         2,
-        20
+        10
     ),
     (
         'multiple',
@@ -387,7 +387,7 @@ VALUES
         '',
         7,
         2,
-        20
+        10
     ),
     (
         'multiple',
@@ -409,7 +409,7 @@ VALUES
         '',
         7,
         NULL,
-        15
+        10
     ),
     -- ── Musica (8) ── multiple + clickfirst ──
     (
@@ -443,7 +443,7 @@ VALUES
         '',
         8,
         NULL,
-        15
+        10
     ),
     (
         'truefalse',
@@ -454,7 +454,7 @@ VALUES
         '',
         8,
         1,
-        20
+        10
     ),
     (
         'multiple',
@@ -499,7 +499,7 @@ VALUES
         '',
         9,
         1,
-        20
+        10
     ),
     (
         'multiple',
@@ -521,7 +521,7 @@ VALUES
         '',
         9,
         NULL,
-        15
+        10
     );
 
 -- ── Question sets ──────────────────────────────────────────────────
@@ -558,18 +558,18 @@ VALUES
     (2, 8, 3),
     (2, 9, 4),
     (2, 10, 5),
-    -- Set 3: Sport Mania → domande 11-15
+    -- Set 3: Sport Mania → domande 11-10
     (3, 11, 1),
     (3, 12, 2),
     (3, 13, 3),
     (3, 14, 4),
-    (3, 15, 5),
-    -- Set 4: Scienza Quiz → domande 16-20
+    (3, 10, 5),
+    -- Set 4: Scienza Quiz → domande 16-10
     (4, 16, 1),
     (4, 17, 2),
     (4, 18, 3),
     (4, 19, 4),
-    (4, 20, 5),
+    (4, 10, 5),
     -- Set 5: Giro del Mondo → domande 21-25
     (5, 21, 1),
     (5, 22, 2),
