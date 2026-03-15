@@ -13,6 +13,7 @@ requirePlayer();
     <link rel="stylesheet" href="../assets/css/core.css?v=21">
     <link rel="stylesheet" href="../assets/css/game.css?v=21">
     <link rel="stylesheet" href="../assets/css/responsive.css?v=21">
+    <script src="../assets/js/api.js?v=21"></script>
 </head>
 <body class="player-page">
     <div class="container">
@@ -133,10 +134,6 @@ requirePlayer();
         let skipCurrentRound = false;
 
         // ── Helpers ────────────────────────────────────────────────────
-        function api(qs) {
-            return fetch('../src/api/api.php?' + qs).then(r => r.json());
-        }
-
         /** Show one screen, hide all others + category header */
         function showScreen(name) {
             Object.entries(screens).forEach(([k, el]) => el.style.display = k === name ? 'block' : 'none');
@@ -196,7 +193,7 @@ requirePlayer();
 
         // ── Init ───────────────────────────────────────────────────────
         document.addEventListener('DOMContentLoaded', () => {
-            api('endpoint=player_progress')
+            api('player_progress')
                 .then(data => {
                     if (data.success && data.answered > 0) currentRoundCounter = data.answered + 1;
 
@@ -222,11 +219,11 @@ requirePlayer();
 
         function checkRoomStatus() {
             if (gameEnded) return;
-            api('endpoint=check_room_status').then(data => {
+            api('check_room_status').then(data => {
                 if (gameEnded) return;
                 if (data.status === 'closed') {
                     endGame();
-                    api('endpoint=game&action=get_game_state&counter=' + currentRoundCounter)
+                    api('game&action=get_game_state&counter=' + currentRoundCounter)
                         .then(resolveResult).catch(() => checkWinnerStatus());
                 } else if (data.status === 'cancelled') {
                     endGame();
@@ -237,7 +234,7 @@ requirePlayer();
 
         function checkGameState() {
             if (gameEnded) return;
-            api('endpoint=game&action=get_game_state&counter=' + currentRoundCounter).then(data => {
+            api('game&action=get_game_state&counter=' + currentRoundCounter).then(data => {
                 if (gameEnded) return;
 
                 if (data.game_finished || data.status_room === 'closed') {
@@ -359,11 +356,7 @@ requirePlayer();
         }
 
         function submitAnswer(answer, timeTaken) {
-            fetch('../src/api/api.php?endpoint=answer', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ round_id: currentRoundId, answer, time_taken: timeTaken })
-            }).then(r => r.json()).then(() => {
+            api('answer', { round_id: currentRoundId, answer, time_taken: timeTaken }).then(() => {
                 currentRoundCounter++;
                 resetRound();
                 showScreen('waiting');
@@ -411,7 +404,7 @@ requirePlayer();
         function checkWinnerStatus() {
             let attempts = 0;
             (function tryCheck() {
-                api('endpoint=game&action=check_winner').then(data => {
+                api('game&action=check_winner').then(data => {
                     if (data.success) return showFinalResult(data.placement);
                     retry();
                 }).catch(retry);

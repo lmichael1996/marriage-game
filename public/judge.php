@@ -13,6 +13,7 @@ $judge = authJudge();
     <link rel="stylesheet" href="../assets/css/core.css?v=21">
     <link rel="stylesheet" href="../assets/css/game.css?v=21">
     <link rel="stylesheet" href="../assets/css/responsive.css?v=21">
+    <script src="../assets/js/api.js?v=21"></script>
 </head>
 <body>
     <div class="container">
@@ -92,8 +93,7 @@ $judge = authJudge();
         function checkRoomStatus() {
             if (gameEnded) return;
 
-            fetch('../src/api/api.php?endpoint=check_room_status')
-                .then(r => r.json())
+            api('check_room_status')
                 .then(data => {
                     if (gameEnded) return;
 
@@ -113,8 +113,7 @@ $judge = authJudge();
         function checkGameState() {
             if (gameEnded) return;
 
-            fetch('../src/api/api.php?endpoint=game&action=get_game_state&counter=' + currentRoundCounter)
-                .then(r => r.json())
+            api('game&action=get_game_state&counter=' + currentRoundCounter)
                 .then(data => {
                     if (gameEnded) return;
 
@@ -238,8 +237,7 @@ $judge = authJudge();
             const confirmBtn = document.getElementById('judge-confirm-btn');
             confirmBtn.disabled = true;
 
-            fetch('../src/api/api.php?endpoint=round_answers&round_id=' + roundId)
-                .then(r => r.json())
+            api('round_answers&round_id=' + roundId)
                 .then(data => {
                     const isClickFirst = currentRoundType === 'clickfirst';
 
@@ -295,24 +293,15 @@ $judge = authJudge();
             const selected = document.querySelector('input[name="clickfirst-winner"]:checked');
 
             function signalJudgeAdvance() {
-                return fetch('../src/api/api.php?endpoint=game&action=judge_advance', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ round_id: currentRoundId })
-                });
+                return api('game&action=judge_advance', { round_id: currentRoundId });
             }
 
             if (currentRoundType === 'clickfirst' && selected) {
                 // Clickfirst con vincitore selezionato
-                fetch('../src/api/api.php?endpoint=game&action=set_clickfirst_winner', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        round_id: currentRoundId,
-                        winner_index: parseInt(selected.value)
-                    })
+                api('game&action=set_clickfirst_winner', {
+                    round_id: currentRoundId,
+                    winner_index: parseInt(selected.value)
                 })
-                .then(r => r.json())
                 .then(data => {
                     if (data.success) {
                         return signalJudgeAdvance();
@@ -337,8 +326,7 @@ $judge = authJudge();
                     return;
                 }
 
-                fetch('../src/api/api.php?endpoint=game&action=get_game_state&counter=' + nextCounter)
-                    .then(r => r.json())
+                api('game&action=get_game_state&counter=' + nextCounter)
                     .then(data => {
                         if (data.game_finished || data.status_room === 'closed') {
                             clearInterval(pollInterval);
@@ -374,8 +362,7 @@ $judge = authJudge();
             document.querySelector('.game-grid').style.maxWidth = '800px';
             document.querySelector('.game-card').style.border = '0';
 
-            fetch('../src/api/api.php?endpoint=final_leaderboard&room_id=<?php echo $judge['room_id'] ?? 0; ?>')
-                .then(r => r.json())
+            api('final_leaderboard&room_id=<?php echo $judge['room_id'] ?? 0; ?>')
                 .then(data => {
                     if (data.success && data.leaderboard?.length > 0) {
                         const medals = ['🥇', '🥈', '🥉'];

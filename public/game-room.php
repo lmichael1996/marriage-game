@@ -16,6 +16,7 @@ extract(loadGameRoom());
     <link rel="stylesheet" href="../assets/css/admin.css?v=21">
     <link rel="stylesheet" href="../assets/css/game.css?v=21">
     <link rel="stylesheet" href="../assets/css/responsive.css?v=21">
+    <script src="../assets/js/api.js?v=21"></script>
 </head>
 <body>
     <div class="container">
@@ -184,16 +185,7 @@ extract(loadGameRoom());
             }
 
             // Richiedi il PDF all'API - l'API genererà il QR coerente
-            fetch('/src/api/api.php?endpoint=generate_pdf', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    room_code: codePlayerElem
-                })
-            })
-            .then(r => r.json())
+            api('generate_pdf', { room_code: codePlayerElem })
             .then(data => {
                 if (data.success && data.pdf_data) {
                     // Scarica il PDF
@@ -287,22 +279,7 @@ extract(loadGameRoom());
 
             roomActive = true;
 
-            fetch('/src/api/api.php?endpoint=create_room', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    question_set_id: selectedGameSetId
-                }),
-                credentials: 'include'
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                return response.json();
-            })
+            api('create_room', { question_set_id: selectedGameSetId })
             .then(data => {
                 if (data.success) {
                     codePlayer = data.code_player;
@@ -365,10 +342,7 @@ extract(loadGameRoom());
 
         function closeRoom() {
             document.getElementById('modal-close-room').style.display = 'none';
-            fetch('/src/api/api.php?endpoint=delete_room', {
-                    method: 'POST'
-                })
-                .then(response => response.json())
+            api('delete_room', {})
                 .then(data => {
                     console.log('Close room response:', data);
                     if (data.success) {
@@ -470,16 +444,7 @@ extract(loadGameRoom());
 
         function startGame() {
             document.getElementById('modal-start-game').style.display = 'none';
-            fetch('/src/api/api.php?endpoint=start_room', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        code_player: codePlayer
-                    })
-                })
-                .then(response => response.json())
+            api('start_room', { code_player: codePlayer })
                 .then(data => {
                     if (data.success) {
                         setTimeout(() => {
@@ -502,17 +467,7 @@ extract(loadGameRoom());
                 return;
             }
 
-            const url = `/src/api/api.php?endpoint=connected_devices&code_player=${encodeURIComponent(codePlayer)}`;
-
-            fetch(url, {
-                credentials: 'include'
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
-                    return response.json();
-                })
+            api('connected_devices&code_player=' + encodeURIComponent(codePlayer))
                 .then(data => {
                     if (data.success) {
                         const tbody = document.getElementById('connected-devices-body');

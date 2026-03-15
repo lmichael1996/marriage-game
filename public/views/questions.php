@@ -1147,13 +1147,15 @@ function updateCategoryChange(card, id, name, color) {
 function deleteCategoryUI(btn) {
     const card = btn.closest('.cat-card');
     const id = card.getAttribute('data-id');
+    const name = card.querySelector('.cat-name-edit').value;
 
     if (id && id !== 'temp') {
         categoryChanges.deleted.push(parseInt(id));
     } else {
-        categoryChanges.added = categoryChanges.added.filter(c => c.name !== card.querySelector('.cat-display strong').textContent);
+        categoryChanges.added = categoryChanges.added.filter(c => c.name !== name);
     }
     card.remove();
+    showToast('Categoria "' + name + '" eliminata. Salva per confermare.', 'info');
 }
 
 function addCategoryUI() {
@@ -1164,6 +1166,7 @@ function addCategoryUI() {
 
     categoryChanges.added.push({ name, color });
     createCategoryCard('temp_' + Date.now(), name, color, false);
+    showToast('Categoria "' + name + '" aggiunta. Salva per confermare.', 'success');
 
     document.getElementById('newCatName').value = '';
     document.getElementById('newCatColor').value = '#3498db';

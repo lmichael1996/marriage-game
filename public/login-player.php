@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../assets/css/core.css?v=21">
     <link rel="stylesheet" href="../assets/css/login.css?v=21">
     <link rel="stylesheet" href="../assets/css/responsive.css?v=21">
+    <script src="../assets/js/api.js?v=21"></script>
 </head>
 <body>
     <div class="container">
@@ -69,18 +70,10 @@
             }
 
             try {
-                const response = await fetch('../src/api/api.php?endpoint=player_login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        username: username,
-                        room_code: roomCode
-                    })
+                const result = await api('player_login', {
+                    username: username,
+                    room_code: roomCode
                 });
-
-                const result = await response.json();
 
                 if (result.success) {
                     window.location.href = result.redirect;

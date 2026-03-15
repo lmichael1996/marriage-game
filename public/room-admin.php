@@ -34,6 +34,7 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
     <link rel="stylesheet" href="../assets/css/admin.css?v=21">
     <link rel="stylesheet" href="../assets/css/game.css?v=21">
     <link rel="stylesheet" href="../assets/css/responsive.css?v=21">
+    <script src="../assets/js/api.js?v=21"></script>
 </head>
 <body>
     <div class="container">
@@ -120,15 +121,7 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
         const gameOver = <?php echo $gameOver ? 'true' : 'false'; ?>;
         let timerInterval = null;
 
-        const API = '../src/api/api.php';
         const reload = () => location.href = 'room-admin.php?room_id=' + roomId;
-
-        function api(endpoint, body = null) {
-            const opts = body
-                ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
-                : {};
-            return fetch(API + '?endpoint=' + endpoint, opts).then(r => r.json());
-        }
 
         document.addEventListener('DOMContentLoaded', () => {
             <?php if ($activeRound): ?>
@@ -200,8 +193,7 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
         }
 
         function loadFinalLeaderboard() {
-            fetch(API + '?endpoint=final_leaderboard&room_id=' + roomId)
-                .then(r => r.json())
+            api('final_leaderboard&room_id=' + roomId)
                 .then(data => {
                     const el = document.getElementById('final-leaderboard');
                     if (!data.success || !data.leaderboard?.length) {
@@ -228,8 +220,7 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
                 return;
             }
 
-            fetch(API + '?endpoint=round_answers&round_id=' + roundId)
-                .then(r => r.json())
+            api('round_answers&round_id=' + roundId)
                 .then(data => {
                     const board = document.getElementById('leaderboard');
                     const nextBtn = document.getElementById('next-btn');
@@ -281,12 +272,7 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
         }
 
         function deleteRoom() {
-            fetch(API + '?endpoint=delete_room', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-            })
-            .then(r => r.json())
+            api('delete_room', {})
             .then(data => {
                 if (data.success) window.location.href = 'admin.php';
                 else showToast('Errore: ' + (data.error || data.message), 'error');
