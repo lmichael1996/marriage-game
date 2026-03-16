@@ -1868,7 +1868,7 @@ function createNewGame() {
     // Update the button to show "Start Game" instead of "Save Changes"
     const btnSaveSetChanges = document.getElementById('btn-save-set-changes');
     if (btnSaveSetChanges) {
-        btnSaveSetChanges.textContent = '▶ Start Game';
+        btnSaveSetChanges.textContent = 'Avvia Partita';
         btnSaveSetChanges.className = 'btn btn-primary'; // Change color to blue
     }
 
