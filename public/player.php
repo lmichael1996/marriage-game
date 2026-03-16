@@ -127,16 +127,6 @@ const MV_SITE_URL = "https://www.mvmusicaeventi.it";
         const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
                       || (navigator.maxTouchPoints > 1 && window.innerWidth < 1024);
 
-        // ── Block refresh (F5 / Ctrl+R) ──────────────────────────────
-        document.addEventListener('keydown', e => {
-            if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) e.preventDefault();
-        });
-
-        // ── Detect page reload (penalise refresh mid-round) ──────────
-        const wasReloaded = (performance.getEntriesByType('navigation')[0]?.type === 'reload')
-                         || (performance.navigation && performance.navigation.type === 1);
-        let skipCurrentRound = false;
-
         // ── Helpers ────────────────────────────────────────────────────
         /** Show one screen, hide all others + category header */
         function showScreen(name) {
@@ -148,7 +138,6 @@ const MV_SITE_URL = "https://www.mvmusicaeventi.it";
         /** Mark game as ended and stop all polling */
         function endGame() {
             gameEnded = true;
-            sessionStorage.removeItem('activeRound');
             clearInterval(checkGameStateInterval);
             clearInterval(checkRoomStatusInterval);
             stopTimer();
@@ -200,12 +189,6 @@ const MV_SITE_URL = "https://www.mvmusicaeventi.it";
             api('player_progress')
                 .then(data => {
                     if (data.success && data.answered > 0) currentRoundCounter = data.answered + 1;
-
-                    // If reloaded while a round was active → skip (penalise)
-                    const savedRound = sessionStorage.getItem('activeRound');
-                    if (wasReloaded && savedRound && parseInt(savedRound) === currentRoundCounter) {
-                        skipCurrentRound = true;
-                    }
                 })
                 .catch(() => {})
                 .finally(() => {
@@ -258,17 +241,8 @@ const MV_SITE_URL = "https://www.mvmusicaeventi.it";
                 if (data.round_number === currentRoundCounter && !hasAnswered && !roundInProgress) {
                     // Server says we already answered this round (e.g. after refresh)
                     if (data.already_answered) {
-                        sessionStorage.removeItem('activeRound');
                         currentRoundCounter++;
                         if (!violated) showScreen('waiting');
-                        return;
-                    }
-                    // Penalise refresh: skip this round immediately
-                    if (skipCurrentRound) {
-                        skipCurrentRound = false;
-                        sessionStorage.removeItem('activeRound');
-                        currentRoundCounter++;
-                        showScreen('waiting');
                         return;
                     }
                     if (violated) {
@@ -288,7 +262,6 @@ const MV_SITE_URL = "https://www.mvmusicaeventi.it";
             hasAnswered = false;
             startTime = Date.now();
             currentRoundId = round.id;
-            sessionStorage.setItem('activeRound', String(round.round_number));
             stopTimer();
             startWatchdog();
             setNav(true);
@@ -381,7 +354,6 @@ const MV_SITE_URL = "https://www.mvmusicaeventi.it";
         function resetRound() {
             hasAnswered = false;
             roundInProgress = false;
-            sessionStorage.removeItem('activeRound');
             stopTimer();
             stopWatchdog();
             setNav(false);
