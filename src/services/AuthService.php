@@ -32,6 +32,9 @@ class AuthService {
             ];
         }
 
+        // Clean stale player/judge sessions from same browser
+        unset($_SESSION['auth_player'], $_SESSION['auth_judge']);
+
         $_SESSION['auth_admin'] = [
             'role'     => 'admin',
             'user_id'  => $userId,
@@ -83,6 +86,9 @@ class AuthService {
         $result = $this->playerRepo->createPlayer($username, $room['id']);
         if (is_array($result)) return $result;
 
+        // Clean stale judge session from same browser
+        unset($_SESSION['auth_judge']);
+
         $_SESSION['auth_player'] = [
             'role'      => 'player',
             'player_id' => (int)$result,
@@ -132,6 +138,9 @@ class AuthService {
 
         $result = $this->judgeRepo->createJudge($room['id']);
         if (is_array($result)) return $result;
+
+        // Clean stale player session from same browser
+        unset($_SESSION['auth_player']);
 
         $_SESSION['auth_judge'] = [
             'role'      => 'judge',

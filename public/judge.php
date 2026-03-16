@@ -19,7 +19,7 @@ $judge = authJudge();
     <div class="container">
         <div class="header">
             <h1>⚖️ Giudice</h1>
-            <a href="logout.php?role=judge" class="btn btn-secondary">Logout</a>
+            <a href="logout.php?role=judge" id="logout-btn" class="btn btn-secondary" disabled onclick="if(this.hasAttribute('disabled')){event.preventDefault();}">Logout</a>
         </div>
 
         <div class="game-grid">
@@ -361,6 +361,7 @@ $judge = authJudge();
             document.querySelector('.game-grid').style.gridTemplateColumns = '1fr';
             document.querySelector('.game-grid').style.maxWidth = '800px';
             document.querySelector('.game-card').style.border = '0';
+            document.getElementById('logout-btn').removeAttribute('disabled');
 
             api('final_leaderboard&room_id=<?php echo $judge['room_id'] ?? 0; ?>')
                 .then(data => {
@@ -397,6 +398,7 @@ $judge = authJudge();
             document.querySelector('.game-grid').style.gridTemplateColumns = '1fr';
             document.querySelector('.game-grid').style.maxWidth = '800px';
             document.querySelector('.game-card').style.border = '0';
+            document.getElementById('logout-btn').removeAttribute('disabled');
         }
 
         function hideAll() {

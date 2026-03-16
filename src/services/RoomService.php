@@ -108,6 +108,7 @@ class RoomService {
 
     /**
      * Cancel a room (admin manually closes it).
+     * Deletes associated players so they don't persist as stale data.
      *
      * @param int $roomId  Room ID
      * @return array  Result

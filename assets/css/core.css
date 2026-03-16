@@ -154,6 +154,13 @@ button {
   background: #dee2e6;
 }
 
+.btn[disabled],
+a.btn[disabled] {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
 .btn-success {
   background: #00b894;
   color: #fff;

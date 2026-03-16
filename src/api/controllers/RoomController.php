@@ -7,6 +7,9 @@ class RoomController
 {
     public function createRoom(): void
     {
+        // Clean stale player/judge sessions before creating a new room
+        unset($_SESSION['auth_player'], $_SESSION['auth_judge']);
+
         $room   = Container::room();
         $result = $room->createRoom((int)(Router::input()['question_set_id'] ?? 0));
 

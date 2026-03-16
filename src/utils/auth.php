@@ -92,12 +92,28 @@ function authRoomId(): ?int {
 
     // Admin: use session room_id (set when room is created)
     if ($auth->getAdmin() && isset($_SESSION['room_id'])) {
-        return (int)$_SESSION['room_id'];
+        $roomId = (int)$_SESSION['room_id'];
+        // Validate: room must still exist in DB
+        if (Container::room()->getRoomById($roomId)) {
+            return $roomId;
+        }
+        // Stale (e.g. DB reset) — clean up
+        unset($_SESSION['room_id'], $_SESSION['active_room_code'], $_SESSION['active_judge_code']);
+        return null;
     }
 
     // Player or judge: room_id is in their auth session
     $session = $auth->getPlayer() ?? $auth->getJudge();
-    return $session ? (int)$session['room_id'] : null;
+    if (!$session) return null;
+
+    $roomId = (int)$session['room_id'];
+    // Validate: room must still exist in DB
+    if (Container::room()->getRoomById($roomId)) {
+        return $roomId;
+    }
+    // Stale (e.g. DB reset) — clean up the role session
+    unset($_SESSION['auth_player'], $_SESSION['auth_judge']);
+    return null;
 }
 
 function authUsername(): ?string {
