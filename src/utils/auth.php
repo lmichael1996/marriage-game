@@ -89,10 +89,15 @@ function authJudge(): ?array {
 
 function authRoomId(): ?int {
     $auth = Container::auth();
+
+    // Admin: use session room_id (set when room is created)
+    if ($auth->getAdmin() && isset($_SESSION['room_id'])) {
+        return (int)$_SESSION['room_id'];
+    }
+
+    // Player or judge: room_id is in their auth session
     $session = $auth->getPlayer() ?? $auth->getJudge();
-    return $session
-        ? (int)$session['room_id']
-        : (isset($_SESSION['room_id']) ? (int)$_SESSION['room_id'] : null);
+    return $session ? (int)$session['room_id'] : null;
 }
 
 function authUsername(): ?string {
