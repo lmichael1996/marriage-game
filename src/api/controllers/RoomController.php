@@ -119,7 +119,7 @@ class RoomController
         Router::respond([
             'success'  => true,
             'pdf_data' => 'data:application/pdf;base64,' . base64_encode($pdf->getPDF()),
-            'filename' => 'MVquiz-room-' . $codePlayer . '-' . $codeJudge . '.pdf',
+            'filename' => 'MVquiz-stanza-' . $codePlayer . '-' . $codeJudge . '.pdf',
         ]);
     }
 }

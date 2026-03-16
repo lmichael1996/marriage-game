@@ -127,6 +127,15 @@ const MV_SITE_URL = "https://www.mvmusicaeventi.it";
         const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
                       || (navigator.maxTouchPoints > 1 && window.innerWidth < 1024);
 
+        // ── Disable pull-to-refresh on mobile ─────────────────────────
+        let lastTouchY = 0;
+        document.addEventListener('touchstart', e => { lastTouchY = e.touches[0].clientY; }, { passive: true });
+        document.addEventListener('touchmove', e => {
+            const y = e.touches[0].clientY;
+            // Block only pull-down gesture when already at the top of the page
+            if (y > lastTouchY && window.scrollY < 1) e.preventDefault();
+        }, { passive: false });
+
         // ── Helpers ────────────────────────────────────────────────────
         /** Show one screen, hide all others + category header */
         function showScreen(name) {
