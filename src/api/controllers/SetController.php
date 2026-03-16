@@ -102,21 +102,6 @@ class SetController
         ]);
     }
 
-    public function addQuestionToSetAtPosition(): void
-    {
-        $data = Router::input();
-        if (!($data['set_id'] ?? null) || !($data['question_id'] ?? null) || ($data['position'] ?? null) === null) {
-            Router::error('ID set, ID domanda e posizione obbligatori');
-        }
-        if (!Container::set()->addQuestionAtPosition($data['set_id'], $data['question_id'], $data['position'])) {
-            Router::error('Domanda già presente nel set o impossibile aggiungerla');
-        }
-        Router::respond([
-            'success' => true,
-            'message' => 'Domanda aggiunta',
-        ]);
-    }
-
     public function removeQuestionFromSet(): void
     {
         $data = Router::input();

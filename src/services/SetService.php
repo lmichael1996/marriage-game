@@ -162,18 +162,6 @@ class SetService {
     }
 
     /**
-     * Add a question to a set at a specific position.
-     *
-     * @param int $setId       Set ID
-     * @param int $questionId  Question ID
-     * @param int $position    Target position
-     * @return bool
-     */
-    public function addQuestionAtPosition(int $setId, int $questionId, int $position): bool {
-        return $this->setRepo->insertQuestionAt($setId, $questionId, $position);
-    }
-
-    /**
      * Reorder questions in a set.
      *
      * @param int   $setId      Set ID

@@ -169,37 +169,6 @@ class SetRepo {
     }
 
     /**
-     * Add question to set at a specific position (shifts others forward).
-     *
-     * @param int $setId       Set ID
-     * @param int $questionId  Question ID
-     * @param int $position    Target position
-     * @return bool True on success
-     */
-    public function insertQuestionAt(int $setId, int $questionId, int $position): bool {
-        // Increment order of all questions from the specified position onward
-        $stmt = $this->conn->prepare("
-            UPDATE qset_questions
-            SET order_in_set = order_in_set + 1
-            WHERE qset_id = ? AND order_in_set >= ?
-        ");
-        $stmt->bind_param("ii", $setId, $position);
-        $stmt->execute();
-        $stmt->close();
-
-        // Insert the new question at the specified position
-        $stmt = $this->conn->prepare("
-            INSERT INTO qset_questions (qset_id, question_id, order_in_set)
-            VALUES (?, ?, ?)
-        ");
-        $stmt->bind_param("iii", $setId, $questionId, $position);
-        $success = $stmt->execute();
-        $stmt->close();
-
-        return $success;
-    }
-
-    /**
      * Remove question from set.
      *
      * @param int $setId       Set ID

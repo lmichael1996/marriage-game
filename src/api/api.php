@@ -50,7 +50,6 @@ $router->add('update_questionset',        'POST', [SetController::class,      'u
 $router->add('delete_questionset',        'POST', [SetController::class,      'deleteQuestionSet']);
 $router->add('get_set_questions',         'GET',  [SetController::class,      'getSetQuestions']);
 $router->add('add_question_to_set',       'POST', [SetController::class,      'addQuestionToSet']);
-$router->add('add_question_to_set_at_position', 'POST', [SetController::class, 'addQuestionToSetAtPosition']);
 $router->add('remove_question_from_set',  'POST', [SetController::class,      'removeQuestionFromSet']);
 $router->add('update_question_order',     'POST', [SetController::class,      'updateQuestionOrder']);
 

@@ -344,7 +344,6 @@ extract(loadGameRoom());
             document.getElementById('modal-close-room').style.display = 'none';
             api('delete_room', {})
                 .then(data => {
-                    console.log('Close room response:', data);
                     if (data.success) {
                         roomActive = false;
                         codePlayer = '';
