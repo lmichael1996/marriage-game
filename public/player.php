@@ -129,7 +129,9 @@ const MV_SITE_URL = "https://www.mvmusicaeventi.it";
 
         // ── Disable pull-to-refresh on mobile ─────────────────────────
         let lastTouchY = 0;
-        document.addEventListener('touchstart', e => { lastTouchY = e.touches[0].clientY; }, { passive: true });
+        document.addEventListener('touchstart', e => {
+            lastTouchY = e.touches[0].clientY;
+        }, { passive: true });
         document.addEventListener('touchmove', e => {
             const y = e.touches[0].clientY;
             // Block only pull-down gesture when already at the top of the page
@@ -178,7 +180,9 @@ const MV_SITE_URL = "https://www.mvmusicaeventi.it";
             }
         }
 
-        function onVisibilityChange() { if (document.hidden) onPageLeave(); }
+        function onVisibilityChange() {
+            if (document.hidden) onPageLeave();
+        }
 
         function startWatchdog() {
             if (!isMobile || violated) return;
