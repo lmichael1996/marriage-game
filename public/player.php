@@ -14,10 +14,10 @@ const MV_SITE_URL = "https://www.mvmusicaeventi.it";
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Player - Marriage Game</title>
-    <link rel="stylesheet" href="../assets/css/core.css?v=21">
-    <link rel="stylesheet" href="../assets/css/game.css?v=21">
-    <link rel="stylesheet" href="../assets/css/responsive.css?v=21">
-    <script src="../assets/js/api.js?v=21"></script>
+    <link rel="stylesheet" href="../assets/css/core.css?v=22">
+    <link rel="stylesheet" href="../assets/css/game.css?v=22">
+    <link rel="stylesheet" href="../assets/css/responsive.css?v=22">
+    <script src="../assets/js/api.js?v=22"></script>
 </head>
 <body class="player-page">
     <div class="container">
