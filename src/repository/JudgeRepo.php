@@ -28,14 +28,15 @@ class JudgeRepo {
         $stmt = $this->conn->prepare("INSERT INTO judges (room_id) VALUES (?)");
         $stmt->bind_param('i', $roomId);
 
-        if (!$stmt->execute()) {
-            $errno = $stmt->errno;
+        try {
+            $stmt->execute();
+        } catch (\mysqli_sql_exception $e) {
             $stmt->close();
 
-            if ($errno === self::DUPLICATE_ENTRY_ERROR_CODE) {
+            if ($e->getCode() === self::DUPLICATE_ENTRY_ERROR_CODE) {
                 return [
                     'success' => false,
-                    'error' => 'Il giudice è già uscito da questa stanza, non può rientrare'
+                    'error' => 'Un giudice è già connesso a questa stanza'
                 ];
             }
             return [
