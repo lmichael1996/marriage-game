@@ -1038,7 +1038,7 @@ function addQuestionToGameSet(questionId) {
         }, 100);
         highlightSearchResultForGameSet(questionId);
         searchAvailableQuestions();
-        showToast('Domanda aggiunta al set', 'success');
+        showToast('Domanda aggiunta al set. Salva per confermare.', 'success');
     } else {
         // If the question is already in the set, just highlight it
         showAlreadyPresentError(questionId);
@@ -1053,7 +1053,7 @@ function removeGameQuestion(questionId) {
 
     loadGameQuestions();
     searchAvailableQuestions();
-    showToast('Domanda rimossa dal set', 'error');
+    showToast('Domanda rimossa dal set. Salva per confermare.', 'error');
 }
 
 // Highlight a question in "Create Game"
@@ -1350,7 +1350,7 @@ function removeQuestionFromSet(setId, questionId) {
         questionElement.remove();
     }
 
-    showToast('Domanda rimossa dal set', 'error');
+    showToast('Domanda rimossa dal set. Salva per confermare.', 'error');
 }
 
 // Search available questions based on search term, type, and category, excluding those already associated with the set
@@ -1604,7 +1604,7 @@ function addQuestionToSet(setId, questionId) {
     })
     .then(data => {
         if (data.success) {
-            showToast('Domanda aggiunta con successo!', 'success');
+            showToast('Domanda aggiunta al set. Salva per confermare.', 'success');
             // Reload the associated questions
             loadSetQuestions(setId);
             setTimeout(() => {

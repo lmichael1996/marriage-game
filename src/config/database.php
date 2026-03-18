@@ -5,6 +5,13 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'marriage_game');
 
+/*
+define('DB_HOST', 'localhost');
+define('DB_USER', '6799095@aruba.it');
+define('DB_PASS', 'EmmaLu.2022');
+define('DB_NAME', 'Sql1925823_1');
+*/
+
 // Singleton database connection
 function getDBConnection(): mysqli {
     static $conn = null;
