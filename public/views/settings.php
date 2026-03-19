@@ -165,7 +165,7 @@
         <p class="description-text">Visualizza il contenuto di tutte le tabelle del database.</p>
 
         <div class="button-container">
-            <a href="/public/utils/database.php" target="_blank" class="btn btn-secondary">📊 Visualizza Database</a>
+            <a href="utils/database.php" target="_blank" class="btn btn-secondary">📊 Visualizza Database</a>
         </div>
     </div>
 </div>

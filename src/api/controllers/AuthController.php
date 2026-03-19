@@ -14,7 +14,7 @@ class AuthController
         }
         Router::respond([
             'success'  => true,
-            'redirect' => '../public/player.php',
+            'redirect' => BASE_URL . 'public/player.php',
         ]);
     }
 
@@ -27,7 +27,7 @@ class AuthController
         }
         Router::respond([
             'success'  => true,
-            'redirect' => '../public/admin.php',
+            'redirect' => BASE_URL . 'public/admin.php',
         ]);
     }
 
@@ -40,7 +40,7 @@ class AuthController
         }
         Router::respond([
             'success'  => true,
-            'redirect' => '../public/judge.php',
+            'redirect' => BASE_URL . 'public/judge.php',
         ]);
     }
 }

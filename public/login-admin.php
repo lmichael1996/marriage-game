@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../assets/css/core.css?v=22">
     <link rel="stylesheet" href="../assets/css/login.css?v=22">
     <link rel="stylesheet" href="../assets/css/responsive.css?v=22">
-    <script src="../assets/js/api.js?v=22"></script>
+    <script src="../assets/js/api.js?v=23"></script>
 </head>
 <body>
     <div class="container">
@@ -69,7 +69,7 @@
                     errorDiv.classList.remove('hidden');
                 }
             } catch (error) {
-                errorDiv.textContent = 'Errore di connessione. Riprova.';
+                errorDiv.textContent = error;
                 errorDiv.classList.remove('hidden');
             }
         });

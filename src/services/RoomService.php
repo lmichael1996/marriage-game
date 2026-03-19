@@ -45,15 +45,15 @@ class RoomService {
         $baseUrl = self::getBaseUrl();
         $qr = new QRGenerator();
 
-        $playerPair = $qr->generate($baseUrl . '/public/' . self::LOGIN_PLAYER_PAGE);
-        $judgePair  = $qr->generate($baseUrl . '/public/' . self::LOGIN_JUDGE_PAGE);
+        $playerPair = $qr->generate($baseUrl . BASE_URL . 'public/' . self::LOGIN_PLAYER_PAGE);
+        $judgePair  = $qr->generate($baseUrl . BASE_URL . 'public/' . self::LOGIN_JUDGE_PAGE);
 
         $qrPlayerBase64 = $playerPair['svg'] ? base64_encode($playerPair['svg']) : null;
         $qrJudgeBase64  = $judgePair['svg']  ? base64_encode($judgePair['svg'])  : null;
 
         $roomId = $this->roomRepo->createRoom(
             $playerPair['code'], $judgePair['code'],
-            $questionSetId, $qrPlayerBase64, $qrJudgeBase64, $baseUrl
+            $questionSetId, $qrPlayerBase64, $qrJudgeBase64, $baseUrl . rtrim(BASE_URL, '/')
         );
 
         if (!$roomId) {

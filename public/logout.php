@@ -9,14 +9,14 @@ if ($role && ($role === 'admin' || $role === 'player' || $role === 'judge')) {
     Container::auth()->logout($role);
 
     $redirect = match ($role) {
-        'admin'  => 'login-admin.php',
-        'player' => 'login-player.php',
-        'judge'  => 'login-judge.php',
+        'admin'  => BASE_URL . 'public/login-admin.php',
+        'player' => BASE_URL . 'public/login-player.php',
+        'judge'  => BASE_URL . 'public/login-judge.php',
     };
 } else {
     // Total logout (all roles)
     Container::auth()->logout();
-    $redirect = '../index.html';
+    $redirect = BASE_URL . 'index.html';
 }
 
 header('Location: ' . $redirect);

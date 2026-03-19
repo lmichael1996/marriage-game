@@ -1,4 +1,6 @@
 <?php
+require_once dirname(__DIR__) . '/config/app.php';
+
 if (session_status() === PHP_SESSION_NONE) {
     // Dedicated save path so other apps' GC won't purge our sessions
     $savePath = dirname(__DIR__, 2) . '/storage/sessions';

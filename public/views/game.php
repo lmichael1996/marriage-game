@@ -1778,7 +1778,7 @@ function highlightSearchResultForNewSet(questionId) {
 
 function startGameWithSet(setId) {
     // Use the API endpoint to redirect to game-room.php while maintaining the session
-    const gameRoomUrl = `/public/game-room.php?set_id=${setId}`;
+    const gameRoomUrl = `game-room.php?set_id=${setId}`;
 
     // Redirect directly - the cookie has been preserved from previous fetches
     window.location.href = gameRoomUrl;

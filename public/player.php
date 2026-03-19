@@ -17,7 +17,7 @@ const MV_SITE_URL = "https://www.mvmusicaeventi.it";
     <link rel="stylesheet" href="../assets/css/core.css?v=22">
     <link rel="stylesheet" href="../assets/css/game.css?v=22">
     <link rel="stylesheet" href="../assets/css/responsive.css?v=22">
-    <script src="../assets/js/api.js?v=22"></script>
+    <script src="../assets/js/api.js?v=23"></script>
 </head>
 <body class="player-page">
     <div class="container">

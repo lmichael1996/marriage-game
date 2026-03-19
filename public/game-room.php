@@ -12,11 +12,11 @@ extract(loadGameRoom());
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestione Partita - Marriage Game</title>
-    <link rel="stylesheet" href="../assets/css/core.css?v=22">
-    <link rel="stylesheet" href="../assets/css/admin.css?v=22">
-    <link rel="stylesheet" href="../assets/css/game.css?v=22">
-    <link rel="stylesheet" href="../assets/css/responsive.css?v=22">
-    <script src="../assets/js/api.js?v=22"></script>
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/core.css?v=23">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin.css?v=23">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/game.css?v=23">
+    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/responsive.css?v=23">
+    <script src="<?= BASE_URL ?>assets/js/api.js?v=23"></script>
 </head>
 <body>
     <div class="container">

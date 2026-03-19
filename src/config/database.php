@@ -6,8 +6,8 @@ define('DB_PASS', '');
 define('DB_NAME', 'marriage_game');
 
 /*
-define('DB_HOST', 'localhost');
-define('DB_USER', '6799095@aruba.it');
+define('DB_HOST', '31.11.39.191');
+define('DB_USER', 'Sql1925823');
 define('DB_PASS', 'EmmaLu.2022');
 define('DB_NAME', 'Sql1925823_1');
 */
