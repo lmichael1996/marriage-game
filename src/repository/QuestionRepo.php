@@ -83,13 +83,15 @@ class QuestionRepo {
         $timer = intval($questionData['timer'] ?? 30);
         $categoryId = intval($questionData['category_id'] ?? 1);
 
+        $imageUrl = $questionData['image_url'] ?? null;
+
         $stmt = $this->conn->prepare("
-            INSERT INTO questions (question_type, question, option1, option2, option3, option4, correct_answer, timer, category_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO questions (question_type, question, option1, option2, option3, option4, correct_answer, timer, category_id, image_url)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         $stmt->bind_param(
-            "sssssssii",
+            "sssssssiis",
             $roundType,
             $question,
             $answer1,
@@ -98,7 +100,8 @@ class QuestionRepo {
             $answer4,
             $correctAnswer,
             $timer,
-            $categoryId
+            $categoryId,
+            $imageUrl
         );
 
         if ($stmt->execute()) {
@@ -130,14 +133,16 @@ class QuestionRepo {
 
         $correctAnswer = $type === 'clickfirst' ? null : intval($data['correct_answer'] ?? 1);
 
+        $imageUrl = $data['image_url'] ?? null;
+
         $stmt = $this->conn->prepare("
             UPDATE questions
             SET question = ?, question_type = ?, option1 = ?, option2 = ?, option3 = ?, option4 = ?,
-                correct_answer = ?, timer = ?, category_id = ?
+                correct_answer = ?, timer = ?, category_id = ?, image_url = ?
             WHERE id = ?
         ");
         $stmt->bind_param(
-            "sssssssiii",
+            "sssssssiisi",
             $data['question'],
             $type,
             $option1,
@@ -147,6 +152,7 @@ class QuestionRepo {
             $correctAnswer,
             $data['timer'],
             $data['category_id'],
+            $imageUrl,
             $data['id']
         );
 

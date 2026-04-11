@@ -9,6 +9,7 @@ class GameService {
         private RoundRepo $roundRepo,
         private AnswerRepo $answerRepo,
         private RoomRepo $roomRepo,
+        private PlayerRepo $playerRepo,
         private QuestionService $questionService,
         private SettingsService $settingsService
     ) {}
@@ -263,6 +264,18 @@ class GameService {
                 'username'  => $playerNames[$playerId],
                 'score'     => $score,
             ];
+        }
+
+        // Include players who never answered (score = 0) at the end
+        $allPlayers = $this->playerRepo->getPlayersByRoomId($room['id']);
+        foreach ($allPlayers as $player) {
+            if (!isset($playerScores[$player['id']])) {
+                $leaderboard[] = [
+                    'player_id' => $player['id'],
+                    'username'  => $player['username'],
+                    'score'     => 0,
+                ];
+            }
         }
 
         // Save the ranking JSON

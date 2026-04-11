@@ -9,7 +9,7 @@
 const API_BASE_URL = (() => {
   const path = window.location.pathname;
   const match = path.match(/^(.*?\/game\/)/);
-  const base = match ? match[1] : "/game/";
+  const base = match ? match[1] : "/";
   return base + "src/api/api.php?endpoint=";
 })();
 
@@ -22,7 +22,16 @@ function api(endpoint, body = null) {
       }
     : {};
   const url = API_BASE_URL + endpoint;
-  return fetch(url, opts).then((r) => r.json());
+  return fetch(url, opts).then((r) => {
+    if (!r.ok || r.headers.get("content-type")?.includes("text/html")) {
+      return r.text().then((text) => {
+        throw new Error(
+          `API error ${r.status} at ${endpoint}: server returned HTML instead of JSON`,
+        );
+      });
+    }
+    return r.json();
+  });
 }
 
 /**

@@ -77,7 +77,7 @@
                         } else {
                             echo $questionText;
                         }
-                    ?></strong></td>
+                    ?></strong><?php if (!empty($q['image_url'])): ?> <span title="Ha immagine" style="opacity:.6;font-size:.85em;">🖼</span><?php endif; ?></td>
                     <td>
                         <span class="badge-category">
                             <span class="color-dot" style="background: <?php echo htmlspecialchars($q['color'] ?? '#6c757d'); ?>;"></span>
@@ -172,6 +172,24 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (q.option3) document.getElementById('edit-answer3').value = q.option3;
                             if (q.option4) document.getElementById('edit-answer4').value = q.option4;
                             if (q.correct_answer) document.getElementById('edit-correct').value = q.correct_answer;
+                        }
+
+                        // Populate image
+                        const editPrev = document.getElementById('edit-image-preview');
+                        const editExisting = document.getElementById('edit-existing-image-url');
+                        const editRemoveLabel = document.getElementById('edit-remove-image-label');
+                        const editRemoveCheck = document.getElementById('edit-remove-image');
+                        if (q.image_url) {
+                            editPrev.src = '../assets/image/questions/' + q.image_url;
+                            editPrev.style.display = 'block';
+                            editExisting.value = q.image_url;
+                            editRemoveLabel.style.display = 'block';
+                        } else {
+                            editPrev.src = '';
+                            editPrev.style.display = 'none';
+                            editExisting.value = '';
+                            editRemoveLabel.style.display = 'none';
+                            editRemoveCheck.checked = false;
                         }
 
                         // Show the modal
@@ -301,6 +319,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('form-edit-question');
         if (form) form.reset();
         document.getElementById('edit-question-message').innerHTML = '';
+        const prev = document.getElementById('edit-image-preview');
+        prev.src = '';
+        prev.style.display = 'none';
+        document.getElementById('edit-existing-image-url').value = '';
+        document.getElementById('edit-remove-image-label').style.display = 'none';
+        document.getElementById('edit-remove-image').checked = false;
     }
 
     const closeBtn = document.querySelector('#modal-add-question .modal-close');
@@ -511,6 +535,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // ========== IMAGE PREVIEWS ==========
+    document.getElementById('edit-remove-image').addEventListener('change', function() {
+        if (this.checked) {
+            const prev = document.getElementById('edit-image-preview');
+            prev.src = '';
+            prev.style.display = 'none';
+            document.getElementById('edit-question-image').value = '';
+        }
+    });
 });
 </script>
 
@@ -551,6 +585,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     <label for="new-timer">Timer (secondi)</label>
                     <input type="number" id="new-timer" name="timer" required min="5" max="120" step="5" value="10">
                 </div>
+            </div>
+
+            <div class="form-group">
+                <label for="new-question-image">Immagine (opzionale)</label>
+                <input type="file" id="new-question-image" name="question_image" accept="image/*">
             </div>
 
             <div id="answers-container" style="display: none;">
@@ -629,6 +668,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     <label for="edit-timer">Timer (secondi)</label>
                     <input type="number" id="edit-timer" name="timer" required min="5" max="120" step="5" value="30">
                 </div>
+            </div>
+
+            <div class="form-group">
+                <label>Immagine</label>
+                <input type="hidden" id="edit-existing-image-url" name="existing_image_url">
+                <img id="edit-image-preview" src="" alt="Immagine corrente" style="display:none;max-width:200px;max-height:120px;border-radius:6px;object-fit:cover;margin-bottom:8px;">
+                <input type="file" id="edit-question-image" name="question_image" accept="image/*">
+                <label id="edit-remove-image-label" style="display:none;margin-top:6px;font-weight:normal;cursor:pointer;">
+                    <input type="checkbox" id="edit-remove-image" name="remove_image" value="1"> Rimuovi immagine
+                </label>
             </div>
 
             <div id="edit-answers-container" style="display: none;">

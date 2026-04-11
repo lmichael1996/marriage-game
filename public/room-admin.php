@@ -73,6 +73,9 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
                                 <span class="timer-label">⏱️ <span id="timer"><?php echo $activeRound['timer'] ?? 30; ?></span></span>
                             <?php endif; ?>
                         </div>
+                        <?php if (!empty($q['image_url'])): ?>
+                            <img src="<?php echo BASE_URL . 'assets/image/questions/' . htmlspecialchars($q['image_url']); ?>" alt="" style="max-width:100%;max-height:220px;border-radius:8px;margin-bottom:10px;object-fit:contain;display:block;">
+                        <?php endif; ?>
                         <p><?php echo htmlspecialchars($q['question']); ?></p>
 
                         <?php if (!$isClickFirst): ?>

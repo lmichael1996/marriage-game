@@ -139,6 +139,40 @@ function buildQuestionData(): array {
             $data["answer$i"] = $_POST["answer$i"] ?? '';
         }
     }
+
+    // Handle image upload
+    $imageUrl = $_POST['existing_image_url'] ?? null;
+    if (!empty($_POST['remove_image'])) {
+        if ($imageUrl) {
+            $old = dirname(__DIR__, 2) . '/assets/image/questions/' . $imageUrl;
+            if (file_exists($old)) unlink($old);
+        }
+        $imageUrl = null;
+    } elseif (!empty($_FILES['question_image']['name'])) {
+        $file    = $_FILES['question_image'];
+        $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!in_array($file['type'], $allowed, true)) {
+            return ['success' => false, 'error' => 'Formato immagine non supportato (jpeg/png/gif/webp)'];
+        }
+        if ($file['size'] > 5 * 1024 * 1024) {
+            return ['success' => false, 'error' => 'Immagine troppo grande (max 5 MB)'];
+        }
+        $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $filename = uniqid('q_', true) . '.' . $ext;
+        $uploadDir = dirname(__DIR__, 2) . '/assets/image/questions/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+        if (move_uploaded_file($file['tmp_name'], $uploadDir . $filename)) {
+            if ($imageUrl) {
+                $old = $uploadDir . $imageUrl;
+                if (file_exists($old)) unlink($old);
+            }
+            $imageUrl = $filename;
+        }
+    }
+    $data['image_url'] = $imageUrl ?: null;
+
     return $data;
 }
 

@@ -61,6 +61,7 @@ class Container
             self::repo(RoundRepo::class),
             self::repo(AnswerRepo::class),
             self::repo(RoomRepo::class),
+            self::repo(PlayerRepo::class),
             self::question(),
             self::settings(),
         );

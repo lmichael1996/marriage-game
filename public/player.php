@@ -42,6 +42,7 @@ const MV_SITE_URL = "https://www.mvmusicaeventi.it";
 
                 <div id="game-screen" style="display: none;">
                     <div class="round-info">
+                        <img id="question-image" src="" alt="" style="display:none;max-width:100%;max-height:180px;border-radius:8px;margin-bottom:10px;object-fit:contain;">
                         <p id="question-text"></p>
                     </div>
 
@@ -141,6 +142,10 @@ const MV_SITE_URL = "https://www.mvmusicaeventi.it";
         // ── Helpers ────────────────────────────────────────────────────
         /** Show one screen, hide all others + category header */
         function showScreen(name) {
+            // Restore player-container if it was hidden by a violation
+            if (name === 'result' || name === 'cancelled') {
+                document.querySelector('.player-container').style.display = '';
+            }
             Object.entries(screens).forEach(([k, el]) => el.style.display = k === name ? 'block' : 'none');
             catHeader.style.display = 'none';
             if (name !== 'game') document.querySelector('.player-main').style.border = '0';
@@ -289,6 +294,14 @@ const MV_SITE_URL = "https://www.mvmusicaeventi.it";
             document.getElementById('header-category').textContent = round.category_name || '';
 
             document.getElementById('question-text').textContent = round.question || '';
+            const qImg = document.getElementById('question-image');
+            if (round.image_url) {
+                qImg.src = '../assets/image/questions/' + round.image_url;
+                qImg.style.display = 'block';
+            } else {
+                qImg.src = '';
+                qImg.style.display = 'none';
+            }
             showScreen('game');
             catHeader.style.display = 'flex';
 

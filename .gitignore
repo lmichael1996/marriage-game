@@ -26,3 +26,6 @@ composer.lock
 
 # Sessions
 storage/sessions/
+
+# Questions images
+assets/image/questions/

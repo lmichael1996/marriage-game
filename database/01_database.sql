@@ -38,7 +38,8 @@ CREATE TABLE IF NOT EXISTS questions (
         AND 4
     ),
     timer INT DEFAULT 10,
-    question_type ENUM('multiple', 'truefalse', 'clickfirst') DEFAULT 'multiple'
+    question_type ENUM('multiple', 'truefalse', 'clickfirst') DEFAULT 'multiple',
+    image_url VARCHAR(500) DEFAULT NULL
 );
 
 -- Question Sets table
