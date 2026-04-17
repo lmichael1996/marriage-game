@@ -295,7 +295,9 @@ function loadRoomAdmin(): array {
 
     $judgeConnected = Container::room()->isJudgeConnected($roomId);
 
-    return compact('roomId', 'room', 'counter', 'question', 'activeRound', 'gameOver', 'roomInfo', 'judgeConnected');
+    $skippedQuestions = $skipOffset;
+
+    return compact('roomId', 'room', 'counter', 'question', 'activeRound', 'gameOver', 'roomInfo', 'judgeConnected', 'skippedQuestions');
 }
 
 function getTableData(): array {

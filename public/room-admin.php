@@ -68,14 +68,11 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
                 <?php else: ?>
                     <div class="game-step<?php if ($activeRound): ?> active<?php endif; ?>">
                         <div class="category-header" style="background: <?php echo htmlspecialchars($catColor); ?>;">
-                            <span class="round-label">Domanda #<?php echo $counter; ?> — <?php if ($isClickFirst): ?>⚡ <?php endif; ?><?php echo htmlspecialchars($catName); ?></span>
+                            <span class="round-label">Domanda <?php echo $counter - $skippedQuestions; ?> — <?php if ($isClickFirst): ?>⚡ <?php endif; ?><?php echo htmlspecialchars($catName); ?></span>
                             <?php if ($activeRound): ?>
                                 <span class="timer-label">⏱️ <span id="timer"><?php echo $activeRound['timer'] ?? 30; ?></span></span>
                             <?php endif; ?>
                         </div>
-                        <?php if (!empty($q['image_url'])): ?>
-                            <img src="<?php echo BASE_URL . 'assets/image/questions/' . htmlspecialchars($q['image_url']); ?>" alt="" style="max-width:100%;max-height:220px;border-radius:8px;margin-bottom:10px;object-fit:contain;display:block;">
-                        <?php endif; ?>
                         <p><?php echo htmlspecialchars($q['question']); ?></p>
 
                         <?php if (!$isClickFirst): ?>
