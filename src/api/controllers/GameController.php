@@ -17,6 +17,7 @@ class GameController
             'get_game_state'        => $this->getGameState(),
             'start_round'           => $this->startRound(),
             'close_round'           => $this->closeRound(),
+            'skip_round'            => $this->skipRound(),
             'set_clickfirst_winner' => $this->setClickfirstWinner(),
             'judge_advance'         => $this->judgeAdvance(),
             'check_judge_decision'  => $this->checkJudgeDecision(),
@@ -170,6 +171,21 @@ class GameController
         $result = Container::game()->closeRound($roundId);
         if (!($result['success'] ?? true)) {
             Router::error($result['error'] ?? 'Impossibile chiudere il round', 500);
+        }
+        Router::respond($result);
+    }
+
+    private function skipRound(): void
+    {
+        $roundId = $_GET['round_id'] ?? 0;
+        if (!$roundId && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            $roundId = Router::input()['round_id'] ?? 0;
+        }
+        if (!$roundId) Router::error('ID round obbligatorio');
+
+        $result = Container::game()->skipRound($roundId);
+        if (!($result['success'] ?? true)) {
+            Router::error($result['error'] ?? 'Impossibile saltare il round', 500);
         }
         Router::respond($result);
     }

@@ -264,8 +264,17 @@ function loadRoomAdmin(): array {
 
     $roundCount  = Container::room()->getRoundCount($roomId);
     $activeRound = Container::room()->getActiveRound($roomId);
-    $counter     = $activeRound ? $roundCount : $roundCount + 1;
-    $question    = Container::set()->getQuestionByCounter($room['qset_id'], $counter);
+
+    $skipKey = 'skip_offset_' . $roomId;
+    if (!$activeRound && isset($_GET['skip'])) {
+        $_SESSION[$skipKey] = ($_SESSION[$skipKey] ?? 0) + 1;
+        header('Location: room-admin.php?room_id=' . $roomId);
+        exit;
+    }
+    $skipOffset = $_SESSION[$skipKey] ?? 0;
+
+    $counter  = $activeRound ? $roundCount + $skipOffset : $roundCount + 1 + $skipOffset;
+    $question = Container::set()->getQuestionByCounter($room['qset_id'], $counter);
 
     // Discard activeRound if it doesn't match the current question
     if ($activeRound && (!$question || $activeRound['question_id'] != $question['id'])) {

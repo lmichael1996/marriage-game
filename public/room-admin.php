@@ -98,6 +98,9 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
                                 <button class="btn-main" onclick="startRound(<?php echo $question['id']; ?>)">
                                     ▶ AVVIA ROUND
                                 </button>
+                                <a class="btn-main btn-secondary" href="room-admin.php?room_id=<?php echo $roomId; ?>&skip=1" style="margin-top:8px;text-decoration:none;display:block;text-align:center;">
+                                    ⏭️ Salta Domanda
+                                </a>
                             <?php endif; ?>
                         </div>
                     </div>

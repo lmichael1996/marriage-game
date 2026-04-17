@@ -89,6 +89,14 @@ class GameService {
         ];
     }
 
+    public function skipRound(int $roundId): array {
+        $result = $this->closeRound($roundId);
+        if ($result['success'] ?? false) {
+            $this->roundRepo->setSkipped($roundId);
+        }
+        return $result;
+    }
+
     /**
      * Set the clickfirst winner: overwrite ranking with only the selected player.
      *

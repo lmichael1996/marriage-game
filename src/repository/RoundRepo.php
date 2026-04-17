@@ -195,6 +195,13 @@ class RoundRepo {
      *
      * @param int $roundId  Round ID
      */
+    public function setSkipped(int $roundId): void {
+        $stmt = $this->conn->prepare("UPDATE rounds SET is_skipped = 1 WHERE id = ?");
+        $stmt->bind_param("i", $roundId);
+        $stmt->execute();
+        $stmt->close();
+    }
+
     public function setJudgeDecided(int $roundId): void {
         $stmt = $this->conn->prepare("UPDATE rounds SET judge_decided = 1 WHERE id = ?");
         $stmt->bind_param("i", $roundId);
