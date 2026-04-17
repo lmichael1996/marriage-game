@@ -183,14 +183,15 @@ function loadQuestionsTab(): array {
         $_SESSION['questions_page'] = (int)$_POST['questions_page'];
     }
 
-    $all    = Container::question()->getAllQuestions(1, 1000)['questions'];
-    $cat    = $_POST['category'] ?? '';
-    $search = strtolower(trim($_POST['search_query'] ?? ''));
-    $type   = $_POST['search_type'] ?? 'contains';
+    $all        = Container::question()->getAllQuestions(1, 1000)['questions'];
+    $cat        = $_POST['category'] ?? '';
+    $search     = strtolower(trim($_POST['search_query'] ?? ''));
+    $type       = $_POST['search_type'] ?? 'contains';
+    $qTypeFilter = $_POST['question_type_filter'] ?? '';
 
-    if ($cat || $search) {
+    if ($cat || $search || $qTypeFilter) {
         $catId = $cat ? (int)$cat : null;
-        $all   = array_values(array_filter($all, fn($q) => matchesFilter($q, $catId, $search, $type)));
+        $all   = array_values(array_filter($all, fn($q) => matchesFilter($q, $catId, $search, $type, $qTypeFilter)));
     }
 
     $total   = count($all);
@@ -204,8 +205,9 @@ function loadQuestionsTab(): array {
     ];
 }
 
-function matchesFilter(array $q, ?int $catId, string $search, string $type): bool {
+function matchesFilter(array $q, ?int $catId, string $search, string $type, string $qTypeFilter = ''): bool {
     if ($catId && (int)($q['category_id'] ?? 1) !== $catId) return false;
+    if ($qTypeFilter && ($q['question_type'] ?? '') !== $qTypeFilter) return false;
     if (!$search) return true;
 
     $text = strtolower($q['question'] ?? '');

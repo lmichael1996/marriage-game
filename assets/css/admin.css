@@ -458,6 +458,16 @@ mark {
   border: 1px solid #333;
 }
 
+.questions-table th:nth-child(3),
+.questions-table td:nth-child(3) {
+  min-width: 170px;
+}
+
+.questions-table th:nth-child(5),
+.questions-table td:nth-child(5) {
+  min-width: 100px;
+}
+
 .badge-category .color-dot {
   display: inline-block;
   width: 10px;

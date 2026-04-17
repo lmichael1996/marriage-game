@@ -29,8 +29,14 @@
             </option>
             <?php endforeach; ?>
         </select>
+        <select name="question_type_filter" id="filter-question-type" class="search-select">
+            <option value="">📋 Tutti i tipi</option>
+            <option value="multiple" <?php echo ($_POST['question_type_filter'] ?? '') === 'multiple' ? 'selected' : ''; ?>>Risposta Multipla</option>
+            <option value="truefalse" <?php echo ($_POST['question_type_filter'] ?? '') === 'truefalse' ? 'selected' : ''; ?>>Vero/Falso</option>
+            <option value="clickfirst" <?php echo ($_POST['question_type_filter'] ?? '') === 'clickfirst' ? 'selected' : ''; ?>>Clicca per Primo</option>
+        </select>
         <button type="submit" class="search-btn">Cerca</button>
-        <?php if (!empty($_POST['search_query']) || !empty($_POST['category'])): ?>
+        <?php if (!empty($_POST['search_query']) || !empty($_POST['category']) || !empty($_POST['question_type_filter'])): ?>
             <button type="button" class="search-btn search-btn-clear" id="clear-questions-search">✖</button>
         <?php endif; ?>
     </form>
