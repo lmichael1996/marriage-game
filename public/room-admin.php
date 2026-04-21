@@ -93,10 +93,10 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
                                 </button>
                             <?php else: ?>
                                 <button class="btn-main" onclick="startRound(<?php echo $question['id']; ?>)">
-                                    ▶ AVVIA ROUND
+                                    ▶ Avvia Round
                                 </button>
                                 <button class="btn-main btn-warning" onclick="skipQuestion()">
-                                    ⏭ SALTA DOMANDA
+                                    ⏭ Salta Domanda
                                 </button>
                             <?php endif; ?>
                         </div>
