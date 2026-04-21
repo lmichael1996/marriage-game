@@ -96,7 +96,7 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
                                     ▶ AVVIA ROUND
                                 </button>
                                 <button class="btn-main btn-warning" onclick="skipQuestion()">
-                                    ⏭ Salta Domanda
+                                    ⏭ SALTA DOMANDA
                                 </button>
                             <?php endif; ?>
                         </div>
