@@ -517,6 +517,17 @@
   box-shadow: none;
 }
 
+.btn-warning {
+  background: #e17055;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(225, 112, 85, 0.3);
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: #c0392b;
+  box-shadow: 0 6px 20px rgba(225, 112, 85, 0.4);
+}
+
 .btn-success-custom {
   background: #00b894;
   color: #fff;

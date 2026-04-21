@@ -95,9 +95,9 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
                                 <button class="btn-main" onclick="startRound(<?php echo $question['id']; ?>)">
                                     ▶ AVVIA ROUND
                                 </button>
-                                <a class="btn-main btn-secondary" href="room-admin.php?room_id=<?php echo $roomId; ?>&skip=1" style="margin-top:8px;text-decoration:none;display:block;text-align:center;">
-                                    ⏭️ Salta Domanda
-                                </a>
+                                <button class="btn-main btn-warning" onclick="skipQuestion()">
+                                    ⏭ Salta Domanda
+                                </button>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -174,6 +174,10 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
         function enableNextBtn(btn) {
             btn.disabled = false;
             btn.style.animation = 'pulse 1s infinite';
+        }
+
+        function skipQuestion() {
+            location.href = 'room-admin.php?room_id=' + roomId + '&skip=1';
         }
 
         function startRound(questionId) {
