@@ -37,7 +37,6 @@ const MV_SITE_URL = "https://www.mvmusicaeventi.it";
                 <div id="waiting-screen" class="waiting-screen">
                     <div class="spinner"></div>
                     <h2>In attesa del prossimo round...</h2>
-                    <p>L'admin avvierà presto un nuovo round</p>
                 </div>
 
                 <div id="game-screen" style="display: none;">

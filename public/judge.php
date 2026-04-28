@@ -64,7 +64,7 @@ $judge = authJudge();
             </div>
 
             <div class="game-sidebar">
-                <div class="sidebar-title">🏆 Classifica</div>
+                <div class="sidebar-title">🏆 I più veloci:</div>
                 <div id="sidebar-leaderboard">
                     <div class="empty-state">Nessun dato</div>
                 </div>

@@ -22,6 +22,7 @@ class GameController
             'judge_advance'         => $this->judgeAdvance(),
             'check_judge_decision'  => $this->checkJudgeDecision(),
             'check_winner'          => $this->checkWinner(),
+            'close_game'            => $this->closeGame(),
             default                 => Router::error('Azione non valida'),
         };
     }
@@ -260,5 +261,14 @@ class GameController
             'success'   => true,
             'placement' => $placement,
         ]);
+    }
+
+    private function closeGame(): void
+    {
+        $roomId = authRoomId();
+        if (!$roomId) Router::error('Stanza non autorizzata', 403);
+
+        $result = Container::room()->finishGame($roomId);
+        Router::respond($result);
     }
 }

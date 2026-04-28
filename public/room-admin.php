@@ -40,7 +40,7 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
     <div class="container">
         <div class="header">
             <h1>🎮 Gestione Partita</h1>
-            <button class="btn btn-secondary" onclick="goBack()">← Torna a Admin</button>
+            <button class="btn btn-secondary" onclick="goBack()">Annulla Partita</button>
         </div>
 
         <div class="game-grid<?php if ($gameOver): ?> game-over-layout<?php endif; ?>">
@@ -98,6 +98,9 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
                                 <button class="btn-main btn-warning" onclick="skipQuestion()">
                                     ⏭ Salta Domanda
                                 </button>
+                                <button class="btn-main btn-danger" onclick="closeGame()">
+                                    🔴 Chiudi Partita
+                                </button>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -107,7 +110,7 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
 
             <?php if (!$gameOver): ?>
             <div class="game-sidebar">
-                <div class="sidebar-title">🏆 Classifica</div>
+                <div class="sidebar-title">🏆 I più veloci</div>
                 <div id="leaderboard">
                     <div class="empty-state">Nessun dato</div>
                 </div>
@@ -178,6 +181,12 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
 
         function skipQuestion() {
             location.href = 'room-admin.php?room_id=' + roomId + '&skip=1';
+        }
+
+        function closeGame() {
+            if (!confirm('Sei sicuro di voler chiudere la partita?')) return;
+            api('game&action=close_game')
+                .then(data => { if (data.success) reload(); });
         }
 
         function startRound(questionId) {
