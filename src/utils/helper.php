@@ -281,7 +281,7 @@ function loadRoomAdmin(): array {
         $activeRound = null;
     }
 
-    $gameOver = !$question;
+    $gameOver = !$question || $room['status_room'] === 'closed';
 
     if ($gameOver && $room['status_room'] === 'running') {
         Container::room()->finishGame($roomId);

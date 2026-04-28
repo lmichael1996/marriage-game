@@ -525,6 +525,7 @@
 
 .btn-warning:hover:not(:disabled) {
   background: #c0392b;
+  transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(225, 112, 85, 0.4);
 }
 
@@ -539,6 +540,18 @@
   background: #00a381;
   color: #fff;
   box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4);
+}
+
+.btn-close-game {
+  background: #bc9e27;
+  color: #fff;
+  border: none;
+}
+
+.btn-close-game:hover:not(:disabled) {
+  background: #d4ac0d;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(188, 158, 39, 0.4);
 }
 
 .btn-judge-confirm {

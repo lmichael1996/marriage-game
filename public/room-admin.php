@@ -98,8 +98,8 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
                                 <button class="btn-main btn-warning" onclick="skipQuestion()">
                                     ⏭ Salta Domanda
                                 </button>
-                                <button class="btn-main btn-danger" onclick="closeGame()">
-                                    🔴 Chiudi Partita
+                                <button class="btn-main btn-close-game" onclick="closeGame()">
+                                    Chiudi Partita
                                 </button>
                             <?php endif; ?>
                         </div>
@@ -184,7 +184,6 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
         }
 
         function closeGame() {
-            if (!confirm('Sei sicuro di voler chiudere la partita?')) return;
             api('game&action=close_game')
                 .then(data => { if (data.success) reload(); });
         }
