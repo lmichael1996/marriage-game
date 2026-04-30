@@ -5,8 +5,8 @@
  * For root deployment, use '/'.
  */
 
-/*
 define('BASE_URL', '/game/');
-*/
 
+/*
 define('BASE_URL', '/');
+*/

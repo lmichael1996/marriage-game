@@ -99,7 +99,7 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
                                     ⏭ Salta Domanda
                                 </button>
                                 <button class="btn-main btn-close-game" onclick="closeGame()">
-                                    Chiudi Partita
+                                    Fine Partita
                                 </button>
                             <?php endif; ?>
                         </div>
