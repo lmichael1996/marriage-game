@@ -259,7 +259,22 @@ extract(loadGameRoom());
             }
         }
 
-        // Set selector and confirm button removed with step-select-set section
+        // Block refresh after print dialog
+        window.addEventListener('afterprint', function(e) {
+            e.stopImmediatePropagation();
+        }, true);
+        window.onafterprint = null;
+
+        // Block accidental refresh via keyboard while room is active
+        document.addEventListener('keydown', function(e) {
+            if (!roomActive) return;
+            const isF5     = e.key === 'F5';
+            const isCtrlR  = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r';
+            if (isF5 || isCtrlR) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            }
+        }, true);
 
         // Back to admin button
         document.getElementById('btn-back-admin').addEventListener('click', function() {

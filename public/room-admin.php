@@ -30,10 +30,10 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestione Partita - Marriage Game</title>
-    <link rel="stylesheet" href="../assets/css/core.css?v=22">
-    <link rel="stylesheet" href="../assets/css/admin.css?v=22">
-    <link rel="stylesheet" href="../assets/css/game.css?v=22">
-    <link rel="stylesheet" href="../assets/css/responsive.css?v=22">
+    <link rel="stylesheet" href="../assets/css/core.css?v=23">
+    <link rel="stylesheet" href="../assets/css/admin.css?v=23">
+    <link rel="stylesheet" href="../assets/css/game.css?v=23">
+    <link rel="stylesheet" href="../assets/css/responsive.css?v=23">
     <script src="../assets/js/api.js?v=23"></script>
 </head>
 <body>
@@ -109,10 +109,18 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
             </div>
 
             <?php if (!$gameOver): ?>
-            <div class="game-sidebar">
-                <div class="sidebar-title">🏆 I più veloci</div>
-                <div id="leaderboard">
-                    <div class="empty-state">Nessun dato</div>
+            <div class="sidebar-column">
+                <div class="game-sidebar">
+                    <div class="sidebar-title">⚡ I più veloci</div>
+                    <div id="leaderboard">
+                        <div class="empty-state">Nessun dato</div>
+                    </div>
+                </div>
+                <div class="game-sidebar">
+                    <div class="sidebar-title">📊 Classifica Generale</div>
+                    <div id="general-leaderboard">
+                        <div class="empty-state">Nessun dato</div>
+                    </div>
                 </div>
             </div>
             <?php endif; ?>
@@ -134,6 +142,9 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
             startCountdown(<?php echo $activeRound['timer'] ?? 30; ?>);
             <?php elseif ($gameOver): ?>
             loadFinalLeaderboard();
+            <?php endif; ?>
+            <?php if (!$gameOver): ?>
+            loadGeneralLeaderboard();
             <?php endif; ?>
         });
 
@@ -230,6 +241,8 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
         }
 
         function loadRoundAnswers(roundId) {
+            loadGeneralLeaderboard();
+
             if (isClickFirst && judgeConnected) {
                 document.getElementById('leaderboard').innerHTML =
                     '<div class="empty-state">⚖️ In attesa del giudice...</div>';
@@ -266,6 +279,29 @@ $opt2 = $isTrueFalse ? 'Falso' : ($q['option2'] ?? '');
                         document.querySelectorAll('input[name="clickfirst-winner"]')
                             .forEach(r => r.addEventListener('change', () => enableNextBtn(nextBtn)));
                     }
+                });
+        }
+
+        function loadGeneralLeaderboard() {
+            api('game&action=live_leaderboard&room_id=' + roomId)
+                .then(data => {
+                    const el = document.getElementById('general-leaderboard');
+                    if (!data.success || !data.leaderboard?.length) {
+                        el.innerHTML = '<div class="empty-state">Nessun dato</div>';
+                        return;
+                    }
+                    const maxScore = Math.max(...data.leaderboard.map(p => p.score), 1);
+                    el.innerHTML = data.leaderboard.map((p, i) => {
+                        const pct = maxScore > 0 ? Math.round((p.score / maxScore) * 100) : 0;
+                        return `<div class="ranking-row">
+                            <span class="ranking-pos">#${i + 1}</span>
+                            <span class="ranking-name" title="${p.username}">${p.username}</span>
+                            <div class="ranking-bar-wrap">
+                                <div class="ranking-bar" style="width:${pct}%"></div>
+                            </div>
+                            <span class="ranking-score">${p.score}</span>
+                        </div>`;
+                    }).join('');
                 });
         }
 

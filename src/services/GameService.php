@@ -297,6 +297,53 @@ class GameService {
         ];
     }
 
+    public function getLiveLeaderboard(int $roomId): array {
+        $room = $this->roomRepo->getRoomById($roomId);
+        if (!$room) {
+            return ['success' => false, 'leaderboard' => []];
+        }
+
+        $allRounds = $this->roundRepo->getRoundsByRoom($room['id']);
+
+        $latestRounds = [];
+        foreach ($allRounds as $round) {
+            $qid = $round['question_id'];
+            if (!isset($latestRounds[$qid]) || $round['id'] > $latestRounds[$qid]['id']) {
+                $latestRounds[$qid] = $round;
+            }
+        }
+
+        $playerScores = [];
+        $playerNames  = [];
+        foreach ($latestRounds as $round) {
+            $ranking = json_decode($round['ranking'] ?? '[]', true);
+            foreach ($ranking as $entry) {
+                $pid    = $entry['player_id'] ?? null;
+                $points = $entry['points'] ?? 0;
+                if ($pid) {
+                    $playerScores[$pid] = ($playerScores[$pid] ?? 0) + $points;
+                    $playerNames[$pid]  = $entry['username'] ?? '';
+                }
+            }
+        }
+
+        arsort($playerScores);
+
+        $leaderboard = [];
+        foreach ($playerScores as $pid => $score) {
+            $leaderboard[] = ['username' => $playerNames[$pid], 'score' => $score];
+        }
+
+        $allPlayers = $this->playerRepo->getPlayersByRoomId($room['id']);
+        foreach ($allPlayers as $player) {
+            if (!isset($playerScores[$player['id']])) {
+                $leaderboard[] = ['username' => $player['username'], 'score' => 0];
+            }
+        }
+
+        return ['success' => true, 'leaderboard' => $leaderboard];
+    }
+
     /**
      * Get the number of rounds the current player has answered in their room.
      *

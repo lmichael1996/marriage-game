@@ -23,6 +23,7 @@ class GameController
             'check_judge_decision'  => $this->checkJudgeDecision(),
             'check_winner'          => $this->checkWinner(),
             'close_game'            => $this->closeGame(),
+            'live_leaderboard'      => $this->liveLeaderboard(),
             default                 => Router::error('Azione non valida'),
         };
     }
@@ -270,5 +271,12 @@ class GameController
 
         $result = Container::room()->finishGame($roomId);
         Router::respond($result);
+    }
+
+    private function liveLeaderboard(): void
+    {
+        $roomId = isset($_GET['room_id']) ? (int)$_GET['room_id'] : authRoomId();
+        if (!$roomId) Router::respond(['success' => false, 'leaderboard' => []]);
+        Router::respond(Container::game()->getLiveLeaderboard($roomId));
     }
 }

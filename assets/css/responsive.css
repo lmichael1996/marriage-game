@@ -93,6 +93,9 @@
   .game-sidebar {
     position: static;
   }
+  .sidebar-column {
+    gap: 16px;
+  }
   .options-grid {
     grid-template-columns: 1fr;
   }

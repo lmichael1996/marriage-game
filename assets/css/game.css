@@ -98,6 +98,13 @@
   overflow: hidden;
 }
 
+.sidebar-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-self: start;
+}
+
 .game-sidebar {
   background: #fff;
   border: none;
@@ -107,6 +114,61 @@
   height: fit-content;
   max-height: none;
   overflow-y: visible;
+}
+
+/* General ranking bar chart */
+.ranking-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ranking-pos {
+  font-size: 0.75em;
+  font-weight: 800;
+  color: #b2bec3;
+  min-width: 20px;
+  text-align: right;
+}
+
+.ranking-name {
+  font-size: 0.85em;
+  font-weight: 700;
+  color: #2d3436;
+  min-width: 70px;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ranking-bar-wrap {
+  flex: 1;
+  background: #f0f2f5;
+  border-radius: 8px;
+  height: 18px;
+  overflow: hidden;
+}
+
+.ranking-bar {
+  height: 100%;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #74b9ff, #0984e3);
+  transition: width 0.5s ease;
+  min-width: 4px;
+}
+
+.ranking-row:nth-child(1) .ranking-bar { background: linear-gradient(90deg, #fdcb6e, #e17055); }
+.ranking-row:nth-child(2) .ranking-bar { background: linear-gradient(90deg, #b2bec3, #636e72); }
+.ranking-row:nth-child(3) .ranking-bar { background: linear-gradient(90deg, #fd7675, #e17055); }
+
+.ranking-score {
+  font-size: 0.8em;
+  font-weight: 700;
+  color: #636e72;
+  min-width: 30px;
+  text-align: right;
 }
 
 .sidebar-title {
