@@ -136,6 +136,12 @@
                         <select id="edit-category-filter" class="search-row-select">
                             <option value="">🌐 Tutte Categorie</option>
                         </select>
+                        <select id="edit-type-filter" class="search-row-select">
+                            <option value="">📋 Tutti i tipi</option>
+                            <option value="multiple">📋 Scelta multipla</option>
+                            <option value="truefalse">✔️ Vero/Falso</option>
+                            <option value="clickfirst">⚡ Clicca per primo</option>
+                        </select>
                         <button type="button" class="btn btn-info search-row-btn" onclick="searchAvailableQuestions()">Cerca</button>
                     </div>
                     <div id="edit-available-questions" class="questions-list">
@@ -192,6 +198,12 @@
                         </select>
                         <select id="add-category-filter" class="search-row-select">
                             <option value="">🌐 Tutte Categorie</option>
+                        </select>
+                        <select id="add-type-filter" class="search-row-select">
+                            <option value="">📋 Tutti i tipi</option>
+                            <option value="multiple">📋 Scelta multipla</option>
+                            <option value="truefalse">✔️ Vero/Falso</option>
+                            <option value="clickfirst">⚡ Clicca per primo</option>
                         </select>
                         <button type="button" class="btn btn-info search-row-btn" onclick="searchAvailableQuestionsForNewSet()">Cerca</button>
                     </div>
@@ -1358,6 +1370,7 @@ function searchAvailableQuestions() {
     const searchTerm = document.getElementById('edit-search-questions').value.trim();
     const searchType = document.getElementById('edit-search-type').value;
     const categoryId = document.getElementById('edit-category-filter').value;
+    const typeFilter = document.getElementById('edit-type-filter').value;
     const container = document.getElementById('edit-available-questions');
     const setId = document.getElementById('edit-set-id').value;
 
@@ -1385,11 +1398,12 @@ function searchAvailableQuestions() {
                     }
                 }
 
-                // Filter questions based on search term and category
+                // Filter questions based on search term, category and type
                 const filtered = data.questions.filter(q => {
                     const matchesSearch = !pattern || (q.question && pattern.test(q.question));
                     const matchesCategory = !categoryId || (q.category_id && q.category_id.toString() === categoryId);
-                    return matchesSearch && matchesCategory;
+                    const matchesType = !typeFilter || q.question_type === typeFilter;
+                    return matchesSearch && matchesCategory && matchesType;
                 });
 
                 if (filtered.length === 0) {
@@ -1487,6 +1501,7 @@ function searchAvailableQuestionsForNewSet() {
     const searchTerm = document.getElementById('add-search-questions').value.trim();
     const searchType = document.getElementById('add-search-type').value;
     const categoryId = document.getElementById('add-category-filter').value;
+    const typeFilter = document.getElementById('add-type-filter').value;
     const container = document.getElementById('add-available-questions');
     const associatedContainer = document.getElementById('add-set-associated-questions');
 
@@ -1512,11 +1527,12 @@ function searchAvailableQuestionsForNewSet() {
                     }
                 }
 
-                // Filter questions based on search term and category
+                // Filter questions based on search term, category and type
                 const filtered = data.questions.filter(q => {
                     const matchesSearch = !pattern || (q.question && pattern.test(q.question));
                     const matchesCategory = !categoryId || (q.category_id && q.category_id.toString() === categoryId);
-                    return matchesSearch && matchesCategory;
+                    const matchesType = !typeFilter || q.question_type === typeFilter;
+                    return matchesSearch && matchesCategory && matchesType;
                 });
 
                 if (filtered.length === 0) {
@@ -1881,7 +1897,7 @@ function createNewGame() {
     document.getElementById('edit-search-questions').value = '';
     document.getElementById('edit-category-filter').value = '';
     // Show the initial message as "Add Set"
-    document.getElementById('edit-available-questions').innerHTML = '<p class="text-muted-center">Search questions...</p>';
+    document.getElementById('edit-available-questions').innerHTML = '<p class="text-muted-center">Inserisci un termine di ricerca e clicca Cerca</p>';
 
     document.getElementById('modal-edit-set').style.display = 'flex';
 
