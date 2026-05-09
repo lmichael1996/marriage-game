@@ -36,14 +36,14 @@ class PDFGenerator {
 
         // Title
         $this->pdf->SetFillColor(128, 128, 128);
-        $this->pdf->SetFont(self::FONT, 'B', 30);
+        $this->pdf->SetFont(self::FONT, 'B', 38);
         $this->pdf->SetTextColor(255, 255, 255);
         $this->pdf->Cell(0, 20, $title, 0, 1, 'C', true);
         $this->pdf->SetTextColor(0, 0, 0);
         $this->pdf->Ln(10);
 
         // QR code SVG
-        $this->pdf->SetFont(self::FONT, '', 16);
+        $this->pdf->SetFont(self::FONT, '', 20);
         $this->pdf->Cell(0, 8, 'Inquadra il QR code per connetterti:', 0, 1, 'C');
         $this->pdf->Ln(5);
 
@@ -61,23 +61,23 @@ class PDFGenerator {
         $this->pdf->Ln($qrSize + 15);
 
         // Or connect via website
-        $this->pdf->SetFont(self::FONT, '', 16);
+        $this->pdf->SetFont(self::FONT, '', 20);
         $this->pdf->Cell(0, 8, 'Oppure connettiti a questo sito web:', 0, 1, 'C');
         $this->pdf->Ln(2);
 
         // Website
-        $this->pdf->SetFont(self::FONT, 'B', 18);
+        $this->pdf->SetFont(self::FONT, 'B', 22);
         $this->pdf->SetTextColor(45, 52, 54);
         $this->pdf->Cell(0, 8, $this->url, 0, 1, 'C', false, $this->url);
         $this->pdf->Ln(8);
 
         // Or connect with room code
-        $this->pdf->SetFont(self::FONT, '', 16);
+        $this->pdf->SetFont(self::FONT, '', 20);
         $this->pdf->SetTextColor(0, 0, 0);
         $this->pdf->Cell(0, 8, 'Con questo codice stanza:', 0, 1, 'C');
 
         // Room code
-        $this->pdf->SetFont(self::FONT, 'B', 42);
+        $this->pdf->SetFont(self::FONT, 'B', 52);
         $this->pdf->Cell(0, 16, $code, 0, 1, 'C');
     }
 
