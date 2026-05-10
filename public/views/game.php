@@ -144,7 +144,7 @@
                         </select>
                         <button type="button" class="btn btn-info search-row-btn" onclick="searchAvailableQuestions()">Cerca</button>
                     </div>
-                    <div id="edit-available-questions" class="questions-list">
+                    <div id="edit-available-questions">
                         <p class="placeholder-text">Inserisci un termine di ricerca e clicca Cerca</p>
                     </div>
                 </div>
@@ -207,7 +207,7 @@
                         </select>
                         <button type="button" class="btn btn-info search-row-btn" onclick="searchAvailableQuestionsForNewSet()">Cerca</button>
                     </div>
-                    <div id="add-available-questions" class="questions-list">
+                    <div id="add-available-questions">
                         <p class="placeholder-text">Inserisci un termine di ricerca e clicca Cerca</p>
                     </div>
                 </div>
@@ -1374,6 +1374,7 @@ function searchAvailableQuestions() {
     const container = document.getElementById('edit-available-questions');
     const setId = document.getElementById('edit-set-id').value;
 
+    container.classList.remove('questions-list');
     container.innerHTML = '<p class="text-muted-center">Ricerca in corso...</p>';
 
     // Fetch all questions to apply client-side filtering
@@ -1447,6 +1448,7 @@ function searchAvailableQuestions() {
                             </div>
                         `;
                     });
+                    container.classList.add('questions-list');
                     container.innerHTML = html;
                     return;
                 }
@@ -1485,6 +1487,7 @@ function searchAvailableQuestions() {
                         </div>
                     `;
                 });
+                container.classList.add('questions-list');
                 container.innerHTML = html;
             } else {
                 container.innerHTML = '<p class="text-error-center">Errore nel caricamento domande</p>';
@@ -1505,6 +1508,7 @@ function searchAvailableQuestionsForNewSet() {
     const container = document.getElementById('add-available-questions');
     const associatedContainer = document.getElementById('add-set-associated-questions');
 
+    container.classList.remove('questions-list');
     // Fetch all questions (always, to update the list excluding those just added)
     api('get_questions')
         .then(data => {
@@ -1573,6 +1577,7 @@ function searchAvailableQuestionsForNewSet() {
                         </div>
                     `;
                 });
+                container.classList.add('questions-list');
                 container.innerHTML = html;
             } else {
                 container.innerHTML = '<p class="text-error-center">Errore nel caricamento domande</p>';
