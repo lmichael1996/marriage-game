@@ -3,8 +3,8 @@
 
 
 define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_USER', 'phpuser');
+define('DB_PASS', 'PippoMelo123!'); // la password che hai scelto
 define('DB_NAME', 'marriage_game');
 
 /*

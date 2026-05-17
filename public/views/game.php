@@ -133,11 +133,11 @@
                             <option value="ends_with">Finisce con</option>
                             <option value="exact">Esattamente</option>
                         </select>
-                        <select id="edit-category-filter" class="search-row-select">
+                        <select id="edit-category-filter" class="search-row-select" onchange="searchAvailableQuestions()">
                             <option value="">🌐 Tutte Categorie</option>
                         </select>
-                        <select id="edit-type-filter" class="search-row-select">
-                            <option value="">📋 Tutti i tipi</option>
+                        <select id="edit-type-filter" class="search-row-select" onchange="searchAvailableQuestions()">
+                            <option value="">Tutti i tipi</option>
                             <option value="multiple">📋 Scelta multipla</option>
                             <option value="truefalse">✔️ Vero/Falso</option>
                             <option value="clickfirst">⚡ Clicca per primo</option>
@@ -196,11 +196,11 @@
                             <option value="ends_with">Finisce con</option>
                             <option value="exact">Esattamente</option>
                         </select>
-                        <select id="add-category-filter" class="search-row-select">
+                        <select id="add-category-filter" class="search-row-select" onchange="searchAvailableQuestionsForNewSet()">
                             <option value="">🌐 Tutte Categorie</option>
                         </select>
-                        <select id="add-type-filter" class="search-row-select">
-                            <option value="">📋 Tutti i tipi</option>
+                        <select id="add-type-filter" class="search-row-select" onchange="searchAvailableQuestionsForNewSet()">
+                            <option value="">Tutti i tipi</option>
                             <option value="multiple">📋 Scelta multipla</option>
                             <option value="truefalse">✔️ Vero/Falso</option>
                             <option value="clickfirst">⚡ Clicca per primo</option>

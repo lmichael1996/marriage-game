@@ -1,4 +1,60 @@
 <?php
+require_once __DIR__ . '/../config/app.php';
+
+// ── Debug error handlers (JSON instead of HTML on 500) ────────────────────
+
+if (DEBUG) {
+    ini_set('display_errors', '0');
+    error_reporting(E_ALL);
+} else {
+    ini_set('display_errors', '0');
+    error_reporting(0);
+}
+
+function _apiJsonError(int $code, string $message, array $extra = []): never
+{
+    while (ob_get_level()) ob_end_clean();
+    if (!headers_sent()) {
+        http_response_code($code);
+        header('Content-Type: application/json');
+    }
+    $body = ['success' => false, 'error' => $message];
+    if (DEBUG && $extra) {
+        $body['debug'] = $extra;
+    }
+    echo json_encode($body);
+    exit;
+}
+
+set_exception_handler(function (Throwable $e): never {
+    _apiJsonError(500, DEBUG ? $e->getMessage() : 'Errore interno del server', [
+        'type'  => get_class($e),
+        'file'  => $e->getFile(),
+        'line'  => $e->getLine(),
+        'trace' => $e->getTraceAsString(),
+    ]);
+});
+
+set_error_handler(function (int $errno, string $errstr, string $errfile, int $errline): bool {
+    if (!(error_reporting() & $errno)) return false;
+    _apiJsonError(500, DEBUG ? $errstr : 'Errore interno del server', [
+        'type' => 'PHP Error ' . $errno,
+        'file' => $errfile,
+        'line' => $errline,
+    ]);
+});
+
+register_shutdown_function(function (): void {
+    $err = error_get_last();
+    if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
+        _apiJsonError(500, DEBUG ? $err['message'] : 'Errore interno del server', [
+            'type' => 'Fatal Error ' . $err['type'],
+            'file' => $err['file'],
+            'line' => $err['line'],
+        ]);
+    }
+});
+
 require_once __DIR__ . '/Router.php';
 require_once __DIR__ . '/controllers/AuthController.php';
 require_once __DIR__ . '/controllers/RoomController.php';

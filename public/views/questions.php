@@ -30,10 +30,10 @@
             <?php endforeach; ?>
         </select>
         <select name="question_type_filter" id="filter-question-type" class="search-select">
-            <option value="">📋 Tutti i tipi</option>
-            <option value="multiple" <?php echo ($_POST['question_type_filter'] ?? '') === 'multiple' ? 'selected' : ''; ?>>Risposta Multipla</option>
-            <option value="truefalse" <?php echo ($_POST['question_type_filter'] ?? '') === 'truefalse' ? 'selected' : ''; ?>>Vero/Falso</option>
-            <option value="clickfirst" <?php echo ($_POST['question_type_filter'] ?? '') === 'clickfirst' ? 'selected' : ''; ?>>Clicca per Primo</option>
+            <option value="">Tutti i tipi</option>
+            <option value="multiple" <?php echo ($_POST['question_type_filter'] ?? '') === 'multiple' ? 'selected' : ''; ?>>📋 Risposta Multipla</option>
+            <option value="truefalse" <?php echo ($_POST['question_type_filter'] ?? '') === 'truefalse' ? 'selected' : ''; ?>>✔️ Vero/Falso</option>
+            <option value="clickfirst" <?php echo ($_POST['question_type_filter'] ?? '') === 'clickfirst' ? 'selected' : ''; ?>>⚡ Clicca per Primo</option>
         </select>
         <button type="submit" class="search-btn">Cerca</button>
         <?php if (!empty($_POST['search_query']) || !empty($_POST['category']) || !empty($_POST['question_type_filter'])): ?>
@@ -129,8 +129,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Auto-submit form quando cambia la categoria
     document.getElementById('filter-category').addEventListener('change', function() {
         colorCategorySelect(this);
-        const form = this.closest('form');
-        form.submit();
+        this.closest('form').submit();
+    });
+
+    document.getElementById('filter-question-type').addEventListener('change', function() {
+        this.closest('form').submit();
     });
 
     // Color the options of the category select with the colored dot
@@ -291,9 +294,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (form) {
                 const searchInput = document.querySelector('input[name="search_query"]');
                 const categorySelect = document.querySelector('select[name="category"]');
+                const typeSelect = document.querySelector('select[name="question_type_filter"]');
                 const pageInput = document.getElementById('questions_page');
                 if (searchInput) searchInput.value = '';
                 if (categorySelect) categorySelect.value = '';
+                if (typeSelect) typeSelect.value = '';
                 if (pageInput) pageInput.value = 1;
                 form.submit();
             }

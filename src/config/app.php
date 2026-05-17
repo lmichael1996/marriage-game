@@ -10,3 +10,5 @@ define('BASE_URL', '/game/');
 */
 
 define('BASE_URL', '/');
+
+define('DEBUG', false);
